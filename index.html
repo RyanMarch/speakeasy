@@ -3,19 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Speakeasy</title>
+  <title>Speakeasy — Cocktail Recipe Vault</title>
+  <meta name="description" content="Local-first cocktail recipe vault with interactive vector fluid glassware layers and instant spec parsing.">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
   <div id="app">
+    <!-- Main Header -->
     <header class="app-header">
-      <h1>Speakeasy</h1>
+      <div class="brand-group">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 22h8" />
+          <path d="M12 11v11" />
+          <path d="m19 3-7 8-7-8Z" />
+        </svg>
+        <div>
+          <h1 class="brand-title">Speakeasy</h1>
+          <div class="brand-subtitle">Cocktail Recipe Vault</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-new-drink" class="btn btn-primary" title="Create a new cocktail recipe">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          New Drink
+        </button>
+        <button id="btn-export-json" class="btn btn-secondary btn-sm" title="Download recipes as JSON backup">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Export
+        </button>
+        <button id="btn-import-trigger" class="btn btn-secondary btn-sm" title="Import recipes from JSON file">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Import
+        </button>
+        <input type="file" id="import-file-input" accept=".json,application/json" style="display: none;" aria-label="Upload JSON recipes file">
+      </div>
     </header>
+
+    <!-- Two-Pane Application Shell -->
     <main class="app-main">
-      <p>Workspace initialized.</p>
+      <!-- Left Pane: Sidebar & Recipe Navigation -->
+      <aside class="sidebar" id="sidebar" aria-label="Cocktail library sidebar">
+        <div class="sidebar-search-box">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="search" id="search-input" class="search-input" placeholder="Search drinks, spirits, glassware..." aria-label="Search recipes">
+            <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
+          </div>
+        </div>
+
+        <ul class="recipe-list" id="recipe-list" role="listbox" aria-label="Recipe List">
+          <!-- Dynamically populated recipe cards -->
+        </ul>
+
+        <div class="sidebar-footer">
+          <span id="recipe-count-badge">0 Cocktails</span>
+          <button id="btn-reset-defaults" class="btn btn-ghost btn-sm" title="Restore default classic cocktails">Reset</button>
+        </div>
+      </aside>
+
+      <!-- Right Pane: Main Display Area -->
+      <section class="main-stage" id="main-stage" aria-label="Recipe details and workspace">
+        <!-- Counter View Container -->
+        <div id="counter-view-container" class="counter-view">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Recipe Editor View Container (Hidden initially) -->
+        <div id="editor-view-container" class="editor-view" style="display: none;">
+          <!-- Rendered dynamically -->
+        </div>
+      </section>
     </main>
+
+    <!-- Toast Notifications Area -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
