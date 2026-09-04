@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Speakeasy — Cocktail Recipe Vault</title>
-  <meta name="description" content="Local-first cocktail recipe vault with interactive vector fluid glassware layers and instant spec parsing.">
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/index.css">
+  <title>Speakeasy: Cocktail Recipe Vault</title>
+  <meta name="description"
+    content="Local-first cocktail recipe vault with interactive vector fluid glassware layers and instant spec parsing.">
+  <link rel="stylesheet" href="css/base.css?v=10">
+  <link rel="stylesheet" href="css/index.css?v=10">
 </head>
+
 <body>
   <div id="app">
     <!-- Main Header -->
     <header class="app-header">
       <div class="brand-group">
-        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M8 22h8" />
           <path d="M12 11v11" />
           <path d="m19 3-7 8-7-8Z" />
@@ -25,23 +29,44 @@
       </div>
 
       <div class="header-actions">
-        <button id="btn-my-bar" class="btn btn-secondary btn-sm my-bar-btn" title="Manage your personal backbar inventory">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8"></path><path d="M9 2v3h6V2"></path><path d="M7 5h10v17H7z"></path></svg>
-          My Bar (<span id="my-bar-badge">0</span>)
+        <button id="btn-my-bar" class="btn btn-secondary btn-sm my-bar-btn"
+          title="Manage your personal backbar inventory">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 2h8"></path>
+            <path d="M9 2v3h6V2"></path>
+            <path d="M7 5h10v17H7z"></path>
+          </svg>
+          <span class="btn-text">My Bar</span> (<span id="my-bar-badge">0</span>)
         </button>
         <button id="btn-new-drink" class="btn btn-primary" title="Create a new cocktail recipe">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          New Drink
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span class="btn-text">New Drink</span>
         </button>
         <button id="btn-export-json" class="btn btn-secondary btn-sm" title="Download recipes as JSON backup">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Export
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span class="btn-text">Export</span>
         </button>
         <button id="btn-import-trigger" class="btn btn-secondary btn-sm" title="Import recipes from JSON file">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Import
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span class="btn-text">Import</span>
         </button>
-        <input type="file" id="import-file-input" accept=".json,application/json" style="display: none;" aria-label="Upload JSON recipes file">
+        <input type="file" id="import-file-input" accept=".json,application/json" style="display: none;"
+          aria-label="Upload JSON recipes file">
       </div>
     </header>
 
@@ -51,22 +76,25 @@
       <aside class="sidebar" id="sidebar" aria-label="Cocktail library sidebar">
         <div class="sidebar-search-box">
           <div class="search-input-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="search" id="search-input" class="search-input" placeholder="Search drinks, spirits, glassware..." aria-label="Search recipes">
+            <input type="search" id="search-input" class="search-input"
+              placeholder="Search drinks, spirits, glassware..." aria-label="Search recipes">
             <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
           </div>
         </div>
 
         <!-- Inventory Filter Tabs -->
-        <div class="sidebar-inventory-filter" id="sidebar-inventory-filter" role="tablist" aria-label="Inventory filter">
+        <div class="sidebar-inventory-filter" id="sidebar-inventory-filter" role="tablist"
+          aria-label="Inventory filter">
           <button class="inventory-filter-btn active" data-filter="all" role="tab" aria-selected="true">
             All <span class="filter-count" id="count-all">0</span>
           </button>
           <button class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
-            Can Make <span class="filter-count" id="count-can-make">0</span>
+            Ready <span class="filter-count" id="count-can-make">0</span>
           </button>
           <button class="inventory-filter-btn" data-filter="one_missing" role="tab" aria-selected="false">
             Bottle Next <span class="filter-count" id="count-one-missing">0</span>
@@ -79,7 +107,6 @@
 
         <div class="sidebar-footer">
           <span id="recipe-count-badge">0 Cocktails</span>
-          <button id="btn-reset-defaults" class="btn btn-ghost btn-sm" title="Restore default classic cocktails">Reset</button>
         </div>
       </aside>
 
@@ -105,20 +132,25 @@
             <h2 id="backbar-modal-title" class="backbar-dialog-title">Personal Backbar</h2>
             <p class="backbar-dialog-subtitle">Select the bottles and bar staples you keep in stock.</p>
           </div>
-          <button id="btn-close-backbar" class="btn btn-ghost btn-sm close-modal-btn" aria-label="Close modal">✕</button>
+          <button id="btn-close-backbar" class="btn btn-ghost btn-sm close-modal-btn"
+            aria-label="Close modal">✕</button>
         </div>
 
         <div class="backbar-toolbar">
           <div class="search-input-wrapper backbar-search-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="search" id="backbar-search-input" class="search-input" placeholder="Search taxonomy bottles..." aria-label="Search backbar items">
+            <input type="search" id="backbar-search-input" class="search-input" placeholder="Search taxonomy bottles..."
+              aria-label="Search backbar items">
           </div>
           <div class="backbar-quick-actions">
-            <button id="btn-starter-bar" class="btn btn-secondary btn-sm" title="Add essential bar staples">Starter Bar</button>
-            <button id="btn-clear-bar" class="btn btn-ghost btn-sm" title="Clear all inventory bottles">Clear All</button>
+            <button id="btn-starter-bar" class="btn btn-secondary btn-sm" title="Add essential bar staples">Starter
+              Bar</button>
+            <button id="btn-clear-bar" class="btn btn-ghost btn-sm" title="Clear all inventory bottles">Clear
+              All</button>
           </div>
         </div>
 
@@ -137,6 +169,7 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=7"></script>
 </body>
+
 </html>

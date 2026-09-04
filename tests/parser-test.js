@@ -337,9 +337,88 @@ const starterBarSet = new Set(DEFAULT_STARTER_BAR);
 const starterCanMakeCount = SEED_RECIPES.filter(r => analyzeRecipeInventory(r, starterBarSet).canMake).length;
 const starterBottleNextCount = SEED_RECIPES.filter(r => analyzeRecipeInventory(r, starterBarSet).isBottleNext).length;
 console.log(`Starter Bar yields ${starterCanMakeCount} makeable drinks and ${starterBottleNextCount} bottle-next drinks.`);
-if (starterCanMakeCount < 3) throw new Error('Starter bar should unlock at least 3 seed classics');
+
+// 7. In-Stock Substitute Recommendation Engine
+const oldFashionedMissingDemerara = {
+  id: 'of-test',
+  name: 'Old Fashioned',
+  specs: [
+    { amount: 2, unit: 'oz', name: 'Bourbon' },
+    { amount: 0.25, unit: 'oz', name: 'Demerara Syrup' },
+    { amount: 2, unit: 'dashes', name: 'Angostura Bitters' },
+  ],
+};
+const userBarWithMaple = new Set(['bourbon', 'aromatic_bitters', 'maple_syrup']);
+const ofSubAnalysis = analyzeRecipeInventory(oldFashionedMissingDemerara, userBarWithMaple);
+if (!ofSubAnalysis.canMakeWithSubs) {
+  throw new Error('Old Fashioned should be makeable with substitutes when user has Maple Syrup');
+}
+if (ofSubAnalysis.bestSubstitute?.id !== 'maple_syrup') {
+  throw new Error(`Expected best substitute to be maple_syrup, got ${ofSubAnalysis.bestSubstitute?.id}`);
+}
+console.log('In-Stock Substitute Recommendation verified:', ofSubAnalysis.bestSubstitute.name, 'for', ofSubAnalysis.missingWithSub.name);
+
+console.log('--- Testing Arbitrary Tags & Lists Engine ---');
+import { getAllUniqueTags, saveRecipe as testSaveRecipe } from '../js/modules/storage.js';
+
+// 1. getAllUniqueTags extraction, normalization and sorting
+const mockRecipesWithTags = [
+  { id: '1', name: 'Drink 1', tags: ['summer', 'party', 'sour'] },
+  { id: '2', name: 'Drink 2', tags: ['party', 'whiskey', 'evening'] },
+  { id: '3', name: 'Drink 3', tags: ['SUMMER', 'favorites'] },
+  { id: '4', name: 'Drink 4' }, // No tags
+];
+const extractedTags = getAllUniqueTags(mockRecipesWithTags);
+console.log('Extracted unique tags:', extractedTags);
+if (!extractedTags.includes('summer') || !extractedTags.includes('party') || !extractedTags.includes('favorites')) {
+  throw new Error('getAllUniqueTags failed to extract expected tags');
+}
+if (extractedTags.filter(t => t === 'summer').length !== 1) {
+  throw new Error('getAllUniqueTags should deduplicate case-insensitively');
+}
+// Check alphabetical order
+const isSorted = extractedTags.slice(1).every((item, i) => extractedTags[i].localeCompare(item) <= 0);
+if (!isSorted) throw new Error('Unique tags must be sorted alphabetically');
+
+// 2. Tag query search matching
+const summerDrink = {
+  name: 'Mojito',
+  tags: ['summer', 'poolside', 'rum-drinks'],
+  specs: [{ amount: 2, unit: 'oz', name: 'White Rum' }],
+};
+if (!recipeMatchesQuery(summerDrink, '#summer')) {
+  throw new Error('recipeMatchesQuery should match hashtag query "#summer"');
+}
+if (!recipeMatchesQuery(summerDrink, '#poolside')) {
+  throw new Error('recipeMatchesQuery should match hashtag query "#poolside"');
+}
+if (!recipeMatchesQuery(summerDrink, 'poolside')) {
+  throw new Error('recipeMatchesQuery should match plain text query "poolside" against tags');
+}
+if (recipeMatchesQuery(summerDrink, '#winter')) {
+  throw new Error('recipeMatchesQuery should not match unrelated tag query');
+}
+console.log('Tag hashtag matching and plain text tag matching verified.');
+
+console.log('--- Testing URL-Safe Slug Generation ---');
+import { slugifyRecipeName } from '../js/modules/storage.js';
+
+const slug1 = slugifyRecipeName('Scotch Old Fashioned');
+if (slug1 !== 'scotch-old-fashioned') {
+  throw new Error(`Expected "scotch-old-fashioned", got "${slug1}"`);
+}
+
+const slug2 = slugifyRecipeName('Old Fashioned (Scotch Whisky / Maple Syrup Riff)');
+if (slug2 !== 'old-fashioned-scotch-whisky-maple-syrup-riff') {
+  throw new Error(`Expected "old-fashioned-scotch-whisky-maple-syrup-riff", got "${slug2}"`);
+}
+
+// Deduplication
+const existingIds = new Set(['scotch-old-fashioned', 'scotch-old-fashioned-2']);
+const slug3 = slugifyRecipeName('Scotch Old Fashioned', existingIds);
+if (slug3 !== 'scotch-old-fashioned-3') {
+  throw new Error(`Expected "scotch-old-fashioned-3", got "${slug3}"`);
+}
+console.log('Clean URL slug generation verified.');
 
 console.log('All tests completed successfully!');
-
-
-

@@ -882,6 +882,17 @@ export const TAXONOMY = {
     defaultAbv: 0,
     aliases: ['orange juice', 'fresh oj', 'blood orange juice', 'fresh orange juice', 'fresh orange'],
   },
+  pineapple_juice: {
+    id: 'pineapple_juice',
+    name: 'Pineapple Juice',
+    family: 'fruit_juice',
+    parent: 'produce',
+    color: '#f3da58',
+    light: '#f9e87d',
+    dark: '#c7ae29',
+    defaultAbv: 0,
+    aliases: ['pineapple juice', 'fresh pineapple juice', 'fresh pineapple', 'pineapple'],
+  },
   fruit_juice: {
     id: 'fruit_juice',
     name: 'Fruit Juice',
@@ -891,7 +902,7 @@ export const TAXONOMY = {
     light: '#f7b958',
     dark: '#ab6c13',
     defaultAbv: 0,
-    aliases: ['pineapple juice', 'fresh pineapple juice', 'cranberry juice', 'apple cider', 'apple juice'],
+    aliases: ['cranberry juice', 'apple cider', 'apple juice'],
   },
   tomato_juice: {
     id: 'tomato_juice',
@@ -1317,6 +1328,13 @@ export function recipeMatchesQuery(recipe, query = '') {
   const q = query.trim().toLowerCase();
   if (!q) return true;
 
+  // Explicit hashtag search (#tag)
+  if (q.startsWith('#')) {
+    const tagTerm = q.slice(1).trim();
+    if (!tagTerm) return true;
+    return Array.isArray(recipe.tags) && recipe.tags.some(t => (t || '').toLowerCase().includes(tagTerm));
+  }
+
   // Metadata checks
   if ((recipe.name || '').toLowerCase().includes(q)) return true;
   if ((recipe.glassware || '').toLowerCase().includes(q)) return true;
@@ -1364,12 +1382,12 @@ export function getIngredientSubstitutes(rawIngredientName = '') {
     }
     // 2. Agave spirits cross-family (mezcal <-> tequila)
     else if ((current.family === 'tequila' || current.family === 'agave_spirits') &&
-             (candidate.family === 'tequila' || candidate.family === 'agave_spirits')) {
+      (candidate.family === 'tequila' || candidate.family === 'agave_spirits')) {
       isMatch = true;
     }
     // 3. Cane spirits cross-family (rum <-> rhum_agricole / cachaca)
     else if ((current.family === 'rum' || current.family === 'cane_spirits') &&
-             (candidate.family === 'rum' || candidate.family === 'cane_spirits')) {
+      (candidate.family === 'rum' || candidate.family === 'cane_spirits')) {
       isMatch = true;
     }
     // 4. Fortified wine cross-family (vermouth <-> quinquina <-> sherry)
@@ -1378,7 +1396,7 @@ export function getIngredientSubstitutes(rawIngredientName = '') {
     }
     // 5. Syrups cross-family (cane_syrup <-> flavored_syrup)
     else if ((current.family === 'cane_syrup' || current.family === 'flavored_syrup') &&
-             (candidate.family === 'cane_syrup' || candidate.family === 'flavored_syrup')) {
+      (candidate.family === 'cane_syrup' || candidate.family === 'flavored_syrup')) {
       isMatch = true;
     }
 
@@ -1462,7 +1480,7 @@ export function findSimilarCocktails(currentRecipe, allRecipes = []) {
 
   // 1. If this recipe is a riff of another cocktail, link the original cocktail first
   if (currentLineage) {
-    const parent = allRecipes.find(r => 
+    const parent = allRecipes.find(r =>
       (currentLineage.parentId && r.id === currentLineage.parentId) ||
       (currentLineage.parentName && r.name.toLowerCase().trim() === currentLineage.parentName.toLowerCase().trim())
     );
@@ -1667,7 +1685,7 @@ export function checkIngredientStock(specName, inventorySet = new Set()) {
  */
 export function analyzeRecipeInventory(recipe, inventorySet = new Set()) {
   if (!recipe || !Array.isArray(recipe.specs)) {
-    return { canMake: false, isBottleNext: false, missingCount: 0, missingItems: [], matchedItems: [], totalCount: 0, matchCount: 0 };
+    return { canMake: false, canMakeWithSubs: false, isBottleNext: false, missingCount: 0, missingItems: [], matchedItems: [], itemsWithInStockSubs: [], missingWithSub: null, bestSubstitute: null, totalCount: 0, matchCount: 0 };
   }
 
   const missingItems = [];
@@ -1688,6 +1706,16 @@ export function analyzeRecipeInventory(recipe, inventorySet = new Set()) {
     if (stockStatus.inStock) {
       matchedItems.push(stockStatus);
     } else {
+      // Find in-stock substitutes from user inventory
+      const substitutes = getIngredientSubstitutes(stockStatus.name);
+      const inStockSubstitutes = [];
+      for (const sub of substitutes) {
+        const subStock = checkIngredientStock(sub.name, inventorySet);
+        if (subStock.inStock) {
+          inStockSubstitutes.push(sub);
+        }
+      }
+      stockStatus.inStockSubstitutes = inStockSubstitutes;
       missingItems.push(stockStatus);
     }
   }
@@ -1697,12 +1725,21 @@ export function analyzeRecipeInventory(recipe, inventorySet = new Set()) {
   const canMake = missingCount === 0 && totalCount > 0;
   const isBottleNext = missingCount === 1;
 
+  const itemsWithInStockSubs = missingItems.filter(m => m.inStockSubstitutes && m.inStockSubstitutes.length > 0);
+  const canMakeWithSubs = !canMake && missingItems.length > 0 && itemsWithInStockSubs.length === missingItems.length;
+  const missingWithSub = itemsWithInStockSubs.length > 0 ? itemsWithInStockSubs[0] : null;
+  const bestSubstitute = missingWithSub ? missingWithSub.inStockSubstitutes[0] : null;
+
   return {
     canMake,
+    canMakeWithSubs,
     isBottleNext,
     missingCount,
     missingItems,
     matchedItems,
+    itemsWithInStockSubs,
+    missingWithSub,
+    bestSubstitute,
     totalCount,
     matchCount: matchedItems.length,
   };

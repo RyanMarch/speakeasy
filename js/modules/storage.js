@@ -16,7 +16,8 @@ export const SEED_RECIPES = [
     instructions: '1. Add bourbon, demerara syrup, and bitters to a mixing glass filled with ice.\n2. Stir thoroughly for 25-30 seconds until well-chilled and properly diluted.\n3. Strain into a rocks glass over a single large ice cube.\n4. Express orange peel oils over the rim and garnish.',
     source: 'Classic',
     sourceUrl: '',
-    notes: 'Build over a single large ice cube. Express orange peel oils over the glass rim.',
+    notes: '',
+    tags: ['classic', 'whiskey-forward', 'slow-sipper'],
     specs: [
       { amount: 2, unit: 'oz', name: 'Bourbon' },
       { amount: 0.25, unit: 'oz', name: 'Demerara Syrup' },
@@ -34,7 +35,8 @@ export const SEED_RECIPES = [
     instructions: '1. Combine gin, Campari, and sweet vermouth in a mixing glass with cracked ice.\n2. Stir for 20-30 seconds until cold.\n3. Strain into a chilled rocks glass over a large ice sphere or cube.\n4. Garnish with a freshly expressed orange peel.',
     source: 'Count Camillo Negroni, Florence (1919)',
     sourceUrl: '',
-    notes: 'Equal parts classic. Stir with cracked ice and strain over a fresh ice sphere.',
+    notes: '',
+    tags: ['classic', 'aperitivo', 'bittersweet'],
     specs: [
       { amount: 1, unit: 'oz', name: 'London Dry Gin' },
       { amount: 1, unit: 'oz', name: 'Campari' },
@@ -54,6 +56,7 @@ export const SEED_RECIPES = [
     notes: 'Whiskey riff on the Negroni. The rich vanilla and oak tones of bourbon soften the bitter Campari.',
     riffOfId: 'negroni',
     riffOfName: 'Negroni',
+    tags: ['whiskey-forward', 'aperitivo', 'riff'],
     specs: [
       { amount: 1.5, unit: 'oz', name: 'Bourbon' },
       { amount: 1, unit: 'oz', name: 'Campari' },
@@ -67,6 +70,7 @@ export const SEED_RECIPES = [
     method: 'Shaken',
     garnish: 'Lime wheel',
     notes: 'Shake hard with plenty of ice and fine-strain into a chilled coupe.',
+    tags: ['classic', 'rum', 'sour', 'summer'],
     specs: [
       { amount: 2, unit: 'oz', name: 'White Rum' },
       { amount: 0.75, unit: 'oz', name: 'Fresh Lime Juice' },
@@ -80,6 +84,7 @@ export const SEED_RECIPES = [
     method: 'Stirred',
     garnish: 'Brandied cherry',
     notes: 'Stir thoroughly with ice for 30 seconds to achieve silky dilution and chill.',
+    tags: ['classic', 'whiskey-forward', 'nightcap'],
     specs: [
       { amount: 2, unit: 'oz', name: 'Rye Whiskey' },
       { amount: 1, unit: 'oz', name: 'Sweet Vermouth' },
@@ -93,6 +98,7 @@ export const SEED_RECIPES = [
     method: 'Shaken',
     garnish: 'Half salt rim & lime wedge',
     notes: 'Shake with clean ice and fine-strain into a chilled coupe.',
+    tags: ['classic', 'tequila', 'party', 'sour'],
     specs: [
       { amount: 2, unit: 'oz', name: 'Blanco Tequila' },
       { amount: 1, unit: 'oz', name: 'Cointreau' },
@@ -107,6 +113,7 @@ export const SEED_RECIPES = [
     method: 'Stirred',
     garnish: 'Lemon peel (expressed & discarded)',
     notes: 'Chill a rocks glass with ice. Coat with absinthe rinse. Stir remaining spirits with ice and strain neat.',
+    tags: ['classic', 'whiskey-forward', 'new-orleans'],
     specs: [
       { amount: 2, unit: 'oz', name: 'Rye Whiskey' },
       { amount: 0.25, unit: 'oz', name: 'Rich Simple Syrup' },
@@ -122,6 +129,7 @@ export const SEED_RECIPES = [
     method: 'Shaken',
     garnish: 'Brandied cherry',
     notes: 'Equal parts pre-prohibition standard from the Detroit Athletic Club.',
+    tags: ['classic', 'herbal', 'equal-parts'],
     specs: [
       { amount: 0.75, unit: 'oz', name: 'London Dry Gin' },
       { amount: 0.75, unit: 'oz', name: 'Green Chartreuse' },
@@ -136,6 +144,7 @@ export const SEED_RECIPES = [
     method: 'Shaken',
     garnish: 'Angostura drops & lemon wheel',
     notes: 'Shake with ice and double strain. Optional dry shake with egg white or aquafaba for texture.',
+    tags: ['classic', 'sour', 'crowd-pleaser'],
     specs: [
       { amount: 2, unit: 'oz', name: 'Bourbon' },
       { amount: 0.75, unit: 'oz', name: 'Fresh Lemon Juice' },
@@ -150,6 +159,7 @@ export const SEED_RECIPES = [
     method: 'Built',
     garnish: 'Lime wedge',
     notes: 'Pour gin over clean ice spears, top with cold tonic water, stir once gently to preserve carbonation.',
+    tags: ['refreshing', 'highball', 'summer', 'easy'],
     specs: [
       { amount: 2, unit: 'oz', name: 'London Dry Gin' },
       { amount: 4, unit: 'oz', name: 'Tonic Water' },
@@ -166,14 +176,68 @@ export function getRecipes() {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      // Ensure seed riff relationship exists for users with previously cached storage
+      // Ensure seed riff relationship and tags exist for users with previously cached storage
+      let updatedStorage = false;
       const hasBoulevardier = parsed.some(r => r.id === 'boulevardier');
       if (!hasBoulevardier) {
         const bRecipe = SEED_RECIPES.find(r => r.id === 'boulevardier');
         if (bRecipe) {
           parsed.push(bRecipe);
-          saveRecipes(parsed);
+          updatedStorage = true;
         }
+      }
+      parsed.forEach(r => {
+        const seed = SEED_RECIPES.find(s => s.id === r.id);
+        if (seed) {
+          // Clear duplicate notes on recipes that now have dedicated step instructions
+          if ((r.id === 'old-fashioned' || r.id === 'negroni') && r.notes) {
+            r.notes = '';
+            updatedStorage = true;
+          }
+          // Backfill all properties from seed that might be missing in older stored versions
+          Object.keys(seed).forEach(key => {
+            if (r[key] === undefined || r[key] === null || r[key] === '') {
+              r[key] = Array.isArray(seed[key]) ? [...seed[key]] : seed[key];
+              updatedStorage = true;
+            } else if (Array.isArray(seed[key]) && (!Array.isArray(r[key]) || r[key].length === 0)) {
+              r[key] = [...seed[key]];
+              updatedStorage = true;
+            }
+          });
+        } else if (!Array.isArray(r.tags)) {
+          r.tags = [];
+          updatedStorage = true;
+        }
+      });
+
+      // Migrate legacy random IDs (rec_... / recipe-...) to clean, consistent slugs
+      const existingIds = new Set(parsed.map(r => r.id));
+      parsed.forEach(r => {
+        if (r.id && (r.id.startsWith('rec_') || r.id.startsWith('recipe-'))) {
+          existingIds.delete(r.id);
+          const newSlug = slugifyRecipeName(r.name, existingIds);
+          existingIds.add(newSlug);
+
+          if (typeof window !== 'undefined' && window.location && window.location.hash === `#${r.id}`) {
+            history.replaceState(null, '', `#${newSlug}`);
+          }
+          if (typeof localStorage !== 'undefined') {
+            try {
+              const lastActive = localStorage.getItem('speakeasy_last_active_recipe');
+              if (lastActive === r.id) {
+                localStorage.setItem('speakeasy_last_active_recipe', newSlug);
+              }
+            } catch {
+              // Ignore
+            }
+          }
+          r.id = newSlug;
+          updatedStorage = true;
+        }
+      });
+
+      if (updatedStorage) {
+        saveRecipes(parsed);
       }
       return parsed;
     }
@@ -183,6 +247,29 @@ export function getRecipes() {
     console.error('Failed to read recipes from localStorage:', err);
     return SEED_RECIPES;
   }
+}
+
+/**
+ * Creates a clean, URL-safe slug from a cocktail name (e.g. "Scotch Old Fashioned" -> "scotch-old-fashioned")
+ */
+export function slugifyRecipeName(name, existingIds = new Set()) {
+  const base = String(name || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    || 'cocktail';
+
+  let slug = base;
+  let counter = 2;
+  while (existingIds.has(slug)) {
+    slug = `${base}-${counter}`;
+    counter++;
+  }
+  return slug;
 }
 
 export function saveRecipes(recipes) {
@@ -195,8 +282,15 @@ export function saveRecipes(recipes) {
 
 export function saveRecipe(recipe) {
   const recipes = getRecipes();
-  const id = recipe.id || `recipe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-  const updatedRecipe = { ...recipe, id };
+  const existingIds = new Set(recipes.map(r => r.id));
+  if (recipe.id) {
+    existingIds.delete(recipe.id);
+  }
+  const id = recipe.id || slugifyRecipeName(recipe.name, existingIds);
+  const tags = Array.isArray(recipe.tags)
+    ? Array.from(new Set(recipe.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean)))
+    : [];
+  const updatedRecipe = { ...recipe, id, tags };
 
   const existingIndex = recipes.findIndex(r => r.id === id);
   let updatedList;
@@ -245,7 +339,7 @@ export function importRecipesJSON(jsonString, mode = 'merge') {
   const validRecipes = imported.filter(item => {
     return item && typeof item === 'object' && typeof item.name === 'string' && item.name.trim().length > 0;
   }).map(item => ({
-    id: item.id || `recipe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    id: item.id || slugifyRecipeName(item.name),
     name: item.name.trim(),
     glassware: item.glassware || 'Rocks',
     method: item.method || 'Stirred',
@@ -257,6 +351,9 @@ export function importRecipesJSON(jsonString, mode = 'merge') {
     notes: item.notes || '',
     riffOfId: item.riffOfId || null,
     riffOfName: item.riffOfName || '',
+    tags: Array.isArray(item.tags)
+      ? Array.from(new Set(item.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean)))
+      : [],
     specs: Array.isArray(item.specs) ? item.specs.map(s => ({
       amount: s.amount !== null && s.amount !== undefined && !isNaN(Number(s.amount)) ? Number(s.amount) : null,
       unit: s.unit || '',
@@ -282,6 +379,19 @@ export function importRecipesJSON(jsonString, mode = 'merge') {
 
   saveRecipes(merged);
   return merged;
+}
+
+export function getAllUniqueTags(recipes = []) {
+  const tagSet = new Set();
+  (recipes || []).forEach(recipe => {
+    if (Array.isArray(recipe.tags)) {
+      recipe.tags.forEach(tag => {
+        const clean = String(tag || '').trim().toLowerCase();
+        if (clean) tagSet.add(clean);
+      });
+    }
+  });
+  return Array.from(tagSet).sort();
 }
 
 export function resetToDefaults() {

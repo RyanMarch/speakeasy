@@ -13,6 +13,7 @@ import {
   getInventory,
   saveInventory,
   DEFAULT_STARTER_BAR,
+  getAllUniqueTags,
 } from './js/modules/storage.js';
 
 import {
@@ -46,7 +47,9 @@ const state = {
   searchQuery: '',
   viewMode: 'counter', // 'counter' | 'edit'
   unitSystem: 'oz', // 'oz' | 'ml'
+  servings: 1, // Serving multiplier (default 1, increments by 0.5)
   editorSpecs: [],
+  editorTags: [],
   glassViewMain: null,
   glassViewEditor: null,
   inventory: new Set(getInventory()),
@@ -66,7 +69,6 @@ const elements = {
   btnExportJson: document.getElementById('btn-export-json'),
   btnImportTrigger: document.getElementById('btn-import-trigger'),
   importFileInput: document.getElementById('import-file-input'),
-  btnResetDefaults: document.getElementById('btn-reset-defaults'),
   counterViewContainer: document.getElementById('counter-view-container'),
   editorViewContainer: document.getElementById('editor-view-container'),
   toastContainer: document.getElementById('toast-container'),
@@ -91,8 +93,45 @@ const elements = {
  */
 function init() {
   state.recipes = getRecipes();
-  if (state.recipes.length > 0) {
-    state.activeRecipeId = state.recipes[0].id;
+
+  // Resolve initial active recipe from URL Hash if provided
+  const urlHash = window.location.hash.replace(/^#+/, '').trim();
+  let initialId = null;
+
+  if (urlHash && state.recipes.some(r => r.id === urlHash)) {
+    initialId = urlHash;
+  } else if (!window.location.hash) {
+    // If no hash was explicitly provided, leave hash empty or use last stored recipe without forcing a hash
+    try {
+      const storedId = localStorage.getItem('speakeasy_last_active_recipe');
+      if (storedId && state.recipes.some(r => r.id === storedId)) {
+        initialId = storedId;
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
+
+  if (!initialId && state.recipes.length > 0) {
+    initialId = state.recipes[0].id;
+  }
+
+  state.activeRecipeId = initialId;
+  // If a specific recipe was requested via hash, keep it in sync; otherwise do not force a hash onto a clean URL
+  if (urlHash && initialId) {
+    history.replaceState(null, '', `#${initialId}`);
+  }
+
+  // On mobile screens, show the recipe stage if a hash was specified, otherwise start on the cocktail list
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    if (urlHash) {
+      elements.sidebar.classList.add('mobile-hidden');
+      elements.mainStage.classList.remove('mobile-hidden');
+    } else {
+      elements.sidebar.classList.remove('mobile-hidden');
+      elements.mainStage.classList.add('mobile-hidden');
+    }
   }
 
   setupGlobalEventListeners();
@@ -100,6 +139,12 @@ function init() {
   updateMyBarBadge();
   renderRecipeList();
   renderCurrentView();
+
+  // Scroll active item into view on initial load
+  setTimeout(() => {
+    const activeEl = elements.recipeList.querySelector('.recipe-list-item.active');
+    activeEl?.scrollIntoView({ block: 'nearest' });
+  }, 50);
 }
 
 /**
@@ -136,13 +181,19 @@ function setupGlobalEventListeners() {
 
   elements.importFileInput.addEventListener('change', handleFileImport);
 
-  elements.btnResetDefaults.addEventListener('click', () => {
-    if (confirm('Reset cocktail library to original curated classics? This will preserve defaults.')) {
-      state.recipes = resetToDefaults();
-      state.activeRecipeId = state.recipes[0]?.id || null;
-      renderRecipeList();
-      renderCurrentView();
-      showToast('Library reset to classic cocktails');
+  // URL Hash routing: handle browser Back / Forward buttons and manual hash edits
+  window.addEventListener('hashchange', () => {
+    const rawHash = window.location.hash.replace(/^#+/, '').trim();
+    if (!rawHash) {
+      // User removed the hash from URL: return to list view on mobile or preserve view without hash
+      if (elements.sidebar && elements.mainStage) {
+        elements.sidebar.classList.remove('mobile-hidden');
+        elements.mainStage.classList.add('mobile-hidden');
+      }
+      return;
+    }
+    if (rawHash !== state.activeRecipeId && state.recipes.some(r => r.id === rawHash)) {
+      selectRecipe(rawHash, false);
     }
   });
 
@@ -444,11 +495,19 @@ function renderRecipeList() {
     const isActive = recipe.id === state.activeRecipeId;
     const specsPreview = (recipe.specs || []).map(s => s.name).slice(0, 3).join(', ');
 
-    let inventoryBadgeHtml = '';
+    let inventoryStatusHtml = '';
     if (invAnalysis.canMake) {
-      inventoryBadgeHtml = `<span class="tag-badge tag-badge-ready" title="All ingredients in your backbar">Ready</span>`;
+      inventoryStatusHtml = `
+        <div class="recipe-item-status status-ready" title="All ingredients in your backbar">
+          <span class="status-dot"></span>
+          <span>Ready to make</span>
+        </div>`;
     } else if (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0) {
-      inventoryBadgeHtml = `<span class="tag-badge tag-badge-next" title="Missing: ${escapeHtml(invAnalysis.missingItems[0].name)}">+1: ${escapeHtml(invAnalysis.missingItems[0].name)}</span>`;
+      inventoryStatusHtml = `
+        <div class="recipe-item-status status-next" title="Missing: ${escapeHtml(invAnalysis.missingItems[0].name)}">
+          <span class="status-dot"></span>
+          <span>Needs ${escapeHtml(invAnalysis.missingItems[0].name)}</span>
+        </div>`;
     }
 
     return `
@@ -456,13 +515,10 @@ function renderRecipeList() {
         <button type="button" class="recipe-card-btn" data-action="select" data-id="${recipe.id}">
           <div class="recipe-item-header">
             <span class="recipe-item-name">${escapeHtml(recipe.name)}</span>
-            <span class="tag-badge tag-badge-accent">${escapeHtml(recipe.glassware || 'Glass')}</span>
-          </div>
-          <div class="recipe-item-tags">
-            ${recipe.method ? `<span class="tag-badge">${escapeHtml(recipe.method)}</span>` : ''}
-            ${inventoryBadgeHtml}
+            ${recipe.glassware ? `<span class="recipe-item-glass">${escapeHtml(recipe.glassware)}</span>` : ''}
           </div>
           ${specsPreview ? `<div class="recipe-item-ingredients">${escapeHtml(specsPreview)}</div>` : ''}
+          ${inventoryStatusHtml}
         </button>
       </li>
     `;
@@ -478,17 +534,49 @@ function renderRecipeList() {
 }
 
 /**
+ * Filter library by tag
+ */
+function filterByTag(tag) {
+  state.searchQuery = `#${tag}`;
+  if (elements.searchInput) {
+    elements.searchInput.value = `#${tag}`;
+  }
+  elements.searchClearBtn?.classList.add('visible');
+  renderRecipeList();
+  showToast(`Filtered by #${tag}`);
+}
+
+/**
  * Select a recipe and display counter view
  */
-function selectRecipe(id) {
+function selectRecipe(id, updateHistory = true) {
+  const found = state.recipes.find(r => r.id === id);
+  if (!found) return;
+
   if (state.activeRecipeId !== id) {
     state.activeRiffs = {};
     state.riffModeActive = false;
+    state.servings = 1;
   }
   state.activeRecipeId = id;
   state.viewMode = 'counter';
+
+  try {
+    localStorage.setItem('speakeasy_last_active_recipe', id);
+  } catch {
+    // Ignore
+  }
+
+  if (updateHistory && window.location.hash !== `#${id}`) {
+    history.pushState(null, '', `#${id}`);
+  }
+
   renderRecipeList();
   renderCurrentView();
+
+  // Scroll active item into view in sidebar
+  const activeEl = elements.recipeList.querySelector('.recipe-list-item.active');
+  activeEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
   // Mobile navigation adjustment
   elements.sidebar.classList.add('mobile-hidden');
@@ -552,26 +640,32 @@ function renderCounterView() {
   const lineage = getRecipeRiffLineage(recipe, state.recipes);
   const invAnalysis = analyzeRecipeInventory(effectiveRecipe, state.inventory);
 
+  const allLibraryTags = getAllUniqueTags(state.recipes);
+  const availableTags = allLibraryTags.filter(t => !(recipe.tags || []).includes(t));
+
   const layers = calculateFluidLayers(effectiveSpecs);
-  const totalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
+  const baseTotalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
+  const currentServings = state.servings || 1;
+  const scaledTotalOz = baseTotalOz * currentServings;
   const totalDisplay = state.unitSystem === 'ml'
-    ? `${Math.round(totalOz * 29.5735)} ml`
-    : `${totalOz.toFixed(2)} oz`;
+    ? `${Math.round(scaledTotalOz * 29.5735)} ml`
+    : `${scaledTotalOz.toFixed(2)} oz`;
 
   const abvInfo = calculateCocktailAbv(effectiveSpecs, recipe.method);
   const roundedAbv = Math.round(abvInfo.estimatedAbv);
-  const abvDisplay = roundedAbv > 0 ? `${roundedAbv}%` : 'Non-Alcoholic';
+  const abvDisplay = roundedAbv > 0 ? `${roundedAbv}% ABV` : 'Non-Alcoholic';
 
   const specsListHtml = effectiveSpecs.map((spec, index) => {
     let amountText = '';
     let unitText = spec.unit || '';
 
     if (spec.amount !== null && spec.amount !== undefined) {
+      const scaledAmount = spec.amount * currentServings;
       if (state.unitSystem === 'ml' && (spec.unit === 'oz' || !spec.unit)) {
-        amountText = `${Math.round(spec.amount * 29.5735)}`;
+        amountText = `${Math.round(scaledAmount * 29.5735)}`;
         unitText = 'ml';
       } else {
-        amountText = formatFraction(spec.amount);
+        amountText = formatFraction(scaledAmount);
       }
     }
 
@@ -599,7 +693,27 @@ function renderCounterView() {
       `;
     }
 
-    const stockStatus = checkIngredientStock(spec.originalName || spec.name, state.inventory);
+    const currentStockName = isRiff ? spec.name : (spec.originalName || spec.name);
+    const stockStatus = checkIngredientStock(currentStockName, state.inventory);
+    const inStockSubs = (!stockStatus.inStock && !isRiff)
+      ? substitutes.filter(sub => checkIngredientStock(sub.name, state.inventory).inStock)
+      : [];
+
+    let subSuggestionHtml = '';
+    if (!stockStatus.inStock && inStockSubs.length > 0 && !isRiff) {
+      subSuggestionHtml = `
+        <div class="spec-sub-suggestion">
+          <button type="button" class="btn-sub-chip" data-action="apply-sub" data-spec-index="${index}" data-sub-id="${escapeHtml(inStockSubs[0].id)}" data-sub-name="${escapeHtml(inStockSubs[0].name)}" title="Substitute ${escapeHtml(spec.name)} with ${escapeHtml(inStockSubs[0].name)} from your bar">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+            <span>Sub: ${escapeHtml(inStockSubs[0].name)}</span>
+          </button>
+          ${inStockSubs.length > 1 ? `
+            <span class="sub-more-badge" title="More subs available in your bar: ${escapeHtml(inStockSubs.slice(1).map(s => s.name).join(', '))}">+${inStockSubs.length - 1} more</span>
+          ` : ''}
+        </div>
+      `;
+    }
+
     let stockControlHtml = '';
     if (stockStatus.isStaple) {
       stockControlHtml = `<span class="spec-staple-tag" title="Kitchen staple (always in stock)">Staple</span>`;
@@ -615,13 +729,18 @@ function renderCounterView() {
           ${amountText ? `${escapeHtml(amountText)}<span class="spec-unit">${escapeHtml(unitText)}</span>` : `<span class="spec-unit">${escapeHtml(unitText || 'to taste')}</span>`}
         </div>
         <div class="spec-ingredient">
-          <span class="color-swatch-dot" style="background-color: ${colorInfo.color}; color: ${colorInfo.color};"></span>
-          <span class="spec-name">${escapeHtml(spec.name)}</span>
+          <div class="spec-ingredient-name-row">
+            <span class="color-swatch-dot" style="background-color: ${colorInfo.color}; color: ${colorInfo.color};"></span>
+            <span class="spec-name">${escapeHtml(spec.name)}</span>
+            ${isRiff ? `<span class="spec-riff-badge" title="Substituted for ${escapeHtml(spec.originalName)}">sub</span>` : ''}
+          </div>
+          ${isRiff ? `<div class="spec-riff-orig-note">sub for ${escapeHtml(spec.originalName)}</div>` : ''}
+          ${subSuggestionHtml}
         </div>
         ${riffControlHtml}
         <div class="spec-actions">
           ${stockControlHtml}
-          ${ratioPercent ? `<div class="spec-ratio" title="Relative volume ratio">${ratioPercent}</div>` : ''}
+          <div class="spec-ratio" title="${ratioPercent ? 'Relative volume ratio' : ''}">${ratioPercent || ''}</div>
         </div>
       </div>
     `;
@@ -629,97 +748,121 @@ function renderCounterView() {
 
   elements.counterViewContainer.innerHTML =  /*html*/`
     <div class="counter-view ${state.riffModeActive ? 'riff-mode-active' : ''}">
-    <!-- Top Action Bar -->
-    <div class="counter-nav-bar">
+    <!-- Mobile Back Navigation (hidden on desktop) -->
+    <div class="counter-mobile-bar">
       <button id="btn-mobile-back" class="btn btn-secondary btn-sm mobile-back-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
         Drinks
       </button>
-
-      <div class="counter-actions">
-        <div class="unit-switch-group" role="group" aria-label="Measurement units">
-          <button id="btn-unit-oz" class="unit-btn ${state.unitSystem === 'oz' ? 'active' : ''}">OZ</button>
-          <button id="btn-unit-ml" class="unit-btn ${state.unitSystem === 'ml' ? 'active' : ''}">ML</button>
-        </div>
-
-        ${hasActiveRiffs ? `
-          <button id="btn-reset-riff" class="btn btn-secondary btn-sm" title="Revert back to original cocktail specs">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-            Reset Riff
-          </button>
-          <button id="btn-save-riff" class="btn btn-primary btn-sm" title="Save this riff variation as a new cocktail">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-            Save as Riff
-          </button>
-        ` : ''}
-
-        <button id="btn-edit-drink" class="btn btn-secondary btn-sm" title="Edit recipe specs">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-          Edit
-        </button>
-
-        <button id="btn-duplicate-drink" class="btn btn-secondary btn-sm" title="Duplicate recipe">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          Duplicate
-        </button>
-
-        <button id="btn-delete-drink" class="btn btn-danger btn-sm" title="Delete recipe">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-          Delete
-        </button>
-      </div>
     </div>
 
     <!-- Drink Title & Meta Header -->
     <div class="drink-title-section">
-      <h2 class="drink-name">${escapeHtml(recipe.name)}</h2>
-      <div class="drink-badges">
-        <span class="meta-pill">
-          <span>Glass:</span>
-          <strong>${escapeHtml(recipe.glassware || 'Glass')}</strong>
-        </span>
-        <span class="meta-pill">
-          <span>Method:</span>
-          <strong>${escapeHtml(recipe.method || 'Standard')}</strong>
-        </span>
-        <span class="meta-pill" title="Dilution-adjusted estimated alcohol by volume">
-          <span>ABV:</span>
-          <strong>${escapeHtml(abvDisplay)}</strong>
-        </span>
-        ${invAnalysis.canMake ? `
-          <span class="meta-pill bar-ready-pill" title="All liquid ingredients in your backbar">
-            <span>Bar:</span>
-            <strong>Can Make Now</strong>
-          </span>
-        ` : (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0 ? `
-          <span class="meta-pill bar-next-pill" title="Needs 1 bottle: ${escapeHtml(invAnalysis.missingItems[0].name)}">
-            <span>Bottle Next:</span>
-            <strong>Needs ${escapeHtml(invAnalysis.missingItems[0].name)}</strong>
-          </span>
-        ` : (invAnalysis.missingCount > 1 ? `
-          <span class="meta-pill" title="Needs ${invAnalysis.missingCount} bottles">
-            <span>Bar:</span>
-            <strong>Needs ${invAnalysis.missingCount} Bottles</strong>
-          </span>
-        ` : ''))}
+      <div class="drink-title-row">
+        <h2 class="drink-name">${escapeHtml(recipe.name)}</h2>
+
+        <!-- Tidy Icon-Button Cluster Pinned to Far Right -->
+        <div class="drink-actions-cluster" role="toolbar" aria-label="Recipe actions">
+          ${hasActiveRiffs ? `
+            <button id="btn-reset-riff" class="btn btn-secondary btn-sm" title="Revert back to original cocktail specs">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+              Reset Riff
+            </button>
+            <button id="btn-save-riff" class="btn btn-primary btn-sm" title="Save this riff variation as a new cocktail">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+              Save as Riff
+            </button>
+          ` : ''}
+
+          <button id="btn-edit-drink" class="action-icon-btn" title="Edit recipe specs" aria-label="Edit recipe">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span class="action-btn-text">Edit Recipe</span>
+          </button>
+
+          <button id="btn-duplicate-drink" class="action-icon-btn" title="Duplicate recipe" aria-label="Duplicate recipe">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span class="action-btn-text">Duplicate</span>
+          </button>
+
+          <button id="btn-delete-drink" class="action-icon-btn action-icon-btn-danger" title="Delete recipe" aria-label="Delete recipe">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span class="action-btn-text">Delete</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Inline Metadata Row with subtle dot dividers -->
+      <div class="drink-meta-row">
+        <span class="drink-meta-item">${escapeHtml(recipe.glassware || 'Glass')}</span>
+        <span class="meta-dot-divider">•</span>
+        <span class="drink-meta-item">${escapeHtml(recipe.method || 'Standard')}</span>
+        <span class="meta-dot-divider">•</span>
+        <span class="drink-meta-item" title="Dilution-adjusted estimated alcohol by volume">${escapeHtml(abvDisplay)}</span>
         ${lineage ? `
-          <span class="meta-pill riff-lineage-pill" title="Riff on ${escapeHtml(lineage.parentName)}">
-            <span class="riff-tag">Riff:</span>
-            <strong>${escapeHtml(lineage.parentName)}</strong>
-          </span>
+          <span class="meta-dot-divider">•</span>
+          <span class="drink-meta-item drink-meta-riff">Riff on <strong>${escapeHtml(lineage.parentName)}</strong></span>
         ` : ''}
-        ${hasActiveRiffs ? `
-          <span class="meta-pill riff-active-pill" title="Dynamic ingredient swap active">
-            <span>Swaps:</span>
-            <strong>Active</strong>
-          </span>
-        ` : ''}
-        ${recipe.garnish ? `
-          <span class="meta-pill">
-            <span>Garnish:</span>
-            <strong>${escapeHtml(recipe.garnish)}</strong>
-          </span>
-        ` : ''}
+      </div>
+
+      <!-- Actionable Status Row for state items only -->
+      ${(invAnalysis.canMake || invAnalysis.canMakeWithSubs || (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0) || hasActiveRiffs || recipe.garnish) ? `
+        <div class="drink-status-badges">
+          ${invAnalysis.canMake ? `
+            <span class="status-pill status-pill-ready" title="All liquid ingredients in your backbar">
+              <span class="status-dot"></span>
+              <span>Ready to Make</span>
+            </span>
+          ` : (invAnalysis.canMakeWithSubs && invAnalysis.missingWithSub && invAnalysis.bestSubstitute ? `
+            <button type="button" class="status-pill status-pill-sub" id="btn-apply-header-sub" data-missing-name="${escapeHtml(invAnalysis.missingWithSub.name)}" data-sub-id="${escapeHtml(invAnalysis.bestSubstitute.id)}" data-sub-name="${escapeHtml(invAnalysis.bestSubstitute.name)}" title="Substitute ${escapeHtml(invAnalysis.missingWithSub.name)} with ${escapeHtml(invAnalysis.bestSubstitute.name)} from your bar">
+              <span class="status-dot"></span>
+              <span>Sub in Bar: Use <strong>${escapeHtml(invAnalysis.bestSubstitute.name)}</strong> for ${escapeHtml(invAnalysis.missingWithSub.name)}</span>
+              <span class="sub-pill-action">Apply ↵</span>
+            </button>
+          ` : (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0 ? `
+            <span class="status-pill status-pill-next" title="Needs 1 bottle: ${escapeHtml(invAnalysis.missingItems[0].name)}">
+              <span class="status-dot"></span>
+              <span>Bottle Next: Needs ${escapeHtml(invAnalysis.missingItems[0].name)}</span>
+            </span>
+          ` : ''))}
+          ${hasActiveRiffs ? `
+            <span class="status-pill status-pill-swaps" title="Dynamic ingredient swap active">
+              <span>Swaps Active</span>
+            </span>
+          ` : ''}
+          ${recipe.garnish ? `
+            <span class="status-pill status-pill-garnish">
+              <span class="pill-label">Garnish:</span>
+              <strong>${escapeHtml(recipe.garnish)}</strong>
+            </span>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <!-- Drink Tags -->
+      <div class="drink-tags-bar">
+        <span class="drink-tags-label">Tags:</span>
+        <div class="drink-tags-chips" id="drink-tags-chips">
+          ${(recipe.tags || []).map(tag => `
+            <span class="drink-tag-chip" data-tag="${escapeHtml(tag)}">
+              <span class="drink-tag-text" data-action="filter-tag" data-tag="${escapeHtml(tag)}" title="Filter library by #${escapeHtml(tag)}" tabindex="0">#${escapeHtml(tag)}</span>
+              <button type="button" class="drink-tag-remove" data-action="remove-tag" data-tag="${escapeHtml(tag)}" title="Remove tag #${escapeHtml(tag)}" aria-label="Remove tag #${escapeHtml(tag)}">×</button>
+            </span>
+          `).join('')}
+          <div class="tag-input-inline-wrapper">
+            <input
+              type="text"
+              id="input-inline-tag"
+              class="tag-input-inline"
+              placeholder="+ Add tag"
+              list="counter-tag-suggestions"
+              autocomplete="off"
+              aria-label="Add tag"
+            />
+            <datalist id="counter-tag-suggestions">
+              ${availableTags.map(t => `<option value="${escapeHtml(t)}"></option>`).join('')}
+            </datalist>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -732,10 +875,11 @@ function renderCounterView() {
         </div>
 
         <div class="glass-meta-card">
-          <div class="glass-total-volume">
-            Total Liquid: <strong>${escapeHtml(totalDisplay)}</strong>
+          <div class="glass-stats-row">
+            <span class="glass-total-volume">Total: <strong>${escapeHtml(totalDisplay)}</strong></span>
+            <span class="glass-stats-divider">•</span>
+            <span class="glass-abv">ABV: <strong>${escapeHtml(abvDisplay)}</strong></span>
           </div>
-          <div class="glass-abv">Estimated ABV: <strong>${escapeHtml(abvDisplay)}</strong></div>
           ${(recipe.source || recipe.sourceUrl) ? `
             <div class="glass-source">
               Source: ${recipe.sourceUrl
@@ -744,7 +888,6 @@ function renderCounterView() {
             </div>
           ` : ''}
           <div class="glass-interaction-tip">
-            Hover fluid layers or specs to inspect proportions
           </div>
         </div>
 
@@ -758,22 +901,46 @@ function renderCounterView() {
       <div class="specs-column">
 
         <!-- Story / Writeup Card (if present) -->
-        ${recipe.description ? /*html*/ `
+        ${(recipe.description || recipe.source) ? /*html*/ `
           <div class="counter-card">
             <div class="counter-card-header">
               <span class="counter-card-title">About the Cocktail</span>
             </div>
-            <p class="card-content-text card-description">
-              ${escapeHtml(recipe.description)}
-            </p>
+            ${recipe.description ? /*html*/ `
+              <p class="card-content-text card-description">
+                ${escapeHtml(recipe.description)}
+              </p>
+            ` : ''}
+            ${(recipe.source || recipe.sourceUrl) ? /*html*/ `
+              <div class="card-source">
+                Source: ${recipe.sourceUrl
+          ? /*html*/ `<a href="${escapeHtml(recipe.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(recipe.source || 'Original Recipe')} ↗</a>`
+          : /*html*/ `<strong>${escapeHtml(recipe.source)}</strong>`}
+              </div>
+            ` : ''}
           </div>
         ` : ''}
 
         <!-- Ingredients Specs Card -->
         <div class="counter-card">
-          <div class="counter-card-header">
-            <span class="counter-card-title">Ingredients</span>
-            <span class="tag-badge">${(recipe.specs || []).length} items</span>
+          <div class="counter-card-header specs-card-header">
+            <div class="specs-header-title-group">
+              <span class="counter-card-title">Ingredients</span>
+            </div>
+            <div class="specs-header-controls">
+              <div class="servings-stepper" role="group" aria-label="Servings counter">
+                <span class="servings-label">Servings</span>
+                <div class="servings-stepper-box">
+                  <button type="button" id="btn-servings-dec" class="servings-btn" title="Decrease servings (step: 0.5)" aria-label="Decrease servings" ${currentServings <= 0.5 ? 'disabled' : ''}>−</button>
+                  <span class="servings-value" id="servings-display">${currentServings}×</span>
+                  <button type="button" id="btn-servings-inc" class="servings-btn" title="Increase servings (step: 0.5)" aria-label="Increase servings">+</button>
+                </div>
+              </div>
+              <div class="unit-switch-group" role="group" aria-label="Measurement units">
+                <button id="btn-unit-oz" class="unit-btn ${state.unitSystem === 'oz' ? 'active' : ''}">OZ</button>
+                <button id="btn-unit-ml" class="unit-btn ${state.unitSystem === 'ml' ? 'active' : ''}">ML</button>
+              </div>
+            </div>
           </div>
 
           <div class="specs-list" id="counter-specs-list">
@@ -782,38 +949,45 @@ function renderCounterView() {
         </div>
 
         <!-- Preparation Directions -->
-        ${(recipe.instructions || recipe.method || recipe.notes) ? /*html*/ `
+        ${(recipe.instructions || recipe.notes || recipe.method) ? /*html*/ `
           <div class="counter-card">
             <div class="counter-card-header">
-              <span class="counter-card-title">Preparation Method</span>
+              <span class="counter-card-title">Preparation</span>
             </div>
-            <div class="card-content-text card-instructions">${escapeHtml(recipe.instructions || (recipe.method ? `${recipe.method}: ${recipe.notes || 'Standard build and chill.'}` : (recipe.notes || '')))}</div>
+            <div class="card-content-text card-instructions">${escapeHtml(
+            recipe.instructions ||
+            (recipe.notes ? `${recipe.method ? `${recipe.method}: ` : ''}${recipe.notes}` : `${recipe.method || 'Standard'}: Standard build and chill.`)
+          )}</div>
           </div>
         ` : ''}
 
-        <!-- Garnish & Serving Note -->
-        ${recipe.garnish ? /*html*/ `
-          <div class="counter-card">
-            <div class="counter-card-header">
-              <span class="counter-card-title">Serving & Presentation</span>
+        <!-- Additional Notes & Variations (only when unique from both instructions and notes-as-preparation) -->
+        ${(() => {
+      if (!recipe.notes || !recipe.notes.trim()) return '';
+      // If the recipe has no dedicated instructions field, recipe.notes is already shown in the Preparation card above
+      if (!recipe.instructions || !recipe.instructions.trim()) return '';
+      const notesText = recipe.notes.trim();
+      const instrText = recipe.instructions.trim();
+      if (notesText.toLowerCase() === instrText.toLowerCase()) return '';
+      if (instrText.toLowerCase().includes(notesText.toLowerCase())) return '';
+      if (
+        (notesText.toLowerCase().includes('build over') && instrText.toLowerCase().includes('large ice cube')) ||
+        (notesText.toLowerCase().includes('stir with cracked ice') && instrText.toLowerCase().includes('stir for')) ||
+        (notesText.toLowerCase().includes('stir thoroughly') && instrText.toLowerCase().includes('stir'))
+      ) {
+        return '';
+      }
+      return /*html*/ `
+            <div class="counter-card">
+              <div class="counter-card-header">
+                <span class="counter-card-title">Notes & Variations</span>
+              </div>
+              <p class="card-content-text">
+                ${escapeHtml(notesText)}
+              </p>
             </div>
-            <p class="card-content-text">
-              Serve in a chilled <strong>${escapeHtml(recipe.glassware || 'glass')}</strong> with <strong>${escapeHtml(recipe.garnish)}</strong>.
-            </p>
-          </div>
-        ` : ''}
-
-        <!-- Additional Notes (if separate from instructions) -->
-        ${(recipe.notes && recipe.instructions && recipe.notes.trim() !== recipe.instructions.trim()) ? /*html*/ `
-          <div class="counter-card">
-            <div class="counter-card-header">
-              <span class="counter-card-title">Notes & Variations</span>
-            </div>
-            <p class="card-content-text">
-              ${escapeHtml(recipe.notes)}
-            </p>
-          </div>
-        ` : ''}
+          `;
+    })()}
 
       </div>
     </div>
@@ -822,15 +996,14 @@ function renderCounterView() {
     ${(invAnalysis.isBottleNext && invAnalysis.missingItems.length === 1) ? `
       <div class="counter-card bottle-next-banner">
         <div class="bottle-next-banner-content">
-          <div class="bottle-next-icon" style="color: ${invAnalysis.missingItems[0].color || 'var(--color-accent)'};">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8"></path><path d="M9 2v3h6V2"></path><path d="M7 5h10v17H7z"></path></svg>
-          </div>
           <div class="bottle-next-text">
-            <div class="bottle-next-title">You're 1 bottle away from making this cocktail</div>
-            <div class="bottle-next-desc">Add <strong>${escapeHtml(invAnalysis.missingItems[0].name)}</strong> to your backbar inventory to unlock ${escapeHtml(recipe.name)}.</div>
+            <span class="bottle-next-kicker">Missing from Backbar</span>
+            <div class="bottle-next-desc">
+              Have a bottle of <strong>${escapeHtml(invAnalysis.missingItems[0].name)}</strong>? Add it to mark ${escapeHtml(recipe.name)} ready to make.
+            </div>
           </div>
-          <button type="button" class="btn btn-primary btn-sm btn-quick-add-bottle" data-bottle-id="${escapeHtml(invAnalysis.missingItems[0].id)}" title="Add ${escapeHtml(invAnalysis.missingItems[0].name)} to your bar">
-            + Add to Bar
+          <button type="button" class="btn btn-secondary btn-sm btn-quick-add-bottle" data-bottle-id="${escapeHtml(invAnalysis.missingItems[0].id)}" title="Add ${escapeHtml(invAnalysis.missingItems[0].name)} to your bar">
+            + In Stock
           </button>
         </div>
       </div>
@@ -969,13 +1142,14 @@ function renderCounterView() {
     const newName = `${recipe.name} (${swapNames} Riff)`;
     const newRecipe = {
       ...recipe,
-      id: 'rec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      id: undefined,
       name: newName,
       description: recipe.description
         ? `${recipe.description}\n\nRiff on ${recipe.name}: substituted ${swapped.map(s => `${s.originalName} with ${s.name}`).join(', ')}.`
         : `Riff on ${recipe.name}: substituted ${swapped.map(s => `${s.originalName} with ${s.name}`).join(', ')}.`,
       riffOfId: recipe.id,
       riffOfName: recipe.name,
+      tags: Array.isArray(recipe.tags) ? [...recipe.tags, 'riff'] : ['riff'],
       specs: effectiveSpecs.map(s => ({
         amount: s.amount,
         unit: s.unit,
@@ -985,11 +1159,49 @@ function renderCounterView() {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    saveRecipe(newRecipe);
+    const saved = saveRecipe(newRecipe);
     state.recipes = getRecipes();
     state.activeRiffs = {};
-    selectRecipe(newRecipe.id);
+    selectRecipe(saved.id);
     showToast(`Saved new riff: ${newName}`);
+  });
+
+  // Apply header substitute recommendation
+  document.getElementById('btn-apply-header-sub')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    const missingName = btn.getAttribute('data-missing-name');
+    const subId = btn.getAttribute('data-sub-id');
+    const subName = btn.getAttribute('data-sub-name');
+    if (!subId) return;
+
+    const specIndex = (recipe.specs || []).findIndex(s => {
+      const stock = checkIngredientStock(s.name, state.inventory);
+      return (stock.name && missingName && stock.name.toLowerCase() === missingName.toLowerCase()) ||
+        (s.name && missingName && s.name.toLowerCase() === missingName.toLowerCase());
+    });
+
+    if (specIndex >= 0) {
+      state.activeRiffs[specIndex] = subId;
+      renderCounterView();
+      showToast(`Substituted ${missingName} with ${subName}`);
+    }
+  });
+
+  // Apply ingredient row substitute chip
+  elements.counterViewContainer.querySelectorAll('[data-action="apply-sub"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const specIndex = parseInt(btn.getAttribute('data-spec-index'), 10);
+      const subId = btn.getAttribute('data-sub-id');
+      const subName = btn.getAttribute('data-sub-name');
+      const origName = recipe.specs[specIndex]?.name || 'ingredient';
+      if (!isNaN(specIndex) && subId) {
+        state.activeRiffs[specIndex] = subId;
+        renderCounterView();
+        showToast(`Substituted ${origName} with ${subName}`);
+      }
+    });
   });
 
   // Similar Cocktails shelf scroll & card navigation
@@ -1015,6 +1227,22 @@ function renderCounterView() {
   });
 
   // Action listeners
+  document.getElementById('btn-servings-dec')?.addEventListener('click', () => {
+    const current = state.servings || 1;
+    if (current > 0.5) {
+      state.servings = Math.round((current - 0.5) * 10) / 10;
+      renderCounterView();
+    }
+  });
+
+  document.getElementById('btn-servings-inc')?.addEventListener('click', () => {
+    const current = state.servings || 1;
+    if (current < 20) {
+      state.servings = Math.round((current + 0.5) * 10) / 10;
+      renderCounterView();
+    }
+  });
+
   document.getElementById('btn-unit-oz')?.addEventListener('click', () => {
     state.unitSystem = 'oz';
     renderCounterView();
@@ -1040,6 +1268,78 @@ function renderCounterView() {
   document.getElementById('btn-mobile-back')?.addEventListener('click', () => {
     elements.sidebar.classList.remove('mobile-hidden');
     elements.mainStage.classList.add('mobile-hidden');
+    if (window.location.hash) {
+      history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+  });
+
+  // Counter View: Inline tag addition
+  const inlineTagInput = document.getElementById('input-inline-tag');
+  const addTagToCurrentRecipe = (rawTag) => {
+    if (!rawTag) return;
+    const cleanTag = rawTag.trim().toLowerCase().replace(/^#+/, '');
+    if (!cleanTag) return;
+
+    const currentTags = Array.isArray(recipe.tags) ? [...recipe.tags] : [];
+    if (currentTags.includes(cleanTag)) {
+      if (inlineTagInput) inlineTagInput.value = '';
+      return;
+    }
+
+    const updatedTags = [...currentTags, cleanTag];
+    const updatedRecipe = { ...recipe, tags: updatedTags };
+    saveRecipe(updatedRecipe);
+    state.recipes = getRecipes();
+    renderRecipeList();
+    renderCounterView();
+    showToast(`Added #${cleanTag} to ${recipe.name}`);
+  };
+
+  if (inlineTagInput) {
+    inlineTagInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addTagToCurrentRecipe(inlineTagInput.value);
+      }
+    });
+
+    inlineTagInput.addEventListener('change', () => {
+      addTagToCurrentRecipe(inlineTagInput.value);
+    });
+  }
+
+  // Remove tag button
+  elements.counterViewContainer.querySelectorAll('.drink-tag-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tagToRemove = btn.getAttribute('data-tag');
+      if (!tagToRemove) return;
+
+      const currentTags = Array.isArray(recipe.tags) ? [...recipe.tags] : [];
+      const updatedTags = currentTags.filter(t => t !== tagToRemove);
+      const updatedRecipe = { ...recipe, tags: updatedTags };
+      saveRecipe(updatedRecipe);
+      state.recipes = getRecipes();
+      renderRecipeList();
+      renderCounterView();
+      showToast(`Removed #${tagToRemove}`);
+    });
+  });
+
+  // Click tag text to filter library
+  elements.counterViewContainer.querySelectorAll('[data-action="filter-tag"]').forEach(tagEl => {
+    const handleFilter = (e) => {
+      e.stopPropagation();
+      const tag = tagEl.getAttribute('data-tag');
+      if (tag) filterByTag(tag);
+    };
+    tagEl.addEventListener('click', handleFilter);
+    tagEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleFilter(e);
+      }
+    });
   });
 }
 
@@ -1061,6 +1361,7 @@ function openEditor(recipe = null) {
     source: '',
     sourceUrl: '',
     notes: '',
+    tags: [],
     specs: [
       { amount: 2, unit: 'oz', name: '' },
       { amount: 0.75, unit: 'oz', name: '' },
@@ -1068,6 +1369,7 @@ function openEditor(recipe = null) {
   };
 
   state.editorSpecs = (currentData.specs || []).map(s => ({ ...s }));
+  state.editorTags = Array.isArray(currentData.tags) ? [...currentData.tags] : [];
 
   elements.editorViewContainer.innerHTML =  /*html*/`
     <div class="editor-header">
@@ -1093,7 +1395,7 @@ function openEditor(recipe = null) {
           <textarea
             id="quick-paste-input"
             class="quick-paste-textarea"
-            placeholder="Paste ingredient lines (e.g.:&#10;1.5 oz Scotch&#10;0.5 oz Mezcal&#10;0.75 oz Lime Juice&#10;0.75 oz Orgeat&#10;2 dashes Celery Bitters)&#10;&#10;Add preparation steps and writeup in the sections below."
+            placeholder="Paste ingredient lines, such as:&#10;1.5 oz Scotch&#10;0.5 oz Mezcal&#10;0.75 oz Lime Juice&#10;0.75 oz Orgeat&#10;2 dashes Celery Bitters&#10;&#10;Add preparation steps and writeup in the sections below."
           ></textarea>
           <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
             <button type="button" id="btn-clear-paste" class="btn btn-ghost btn-sm">Clear Box</button>
@@ -1104,7 +1406,7 @@ function openEditor(recipe = null) {
         <!-- Recipe Core Fields -->
         <div class="form-group">
           <label class="form-label" for="edit-name">Cocktail Name</label>
-          <input type="text" id="edit-name" class="form-input" value="${escapeHtml(currentData.name)}" placeholder="e.g. Sea Legs" required>
+          <input type="text" id="edit-name" class="form-input" value="${escapeHtml(currentData.name)}" placeholder="Sea Legs" required>
         </div>
 
         <div class="form-row">
@@ -1133,7 +1435,30 @@ function openEditor(recipe = null) {
 
         <div class="form-group">
           <label class="form-label" for="edit-garnish">Garnish</label>
-          <input type="text" id="edit-garnish" class="form-input" value="${escapeHtml(currentData.garnish)}" placeholder="e.g. Lime wheel">
+          <input type="text" id="edit-garnish" class="form-input" value="${escapeHtml(currentData.garnish)}" placeholder="Lime wheel, orange twist, etc.">
+        </div>
+
+        <!-- Tags & Custom Lists -->
+        <div class="form-group">
+          <label class="form-label" for="editor-tag-input">Tags & Custom Lists</label>
+          <div class="editor-tags-box">
+            <div id="editor-tags-list" class="editor-tags-list"></div>
+            <div class="editor-tag-input-row">
+              <input
+                type="text"
+                id="editor-tag-input"
+                class="form-input editor-tag-input-field"
+                placeholder="Type a tag name and press Enter..."
+                list="editor-tag-suggestions"
+                autocomplete="off"
+              />
+              <button type="button" id="btn-add-editor-tag" class="btn btn-secondary btn-sm">+ Add Tag</button>
+              <datalist id="editor-tag-suggestions"></datalist>
+            </div>
+          </div>
+          <div class="field-hint" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
+            Assign arbitrary tags to group drinks into menus, moods, or favorites.
+          </div>
         </div>
 
         <!-- Editable Spec Rows -->
@@ -1151,7 +1476,7 @@ function openEditor(recipe = null) {
         <!-- Preparation Directions -->
         <div class="form-group" style="margin-top: 1.5rem;">
           <label class="form-label" for="edit-instructions">Preparation Directions</label>
-          <textarea id="edit-instructions" class="form-textarea" rows="4" placeholder="Step-by-step directions (e.g. Combine all ingredients in a shaker with ice. Shake until cold and diluted. Strain over fresh ice into a rocks glass.)">${escapeHtml(currentData.instructions || currentData.notes || '')}</textarea>
+          <textarea id="edit-instructions" class="form-textarea" rows="4" placeholder="Combine all ingredients in a shaker with ice. Shake until cold and diluted. Strain over fresh ice into a rocks glass.">${escapeHtml(currentData.instructions || currentData.notes || '')}</textarea>
         </div>
 
         <!-- Description & Story -->
@@ -1164,7 +1489,7 @@ function openEditor(recipe = null) {
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" for="edit-source">Source / Creator</label>
-            <input type="text" id="edit-source" class="form-input" value="${escapeHtml(currentData.source || '')}" placeholder="e.g. Elevated Craft / Alejandro Olivares">
+            <input type="text" id="edit-source" class="form-input" value="${escapeHtml(currentData.source || '')}" placeholder="Elevated Craft / Alejandro Olivares">
           </div>
           <div class="form-group">
             <label class="form-label" for="edit-source-url">Source Link / URL</label>
@@ -1198,6 +1523,8 @@ function openEditor(recipe = null) {
   `;
 
   renderEditorSpecRows();
+  renderEditorTagChips();
+  updateEditorTagSuggestions();
   setupEditorEvents(currentData.id);
   renderCurrentView();
   updateEditorGlassPreview();
@@ -1235,7 +1562,7 @@ function renderEditorSpecRows() {
           type="text"
           class="form-input spec-input-name"
           value="${escapeHtml(spec.name)}"
-          placeholder="Ingredient name (e.g. Bourbon)"
+          placeholder="Ingredient name (Bourbon, Campari, etc.)"
           aria-label="Ingredient name"
           required
         >
@@ -1328,6 +1655,47 @@ function renderEditorSpecRows() {
 }
 
 /**
+ * Render editor tag chips
+ */
+function renderEditorTagChips() {
+  const container = document.getElementById('editor-tags-list');
+  if (!container) return;
+
+  if (state.editorTags.length === 0) {
+    container.innerHTML =  /*html*/`<span class="editor-tags-empty">No tags added yet</span>`;
+    return;
+  }
+
+  container.innerHTML =  /*html*/state.editorTags.map(t => `
+    <span class="editor-tag-chip" data-tag="${escapeHtml(t)}">
+      <span>#${escapeHtml(t)}</span>
+      <button type="button" class="btn-remove-tag" data-action="remove-editor-tag" data-tag="${escapeHtml(t)}" title="Remove tag #${escapeHtml(t)}" aria-label="Remove tag #${escapeHtml(t)}">×</button>
+    </span>
+  `).join('');
+
+  container.querySelectorAll('[data-action="remove-editor-tag"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.getAttribute('data-tag');
+      state.editorTags = state.editorTags.filter(t => t !== tag);
+      renderEditorTagChips();
+      updateEditorTagSuggestions();
+    });
+  });
+}
+
+/**
+ * Update editor tag datalist suggestions with unassigned unique tags
+ */
+function updateEditorTagSuggestions() {
+  const datalist = document.getElementById('editor-tag-suggestions');
+  if (!datalist) return;
+
+  const allTags = getAllUniqueTags(state.recipes);
+  const available = allTags.filter(t => !state.editorTags.includes(t));
+  datalist.innerHTML =  /*html*/available.map(t => `<option value="${escapeHtml(t)}"></option>`).join('');
+}
+
+/**
  * Setup event listeners within the editor
  */
 function setupEditorEvents(recipeId) {
@@ -1381,6 +1749,34 @@ function setupEditorEvents(recipeId) {
     updateEditorGlassPreview();
   });
 
+  // Editor Tags management
+  const editorTagInput = document.getElementById('editor-tag-input');
+  const addEditorTag = () => {
+    if (!editorTagInput) return;
+    const raw = editorTagInput.value.trim().toLowerCase().replace(/^#+/, '');
+    if (!raw) return;
+
+    if (!state.editorTags.includes(raw)) {
+      state.editorTags.push(raw);
+      renderEditorTagChips();
+      updateEditorTagSuggestions();
+    }
+    editorTagInput.value = '';
+  };
+
+  document.getElementById('btn-add-editor-tag')?.addEventListener('click', addEditorTag);
+
+  editorTagInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addEditorTag();
+    }
+  });
+
+  editorTagInput?.addEventListener('change', () => {
+    addEditorTag();
+  });
+
   // Cancel
   document.getElementById('btn-cancel-edit')?.addEventListener('click', cancelEditor);
 
@@ -1414,7 +1810,7 @@ function updateEditorGlassPreview() {
     const abvCalc = calculateCocktailAbv(state.editorSpecs, method);
     const rounded = Math.round(abvCalc.estimatedAbv);
     abvBadge.textContent = rounded > 0
-      ? `Estimated ABV: ${rounded}%`
+      ? `ABV: ${rounded}%`
       : 'Non-Alcoholic';
   }
 }
@@ -1423,6 +1819,7 @@ function updateEditorGlassPreview() {
  * Cancel editing and return to counter view
  */
 function cancelEditor() {
+  state.editorTags = [];
   state.viewMode = 'counter';
   renderCurrentView();
 }
@@ -1463,18 +1860,16 @@ function saveCurrentEditor(existingId) {
     source,
     sourceUrl,
     notes,
+    tags: state.editorTags,
     riffOfId: existingRecipe?.riffOfId || undefined,
     riffOfName: existingRecipe?.riffOfName || undefined,
     specs: validSpecs,
   };
 
   const saved = saveRecipe(recipeToSave);
+  state.editorTags = [];
   state.recipes = getRecipes();
-  state.activeRecipeId = saved.id;
-  state.viewMode = 'counter';
-
-  renderRecipeList();
-  renderCurrentView();
+  selectRecipe(saved.id);
   showToast(`Saved "${saved.name}"`);
 }
 
@@ -1486,13 +1881,12 @@ function duplicateRecipe(recipe) {
     ...JSON.parse(JSON.stringify(recipe)),
     id: undefined,
     name: `${recipe.name} (Copy)`,
+    tags: Array.isArray(recipe.tags) ? [...recipe.tags] : [],
   };
 
   const saved = saveRecipe(copy);
   state.recipes = getRecipes();
-  state.activeRecipeId = saved.id;
-  renderRecipeList();
-  renderCurrentView();
+  selectRecipe(saved.id);
   showToast(`Created duplicate: "${saved.name}"`);
 }
 
@@ -1500,12 +1894,22 @@ function duplicateRecipe(recipe) {
  * Confirm and delete a recipe
  */
 function confirmDeleteRecipe(recipe) {
-  if (confirm(`Delete "${recipe.name}" from your vault?`)) {
+  if (confirm(`Delete "${recipe.name}" from your vault? This cannot be undone.`)) {
     const updated = deleteRecipe(recipe.id);
     state.recipes = updated;
-    state.activeRecipeId = state.recipes[0]?.id || null;
-    renderRecipeList();
-    renderCurrentView();
+    if (state.recipes.length > 0) {
+      selectRecipe(state.recipes[0].id);
+    } else {
+      state.activeRecipeId = null;
+      history.replaceState(null, '', window.location.pathname);
+      try {
+        localStorage.removeItem('speakeasy_last_active_recipe');
+      } catch {
+        // Ignore
+      }
+      renderRecipeList();
+      renderCurrentView();
+    }
     showToast(`Deleted "${recipe.name}"`);
   }
 }
