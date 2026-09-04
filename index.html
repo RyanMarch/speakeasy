@@ -25,6 +25,10 @@
       </div>
 
       <div class="header-actions">
+        <button id="btn-my-bar" class="btn btn-secondary btn-sm my-bar-btn" title="Manage your personal backbar inventory">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8"></path><path d="M9 2v3h6V2"></path><path d="M7 5h10v17H7z"></path></svg>
+          My Bar (<span id="my-bar-badge">0</span>)
+        </button>
         <button id="btn-new-drink" class="btn btn-primary" title="Create a new cocktail recipe">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           New Drink
@@ -56,6 +60,19 @@
           </div>
         </div>
 
+        <!-- Inventory Filter Tabs -->
+        <div class="sidebar-inventory-filter" id="sidebar-inventory-filter" role="tablist" aria-label="Inventory filter">
+          <button class="inventory-filter-btn active" data-filter="all" role="tab" aria-selected="true">
+            All <span class="filter-count" id="count-all">0</span>
+          </button>
+          <button class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
+            Can Make <span class="filter-count" id="count-can-make">0</span>
+          </button>
+          <button class="inventory-filter-btn" data-filter="one_missing" role="tab" aria-selected="false">
+            Bottle Next <span class="filter-count" id="count-one-missing">0</span>
+          </button>
+        </div>
+
         <ul class="recipe-list" id="recipe-list" role="listbox" aria-label="Recipe List">
           <!-- Dynamically populated recipe cards -->
         </ul>
@@ -79,6 +96,42 @@
         </div>
       </section>
     </main>
+
+    <!-- Backbar Inventory Modal -->
+    <dialog id="backbar-modal" class="backbar-dialog" closedby="any" aria-labelledby="backbar-modal-title">
+      <div class="backbar-dialog-container">
+        <div class="backbar-dialog-header">
+          <div>
+            <h2 id="backbar-modal-title" class="backbar-dialog-title">Personal Backbar</h2>
+            <p class="backbar-dialog-subtitle">Select the bottles and bar staples you keep in stock.</p>
+          </div>
+          <button id="btn-close-backbar" class="btn btn-ghost btn-sm close-modal-btn" aria-label="Close modal">✕</button>
+        </div>
+
+        <div class="backbar-toolbar">
+          <div class="search-input-wrapper backbar-search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="search" id="backbar-search-input" class="search-input" placeholder="Search taxonomy bottles..." aria-label="Search backbar items">
+          </div>
+          <div class="backbar-quick-actions">
+            <button id="btn-starter-bar" class="btn btn-secondary btn-sm" title="Add essential bar staples">Starter Bar</button>
+            <button id="btn-clear-bar" class="btn btn-ghost btn-sm" title="Clear all inventory bottles">Clear All</button>
+          </div>
+        </div>
+
+        <div class="backbar-categories-container" id="backbar-categories-container">
+          <!-- Dynamically populated taxonomy categories and bottle pills -->
+        </div>
+
+        <div class="backbar-dialog-footer">
+          <span class="backbar-summary-text" id="backbar-summary-text">0 bottles in your backbar</span>
+          <button id="btn-done-backbar" class="btn btn-primary btn-sm">Done</button>
+        </div>
+      </div>
+    </dialog>
 
     <!-- Toast Notifications Area -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>

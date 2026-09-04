@@ -253,6 +253,92 @@ if (!userRiffMatch) throw new Error('User riff should appear in Old Fashioned si
 if (userRiffMatch.relation !== 'Riff') throw new Error(`User riff should have relation 'Riff', got ${userRiffMatch.relation}`);
 if (userRiffMatch.badgeClass !== 'badge-riff') throw new Error(`User riff should have badgeClass 'badge-riff', got ${userRiffMatch.badgeClass}`);
 
+import { checkIngredientStock, analyzeRecipeInventory } from '../js/modules/taxonomy.js';
+import { DEFAULT_STARTER_BAR } from '../js/modules/storage.js';
+
+console.log('--- Testing Backbar Inventory & Bottle Next Engine ---');
+
+// 1. Pantry Staples never trigger missing bottle status
+const waterStock = checkIngredientStock('Cold Water', new Set());
+const iceStock = checkIngredientStock('Ice', new Set());
+const sugarStock = checkIngredientStock('Granulated Sugar', new Set());
+const salineStock = checkIngredientStock('Saline Solution (20%)', new Set());
+if (!waterStock.isStaple || !waterStock.inStock) throw new Error('Water should be in stock as pantry staple');
+if (!iceStock.isStaple || !iceStock.inStock) throw new Error('Ice should be in stock as pantry staple');
+if (!sugarStock.isStaple || !sugarStock.inStock) throw new Error('Sugar should be in stock as pantry staple');
+if (!salineStock.isStaple || !salineStock.inStock) throw new Error('Saline should be in stock as pantry staple');
+console.log('Pantry staples correctly recognized as in-stock.');
+
+// 2. Child-to-Parent hierarchical matching
+const genericWhiskeyRecipe = {
+  name: 'Whiskey Template',
+  specs: [
+    { amount: 2, unit: 'oz', name: 'Whiskey' },
+    { amount: 1, unit: 'oz', name: 'Sweet Vermouth' },
+  ],
+};
+const ownedBourbonInventory = new Set(['bourbon', 'sweet_vermouth']);
+const genericAnalysis = analyzeRecipeInventory(genericWhiskeyRecipe, ownedBourbonInventory);
+if (!genericAnalysis.canMake) {
+  throw new Error('Owning Bourbon should satisfy generic Whiskey spec (child-to-parent hierarchy)');
+}
+console.log('Child-to-parent matching passed: owning bourbon satisfies generic whiskey spec.');
+
+// 3. Reverse check: Owning generic Whiskey does NOT satisfy specific Scotch spec
+const specificScotchRecipe = {
+  name: 'Rob Roy Spec',
+  specs: [
+    { amount: 2, unit: 'oz', name: 'Scotch Whisky' },
+    { amount: 1, unit: 'oz', name: 'Sweet Vermouth' },
+  ],
+};
+const ownedGenericInventory = new Set(['whiskey', 'sweet_vermouth']);
+const specificAnalysis = analyzeRecipeInventory(specificScotchRecipe, ownedGenericInventory);
+if (specificAnalysis.canMake) {
+  throw new Error('Owning generic Whiskey must not automatically satisfy specific Scotch Whisky spec');
+}
+if (!specificAnalysis.isBottleNext || specificAnalysis.missingItems[0].name !== 'Scotch Whisky') {
+  throw new Error('Expected 1 missing bottle: Scotch Whisky');
+}
+console.log('Directionality verified: generic whiskey does not satisfy specific single malt scotch spec.');
+
+// 4. Negroni exact inventory matching & Bottle Next detection
+const negroniRecipe = SEED_RECIPES.find(r => r.id === 'negroni');
+const fullNegroniBar = new Set(['london_dry_gin', 'red_bitter', 'sweet_vermouth']);
+const fullNegroniAnalysis = analyzeRecipeInventory(negroniRecipe, fullNegroniBar);
+if (!fullNegroniAnalysis.canMake || fullNegroniAnalysis.missingCount !== 0) {
+  throw new Error('Negroni with full ingredients should have canMake === true');
+}
+
+const missingCampariBar = new Set(['london_dry_gin', 'sweet_vermouth']);
+const missingCampariAnalysis = analyzeRecipeInventory(negroniRecipe, missingCampariBar);
+if (missingCampariAnalysis.canMake) {
+  throw new Error('Negroni missing Campari should not be makeable');
+}
+if (!missingCampariAnalysis.isBottleNext || missingCampariAnalysis.missingCount !== 1) {
+  throw new Error('Negroni missing Campari should be flagged as isBottleNext with 1 missing');
+}
+if (missingCampariAnalysis.missingItems[0].id !== 'red_bitter') {
+  throw new Error(`Expected missing item ID 'red_bitter', got ${missingCampariAnalysis.missingItems[0].id}`);
+}
+console.log('Negroni complete bar and Bottle Next 1-missing detection passed.');
+
+// 5. Garnish Soft-Dependency: Garnishes do not block Can Make
+const daiquiriRecipe = SEED_RECIPES.find(r => r.id === 'daiquiri');
+const daiquiriBar = new Set(['light_rum', 'lime_juice', 'simple_syrup']);
+const daiquiriAnalysis = analyzeRecipeInventory(daiquiriRecipe, daiquiriBar);
+if (!daiquiriAnalysis.canMake) {
+  throw new Error('Daiquiri should be makeable even without tagging lime wheel garnish');
+}
+console.log('Garnish soft-dependency verified: liquid specs determine canMake status.');
+
+// 6. Starter Bar preset evaluation
+const starterBarSet = new Set(DEFAULT_STARTER_BAR);
+const starterCanMakeCount = SEED_RECIPES.filter(r => analyzeRecipeInventory(r, starterBarSet).canMake).length;
+const starterBottleNextCount = SEED_RECIPES.filter(r => analyzeRecipeInventory(r, starterBarSet).isBottleNext).length;
+console.log(`Starter Bar yields ${starterCanMakeCount} makeable drinks and ${starterBottleNextCount} bottle-next drinks.`);
+if (starterCanMakeCount < 3) throw new Error('Starter bar should unlock at least 3 seed classics');
+
 console.log('All tests completed successfully!');
 
 

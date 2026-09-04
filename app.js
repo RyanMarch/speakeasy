@@ -10,6 +10,9 @@ import {
   exportRecipesJSON,
   importRecipesJSON,
   resetToDefaults,
+  getInventory,
+  saveInventory,
+  DEFAULT_STARTER_BAR,
 } from './js/modules/storage.js';
 
 import {
@@ -24,7 +27,15 @@ import {
 
 import { GlassView, renderGlassSvg } from './js/modules/glass-view.js';
 import { calculateCocktailAbv, estimateIngredientAbv } from './js/modules/abv.js';
-import { recipeMatchesQuery, getIngredientSubstitutes, findSimilarCocktails, getRecipeRiffLineage, TAXONOMY } from './js/modules/taxonomy.js';
+import {
+  recipeMatchesQuery,
+  getIngredientSubstitutes,
+  findSimilarCocktails,
+  getRecipeRiffLineage,
+  checkIngredientStock,
+  analyzeRecipeInventory,
+  TAXONOMY,
+} from './js/modules/taxonomy.js';
 
 // Application State
 const state = {
@@ -38,6 +49,9 @@ const state = {
   editorSpecs: [],
   glassViewMain: null,
   glassViewEditor: null,
+  inventory: new Set(getInventory()),
+  inventoryFilter: 'all', // 'all' | 'can_make' | 'one_missing'
+  backbarSearchQuery: '',
 };
 
 // DOM References
@@ -56,6 +70,20 @@ const elements = {
   counterViewContainer: document.getElementById('counter-view-container'),
   editorViewContainer: document.getElementById('editor-view-container'),
   toastContainer: document.getElementById('toast-container'),
+  btnMyBar: document.getElementById('btn-my-bar'),
+  myBarBadge: document.getElementById('my-bar-badge'),
+  sidebarInventoryFilter: document.getElementById('sidebar-inventory-filter'),
+  countAll: document.getElementById('count-all'),
+  countCanMake: document.getElementById('count-can-make'),
+  countOneMissing: document.getElementById('count-one-missing'),
+  backbarModal: document.getElementById('backbar-modal'),
+  backbarSearchInput: document.getElementById('backbar-search-input'),
+  backbarCategoriesContainer: document.getElementById('backbar-categories-container'),
+  backbarSummaryText: document.getElementById('backbar-summary-text'),
+  btnStarterBar: document.getElementById('btn-starter-bar'),
+  btnClearBar: document.getElementById('btn-clear-bar'),
+  btnCloseBackbar: document.getElementById('btn-close-backbar'),
+  btnDoneBackbar: document.getElementById('btn-done-backbar'),
 };
 
 /**
@@ -68,6 +96,8 @@ function init() {
   }
 
   setupGlobalEventListeners();
+  setupBackbarEventListeners();
+  updateMyBarBadge();
   renderRecipeList();
   renderCurrentView();
 }
@@ -159,13 +189,243 @@ function handleFileImport(e) {
   reader.readAsText(file);
 }
 
+// Backbar taxonomy display categories
+const BACKBAR_CATEGORIES = [
+  { key: 'spirits', title: 'Base Spirits' },
+  { key: 'fortified_wine', title: 'Fortified Wines & Vermouths' },
+  { key: 'liqueurs', title: 'Liqueurs & Amari' },
+  { key: 'bitters', title: 'Bitters & Tinctures' },
+  { key: 'sweeteners', title: 'Syrups & Sweeteners' },
+  { key: 'produce', title: 'Fresh Produce & Juices' },
+  { key: 'mixers', title: 'Mixers, Sodas & Wine' },
+];
+
 /**
- * Filter and render recipe list in sidebar
+ * Update header badge and modal inventory summary
+ */
+function updateMyBarBadge() {
+  const count = state.inventory.size;
+  if (elements.myBarBadge) {
+    elements.myBarBadge.textContent = count;
+  }
+  if (elements.backbarSummaryText) {
+    elements.backbarSummaryText.textContent = `${count} ${count === 1 ? 'bottle' : 'bottles'} in your backbar`;
+  }
+}
+
+/**
+ * Setup backbar modal and inventory filter listeners
+ */
+function setupBackbarEventListeners() {
+  elements.btnMyBar?.addEventListener('click', openBackbarModal);
+  elements.btnCloseBackbar?.addEventListener('click', closeBackbarModal);
+  elements.btnDoneBackbar?.addEventListener('click', closeBackbarModal);
+
+  elements.backbarSearchInput?.addEventListener('input', (e) => {
+    state.backbarSearchQuery = e.target.value.trim().toLowerCase();
+    renderBackbarModalContent();
+  });
+
+  elements.btnStarterBar?.addEventListener('click', () => {
+    DEFAULT_STARTER_BAR.forEach(id => state.inventory.add(id));
+    saveInventory(Array.from(state.inventory));
+    updateMyBarBadge();
+    renderRecipeList();
+    if (state.viewMode === 'counter') {
+      renderCounterView();
+    }
+    renderBackbarModalContent();
+    showToast('Loaded Starter Bar essentials');
+  });
+
+  elements.btnClearBar?.addEventListener('click', () => {
+    if (state.inventory.size === 0) return;
+    if (confirm('Clear all bottles from your backbar?')) {
+      state.inventory.clear();
+      saveInventory([]);
+      updateMyBarBadge();
+      renderRecipeList();
+      if (state.viewMode === 'counter') {
+        renderCounterView();
+      }
+      renderBackbarModalContent();
+      showToast('Cleared backbar inventory');
+    }
+  });
+
+  // Light dismiss fallback for browsers without closedby="any"
+  if (elements.backbarModal && !('closedBy' in HTMLDialogElement.prototype)) {
+    elements.backbarModal.addEventListener('click', (event) => {
+      if (event.target !== elements.backbarModal) return;
+      const rect = elements.backbarModal.getBoundingClientRect();
+      const isDialogContent = (
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width
+      );
+      if (!isDialogContent) {
+        closeBackbarModal();
+      }
+    });
+  }
+
+  // Sidebar inventory filter tabs
+  elements.sidebarInventoryFilter?.querySelectorAll('.inventory-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+      state.inventoryFilter = filter;
+      elements.sidebarInventoryFilter.querySelectorAll('.inventory-filter-btn').forEach(b => {
+        const isActive = b.getAttribute('data-filter') === filter;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      renderRecipeList();
+    });
+  });
+}
+
+/**
+ * Open personal backbar modal
+ */
+function openBackbarModal() {
+  state.backbarSearchQuery = '';
+  if (elements.backbarSearchInput) elements.backbarSearchInput.value = '';
+  renderBackbarModalContent();
+  if (typeof elements.backbarModal?.showModal === 'function') {
+    elements.backbarModal.showModal();
+  }
+}
+
+/**
+ * Close personal backbar modal
+ */
+function closeBackbarModal() {
+  if (typeof elements.backbarModal?.close === 'function') {
+    elements.backbarModal.close();
+  }
+}
+
+/**
+ * Toggle an item in the user's inventory
+ */
+function toggleInventoryBottle(bottleId) {
+  if (state.inventory.has(bottleId)) {
+    state.inventory.delete(bottleId);
+  } else {
+    state.inventory.add(bottleId);
+  }
+  saveInventory(Array.from(state.inventory));
+  updateMyBarBadge();
+  renderRecipeList();
+  if (state.viewMode === 'counter') {
+    renderCounterView();
+  }
+  renderBackbarModalContent();
+}
+
+/**
+ * Render categories and item pills inside backbar modal
+ */
+function renderBackbarModalContent() {
+  if (!elements.backbarCategoriesContainer) return;
+
+  const query = (state.backbarSearchQuery || '').toLowerCase();
+  const allTaxonomyItems = Object.values(TAXONOMY);
+
+  let totalVisibleBottles = 0;
+
+  const sectionsHtml = BACKBAR_CATEGORIES.map(cat => {
+    const items = allTaxonomyItems.filter(item => {
+      if (item.parent !== cat.key) return false;
+      if (!query) return true;
+      if (item.name.toLowerCase().includes(query)) return true;
+      if (item.id.toLowerCase().includes(query)) return true;
+      if (item.family && item.family.toLowerCase().includes(query)) return true;
+      return (item.aliases || []).some(a => a.toLowerCase().includes(query));
+    });
+
+    if (items.length === 0) return '';
+    totalVisibleBottles += items.length;
+
+    const ownedCount = items.filter(i => state.inventory.has(i.id)).length;
+
+    const pillsHtml = items.map(item => {
+      const isOwned = state.inventory.has(item.id);
+      return `
+        <button type="button" class="backbar-pill ${isOwned ? 'active' : ''}" data-bottle-id="${escapeHtml(item.id)}" aria-pressed="${isOwned}">
+          <span class="backbar-pill-dot" style="background-color: ${item.color || '#c67828'};"></span>
+          <span class="backbar-pill-name">${escapeHtml(item.name)}</span>
+          ${isOwned ? '<span class="backbar-pill-check">✓</span>' : ''}
+        </button>
+      `;
+    }).join('');
+
+    return `
+      <div class="backbar-category-section">
+        <div class="backbar-category-header">
+          <span class="backbar-category-title">${escapeHtml(cat.title)}</span>
+          <span class="backbar-category-count">${ownedCount} / ${items.length}</span>
+        </div>
+        <div class="backbar-pills-grid">
+          ${pillsHtml}
+        </div>
+      </div>
+    `;
+  }).filter(Boolean).join('');
+
+  if (totalVisibleBottles === 0) {
+    elements.backbarCategoriesContainer.innerHTML =  /*html*/`
+      <div class="empty-state" style="padding: 2rem 1rem;">
+        <p class="empty-state-title">No bottles found</p>
+        <p class="card-content-text" style="font-size: 0.8rem;">Try searching for a different bottle or spirit name.</p>
+      </div>
+    `;
+  } else {
+    elements.backbarCategoriesContainer.innerHTML =  /*html*/sectionsHtml;
+  }
+
+  // Wire pill clicks
+  elements.backbarCategoriesContainer.querySelectorAll('.backbar-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const bottleId = pill.getAttribute('data-bottle-id');
+      if (bottleId) {
+        toggleInventoryBottle(bottleId);
+      }
+    });
+  });
+}
+
+/**
+ * Filter and render recipe list in sidebar with inventory counts and status badges
  */
 function renderRecipeList() {
-  const filtered = state.recipes.filter(recipe => {
-    if (!state.searchQuery) return true;
-    return recipeMatchesQuery(recipe, state.searchQuery);
+  const queryMatched = state.recipes.map(recipe => {
+    const matchesSearch = !state.searchQuery || recipeMatchesQuery(recipe, state.searchQuery);
+    const invAnalysis = analyzeRecipeInventory(recipe, state.inventory);
+    return { recipe, matchesSearch, invAnalysis };
+  });
+
+  let allCount = 0;
+  let canMakeCount = 0;
+  let oneMissingCount = 0;
+
+  for (const item of queryMatched) {
+    if (!item.matchesSearch) continue;
+    allCount++;
+    if (item.invAnalysis.canMake) canMakeCount++;
+    if (item.invAnalysis.isBottleNext) oneMissingCount++;
+  }
+
+  if (elements.countAll) elements.countAll.textContent = allCount;
+  if (elements.countCanMake) elements.countCanMake.textContent = canMakeCount;
+  if (elements.countOneMissing) elements.countOneMissing.textContent = oneMissingCount;
+
+  const filtered = queryMatched.filter(item => {
+    if (!item.matchesSearch) return false;
+    if (state.inventoryFilter === 'can_make') return item.invAnalysis.canMake;
+    if (state.inventoryFilter === 'one_missing') return item.invAnalysis.isBottleNext;
+    return true;
   });
 
   elements.recipeCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Cocktail' : 'Cocktails'}`;
@@ -174,15 +434,22 @@ function renderRecipeList() {
     elements.recipeList.innerHTML =  /*html*/`
       <li class="empty-state">
         <p class="empty-state-title">No matching drinks</p>
-        <p class="card-content-text" style="font-size: 0.8rem;">Try adjusting your search terms</p>
+        <p class="card-content-text" style="font-size: 0.8rem;">Try adjusting your search or backbar filter</p>
       </li>
     `;
     return;
   }
 
-  elements.recipeList.innerHTML =  /*html*/filtered.map(recipe => {
+  elements.recipeList.innerHTML =  /*html*/filtered.map(({ recipe, invAnalysis }) => {
     const isActive = recipe.id === state.activeRecipeId;
     const specsPreview = (recipe.specs || []).map(s => s.name).slice(0, 3).join(', ');
+
+    let inventoryBadgeHtml = '';
+    if (invAnalysis.canMake) {
+      inventoryBadgeHtml = `<span class="tag-badge tag-badge-ready" title="All ingredients in your backbar">Ready</span>`;
+    } else if (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0) {
+      inventoryBadgeHtml = `<span class="tag-badge tag-badge-next" title="Missing: ${escapeHtml(invAnalysis.missingItems[0].name)}">+1: ${escapeHtml(invAnalysis.missingItems[0].name)}</span>`;
+    }
 
     return `
       <li class="recipe-list-item ${isActive ? 'active' : ''}" data-id="${recipe.id}">
@@ -193,6 +460,7 @@ function renderRecipeList() {
           </div>
           <div class="recipe-item-tags">
             ${recipe.method ? `<span class="tag-badge">${escapeHtml(recipe.method)}</span>` : ''}
+            ${inventoryBadgeHtml}
           </div>
           ${specsPreview ? `<div class="recipe-item-ingredients">${escapeHtml(specsPreview)}</div>` : ''}
         </button>
@@ -282,6 +550,7 @@ function renderCounterView() {
 
   const similarCocktails = findSimilarCocktails(recipe, state.recipes);
   const lineage = getRecipeRiffLineage(recipe, state.recipes);
+  const invAnalysis = analyzeRecipeInventory(effectiveRecipe, state.inventory);
 
   const layers = calculateFluidLayers(effectiveSpecs);
   const totalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
@@ -330,6 +599,16 @@ function renderCounterView() {
       `;
     }
 
+    const stockStatus = checkIngredientStock(spec.originalName || spec.name, state.inventory);
+    let stockControlHtml = '';
+    if (stockStatus.isStaple) {
+      stockControlHtml = `<span class="spec-staple-tag" title="Kitchen staple (always in stock)">Staple</span>`;
+    } else if (stockStatus.inStock) {
+      stockControlHtml = `<button type="button" class="btn-stock-toggle in-stock" data-bottle-id="${escapeHtml(stockStatus.id)}" title="In your backbar. Click to remove." aria-label="Remove ${escapeHtml(stockStatus.name)} from bar">✓ Bar</button>`;
+    } else {
+      stockControlHtml = `<button type="button" class="btn-stock-toggle out-of-stock" data-bottle-id="${escapeHtml(stockStatus.id)}" title="Missing from your backbar. Click to add." aria-label="Add ${escapeHtml(stockStatus.name)} to bar">+ Bar</button>`;
+    }
+
     return `
       <div class="spec-row ${isRiff ? 'is-riffed-row' : ''}" data-spec-index="${index}">
         <div class="spec-amount">
@@ -340,12 +619,15 @@ function renderCounterView() {
           <span class="spec-name">${escapeHtml(spec.name)}</span>
         </div>
         ${riffControlHtml}
-        ${ratioPercent ? `<div class="spec-ratio" title="Relative volume ratio">${ratioPercent}</div>` : '<div></div>'}
+        <div class="spec-actions">
+          ${stockControlHtml}
+          ${ratioPercent ? `<div class="spec-ratio" title="Relative volume ratio">${ratioPercent}</div>` : ''}
+        </div>
       </div>
     `;
   }).join('');
 
-  elements.counterViewContainer.innerHTML = /*html*/`
+  elements.counterViewContainer.innerHTML =  /*html*/`
     <div class="counter-view ${state.riffModeActive ? 'riff-mode-active' : ''}">
     <!-- Top Action Bar -->
     <div class="counter-nav-bar">
@@ -404,6 +686,22 @@ function renderCounterView() {
           <span>ABV:</span>
           <strong>${escapeHtml(abvDisplay)}</strong>
         </span>
+        ${invAnalysis.canMake ? `
+          <span class="meta-pill bar-ready-pill" title="All liquid ingredients in your backbar">
+            <span>Bar:</span>
+            <strong>Can Make Now</strong>
+          </span>
+        ` : (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0 ? `
+          <span class="meta-pill bar-next-pill" title="Needs 1 bottle: ${escapeHtml(invAnalysis.missingItems[0].name)}">
+            <span>Bottle Next:</span>
+            <strong>Needs ${escapeHtml(invAnalysis.missingItems[0].name)}</strong>
+          </span>
+        ` : (invAnalysis.missingCount > 1 ? `
+          <span class="meta-pill" title="Needs ${invAnalysis.missingCount} bottles">
+            <span>Bar:</span>
+            <strong>Needs ${invAnalysis.missingCount} Bottles</strong>
+          </span>
+        ` : ''))}
         ${lineage ? `
           <span class="meta-pill riff-lineage-pill" title="Riff on ${escapeHtml(lineage.parentName)}">
             <span class="riff-tag">Riff:</span>
@@ -520,6 +818,24 @@ function renderCounterView() {
       </div>
     </div>
 
+    <!-- Bottle Next Recommendation Card -->
+    ${(invAnalysis.isBottleNext && invAnalysis.missingItems.length === 1) ? `
+      <div class="counter-card bottle-next-banner">
+        <div class="bottle-next-banner-content">
+          <div class="bottle-next-icon" style="color: ${invAnalysis.missingItems[0].color || 'var(--color-accent)'};">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8"></path><path d="M9 2v3h6V2"></path><path d="M7 5h10v17H7z"></path></svg>
+          </div>
+          <div class="bottle-next-text">
+            <div class="bottle-next-title">You're 1 bottle away from making this cocktail</div>
+            <div class="bottle-next-desc">Add <strong>${escapeHtml(invAnalysis.missingItems[0].name)}</strong> to your backbar inventory to unlock ${escapeHtml(recipe.name)}.</div>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm btn-quick-add-bottle" data-bottle-id="${escapeHtml(invAnalysis.missingItems[0].id)}" title="Add ${escapeHtml(invAnalysis.missingItems[0].name)} to your bar">
+            + Add to Bar
+          </button>
+        </div>
+      </div>
+    ` : ''}
+
     <!-- Similar Cocktails Shelf (Horizontal Scrolling Track) -->
     ${similarCocktails.length > 0 ? `
       <div class="counter-card similar-cocktails-shelf">
@@ -587,6 +903,37 @@ function renderCounterView() {
     row.addEventListener('mouseleave', () => {
       row.classList.remove('highlighted');
       state.glassViewMain.clearHighlight();
+    });
+  });
+
+  // In-spec stock toggle buttons
+  elements.counterViewContainer.querySelectorAll('.btn-stock-toggle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const bottleId = btn.getAttribute('data-bottle-id');
+      if (bottleId) {
+        toggleInventoryBottle(bottleId);
+        const inBar = state.inventory.has(bottleId);
+        const name = TAXONOMY[bottleId]?.name || bottleId;
+        showToast(inBar ? `Added ${name} to your backbar` : `Removed ${name} from your backbar`);
+      }
+    });
+  });
+
+  // Bottle Next banner quick-add button
+  elements.counterViewContainer.querySelectorAll('.btn-quick-add-bottle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const bottleId = btn.getAttribute('data-bottle-id');
+      if (bottleId) {
+        state.inventory.add(bottleId);
+        saveInventory(Array.from(state.inventory));
+        updateMyBarBadge();
+        renderRecipeList();
+        renderCounterView();
+        const name = TAXONOMY[bottleId]?.name || bottleId;
+        showToast(`Added ${name} to your backbar`);
+      }
     });
   });
 

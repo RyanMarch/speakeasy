@@ -1577,3 +1577,135 @@ export function findSimilarCocktails(currentRecipe, allRecipes = []) {
   return results;
 }
 
+// ==========================================
+// Backbar Inventory & Bottle Next Engine
+// ==========================================
+
+const PANTRY_STAPLE_NAMES = new Set([
+  'water',
+  'ice',
+  'tap water',
+  'cold water',
+  'hot water',
+  'chilled water',
+  'saline',
+  'saline solution',
+  'saline solution (20%)',
+  'salt',
+  'sugar',
+  'granulated sugar',
+  'white sugar',
+]);
+
+const GENERIC_FAMILIES = {
+  whiskey: ['whiskey', 'whisky', 'blended whiskey', 'american whiskey'],
+  rum: ['rum', 'cane spirits', 'blended rum'],
+  tequila: ['tequila', 'agave spirit'],
+  orange_liqueur: ['orange liqueur', 'triple sec or curacao', 'curacao or triple sec', 'citrus liqueur'],
+  vermouth: ['vermouth'],
+  cane_syrup: ['simple syrup or demerara', 'sugar syrup'],
+};
+
+/**
+ * Checks whether an ingredient is present in the user's inventory.
+ * Handles pantry staples, direct matches, aliases, and child-to-parent hierarchy.
+ */
+export function checkIngredientStock(specName, inventorySet = new Set()) {
+  if (!specName) return { inStock: true, isStaple: true };
+  const clean = specName.trim().toLowerCase();
+
+  // 1. Always-assumed pantry staples (ice, water, saline)
+  if (PANTRY_STAPLE_NAMES.has(clean) || clean === 'ice' || clean === 'water') {
+    return { inStock: true, isStaple: true, name: specName };
+  }
+
+  // 2. Direct ID or Alias match in inventory
+  const item = findIngredient(specName);
+  if (item) {
+    if (inventorySet.has(item.id)) {
+      return { inStock: true, item, id: item.id, name: item.name };
+    }
+    for (const alias of item.aliases || []) {
+      if (inventorySet.has(alias.toLowerCase())) {
+        return { inStock: true, item, id: item.id, name: item.name };
+      }
+    }
+  }
+
+  // Direct string match in inventory
+  if (inventorySet.has(clean)) {
+    return { inStock: true, item, id: item ? item.id : clean, name: item ? item.name : specName };
+  }
+
+  // 3. Hierarchical Child-to-Parent match:
+  // If recipe calls for generic family (e.g. "Whiskey"), check if user owns any specific bottle in that family
+  for (const [familyKey, genericTerms] of Object.entries(GENERIC_FAMILIES)) {
+    if (genericTerms.includes(clean) || (item && item.family === familyKey && genericTerms.includes(item.name.toLowerCase()))) {
+      for (const ownedId of inventorySet) {
+        const ownedTax = TAXONOMY[ownedId];
+        if (ownedTax && ownedTax.family === familyKey) {
+          return { inStock: true, item: ownedTax, id: item ? item.id : ownedTax.id, name: specName, substitutedWith: ownedTax.name };
+        }
+      }
+    }
+  }
+
+  // Missing bottle
+  return {
+    inStock: false,
+    item,
+    id: item ? item.id : clean.replace(/\s+/g, '_'),
+    name: item ? item.name : specName,
+    family: item ? item.family : 'other',
+    color: item ? item.color : '#c67828',
+  };
+}
+
+/**
+ * Analyzes a recipe against the user's backbar inventory.
+ * Computes whether the drink can be made immediately or requires +1 bottle.
+ */
+export function analyzeRecipeInventory(recipe, inventorySet = new Set()) {
+  if (!recipe || !Array.isArray(recipe.specs)) {
+    return { canMake: false, isBottleNext: false, missingCount: 0, missingItems: [], matchedItems: [], totalCount: 0, matchCount: 0 };
+  }
+
+  const missingItems = [];
+  const matchedItems = [];
+  const processedKeys = new Set();
+
+  for (const spec of recipe.specs) {
+    if (!spec.name || !spec.name.trim()) continue;
+    const stockStatus = checkIngredientStock(spec.name, inventorySet);
+
+    // Pantry staples never count against missing bottles
+    if (stockStatus.isStaple) continue;
+
+    const dedupeKey = stockStatus.id || stockStatus.name.toLowerCase();
+    if (processedKeys.has(dedupeKey)) continue;
+    processedKeys.add(dedupeKey);
+
+    if (stockStatus.inStock) {
+      matchedItems.push(stockStatus);
+    } else {
+      missingItems.push(stockStatus);
+    }
+  }
+
+  const totalCount = matchedItems.length + missingItems.length;
+  const missingCount = missingItems.length;
+  const canMake = missingCount === 0 && totalCount > 0;
+  const isBottleNext = missingCount === 1;
+
+  return {
+    canMake,
+    isBottleNext,
+    missingCount,
+    missingItems,
+    matchedItems,
+    totalCount,
+    matchCount: matchedItems.length,
+  };
+}
+
+

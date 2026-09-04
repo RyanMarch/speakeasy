@@ -288,3 +288,65 @@ export function resetToDefaults() {
   saveRecipes(SEED_RECIPES);
   return SEED_RECIPES;
 }
+
+// ==========================================
+// Backbar Personal Inventory Persistence
+// ==========================================
+const INVENTORY_STORAGE_KEY = 'speakeasy_inventory';
+
+export const DEFAULT_STARTER_BAR = [
+  'bourbon',
+  'rye_whiskey',
+  'london_dry_gin',
+  'light_rum',
+  'tequila_blanco',
+  'sweet_vermouth',
+  'dry_vermouth',
+  'red_bitter',
+  'triple_sec',
+  'simple_syrup',
+  'aromatic_bitters',
+  'lemon_juice',
+  'lime_juice',
+];
+
+export function getInventory() {
+  try {
+    const raw = localStorage.getItem(INVENTORY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error('Failed to read inventory from localStorage:', err);
+    return [];
+  }
+}
+
+export function saveInventory(ids) {
+  try {
+    const list = Array.from(new Set(ids));
+    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(list));
+    return list;
+  } catch (err) {
+    console.error('Failed to save inventory to localStorage:', err);
+    return ids;
+  }
+}
+
+export function toggleInventoryItem(id) {
+  const current = new Set(getInventory());
+  if (current.has(id)) {
+    current.delete(id);
+  } else {
+    current.add(id);
+  }
+  const updated = Array.from(current);
+  saveInventory(updated);
+  return updated;
+}
+
+export function clearInventory() {
+  saveInventory([]);
+  return [];
+}
+
