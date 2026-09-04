@@ -812,6 +812,17 @@ export const TAXONOMY = {
     defaultAbv: 0,
     aliases: ['raspberry syrup'],
   },
+  maple_syrup: {
+    id: 'maple_syrup',
+    name: 'Maple Syrup',
+    family: 'flavored_syrup',
+    parent: 'sweeteners',
+    color: '#a35622',
+    light: '#c36d33',
+    dark: '#733510',
+    defaultAbv: 0,
+    aliases: ['maple syrup', 'pure maple syrup', 'grade a maple syrup', 'dark maple syrup'],
+  },
   raw_sweetener: {
     id: 'raw_sweetener',
     name: 'Raw Sweetener',
@@ -821,7 +832,7 @@ export const TAXONOMY = {
     light: '#bf834e',
     dark: '#73441e',
     defaultAbv: 0,
-    aliases: ['sugar cube', 'superfine sugar', 'sugar', 'maple syrup', 'molasses', 'jam', 'marmalade'],
+    aliases: ['sugar cube', 'superfine sugar', 'sugar', 'molasses', 'jam', 'marmalade'],
   },
 
   // ==========================================
@@ -880,7 +891,62 @@ export const TAXONOMY = {
     light: '#f7b958',
     dark: '#ab6c13',
     defaultAbv: 0,
-    aliases: ['pineapple juice', 'fresh pineapple juice', 'cranberry juice', 'apple cider', 'apple juice', 'tomato juice'],
+    aliases: ['pineapple juice', 'fresh pineapple juice', 'cranberry juice', 'apple cider', 'apple juice'],
+  },
+  tomato_juice: {
+    id: 'tomato_juice',
+    name: 'Tomato Juice',
+    family: 'fruit_juice',
+    parent: 'produce',
+    color: '#b5291c',
+    light: '#d44335',
+    dark: '#82170d',
+    defaultAbv: 0,
+    aliases: ['tomato juice', 'clamato', 'clamato juice', 'spiced tomato juice'],
+  },
+  olive_brine: {
+    id: 'olive_brine',
+    name: 'Olive Brine',
+    family: 'brine',
+    parent: 'produce',
+    color: '#b5be8e',
+    light: '#ced6aa',
+    dark: '#8e9667',
+    defaultAbv: 0,
+    aliases: ['olive brine', 'olive juice', 'dirty martini olive juice', 'dirty olive brine', 'green olive brine'],
+  },
+  pickle_brine: {
+    id: 'pickle_brine',
+    name: 'Pickle Brine',
+    family: 'brine',
+    parent: 'produce',
+    color: '#a1bb67',
+    light: '#bcd383',
+    dark: '#779040',
+    defaultAbv: 0,
+    aliases: ['pickle brine', 'pickle juice', 'dill pickle juice', 'dill pickle brine', 'pickle juice brine'],
+  },
+  worcestershire: {
+    id: 'worcestershire',
+    name: 'Worcestershire Sauce',
+    family: 'savory',
+    parent: 'produce',
+    color: '#3d160c',
+    light: '#5b2314',
+    dark: '#220a04',
+    defaultAbv: 0,
+    aliases: ['worcestershire sauce', 'worcestershire', 'lea & perrins', 'lea and perrins'],
+  },
+  hot_sauce: {
+    id: 'hot_sauce',
+    name: 'Hot Sauce',
+    family: 'savory',
+    parent: 'produce',
+    color: '#b82717',
+    light: '#d94231',
+    dark: '#85150a',
+    defaultAbv: 0,
+    aliases: ['hot sauce', 'tabasco', 'cholula', 'sriracha', 'habanero sauce'],
   },
   acids: {
     id: 'acids',
@@ -1066,6 +1132,39 @@ export const TAXONOMY = {
     defaultAbv: 0,
     aliases: ['heavy cream', 'half and half', 'whole milk', 'condensed milk', 'coconut cream', 'coco lopez', 'cream', 'milk'],
   },
+  espresso: {
+    id: 'espresso',
+    name: 'Fresh Espresso',
+    family: 'coffee',
+    parent: 'mixers',
+    color: '#2a170c',
+    light: '#482a17',
+    dark: '#140804',
+    defaultAbv: 0,
+    aliases: ['fresh espresso', 'espresso', 'cold brew', 'cold brew coffee', 'brewed coffee', 'coffee'],
+  },
+  beer: {
+    id: 'beer',
+    name: 'Beer',
+    family: 'fermented',
+    parent: 'mixers',
+    color: '#d49b2c',
+    light: '#eeb64a',
+    dark: '#9a6b16',
+    defaultAbv: 5,
+    aliases: ['beer', 'lager', 'stout', 'pilsner', 'ipa', 'pale ale', 'guinness'],
+  },
+  cider: {
+    id: 'cider',
+    name: 'Hard Cider',
+    family: 'fermented',
+    parent: 'mixers',
+    color: '#cea039',
+    light: '#e8be55',
+    dark: '#967019',
+    defaultAbv: 5.5,
+    aliases: ['hard cider', 'cider', 'dry cider'],
+  },
 };
 
 // Pre-build a fast alias lookup table sorted by length descending so longer phrases match first
@@ -1193,6 +1292,12 @@ export function ingredientMatchesQuery(rawIngredientName = '', query = '') {
   if (cleanQuery === 'bitters' && item.parent === 'bitters') {
     return true;
   }
+  if (cleanQuery === 'brine' && item.family === 'brine') {
+    return true;
+  }
+  if (cleanQuery === 'coffee' && item.family === 'coffee') {
+    return true;
+  }
 
   // Check aliases
   for (const alias of item.aliases || []) {
@@ -1235,3 +1340,240 @@ export function recipeMatchesQuery(recipe, query = '') {
 
   return false;
 }
+
+/**
+ * Resolves logical ingredient substitutes from the taxonomy based on family or parent grouping.
+ * Used by the Smart Ingredient Swapper ("Riff Mode").
+ */
+export function getIngredientSubstitutes(rawIngredientName = '') {
+  const current = findIngredient(rawIngredientName);
+  if (!current) return [];
+
+  const candidates = [];
+  const seenIds = new Set([current.id]);
+
+  for (const key of Object.keys(TAXONOMY)) {
+    const candidate = TAXONOMY[key];
+    if (seenIds.has(candidate.id)) continue;
+
+    let isMatch = false;
+
+    // 1. Same exact family (e.g. whiskey, vermouth, amaro, soda, citrus_juice)
+    if (candidate.family === current.family) {
+      isMatch = true;
+    }
+    // 2. Agave spirits cross-family (mezcal <-> tequila)
+    else if ((current.family === 'tequila' || current.family === 'agave_spirits') &&
+             (candidate.family === 'tequila' || candidate.family === 'agave_spirits')) {
+      isMatch = true;
+    }
+    // 3. Cane spirits cross-family (rum <-> rhum_agricole / cachaca)
+    else if ((current.family === 'rum' || current.family === 'cane_spirits') &&
+             (candidate.family === 'rum' || candidate.family === 'cane_spirits')) {
+      isMatch = true;
+    }
+    // 4. Fortified wine cross-family (vermouth <-> quinquina <-> sherry)
+    else if (current.parent === 'fortified_wine' && candidate.parent === 'fortified_wine') {
+      isMatch = true;
+    }
+    // 5. Syrups cross-family (cane_syrup <-> flavored_syrup)
+    else if ((current.family === 'cane_syrup' || current.family === 'flavored_syrup') &&
+             (candidate.family === 'cane_syrup' || candidate.family === 'flavored_syrup')) {
+      isMatch = true;
+    }
+
+    if (isMatch) {
+      seenIds.add(candidate.id);
+      candidates.push({
+        id: candidate.id,
+        name: candidate.name,
+        family: candidate.family,
+        parent: candidate.parent,
+        defaultAbv: candidate.defaultAbv,
+        color: candidate.color,
+      });
+    }
+  }
+
+  // Sort alphabetically by canonical name
+  candidates.sort((a, b) => a.name.localeCompare(b.name));
+  return candidates;
+}
+
+/**
+ * Resolves the parent cocktail lineage of a recipe if it is a riff.
+ * Checks explicit riffOfId / riffOfName, "<Base> (... Riff)" naming pattern, or description text.
+ */
+export function getRecipeRiffLineage(recipe, allRecipes = []) {
+  if (!recipe) return null;
+
+  // 1. Explicit riffOfId
+  if (recipe.riffOfId) {
+    const parent = allRecipes.find(r => r.id === recipe.riffOfId);
+    if (parent) return { parentId: parent.id, parentName: parent.name };
+  }
+
+  // 2. Explicit riffOfName
+  if (recipe.riffOfName) {
+    const parent = allRecipes.find(r => r.name.toLowerCase().trim() === recipe.riffOfName.toLowerCase().trim());
+    return { parentId: parent?.id || null, parentName: parent?.name || recipe.riffOfName };
+  }
+
+  // 3. Name pattern: e.g. "Old Fashioned (Scotch Whisky / Maple Syrup Riff)"
+  if (recipe.name) {
+    const nameMatch = recipe.name.match(/^(.+?)\s*\((.+?)\s*Riff\)$/i);
+    if (nameMatch) {
+      const baseName = nameMatch[1].trim();
+      const parent = allRecipes.find(r => r.name.toLowerCase().trim() === baseName.toLowerCase());
+      if (parent) {
+        return { parentId: parent.id, parentName: parent.name };
+      }
+      return { parentId: null, parentName: baseName };
+    }
+  }
+
+  // 4. Description pattern: e.g. "Riff on Old Fashioned:"
+  if (recipe.description) {
+    const descMatch = recipe.description.match(/Riff on ([^:.\n]+)/i);
+    if (descMatch) {
+      const baseName = descMatch[1].trim();
+      const parent = allRecipes.find(r => r.name.toLowerCase().trim() === baseName.toLowerCase());
+      if (parent) {
+        return { parentId: parent.id, parentName: parent.name };
+      }
+      return { parentId: null, parentName: baseName };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Discovers similar and riff-connected cocktails across the recipe vault.
+ * Connects original cocktails to their riffs and vice versa, plus taxonomy formula matches.
+ */
+export function findSimilarCocktails(currentRecipe, allRecipes = []) {
+  if (!currentRecipe || !Array.isArray(allRecipes)) return [];
+
+  const results = [];
+  const addedIds = new Set([currentRecipe.id]);
+  const currentName = (currentRecipe.name || '').toLowerCase().trim();
+  const currentLineage = getRecipeRiffLineage(currentRecipe, allRecipes);
+
+  // 1. If this recipe is a riff of another cocktail, link the original cocktail first
+  if (currentLineage) {
+    const parent = allRecipes.find(r => 
+      (currentLineage.parentId && r.id === currentLineage.parentId) ||
+      (currentLineage.parentName && r.name.toLowerCase().trim() === currentLineage.parentName.toLowerCase().trim())
+    );
+    if (parent && !addedIds.has(parent.id)) {
+      results.push({
+        recipe: parent,
+        relation: 'Original',
+        badgeClass: 'badge-orig',
+        isParent: true,
+      });
+      addedIds.add(parent.id);
+    }
+
+    // Also link sibling riffs (other riffs sharing the same parent)
+    for (const r of allRecipes) {
+      if (!addedIds.has(r.id)) {
+        const rLineage = getRecipeRiffLineage(r, allRecipes);
+        const isSibling = rLineage && (
+          (currentLineage.parentId && rLineage.parentId === currentLineage.parentId) ||
+          (currentLineage.parentName && rLineage.parentName.toLowerCase().trim() === currentLineage.parentName.toLowerCase().trim())
+        );
+        if (isSibling) {
+          results.push({
+            recipe: r,
+            relation: 'Riff',
+            badgeClass: 'badge-riff',
+            isSibling: true,
+          });
+          addedIds.add(r.id);
+        }
+      }
+    }
+  }
+
+  // 2. If other recipes were riffed off this cocktail, link them as Riffs!
+  for (const r of allRecipes) {
+    if (!addedIds.has(r.id)) {
+      const rLineage = getRecipeRiffLineage(r, allRecipes);
+      const isChild = rLineage && (
+        (rLineage.parentId && rLineage.parentId === currentRecipe.id) ||
+        (rLineage.parentName && rLineage.parentName.toLowerCase().trim() === currentName)
+      );
+      if (isChild) {
+        results.push({
+          recipe: r,
+          relation: 'Riff',
+          badgeClass: 'badge-riff',
+          isChild: true,
+        });
+        addedIds.add(r.id);
+      }
+    }
+  }
+
+  // 3. Taxonomy formula & spirit family similarity
+  const currentFamilies = new Set();
+  const currentItemIds = new Set();
+  for (const spec of currentRecipe.specs || []) {
+    const item = findIngredient(spec.name);
+    if (item) {
+      currentItemIds.add(item.id);
+      currentFamilies.add(item.family);
+      if (item.parent) currentFamilies.add(item.parent);
+    }
+  }
+
+  const formulaMatches = [];
+  for (const candidate of allRecipes) {
+    if (addedIds.has(candidate.id)) continue;
+
+    let matchCount = 0;
+    for (const spec of candidate.specs || []) {
+      const item = findIngredient(spec.name);
+      if (item) {
+        if (currentItemIds.has(item.id)) {
+          matchCount += 2; // Exact ingredient match
+        } else if (currentFamilies.has(item.family)) {
+          matchCount += 1; // Family match
+        }
+      }
+    }
+
+    if (candidate.glassware && candidate.glassware === currentRecipe.glassware) {
+      matchCount += 0.5;
+    }
+    if (candidate.method && candidate.method === currentRecipe.method) {
+      matchCount += 0.5;
+    }
+
+    if (matchCount >= 2.5) {
+      formulaMatches.push({
+        recipe: candidate,
+        relation: 'Similar Style',
+        badgeClass: 'badge-style',
+        score: matchCount,
+      });
+    }
+  }
+
+  formulaMatches.sort((a, b) => b.score - a.score);
+
+  for (const match of formulaMatches) {
+    if (results.length >= 6) break;
+    results.push({
+      recipe: match.recipe,
+      relation: match.relation,
+      badgeClass: match.badgeClass,
+    });
+    addedIds.add(match.recipe.id);
+  }
+
+  return results;
+}
+

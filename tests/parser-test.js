@@ -144,4 +144,116 @@ const bourbonAbv = estimateIngredientAbv('High-Rye Bourbon');
 console.log('High-Rye Bourbon ABV:', bourbonAbv);
 if (bourbonAbv !== 45) throw new Error('Expected 45% ABV for Bourbon');
 
+import { getIngredientSubstitutes } from '../js/modules/taxonomy.js';
+
+console.log('--- Testing Smart Ingredient Swapper (Riff Substitutes) ---');
+const bourbonSubs = getIngredientSubstitutes('Bourbon');
+console.log('Bourbon substitutes count:', bourbonSubs.length, bourbonSubs.map(s => s.name));
+if (!bourbonSubs.some(s => s.id === 'rye_whiskey')) throw new Error('Bourbon should offer Rye Whiskey as substitute');
+if (!bourbonSubs.some(s => s.id === 'scotch')) throw new Error('Bourbon should offer Scotch as substitute');
+if (bourbonSubs.some(s => s.id === 'bourbon')) throw new Error('Bourbon should not offer itself as substitute');
+
+const mezcalSubs = getIngredientSubstitutes('Mezcal');
+console.log('Mezcal substitutes count:', mezcalSubs.length, mezcalSubs.map(s => s.name));
+if (!mezcalSubs.some(s => s.id === 'tequila_blanco')) throw new Error('Mezcal should offer Blanco Tequila as substitute');
+
+const vermouthSubs = getIngredientSubstitutes('Sweet Vermouth');
+console.log('Sweet Vermouth substitutes count:', vermouthSubs.length, vermouthSubs.map(s => s.name));
+if (!vermouthSubs.some(s => s.id === 'dry_vermouth')) throw new Error('Sweet Vermouth should offer Dry Vermouth as substitute');
+
+console.log('--- Testing New Taxonomy Additions ---');
+const mapleMatch = findIngredient('Grade A Maple Syrup');
+console.log('Grade A Maple Syrup =>', mapleMatch?.name);
+if (!mapleMatch || mapleMatch.id !== 'maple_syrup') throw new Error('Maple syrup match failed');
+
+const oliveMatch = findIngredient('Olive Juice');
+console.log('Olive Juice =>', oliveMatch?.name, `(Family: ${oliveMatch?.family})`);
+if (!oliveMatch || oliveMatch.id !== 'olive_brine') throw new Error('Olive juice match failed');
+
+const pickleMatch = findIngredient('Dill Pickle Juice');
+console.log('Dill Pickle Juice =>', pickleMatch?.name, `(Family: ${pickleMatch?.family})`);
+if (!pickleMatch || pickleMatch.id !== 'pickle_brine') throw new Error('Pickle juice match failed');
+
+const oliveSubs = getIngredientSubstitutes('Olive Juice');
+console.log('Olive Juice substitutes:', oliveSubs.map(s => s.name));
+if (!oliveSubs.some(s => s.id === 'pickle_brine')) throw new Error('Olive juice should offer Pickle Brine as substitute');
+
+const espressoMatch = findIngredient('Fresh Espresso');
+console.log('Fresh Espresso =>', espressoMatch?.name);
+if (!espressoMatch || espressoMatch.id !== 'espresso') throw new Error('Espresso match failed');
+
+console.log('--- Testing Bidirectional Cocktail Riffs & Similar Cocktails ---');
+import { findSimilarCocktails } from '../js/modules/taxonomy.js';
+import { SEED_RECIPES } from '../js/modules/storage.js';
+
+const negroni = SEED_RECIPES.find(r => r.id === 'negroni');
+const boulevardier = SEED_RECIPES.find(r => r.id === 'boulevardier');
+
+if (!negroni || !boulevardier) throw new Error('Negroni or Boulevardier seed recipe missing');
+
+// Test Negroni (parent/riffed-on cocktail)
+const negroniSimilar = findSimilarCocktails(negroni, SEED_RECIPES);
+console.log('Negroni similar cocktails count:', negroniSimilar.length, negroniSimilar.map(s => `${s.recipe.name} (${s.relation})`));
+const bMatchOnNegroni = negroniSimilar.find(s => s.recipe.id === 'boulevardier');
+if (!bMatchOnNegroni) throw new Error('Boulevardier should appear in Negroni similar cocktails');
+if (bMatchOnNegroni.relation !== 'Riff') throw new Error(`Expected 'Riff', got ${bMatchOnNegroni.relation}`);
+if (bMatchOnNegroni.badgeClass !== 'badge-riff') throw new Error(`Expected 'badge-riff', got ${bMatchOnNegroni.badgeClass}`);
+
+// Test Boulevardier (child/riff cocktail)
+const boulevardierSimilar = findSimilarCocktails(boulevardier, SEED_RECIPES);
+console.log('Boulevardier similar cocktails count:', boulevardierSimilar.length, boulevardierSimilar.map(s => `${s.recipe.name} (${s.relation})`));
+const nMatchOnBoulevardier = boulevardierSimilar.find(s => s.recipe.id === 'negroni');
+if (!nMatchOnBoulevardier) throw new Error('Negroni should appear in Boulevardier similar cocktails');
+if (nMatchOnBoulevardier.relation !== 'Original') throw new Error(`Expected 'Original', got ${nMatchOnBoulevardier.relation}`);
+if (nMatchOnBoulevardier.badgeClass !== 'badge-orig') throw new Error(`Expected 'badge-orig', got ${nMatchOnBoulevardier.badgeClass}`);
+
+// Test Sibling Riffs
+const whiteNegroni = {
+  id: 'white-negroni',
+  name: 'White Negroni',
+  riffOfId: 'negroni',
+  riffOfName: 'Negroni',
+  specs: [
+    { amount: 1.5, unit: 'oz', name: 'London Dry Gin' },
+    { amount: 1, unit: 'oz', name: 'Lillet Blanc' },
+    { amount: 0.75, unit: 'oz', name: 'Suze' },
+  ],
+};
+const mockVault = [...SEED_RECIPES, whiteNegroni];
+const whiteNegroniSimilar = findSimilarCocktails(whiteNegroni, mockVault);
+console.log('White Negroni similar count:', whiteNegroniSimilar.length, whiteNegroniSimilar.map(s => `${s.recipe.name} (${s.relation})`));
+const parentMatch = whiteNegroniSimilar.find(s => s.recipe.id === 'negroni');
+const siblingMatch = whiteNegroniSimilar.find(s => s.recipe.id === 'boulevardier');
+if (!parentMatch || parentMatch.relation !== 'Original') throw new Error('White Negroni should have Negroni as Original');
+if (!siblingMatch || siblingMatch.relation !== 'Riff') throw new Error('White Negroni should have Boulevardier as Riff');
+
+// Test Lineage Detection on Named Riffs without explicit riffOfId (e.g. user screenshot)
+import { getRecipeRiffLineage } from '../js/modules/taxonomy.js';
+const userRiff = {
+  id: 'rec_user_saved',
+  name: 'Old Fashioned (Scotch Whisky / Maple Syrup Riff)',
+  description: 'Riff on Old Fashioned: substituted Bourbon with Scotch Whisky.',
+  specs: [
+    { amount: 2, unit: 'oz', name: 'Scotch Whisky' },
+    { amount: 0.25, unit: 'oz', name: 'Maple Syrup' },
+    { amount: 2, unit: 'dashes', name: 'Angostura Bitters' },
+  ],
+};
+const detectedLineage = getRecipeRiffLineage(userRiff, SEED_RECIPES);
+console.log('Detected lineage for user riff:', detectedLineage);
+if (!detectedLineage || detectedLineage.parentName !== 'Old Fashioned') {
+  throw new Error('Failed to infer lineage for named riff');
+}
+
+const ofRecipe = SEED_RECIPES.find(r => r.id === 'old-fashioned');
+const ofSimilarWithUserRiff = findSimilarCocktails(ofRecipe, [...SEED_RECIPES, userRiff]);
+console.log('Old Fashioned similar with user riff:', ofSimilarWithUserRiff.map(s => `${s.recipe.name} [${s.relation}]`));
+const userRiffMatch = ofSimilarWithUserRiff.find(s => s.recipe.id === userRiff.id);
+if (!userRiffMatch) throw new Error('User riff should appear in Old Fashioned similar list');
+if (userRiffMatch.relation !== 'Riff') throw new Error(`User riff should have relation 'Riff', got ${userRiffMatch.relation}`);
+if (userRiffMatch.badgeClass !== 'badge-riff') throw new Error(`User riff should have badgeClass 'badge-riff', got ${userRiffMatch.badgeClass}`);
+
 console.log('All tests completed successfully!');
+
+
+

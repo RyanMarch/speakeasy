@@ -22,14 +22,16 @@ import {
   getIngredientColor,
 } from './js/modules/colors.js';
 
-import { GlassView } from './js/modules/glass-view.js';
+import { GlassView, renderGlassSvg } from './js/modules/glass-view.js';
 import { calculateCocktailAbv, estimateIngredientAbv } from './js/modules/abv.js';
-import { recipeMatchesQuery } from './js/modules/taxonomy.js';
+import { recipeMatchesQuery, getIngredientSubstitutes, findSimilarCocktails, getRecipeRiffLineage, TAXONOMY } from './js/modules/taxonomy.js';
 
 // Application State
 const state = {
   recipes: [],
   activeRecipeId: null,
+  activeRiffs: {}, // { [specIndex]: substituteTaxonomyId }
+  riffModeActive: false,
   searchQuery: '',
   viewMode: 'counter', // 'counter' | 'edit'
   unitSystem: 'oz', // 'oz' | 'ml'
@@ -211,6 +213,10 @@ function renderRecipeList() {
  * Select a recipe and display counter view
  */
 function selectRecipe(id) {
+  if (state.activeRecipeId !== id) {
+    state.activeRiffs = {};
+    state.riffModeActive = false;
+  }
   state.activeRecipeId = id;
   state.viewMode = 'counter';
   renderRecipeList();
@@ -250,17 +256,44 @@ function renderCounterView() {
     return;
   }
 
-  const layers = calculateFluidLayers(recipe.specs || []);
+  const hasActiveRiffs = Object.keys(state.activeRiffs).length > 0;
+  const effectiveSpecs = (recipe.specs || []).map((spec, index) => {
+    const riffId = state.activeRiffs[index];
+    if (riffId && TAXONOMY[riffId]) {
+      return {
+        ...spec,
+        name: TAXONOMY[riffId].name,
+        originalName: spec.name,
+        isRiff: true,
+        riffId,
+      };
+    }
+    return {
+      ...spec,
+      originalName: spec.name,
+      isRiff: false,
+    };
+  });
+
+  const effectiveRecipe = {
+    ...recipe,
+    specs: effectiveSpecs,
+  };
+
+  const similarCocktails = findSimilarCocktails(recipe, state.recipes);
+  const lineage = getRecipeRiffLineage(recipe, state.recipes);
+
+  const layers = calculateFluidLayers(effectiveSpecs);
   const totalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
   const totalDisplay = state.unitSystem === 'ml'
     ? `${Math.round(totalOz * 29.5735)} ml`
     : `${totalOz.toFixed(2)} oz`;
 
-  const abvInfo = calculateCocktailAbv(recipe.specs || [], recipe.method);
+  const abvInfo = calculateCocktailAbv(effectiveSpecs, recipe.method);
   const roundedAbv = Math.round(abvInfo.estimatedAbv);
   const abvDisplay = roundedAbv > 0 ? `${roundedAbv}%` : 'Non-Alcoholic';
 
-  const specsListHtml = (recipe.specs || []).map((spec, index) => {
+  const specsListHtml = effectiveSpecs.map((spec, index) => {
     let amountText = '';
     let unitText = spec.unit || '';
 
@@ -277,21 +310,43 @@ function renderCounterView() {
     const layer = layers[index];
     const ratioPercent = layer ? `${(layer.ratio * 100).toFixed(0)}%` : '';
 
+    const substitutes = getIngredientSubstitutes(spec.originalName || spec.name);
+    const isRiff = spec.isRiff;
+
+    let riffControlHtml = '';
+    if (state.riffModeActive && substitutes.length > 0) {
+      riffControlHtml = `
+        <div class="spec-riff-wrapper" title="Riff on ${escapeHtml(spec.originalName)}">
+          <select class="spec-riff-select ${isRiff ? 'active-riff' : ''}" data-spec-index="${index}" aria-label="Riff on ${escapeHtml(spec.originalName)}">
+            <option value="" ${!isRiff ? 'selected' : ''}>Riff ▾</option>
+            ${isRiff ? `<option value="__orig__">↺ ${escapeHtml(spec.originalName)} (Original)</option>` : ''}
+            ${substitutes.map(sub => `
+              <option value="${sub.id}" ${spec.riffId === sub.id ? 'selected' : ''}>
+                ${escapeHtml(sub.name)}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+      `;
+    }
+
     return `
-      <div class="spec-row" data-spec-index="${index}">
+      <div class="spec-row ${isRiff ? 'is-riffed-row' : ''}" data-spec-index="${index}">
         <div class="spec-amount">
           ${amountText ? `${escapeHtml(amountText)}<span class="spec-unit">${escapeHtml(unitText)}</span>` : `<span class="spec-unit">${escapeHtml(unitText || 'to taste')}</span>`}
         </div>
         <div class="spec-ingredient">
           <span class="color-swatch-dot" style="background-color: ${colorInfo.color}; color: ${colorInfo.color};"></span>
-          <span>${escapeHtml(spec.name)}</span>
+          <span class="spec-name">${escapeHtml(spec.name)}</span>
         </div>
+        ${riffControlHtml}
         ${ratioPercent ? `<div class="spec-ratio" title="Relative volume ratio">${ratioPercent}</div>` : '<div></div>'}
       </div>
     `;
   }).join('');
 
   elements.counterViewContainer.innerHTML = /*html*/`
+    <div class="counter-view ${state.riffModeActive ? 'riff-mode-active' : ''}">
     <!-- Top Action Bar -->
     <div class="counter-nav-bar">
       <button id="btn-mobile-back" class="btn btn-secondary btn-sm mobile-back-btn">
@@ -304,6 +359,17 @@ function renderCounterView() {
           <button id="btn-unit-oz" class="unit-btn ${state.unitSystem === 'oz' ? 'active' : ''}">OZ</button>
           <button id="btn-unit-ml" class="unit-btn ${state.unitSystem === 'ml' ? 'active' : ''}">ML</button>
         </div>
+
+        ${hasActiveRiffs ? `
+          <button id="btn-reset-riff" class="btn btn-secondary btn-sm" title="Revert back to original cocktail specs">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            Reset Riff
+          </button>
+          <button id="btn-save-riff" class="btn btn-primary btn-sm" title="Save this riff variation as a new cocktail">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Save as Riff
+          </button>
+        ` : ''}
 
         <button id="btn-edit-drink" class="btn btn-secondary btn-sm" title="Edit recipe specs">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
@@ -338,6 +404,18 @@ function renderCounterView() {
           <span>ABV:</span>
           <strong>${escapeHtml(abvDisplay)}</strong>
         </span>
+        ${lineage ? `
+          <span class="meta-pill riff-lineage-pill" title="Riff on ${escapeHtml(lineage.parentName)}">
+            <span class="riff-tag">Riff:</span>
+            <strong>${escapeHtml(lineage.parentName)}</strong>
+          </span>
+        ` : ''}
+        ${hasActiveRiffs ? `
+          <span class="meta-pill riff-active-pill" title="Dynamic ingredient swap active">
+            <span>Swaps:</span>
+            <strong>Active</strong>
+          </span>
+        ` : ''}
         ${recipe.garnish ? `
           <span class="meta-pill">
             <span>Garnish:</span>
@@ -363,20 +441,26 @@ function renderCounterView() {
           ${(recipe.source || recipe.sourceUrl) ? `
             <div class="glass-source">
               Source: ${recipe.sourceUrl
-                ? `<a href="${escapeHtml(recipe.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(recipe.source || 'Original Recipe')} ↗</a>`
-                : `<strong>${escapeHtml(recipe.source)}</strong>`}
+        ? `<a href="${escapeHtml(recipe.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(recipe.source || 'Original Recipe')} ↗</a>`
+        : `<strong>${escapeHtml(recipe.source)}</strong>`}
             </div>
           ` : ''}
           <div class="glass-interaction-tip">
             Hover fluid layers or specs to inspect proportions
           </div>
         </div>
+
+        <button id="btn-toggle-riff-mode" class="btn ${state.riffModeActive ? 'btn-primary' : 'btn-secondary'} btn-sm riff-toggle-btn" title="Toggle ingredient substitution menus">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          ${state.riffModeActive ? 'Done Riffing' : 'Make a Riff'}
+        </button>
       </div>
 
       <!-- Right Column: Specs Table, Preparation & Notes -->
       <div class="specs-column">
+
         <!-- Story / Writeup Card (if present) -->
-        ${recipe.description ? `
+        ${recipe.description ? /*html*/ `
           <div class="counter-card">
             <div class="counter-card-header">
               <span class="counter-card-title">About the Cocktail</span>
@@ -390,8 +474,8 @@ function renderCounterView() {
         <!-- Ingredients Specs Card -->
         <div class="counter-card">
           <div class="counter-card-header">
-            <span class="counter-card-title">Formula & Proportions</span>
-            <span class="tag-badge">${(recipe.specs || []).length} Ingredients</span>
+            <span class="counter-card-title">Ingredients</span>
+            <span class="tag-badge">${(recipe.specs || []).length} items</span>
           </div>
 
           <div class="specs-list" id="counter-specs-list">
@@ -400,7 +484,7 @@ function renderCounterView() {
         </div>
 
         <!-- Preparation Directions -->
-        ${(recipe.instructions || recipe.method || recipe.notes) ? `
+        ${(recipe.instructions || recipe.method || recipe.notes) ? /*html*/ `
           <div class="counter-card">
             <div class="counter-card-header">
               <span class="counter-card-title">Preparation Method</span>
@@ -410,7 +494,7 @@ function renderCounterView() {
         ` : ''}
 
         <!-- Garnish & Serving Note -->
-        ${recipe.garnish ? `
+        ${recipe.garnish ? /*html*/ `
           <div class="counter-card">
             <div class="counter-card-header">
               <span class="counter-card-title">Serving & Presentation</span>
@@ -422,7 +506,7 @@ function renderCounterView() {
         ` : ''}
 
         <!-- Additional Notes (if separate from instructions) -->
-        ${(recipe.notes && recipe.instructions && recipe.notes.trim() !== recipe.instructions.trim()) ? `
+        ${(recipe.notes && recipe.instructions && recipe.notes.trim() !== recipe.instructions.trim()) ? /*html*/ `
           <div class="counter-card">
             <div class="counter-card-header">
               <span class="counter-card-title">Notes & Variations</span>
@@ -432,8 +516,52 @@ function renderCounterView() {
             </p>
           </div>
         ` : ''}
+
       </div>
     </div>
+
+    <!-- Similar Cocktails Shelf (Horizontal Scrolling Track) -->
+    ${similarCocktails.length > 0 ? `
+      <div class="counter-card similar-cocktails-shelf">
+        <div class="counter-card-header shelf-header">
+          <div class="shelf-header-left">
+            <span class="counter-card-title">Similar Cocktails</span>
+            <span class="tag-badge">${similarCocktails.length} Available</span>
+          </div>
+          <div class="shelf-scroll-controls">
+            <button id="btn-similar-prev" class="shelf-nav-btn" aria-label="Scroll previous cocktails" title="Scroll left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button id="btn-similar-next" class="shelf-nav-btn" aria-label="Scroll next cocktails" title="Scroll right">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="similar-cocktails-track" id="similar-cocktails-track">
+          ${similarCocktails.map((item, idx) => `
+            <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(item.recipe.id)}" role="button" tabindex="0">
+              <div class="similar-card-glass">
+                ${renderGlassSvg(item.recipe, `sim-glass-${item.recipe.id}-${idx}`)}
+              </div>
+              <div class="similar-card-body">
+                <span class="similar-relation-badge ${item.badgeClass || ''}">${escapeHtml(item.relation)}</span>
+                <h4 class="similar-card-name" title="${escapeHtml(item.recipe.name)}">${escapeHtml(item.recipe.name)}</h4>
+                <div class="similar-card-meta">
+                  <span>${escapeHtml(item.recipe.glassware || 'Glass')}</span>
+                  <span class="meta-dot">•</span>
+                  <span>${escapeHtml(item.recipe.method || 'Build')}</span>
+                </div>
+                <div class="similar-card-specs" title="${(item.recipe.specs || []).map(s => s.name).join(', ')}">
+                  ${(item.recipe.specs || []).map(s => escapeHtml(s.name)).filter(Boolean).slice(0, 3).join(', ')}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+  </div>
   `;
 
   // Render vector SVG glass
@@ -446,7 +574,7 @@ function renderCounterView() {
       });
     },
   });
-  state.glassViewMain.render(recipe);
+  state.glassViewMain.render(effectiveRecipe);
 
   // Synchronize spec row hover to SVG glass highlight
   const specRows = elements.counterViewContainer.querySelectorAll('.spec-row');
@@ -459,6 +587,83 @@ function renderCounterView() {
     row.addEventListener('mouseleave', () => {
       row.classList.remove('highlighted');
       state.glassViewMain.clearHighlight();
+    });
+  });
+
+  // Toggle Riff Mode
+  document.getElementById('btn-toggle-riff-mode')?.addEventListener('click', () => {
+    state.riffModeActive = !state.riffModeActive;
+    renderCounterView();
+  });
+
+  // Smart Ingredient Swapper: Inline Riff Selectors
+  elements.counterViewContainer.querySelectorAll('.spec-riff-select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.getAttribute('data-spec-index'), 10);
+      const val = e.target.value;
+      if (!val || val === '__orig__') {
+        delete state.activeRiffs[idx];
+      } else {
+        state.activeRiffs[idx] = val;
+      }
+      renderCounterView();
+    });
+  });
+
+  document.getElementById('btn-reset-riff')?.addEventListener('click', () => {
+    state.activeRiffs = {};
+    renderCounterView();
+    showToast('Reverted to original recipe specs');
+  });
+
+  document.getElementById('btn-save-riff')?.addEventListener('click', () => {
+    const swapped = effectiveSpecs.filter(s => s.isRiff);
+    const swapNames = swapped.map(s => s.name).join(' / ');
+    const newName = `${recipe.name} (${swapNames} Riff)`;
+    const newRecipe = {
+      ...recipe,
+      id: 'rec_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      name: newName,
+      description: recipe.description
+        ? `${recipe.description}\n\nRiff on ${recipe.name}: substituted ${swapped.map(s => `${s.originalName} with ${s.name}`).join(', ')}.`
+        : `Riff on ${recipe.name}: substituted ${swapped.map(s => `${s.originalName} with ${s.name}`).join(', ')}.`,
+      riffOfId: recipe.id,
+      riffOfName: recipe.name,
+      specs: effectiveSpecs.map(s => ({
+        amount: s.amount,
+        unit: s.unit,
+        name: s.name,
+        ...(s.abv ? { abv: s.abv } : {}),
+      })),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    saveRecipe(newRecipe);
+    state.recipes = getRecipes();
+    state.activeRiffs = {};
+    selectRecipe(newRecipe.id);
+    showToast(`Saved new riff: ${newName}`);
+  });
+
+  // Similar Cocktails shelf scroll & card navigation
+  const simTrack = document.getElementById('similar-cocktails-track');
+  document.getElementById('btn-similar-prev')?.addEventListener('click', () => {
+    simTrack?.scrollBy({ left: -260, behavior: 'smooth' });
+  });
+  document.getElementById('btn-similar-next')?.addEventListener('click', () => {
+    simTrack?.scrollBy({ left: 260, behavior: 'smooth' });
+  });
+
+  elements.counterViewContainer.querySelectorAll('.similar-cocktail-card').forEach(el => {
+    const targetId = el.getAttribute('data-recipe-id');
+    el.addEventListener('click', () => {
+      if (targetId) selectRecipe(targetId);
+    });
+    el.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && targetId) {
+        e.preventDefault();
+        selectRecipe(targetId);
+      }
     });
   });
 
@@ -898,6 +1103,7 @@ function saveCurrentEditor(existingId) {
   const notes = document.getElementById('edit-notes')?.value.trim() || '';
 
   const validSpecs = state.editorSpecs.filter(s => s.name.trim().length > 0);
+  const existingRecipe = existingId ? state.recipes.find(r => r.id === existingId) : null;
 
   const recipeToSave = {
     id: existingId || undefined,
@@ -910,6 +1116,8 @@ function saveCurrentEditor(existingId) {
     source,
     sourceUrl,
     notes,
+    riffOfId: existingRecipe?.riffOfId || undefined,
+    riffOfName: existingRecipe?.riffOfName || undefined,
     specs: validSpecs,
   };
 

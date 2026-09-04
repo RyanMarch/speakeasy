@@ -42,6 +42,25 @@ export const SEED_RECIPES = [
     ],
   },
   {
+    id: 'boulevardier',
+    name: 'Boulevardier',
+    glassware: 'Rocks',
+    method: 'Stirred',
+    garnish: 'Orange twist',
+    description: 'A whiskey riff on the classic Negroni, created by Erskine Gwynne in 1920s Paris.',
+    instructions: '1. Combine bourbon, Campari, and sweet vermouth in a mixing glass filled with ice.\n2. Stir for 25-30 seconds until well-chilled and integrated.\n3. Strain into a rocks glass over a large ice cube or into a chilled coupe.\n4. Express orange peel oils over the drink and garnish.',
+    source: 'Erskine Gwynne, Paris (1927)',
+    sourceUrl: '',
+    notes: 'Whiskey riff on the Negroni. The rich vanilla and oak tones of bourbon soften the bitter Campari.',
+    riffOfId: 'negroni',
+    riffOfName: 'Negroni',
+    specs: [
+      { amount: 1.5, unit: 'oz', name: 'Bourbon' },
+      { amount: 1, unit: 'oz', name: 'Campari' },
+      { amount: 1, unit: 'oz', name: 'Sweet Vermouth' },
+    ],
+  },
+  {
     id: 'daiquiri',
     name: 'Daiquiri',
     glassware: 'Coupe',
@@ -147,6 +166,15 @@ export function getRecipes() {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
+      // Ensure seed riff relationship exists for users with previously cached storage
+      const hasBoulevardier = parsed.some(r => r.id === 'boulevardier');
+      if (!hasBoulevardier) {
+        const bRecipe = SEED_RECIPES.find(r => r.id === 'boulevardier');
+        if (bRecipe) {
+          parsed.push(bRecipe);
+          saveRecipes(parsed);
+        }
+      }
       return parsed;
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_RECIPES));
@@ -227,6 +255,8 @@ export function importRecipesJSON(jsonString, mode = 'merge') {
     source: item.source || '',
     sourceUrl: item.sourceUrl || '',
     notes: item.notes || '',
+    riffOfId: item.riffOfId || null,
+    riffOfName: item.riffOfName || '',
     specs: Array.isArray(item.specs) ? item.specs.map(s => ({
       amount: s.amount !== null && s.amount !== undefined && !isNaN(Number(s.amount)) ? Number(s.amount) : null,
       unit: s.unit || '',
