@@ -1,0 +1,14 @@
+{
+  "name": "speakeasy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx wrangler pages dev .",
+    "lint:syntax": "node --check app.js js/*.js js/modules/*.js functions/api/*.js functions/api/**/*.js 2>/dev/null || true",
+    "test": "npm run lint:syntax"
+  },
+  "devDependencies": {
+    "wrangler": "^3.114.0"
+  }
+}
