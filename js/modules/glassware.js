@@ -31,6 +31,7 @@ export const GLASS_TYPES = {
       C 160 170, 200 148, 204 84
     `,
     glassRimD: 'M 36 84 C 70 88, 170 88, 204 84',
+    rim: { leftX: 36, rightX: 204, y: 84 },
     stemD: 'M 120 170 L 120 282',
     baseD: 'M 68 288 C 90 285, 150 285, 172 288 L 174 291 C 150 293, 90 293, 66 291 Z',
   },
@@ -76,6 +77,7 @@ export const GLASS_TYPES = {
       L 194 96
     `,
     glassRimD: 'M 46 96 C 80 100, 160 100, 194 96',
+    rim: { leftX: 46, rightX: 194, y: 96 },
     stemD: null,
     baseD: `
       M 49 216
@@ -90,13 +92,9 @@ export const GLASS_TYPES = {
       M 49 166 C 80 169, 160 169, 191 166
       M 50 216 C 80 219, 160 219, 190 216
       M 72 124 L 72 246
-      M 69 132 L 72 124 L 75 132
       M 104 118 L 104 248
-      M 101 126 L 104 118 L 107 126
       M 136 118 L 136 248
-      M 133 126 L 136 118 L 139 126
       M 168 124 L 168 246
-      M 165 132 L 168 124 L 171 132
       M 56 240 C 80 242, 160 242, 184 240
     `,
     sheenD: null,
@@ -129,6 +127,7 @@ export const GLASS_TYPES = {
       L 170 48
     `,
     glassRimD: 'M 70 48 C 90 51, 150 51, 170 48',
+    rim: { leftX: 70, rightX: 170, y: 48 },
     stemD: null,
     baseD: `
       M 74 264
@@ -164,6 +163,7 @@ export const GLASS_TYPES = {
       L 204 62
     `,
     glassRimD: 'M 36 62 C 70 65, 170 65, 204 62',
+    rim: { leftX: 36, rightX: 204, y: 62 },
     stemD: 'M 120 163 L 120 282',
     baseD: 'M 68 288 C 90 285, 150 285, 172 288 L 174 291 C 150 293, 90 293, 66 291 Z',
   },
@@ -193,8 +193,95 @@ export const GLASS_TYPES = {
       C 164 178, 180 128, 181 72
     `,
     glassRimD: 'M 59 72 C 85 75, 155 75, 181 72',
+    rim: { leftX: 59, rightX: 181, y: 72 },
     stemD: 'M 120 178 L 120 282',
     baseD: 'M 72 288 C 95 285, 145 285, 168 288 L 170 291 C 145 293, 95 293, 70 291 Z',
+  },
+
+  wine: {
+    id: 'wine',
+    name: 'Wine Glass',
+    aliases: ['wine', 'wine glass', 'spritz', 'goblet'],
+    viewBox: '0 0 240 320',
+    fluidBounds: {
+      bottomY: 195,
+      topY: 60,
+      height: 135,
+      leftX: 52,
+      rightX: 188,
+      width: 136,
+    },
+    fluidClipD: `
+      M 64 60
+      C 44 115, 68 195, 120 195
+      C 172 195, 196 115, 176 60
+      Z
+    `,
+    glassOutlineD: `
+      M 62 56
+      C 40 115, 66 198, 120 198
+      C 174 198, 200 115, 178 56
+    `,
+    glassRimD: 'M 62 56 C 85 60, 155 60, 178 56',
+    rim: { leftX: 62, rightX: 178, y: 56 },
+    stemD: 'M 120 198 L 120 282',
+    baseD: 'M 68 288 C 90 285, 150 285, 172 288 L 174 291 C 150 293, 90 293, 66 291 Z',
+  },
+
+  tikiMug: {
+    id: 'tikiMug',
+    name: 'Tiki Mug',
+    aliases: ['tiki', 'tiki mug', 'mug', 'totem'],
+    viewBox: '0 0 240 320',
+    fluidBounds: {
+      bottomY: 260,
+      topY: 48,
+      height: 212,
+      leftX: 62,
+      rightX: 178,
+      width: 116,
+    },
+    fluidClipD: `
+      M 66 48
+      C 58 100, 68 155, 60 210
+      C 58 238, 64 260, 66 260
+      L 174 260
+      C 176 260, 182 238, 180 210
+      C 172 155, 182 100, 174 48
+      Z
+    `,
+    glassOutlineD: `
+      M 64 45
+      C 55 100, 65 155, 57 210
+      C 55 240, 61 264, 64 266
+      C 80 268, 160 268, 176 266
+      C 179 264, 185 240, 183 210
+      C 175 155, 185 100, 176 45
+    `,
+    glassRimD: 'M 64 45 C 85 48, 155 48, 176 45',
+    rim: { leftX: 64, rightX: 176, y: 45 },
+    stemD: null,
+    baseD: `
+      M 64 266
+      C 80 268, 160 268, 176 266
+      L 178 282
+      C 160 285, 80 285, 62 282
+      Z
+    `,
+    detailsD: `
+      M 84 95 C 100 88, 140 88, 156 95
+      M 86 115 C 100 120, 140 120, 154 115
+      M 100 135 L 120 160 L 140 135
+      M 80 185 C 95 178, 145 178, 160 185
+      M 82 205 C 100 215, 140 215, 158 205
+      M 80 185 L 82 205
+      M 160 185 L 158 205
+      M 96 182 L 96 208
+      M 112 180 L 112 210
+      M 128 180 L 128 210
+      M 144 182 L 144 208
+    `,
+    sheenD: null,
   },
 };
 

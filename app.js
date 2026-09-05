@@ -26,6 +26,7 @@ const SEED_RECIPE_IDS = new Set(SEED_RECIPES.map(r => r.id));
 import {
   parseSpecsBlock,
   formatFraction,
+  parseMethodContent,
 } from './js/modules/parser.js';
 
 import {
@@ -77,6 +78,7 @@ const elements = {
   searchInput: document.getElementById('search-input'),
   searchClearBtn: document.getElementById('search-clear-btn'),
   btnNewDrink: document.getElementById('btn-new-drink'),
+  btnPopoverNewDrink: document.getElementById('btn-popover-new-drink'),
   btnExportJson: document.getElementById('btn-export-json'),
   btnImportTrigger: document.getElementById('btn-import-trigger'),
   importFileInput: document.getElementById('import-file-input'),
@@ -197,6 +199,17 @@ function setupGlobalEventListeners() {
 
   // Header Actions
   elements.btnNewDrink.addEventListener('click', () => {
+    openEditor(null);
+  });
+
+  elements.btnPopoverNewDrink?.addEventListener('click', () => {
+    if (elements.vaultPopover?.hidePopover) {
+      try {
+        elements.vaultPopover.hidePopover();
+      } catch (err) {
+        // Ignore if already hidden
+      }
+    }
     openEditor(null);
   });
 
@@ -663,12 +676,39 @@ function renderRecipeList() {
   elements.recipeCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Cocktail' : 'Cocktails'}`;
 
   if (filtered.length === 0) {
+    const rawSearch = (state.searchQuery || '').trim();
+    const canCreateFromSearch = rawSearch.length > 0 && !rawSearch.startsWith('#');
+    const formattedName = canCreateFromSearch
+      ? rawSearch
+        .split(/\s+/)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ')
+      : '';
+
     elements.recipeList.innerHTML =  /*html*/`
       <li class="empty-state">
         <p class="empty-state-title">No matching drinks</p>
-        <p class="card-content-text" style="font-size: 0.8rem;">Try adjusting your search or backbar filter</p>
+        <p class="card-content-text" style="font-size: 0.8rem;">Try adjusting your search or filters</p>
+        ${canCreateFromSearch ? /*html*/`
+          <div class="empty-state-actions">
+            <button type="button" id="btn-create-searched-cocktail" class="btn btn-primary empty-state-create-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Create This Cocktail</span>
+            </button>
+          </div>
+        ` : ''}
       </li>
     `;
+
+    if (canCreateFromSearch) {
+      const btnCreateSearched = document.getElementById('btn-create-searched-cocktail');
+      btnCreateSearched?.addEventListener('click', () => {
+        openEditor({ name: formattedName });
+      });
+    }
     return;
   }
 
@@ -762,6 +802,9 @@ function selectRecipe(id, updateHistory = true) {
   // Mobile navigation adjustment
   elements.sidebar.classList.add('mobile-hidden');
   elements.mainStage.classList.remove('mobile-hidden');
+  if (elements.mainStage) {
+    elements.mainStage.scrollTop = 0;
+  }
 }
 
 /**
@@ -894,14 +937,13 @@ function renderCounterView() {
         </div>
       `;
     }
-
     let stockControlHtml = '';
     if (stockStatus.isStaple) {
-      stockControlHtml = `<span class="spec-staple-tag" title="Kitchen staple (always in stock)">Staple</span>`;
+      stockControlHtml = '';
     } else if (stockStatus.inStock) {
-      stockControlHtml = `<button type="button" class="btn-stock-toggle in-stock" data-bottle-id="${escapeHtml(stockStatus.id)}" title="In your backbar. Click to remove." aria-label="Remove ${escapeHtml(stockStatus.name)} from bar">✓ Bar</button>`;
+      stockControlHtml = `<button type="button" class="btn-stock-toggle in-stock" data-bottle-id="${escapeHtml(stockStatus.id)}" title="In backbar inventory. Click to remove." aria-label="Remove ${escapeHtml(stockStatus.name)} from bar"><span class="stock-check-glyph">✓</span> In Bar</button>`;
     } else {
-      stockControlHtml = `<button type="button" class="btn-stock-toggle out-of-stock" data-bottle-id="${escapeHtml(stockStatus.id)}" title="Missing from your backbar. Click to add." aria-label="Add ${escapeHtml(stockStatus.name)} to bar">+ Bar</button>`;
+      stockControlHtml = `<button type="button" class="btn-stock-toggle out-of-stock" data-bottle-id="${escapeHtml(stockStatus.id)}" title="Missing from backbar. Click to add." aria-label="Add ${escapeHtml(stockStatus.name)} to bar">+ In Bar</button>`;
     }
 
     const ingMeta = getIngredientMetadata(currentStockName);
@@ -914,9 +956,8 @@ function renderCounterView() {
         </div>
         <div class="spec-ingredient">
           <div class="spec-ingredient-name-row">
-            <!-- <span class="color-swatch-dot" style="background-color: ${colorInfo.color}; color: ${colorInfo.color};"></span> -->
             <span class="spec-name">${escapeHtml(spec.name)}</span>
-            ${isFridgeItem ? `<span class="spec-fridge-tag" title="Keep refrigerated once opened"><span class="fridge-icon">❄️</span> Chill</span>` : ''}
+            ${isFridgeItem ? `<span class="spec-fridge-tag" title="Keep refrigerated once opened">❄</span>` : ''}
             ${isRiff ? `<span class="spec-riff-badge" title="Substituted for ${escapeHtml(spec.originalName)}">sub</span>` : ''}
           </div>
           ${isRiff ? `<div class="spec-riff-orig-note">sub for ${escapeHtml(spec.originalName)}</div>` : ''}
@@ -925,28 +966,62 @@ function renderCounterView() {
         ${riffControlHtml}
         <div class="spec-actions">
           ${stockControlHtml}
-          <div class="spec-ratio" title="${ratioPercent ? 'Relative volume ratio' : ''}">${ratioPercent || ''}</div>
         </div>
       </div>
     `;
   }).join('');
 
+  const garnishRowHtml = recipe.garnish ? `
+    <div class="spec-row spec-garnish-row">
+      <div class="spec-amount">
+        <span class="spec-unit">Garnish</span>
+      </div>
+      <div class="spec-ingredient">
+        <div class="spec-ingredient-name-row">
+          <span class="spec-garnish-name">${escapeHtml(recipe.garnish)}</span>
+        </div>
+      </div>
+      <div class="spec-actions"></div>
+    </div>
+  ` : '';
+
   elements.counterViewContainer.innerHTML =  /*html*/`
     <div class="counter-view ${state.riffModeActive ? 'riff-mode-active' : ''}">
     <!-- Mobile Back Navigation (hidden on desktop) -->
-    <div class="counter-mobile-bar">
-      <button id="btn-mobile-back" class="btn btn-secondary btn-sm mobile-back-btn">
+    <div class="counter-mobile-bar" id="counter-mobile-bar">
+      <button id="btn-mobile-back" class="btn btn-secondary btn-sm mobile-back-btn" aria-label="Back to drinks list">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
         Drinks
       </button>
+      <div class="mobile-sticky-title" id="mobile-sticky-title" aria-hidden="true">
+        <span class="mobile-sticky-name">${escapeHtml(recipe.name)}</span>
+      </div>
     </div>
 
     <!-- Drink Title & Meta Header -->
-    <div class="drink-title-section">
+    <header class="drink-title-section">
       <div class="drink-title-row">
-        <h2 class="drink-name">${escapeHtml(recipe.name)}</h2>
+        <div class="drink-title-header-left">
+          <h2 class="drink-name">${escapeHtml(recipe.name)}</h2>
+          <!-- Editorial metadata line -->
+          <div class="drink-meta-row">
+            <span class="drink-meta-item">${escapeHtml(recipe.glassware || 'Glass')}</span>
+            <span class="meta-dot-divider">·</span>
+            <span class="drink-meta-item">${escapeHtml(recipe.method || 'Standard')}</span>
+            <span class="meta-dot-divider">·</span>
+            <span class="drink-meta-item" title="Dilution-adjusted estimated alcohol by volume">${escapeHtml(abvDisplay)}</span>
+            ${lineage ? `
+              <span class="meta-dot-divider">·</span>
+              <span class="drink-meta-item drink-meta-riff">Riff on <em>${escapeHtml(lineage.parentName)}</em></span>
+            ` : ''}
+            ${invAnalysis.canMake ? `
+              <span class="meta-dot-divider">·</span>
+              <span class="meta-status-ready">Ready to Make</span>
+            ` : ''}
+          </div>
+        </div>
 
-        <!-- Tidy Icon-Button Cluster Pinned to Far Right -->
+        <!-- Quiet Action Toolbar -->
         <div class="drink-actions-cluster" role="toolbar" aria-label="Recipe actions">
           ${hasActiveRiffs ? `
             <button id="btn-reset-riff" class="btn btn-secondary btn-sm" title="Revert back to original cocktail specs">
@@ -955,105 +1030,44 @@ function renderCounterView() {
             </button>
             <button id="btn-save-riff" class="btn btn-primary btn-sm" title="Save this riff variation as a new cocktail">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-              Save as Riff
+              Save Riff
             </button>
           ` : ''}
 
           <button id="btn-edit-drink" class="action-icon-btn" title="Edit recipe specs" aria-label="Edit recipe">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            <span class="action-btn-text">Edit Recipe</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span class="action-btn-text">Edit</span>
           </button>
 
           <button id="btn-duplicate-drink" class="action-icon-btn" title="Duplicate recipe" aria-label="Duplicate recipe">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             <span class="action-btn-text">Duplicate</span>
           </button>
 
           <button id="btn-delete-drink" class="action-icon-btn action-icon-btn-danger" title="Delete recipe" aria-label="Delete recipe">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             <span class="action-btn-text">Delete</span>
           </button>
         </div>
       </div>
 
-      <!-- Inline Metadata Row with subtle dot dividers -->
-      <div class="drink-meta-row">
-        <span class="drink-meta-item">${escapeHtml(recipe.glassware || 'Glass')}</span>
-        <span class="meta-dot-divider">•</span>
-        <span class="drink-meta-item">${escapeHtml(recipe.method || 'Standard')}</span>
-        <span class="meta-dot-divider">•</span>
-        <span class="drink-meta-item" title="Dilution-adjusted estimated alcohol by volume">${escapeHtml(abvDisplay)}</span>
-        ${lineage ? `
-          <span class="meta-dot-divider">•</span>
-          <span class="drink-meta-item drink-meta-riff">Riff on <strong>${escapeHtml(lineage.parentName)}</strong></span>
-        ` : ''}
-      </div>
-
-      <!-- Actionable Status Row for state items only -->
-      ${(invAnalysis.canMake || invAnalysis.canMakeWithSubs || (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0) || hasActiveRiffs || recipe.garnish) ? `
-        <div class="drink-status-badges">
-          ${invAnalysis.canMake ? `
-            <span class="status-pill status-pill-ready" title="All liquid ingredients in your backbar">
-              <span class="status-dot"></span>
-              <span>Ready to Make</span>
-            </span>
-          ` : (invAnalysis.canMakeWithSubs && invAnalysis.missingWithSub && invAnalysis.bestSubstitute ? `
-            <button type="button" class="status-pill status-pill-sub" id="btn-apply-header-sub" data-missing-name="${escapeHtml(invAnalysis.missingWithSub.name)}" data-sub-id="${escapeHtml(invAnalysis.bestSubstitute.id)}" data-sub-name="${escapeHtml(invAnalysis.bestSubstitute.name)}" title="Substitute ${escapeHtml(invAnalysis.missingWithSub.name)} with ${escapeHtml(invAnalysis.bestSubstitute.name)} from your bar">
-              <span class="status-dot"></span>
-              <span>Sub in Bar: Use <strong>${escapeHtml(invAnalysis.bestSubstitute.name)}</strong> for ${escapeHtml(invAnalysis.missingWithSub.name)}</span>
-              <span class="sub-pill-action">Apply ↵</span>
-            </button>
-          ` : (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0 ? `
-            <span class="status-pill status-pill-next" title="Needs 1 bottle: ${escapeHtml(invAnalysis.missingItems[0].name)}">
-              <span class="status-dot"></span>
-              <span>Bottle Next: Needs ${escapeHtml(invAnalysis.missingItems[0].name)}</span>
-            </span>
-          ` : ''))}
-          ${hasActiveRiffs ? `
-            <span class="status-pill status-pill-swaps" title="Dynamic ingredient swap active">
-              <span>Swaps Active</span>
-            </span>
-          ` : ''}
-          ${recipe.garnish ? `
-            <span class="status-pill status-pill-garnish">
-              <span class="pill-label">Garnish:</span>
-              <strong>${escapeHtml(recipe.garnish)}</strong>
-            </span>
-          ` : ''}
-        </div>
+      <!-- Story / Description directly under title -->
+      ${recipe.description ? `
+        <p class="drink-description-prose">${escapeHtml(recipe.description)}</p>
       ` : ''}
 
-      <!-- Drink Tags -->
-      <div class="drink-tags-bar">
-        <span class="drink-tags-label">Tags:</span>
-        <div class="drink-tags-chips" id="drink-tags-chips">
-          ${(recipe.tags || []).map(tag => `
-            <span class="drink-tag-chip" data-tag="${escapeHtml(tag)}">
-              <span class="drink-tag-text" data-action="filter-tag" data-tag="${escapeHtml(tag)}" title="Filter library by #${escapeHtml(tag)}" tabindex="0">#${escapeHtml(tag)}</span>
-              <button type="button" class="drink-tag-remove" data-action="remove-tag" data-tag="${escapeHtml(tag)}" title="Remove tag #${escapeHtml(tag)}" aria-label="Remove tag #${escapeHtml(tag)}">×</button>
-            </span>
-          `).join('')}
-          <div class="tag-input-inline-wrapper">
-            <input
-              type="text"
-              id="input-inline-tag"
-              class="tag-input-inline"
-              placeholder="+ Add tag"
-              list="counter-tag-suggestions"
-              autocomplete="off"
-              aria-label="Add tag"
-            />
-            <datalist id="counter-tag-suggestions">
-              ${availableTags.map(t => `<option value="${escapeHtml(t)}"></option>`).join('')}
-            </datalist>
-          </div>
+      <!-- Contextual substitution notice when applicable -->
+      ${(invAnalysis.canMakeWithSubs && invAnalysis.missingWithSub && invAnalysis.bestSubstitute) ? `
+        <div class="drink-sub-banner">
+          <span>Makeable with bar swap: use <strong>${escapeHtml(invAnalysis.bestSubstitute.name)}</strong> for ${escapeHtml(invAnalysis.missingWithSub.name)}</span>
+          <button type="button" class="btn-sub-apply-link" id="btn-apply-header-sub" data-missing-name="${escapeHtml(invAnalysis.missingWithSub.name)}" data-sub-id="${escapeHtml(invAnalysis.bestSubstitute.id)}" data-sub-name="${escapeHtml(invAnalysis.bestSubstitute.name)}">Apply Swap ↵</button>
         </div>
-      </div>
-    </div>
+      ` : ''}
+    </header>
 
     <!-- Main Counter Grid: Vector Glass on Left, Specs and Details on Right -->
     <div class="counter-grid">
-      <!-- Left Column: Interactive Vector Fluid Glass -->
+      <!-- Left Column: Glass Illustration -->
       <div class="glass-column">
         <div class="glass-wrapper" id="glass-wrapper">
           <!-- Rendered via GlassView -->
@@ -1061,60 +1075,28 @@ function renderCounterView() {
 
         <div class="glass-meta-card">
           <div class="glass-stats-row">
-            <span class="glass-total-volume">Total: <strong>${escapeHtml(totalDisplay)}</strong></span>
-            <span class="glass-stats-divider">•</span>
-            <span class="glass-abv">ABV: <strong>${escapeHtml(abvDisplay)}</strong></span>
-          </div>
-          ${(recipe.source || recipe.sourceUrl) ? `
-            <div class="glass-source">
-              Source: ${recipe.sourceUrl
-        ? `<a href="${escapeHtml(recipe.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(recipe.source || 'Original Recipe')} ↗</a>`
-        : `<strong>${escapeHtml(recipe.source)}</strong>`}
-            </div>
-          ` : ''}
-          <div class="glass-interaction-tip">
+            <span class="glass-total-volume">${escapeHtml(totalDisplay)}</span>
+            <span class="glass-stats-divider">·</span>
+            <span class="glass-abv">${escapeHtml(abvDisplay)}</span>
           </div>
         </div>
 
         <button id="btn-toggle-riff-mode" class="btn ${state.riffModeActive ? 'btn-primary' : 'btn-secondary'} btn-sm riff-toggle-btn" title="Toggle ingredient substitution menus">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
           ${state.riffModeActive ? 'Done Riffing' : 'Make a Riff'}
         </button>
       </div>
 
-      <!-- Right Column: Specs Table, Preparation & Notes -->
+      <!-- Right Column: Specs Table, Method & Notes -->
       <div class="specs-column">
 
-        <!-- Story / Writeup Card (if present) -->
-        ${(recipe.description || recipe.source) ? /*html*/ `
-          <div class="counter-card">
-            <div class="counter-card-header">
-              <span class="counter-card-title">About the Cocktail</span>
-            </div>
-            ${recipe.description ? /*html*/ `
-              <p class="card-content-text card-description">
-                ${escapeHtml(recipe.description)}
-              </p>
-            ` : ''}
-            ${(recipe.source || recipe.sourceUrl) ? /*html*/ `
-              <div class="card-source">
-                Source: ${recipe.sourceUrl
-          ? /*html*/ `<a href="${escapeHtml(recipe.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(recipe.source || 'Original Recipe')} ↗</a>`
-          : /*html*/ `<strong>${escapeHtml(recipe.source)}</strong>`}
-              </div>
-            ` : ''}
-          </div>
-        ` : ''}
-
-        <!-- Ingredients Specs Card -->
-        <div class="counter-card">
-          <div class="counter-card-header specs-card-header">
-            <div class="specs-header-title-group">
-              <span class="counter-card-title">Ingredients</span>
-            </div>
+        <!-- Ingredients Specs -->
+        <div class="recipe-editorial-section">
+          <div class="editorial-section-header">
+            <h3 class="editorial-section-title">Ingredients</h3>
             <div class="specs-header-controls">
               <div class="servings-stepper" role="group" aria-label="Servings counter">
-                <span class="servings-label">Servings</span>
+                <span class="servings-label">Serves</span>
                 <div class="servings-stepper-box">
                   <button type="button" id="btn-servings-dec" class="servings-btn" title="Decrease servings (step: 0.5)" aria-label="Decrease servings" ${currentServings <= 0.5 ? 'disabled' : ''}>−</button>
                   <span class="servings-value" id="servings-display">${currentServings}×</span>
@@ -1126,26 +1108,48 @@ function renderCounterView() {
 
           <div class="specs-list" id="counter-specs-list">
             ${specsListHtml}
+            ${garnishRowHtml}
           </div>
         </div>
 
-        <!-- Preparation Directions -->
-        ${(recipe.instructions || recipe.notes || recipe.method) ? /*html*/ `
-          <div class="counter-card">
-            <div class="counter-card-header">
-              <span class="counter-card-title">Preparation</span>
-            </div>
-            <div class="card-content-text card-instructions">${escapeHtml(
-            recipe.instructions ||
-            (recipe.notes ? `${recipe.method ? `${recipe.method}: ` : ''}${recipe.notes}` : `${recipe.method || 'Standard'}: Standard build and chill.`)
-          )}</div>
-          </div>
-        ` : ''}
+        <!-- Method Section -->
+        ${(() => {
+      const rawMethodText = recipe.instructions ||
+        (recipe.notes ? `${recipe.method ? `${recipe.method}: ` : ''}${recipe.notes}` : `${recipe.method || 'Standard'}: Standard build and chill.`);
+      if (!rawMethodText || !rawMethodText.trim()) return '';
 
-        <!-- Additional Notes & Variations (only when unique from both instructions and notes-as-preparation) -->
+      const parsed = parseMethodContent(rawMethodText);
+      let methodBodyHtml = '';
+
+      if (parsed.type === 'ordered') {
+        methodBodyHtml = /*html*/ `
+              <ol class="card-method-list card-method-ordered">
+                ${parsed.items.map(item => `<li><span>${escapeHtml(item)}</span></li>`).join('')}
+              </ol>
+            `;
+      } else if (parsed.type === 'unordered') {
+        methodBodyHtml = /*html*/ `
+              <ul class="card-method-list card-method-unordered">
+                ${parsed.items.map(item => `<li><span>${escapeHtml(item)}</span></li>`).join('')}
+              </ul>
+            `;
+      } else {
+        methodBodyHtml = /*html*/ `
+              <div class="card-content-text card-instructions">${escapeHtml(rawMethodText)}</div>
+            `;
+      }
+
+      return /*html*/ `
+            <div class="recipe-editorial-section">
+              <h3 class="editorial-section-title">Method</h3>
+              ${methodBodyHtml}
+            </div>
+          `;
+    })()}
+
+        <!-- Additional Notes (if distinct from instructions) -->
         ${(() => {
       if (!recipe.notes || !recipe.notes.trim()) return '';
-      // If the recipe has no dedicated instructions field, recipe.notes is already shown in the Preparation card above
       if (!recipe.instructions || !recipe.instructions.trim()) return '';
       const notesText = recipe.notes.trim();
       const instrText = recipe.instructions.trim();
@@ -1159,10 +1163,8 @@ function renderCounterView() {
         return '';
       }
       return /*html*/ `
-            <div class="counter-card">
-              <div class="counter-card-header">
-                <span class="counter-card-title">Notes & Variations</span>
-              </div>
+            <div class="recipe-editorial-section">
+              <h3 class="editorial-section-title">Notes</h3>
               <p class="card-content-text">
                 ${escapeHtml(notesText)}
               </p>
@@ -1170,8 +1172,31 @@ function renderCounterView() {
           `;
     })()}
 
-      </div>
-    </div>
+        <!-- Editorial Footer: Source Citation & Tags -->
+        <footer class="recipe-editorial-footer">
+          ${recipe.source ? `
+            <div class="editorial-source">
+              <span class="editorial-source-label">Source:</span>
+              ${recipe.source.startsWith('http') ? `<a href="${escapeHtml(recipe.source)}" target="_blank" rel="noopener">${escapeHtml(recipe.source)}</a>` : `<span>${escapeHtml(recipe.source)}</span>`}
+            </div>
+          ` : ''}
+          <div class="drink-tags-bar">
+            <div class="drink-tags-chips">
+              ${(recipe.tags || []).map(tag => `
+                <span class="drink-tag-chip" data-tag="${escapeHtml(tag)}">
+                  <span class="drink-tag-text" data-action="filter-tag" data-tag="${escapeHtml(tag)}" role="button" tabindex="0">#${escapeHtml(tag)}</span>
+                  <button type="button" class="drink-tag-remove" data-tag="${escapeHtml(tag)}" title="Remove tag" aria-label="Remove tag #${escapeHtml(tag)}">×</button>
+                </span>
+              `).join('')}
+              <div class="tag-input-inline-wrapper">
+                <input type="text" id="input-inline-tag" class="tag-input-inline" placeholder="+ Add tag..." list="tag-suggestions-list" aria-label="Add tag">
+                <datalist id="tag-suggestions-list">
+                  ${availableTags.map(t => `<option value="${escapeHtml(t)}">`).join('')}
+                </datalist>
+              </div>
+            </div>
+          </div>
+        </footer>
 
     <!-- Bottle Next Recommendation Card -->
     ${(invAnalysis.isBottleNext && invAnalysis.missingItems.length === 1) ? `
@@ -1189,14 +1214,15 @@ function renderCounterView() {
         </div>
       </div>
     ` : ''}
+      </div> <!-- end .specs-column -->
+    </div> <!-- end .counter-grid -->
 
-    <!-- Similar Cocktails Shelf (Horizontal Scrolling Track) -->
-    ${similarCocktails.length > 0 ? `
-      <div class="counter-card similar-cocktails-shelf">
+    <!-- Similar Cocktails Shelf (Horizontal Scrolling Track, spans full width across bottom) -->
+    ${similarCocktails.length > 0 ? /*html*/ `
+      <div class="similar-cocktails-shelf">
         <div class="counter-card-header shelf-header">
           <div class="shelf-header-left">
             <span class="counter-card-title">Similar Cocktails</span>
-            <span class="tag-badge">${similarCocktails.length} Available</span>
           </div>
           <div class="shelf-scroll-controls">
             <button id="btn-similar-prev" class="shelf-nav-btn" aria-label="Scroll previous cocktails" title="Scroll left">
@@ -1231,7 +1257,7 @@ function renderCounterView() {
         </div>
       </div>
     ` : ''}
-  </div>
+  </div> <!-- end .counter-view -->
   `;
 
   // Render vector SVG glass
@@ -1456,8 +1482,14 @@ function renderCounterView() {
   const inlineTagInput = document.getElementById('input-inline-tag');
   const addTagToCurrentRecipe = (rawTag) => {
     if (!rawTag) return;
-    const cleanTag = rawTag.trim().toLowerCase().replace(/^#+/, '');
+    let cleanTag = rawTag.trim().toLowerCase().replace(/^#+/, '');
     if (!cleanTag) return;
+
+    if (cleanTag === 'modern-classic' || cleanTag === 'modern-classics') {
+      cleanTag = 'modern-craft';
+    } else if (cleanTag === 'essential-classic' || cleanTag === 'essential-classics') {
+      cleanTag = 'classic';
+    }
 
     const currentTags = Array.isArray(recipe.tags) ? [...recipe.tags] : [];
     if (currentTags.includes(cleanTag)) {
@@ -1520,6 +1552,37 @@ function renderCounterView() {
       }
     });
   });
+
+  // Mobile Sticky Header Title Observer:
+  // Shows the drink name inline next to "< Drinks" once the main drink name scrolls out of view.
+  const mobileStickyTitle = document.getElementById('mobile-sticky-title');
+  const drinkHeading = elements.counterViewContainer.querySelector('.drink-name');
+  if (mobileStickyTitle && drinkHeading && elements.mainStage) {
+    if (window._counterScrollObserver) {
+      window._counterScrollObserver.disconnect();
+    }
+    const stickyBar = document.getElementById('counter-mobile-bar');
+    const stickyBarHeight = stickyBar ? stickyBar.offsetHeight : 44;
+
+    window._counterScrollObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        // When the drink name header is intersecting (visible), hide the sticky inline title.
+        // When it scrolls up above the sticky bar (not intersecting and boundingClientRect is top), show it.
+        const isPast = !entry.isIntersecting && entry.boundingClientRect.top < (stickyBarHeight + 20);
+        if (isPast) {
+          mobileStickyTitle.classList.add('visible');
+        } else {
+          mobileStickyTitle.classList.remove('visible');
+        }
+      });
+    }, {
+      root: elements.mainStage,
+      rootMargin: `-${stickyBarHeight}px 0px 0px 0px`,
+      threshold: 0,
+    });
+
+    window._counterScrollObserver.observe(drinkHeading);
+  }
 }
 
 /**
@@ -1597,6 +1660,8 @@ function openEditor(recipe = null) {
               <option value="Highball" ${currentData.glassware === 'Highball' ? 'selected' : ''}>Highball / Collins</option>
               <option value="Martini" ${currentData.glassware === 'Martini' ? 'selected' : ''}>Martini</option>
               <option value="Nick & Nora" ${currentData.glassware === 'Nick & Nora' ? 'selected' : ''}>Nick & Nora</option>
+              <option value="Wine" ${currentData.glassware === 'Wine' ? 'selected' : ''}>Wine Glass</option>
+              <option value="Tiki Mug" ${currentData.glassware === 'Tiki Mug' ? 'selected' : ''}>Tiki Mug</option>
             </select>
           </div>
 
@@ -1636,7 +1701,7 @@ function openEditor(recipe = null) {
             </div>
           </div>
           <div class="field-hint" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
-            Assign arbitrary tags to group drinks into menus, moods, or favorites.
+            Assign tags to group drinks into menus, moods, or favorites.
           </div>
         </div>
 
@@ -1707,6 +1772,13 @@ function openEditor(recipe = null) {
   setupEditorEvents(currentData.id);
   renderCurrentView();
   updateEditorGlassPreview();
+
+  // Mobile navigation adjustment: reveal main-stage editor and hide sidebar list
+  elements.sidebar.classList.add('mobile-hidden');
+  elements.mainStage.classList.remove('mobile-hidden');
+  if (elements.mainStage) {
+    elements.mainStage.scrollTop = 0;
+  }
 }
 
 /**
@@ -1722,7 +1794,7 @@ function renderEditorSpecRows() {
     const defaultAbv = estimateIngredientAbv(spec.name || '');
     const currentAbv = spec.abv !== undefined && spec.abv !== null ? spec.abv : (defaultAbv > 0 ? defaultAbv : '');
 
-    return `
+    return /*html*/`
       <div class="editor-spec-row" data-index="${i}">
         <input
           type="text"
@@ -1919,7 +1991,7 @@ function setupEditorEvents(recipeId) {
     setTimeout(applyQuickPaste, 50);
   });
 
-  // Glassware & method live preview change
+  // Glassware, method & garnish live preview change
   document.getElementById('edit-glassware')?.addEventListener('change', () => {
     updateEditorGlassPreview();
   });
@@ -1928,12 +2000,22 @@ function setupEditorEvents(recipeId) {
     updateEditorGlassPreview();
   });
 
+  document.getElementById('edit-garnish')?.addEventListener('input', () => {
+    updateEditorGlassPreview();
+  });
+
   // Editor Tags management
   const editorTagInput = document.getElementById('editor-tag-input');
   const addEditorTag = () => {
     if (!editorTagInput) return;
-    const raw = editorTagInput.value.trim().toLowerCase().replace(/^#+/, '');
+    let raw = editorTagInput.value.trim().toLowerCase().replace(/^#+/, '');
     if (!raw) return;
+
+    if (raw === 'modern-classic' || raw === 'modern-classics') {
+      raw = 'modern-craft';
+    } else if (raw === 'essential-classic' || raw === 'essential-classics') {
+      raw = 'classic';
+    }
 
     if (!state.editorTags.includes(raw)) {
       state.editorTags.push(raw);
@@ -1974,12 +2056,14 @@ function updateEditorGlassPreview() {
 
   const glassware = document.getElementById('edit-glassware')?.value || 'Coupe';
   const name = document.getElementById('edit-name')?.value || 'Preview';
+  const garnish = document.getElementById('edit-garnish')?.value || '';
 
   state.glassViewEditor = new GlassView(container);
 
   state.glassViewEditor.render({
     name,
     glassware,
+    garnish,
     specs: state.editorSpecs,
   });
 
@@ -2001,6 +2085,11 @@ function cancelEditor() {
   state.editorTags = [];
   state.viewMode = 'counter';
   renderCurrentView();
+
+  if (!state.activeRecipeId) {
+    elements.sidebar.classList.remove('mobile-hidden');
+    elements.mainStage.classList.add('mobile-hidden');
+  }
 }
 
 /**

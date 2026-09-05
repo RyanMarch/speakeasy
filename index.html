@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Speakeasy: Cocktail Recipe Vault</title>
+  <title>Speakeasy: Cocktail Recipe Library</title>
   <meta name="description"
-    content="Local-first cocktail recipe vault with interactive vector fluid glassware layers and instant spec parsing.">
-  <link rel="stylesheet" href="css/base.css?v=11">
-  <link rel="stylesheet" href="css/index.css?v=15">
+    content="Local-first cocktail recipe library with interactive vector fluid glassware layers and instant spec parsing.">
+  <link rel="stylesheet" href="css/base.css?v=14">
+  <link rel="stylesheet" href="css/index.css?v=20">
 </head>
 
 <body>
@@ -114,8 +114,23 @@
 
         <!-- Section: Actions & Portability -->
         <div class="vault-section">
-          <div class="vault-section-title">Vault Data</div>
+          <div class="vault-section-title">Actions & Data</div>
           <div class="vault-actions-list">
+            <button type="button" id="btn-popover-new-drink" class="vault-action-item vault-action-primary"
+              title="Create a new cocktail recipe">
+              <div class="vault-action-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </div>
+              <div class="vault-action-meta">
+                <span class="vault-action-label">New Cocktail</span>
+                <span class="vault-action-sub">Create and save a custom recipe</span>
+              </div>
+            </button>
+
             <button type="button" id="btn-export-json" class="vault-action-item" title="Download recipes backup">
               <div class="vault-action-icon">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -308,7 +323,7 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=11"></script>
+  <script type="module" src="app.js?v=12"></script>
 </body>
 
 </html>

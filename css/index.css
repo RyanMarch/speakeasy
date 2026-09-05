@@ -4,7 +4,10 @@
 #app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* Header */
@@ -12,12 +15,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem 1.5rem;
-  background: rgba(16, 21, 31, 0.85);
+  padding: 0 1.5rem;
+  height: 61px;
+  flex-shrink: 0;
+  background: rgba(18, 17, 16, 0.95);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--color-border);
-  position: sticky;
-  top: 0;
   z-index: 100;
 }
 
@@ -64,7 +67,7 @@
 }
 
 #my-bar-badge {
-  background: rgba(229, 169, 60, 0.2);
+  background: rgba(212, 163, 89, 0.18);
   color: var(--color-accent);
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-full);
@@ -99,7 +102,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: rgba(18, 23, 34, 0.96);
+  background: rgba(28, 26, 23, 0.98);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   color: var(--color-text);
@@ -146,7 +149,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   align-items: center;
   gap: 0.75rem;
   padding: 0.85rem 1rem;
-  background: rgba(229, 169, 60, 0.04);
+  background: rgba(212, 163, 89, 0.04);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -154,8 +157,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   width: 34px;
   height: 34px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, rgba(229, 169, 60, 0.25) 0%, rgba(229, 169, 60, 0.08) 100%);
-  border: 1px solid rgba(229, 169, 60, 0.35);
+  background: linear-gradient(135deg, rgba(212, 163, 89, 0.25) 0%, rgba(212, 163, 89, 0.08) 100%);
+  border: 1px solid rgba(212, 163, 89, 0.35);
   color: var(--color-accent);
   display: flex;
   align-items: center;
@@ -273,7 +276,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   color: var(--color-accent);
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(229, 169, 60, 0.25);
+  border: 1px solid rgba(212, 163, 89, 0.25);
 }
 
 .vault-unit-abbr {
@@ -324,8 +327,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .vault-action-item:hover .vault-action-icon {
   color: var(--color-accent);
-  background: rgba(229, 169, 60, 0.12);
-  border-color: rgba(229, 169, 60, 0.25);
+  background: rgba(212, 163, 89, 0.12);
+  border-color: rgba(212, 163, 89, 0.25);
 }
 
 .vault-action-meta {
@@ -345,6 +348,21 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-size: 0.68rem;
   color: var(--color-text-muted);
   margin-top: 1px;
+}
+
+.vault-action-primary .vault-action-icon {
+  background: rgba(212, 163, 89, 0.12);
+  border-color: rgba(212, 163, 89, 0.3);
+  color: var(--color-accent);
+}
+
+.vault-action-primary:hover {
+  background: rgba(212, 163, 89, 0.08);
+}
+
+.vault-action-primary:hover .vault-action-icon {
+  background: rgba(212, 163, 89, 0.22);
+  border-color: rgba(212, 163, 89, 0.45);
 }
 
 .vault-action-danger:hover {
@@ -394,26 +412,28 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
-  color: #0b0e14;
+  background: var(--color-accent);
+  color: #121110;
   font-weight: 600;
-  box-shadow: 0 2px 10px rgba(229, 169, 60, 0.25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .btn-primary:hover:not(:disabled) {
-  filter: brightness(1.1);
+  background: var(--color-accent-light);
+  color: #121110;
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(245, 240, 230, 0.04);
   border-color: var(--color-border);
   color: var(--color-text);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(245, 240, 230, 0.08);
+  border-color: rgba(245, 240, 230, 0.18);
 }
 
 .btn-ghost {
@@ -422,16 +442,16 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .btn-ghost:hover:not(:disabled) {
   color: var(--color-text);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(245, 240, 230, 0.05);
 }
 
 .btn-danger {
   color: var(--color-crimson);
-  border-color: rgba(230, 57, 70, 0.25);
+  border-color: rgba(194, 84, 80, 0.25);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(230, 57, 70, 0.12);
+  background: rgba(194, 84, 80, 0.12);
 }
 
 .btn:disabled,
@@ -451,20 +471,29 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 /* App Main Layout: Two Pane */
 .app-main {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 310px minmax(0, 1fr);
   flex: 1;
-  min-height: calc(100vh - 61px);
+  height: calc(100vh - 61px);
+  height: calc(100dvh - 61px);
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* Sidebar */
 .sidebar {
-  background: rgba(14, 18, 26, 0.65);
+  background: rgba(18, 17, 16, 0.6);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 61px);
-  position: sticky;
-  top: 61px;
+  height: 100%;
+  min-height: 0;
+  width: 310px;
+  min-width: 310px;
+  max-width: 310px;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .sidebar-search-box {
@@ -489,45 +518,54 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .search-input {
   width: 100%;
-  padding: 0.5rem 0.75rem 0.5rem 2.2rem;
-  background: rgba(255, 255, 255, 0.04);
+  padding: 0.55rem 0.75rem 0.55rem 2.25rem;
+  background: rgba(245, 240, 230, 0.04);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color: var(--color-text);
-  font-size: 0.85rem;
+  color: #fff;
+  font-size: 0.92rem;
   outline: none;
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
+.search-input::placeholder {
+  color: #a69f94;
+}
+
 .search-input:focus {
   border-color: var(--color-accent);
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(245, 240, 230, 0.07);
 }
 
 .search-clear-btn {
   position: absolute;
-  right: 0.6rem;
+  right: 0.35rem;
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   display: none;
-  padding: 2px 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .search-clear-btn.visible {
-  display: block;
+  display: inline-flex;
 }
 
 /* Sidebar Themed Pack Filter Pills */
 .sidebar-pack-filter {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.85rem;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
   border-bottom: 1px solid var(--color-border-subtle);
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-pack-filter::-webkit-scrollbar {
@@ -536,83 +574,88 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .pack-pill {
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-full);
-  color: var(--color-text-muted);
-  padding: 0.22rem 0.65rem;
-  font-size: 0.72rem;
+  min-height: 38px;
+  background: transparent;
+  border: 1px solid rgba(245, 240, 230, 0.08);
+  border-radius: var(--radius-sm);
+  color: #bfb7aa;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pack-pill:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.07);
-  color: var(--color-text);
-  border-color: var(--color-border);
+  background: rgba(245, 240, 230, 0.05);
+  color: #fff;
+  border-color: rgba(245, 240, 230, 0.15);
 }
 
 .pack-pill.active {
-  background: rgba(229, 169, 60, 0.15);
-  border-color: rgba(229, 169, 60, 0.45);
-  color: var(--color-accent);
+  background: rgba(212, 163, 89, 0.15);
+  border-color: rgba(212, 163, 89, 0.35);
+  color: #fff;
   font-weight: 600;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
 /* Sidebar Inventory Filter */
 .sidebar-inventory-filter {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  padding: 0.5rem 0.85rem;
+  gap: 0.6rem;
+  padding: 0.6rem 0.85rem;
   border-bottom: 1px solid var(--color-border-subtle);
-  background: rgba(255, 255, 255, 0.01);
+  background: rgba(245, 240, 230, 0.01);
 }
 
 .inventory-filter-btn {
-  background: rgba(255, 255, 255, 0.03);
+  min-height: 42px;
+  background: rgba(245, 240, 230, 0.04);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  padding: 0.35rem 0.5rem;
-  font-size: 0.78rem;
+  color: #c9c3b8;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   transition: all var(--transition-fast);
   white-space: nowrap;
 }
 
 .inventory-filter-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--color-text);
+  background: rgba(245, 240, 230, 0.08);
+  color: #fff;
   border-color: var(--color-border);
 }
 
 .inventory-filter-btn.active {
-  background: rgba(229, 169, 60, 0.15);
-  border-color: rgba(229, 169, 60, 0.4);
-  color: var(--color-accent);
+  background: rgba(212, 163, 89, 0.15);
+  border-color: rgba(212, 163, 89, 0.4);
+  color: #fff;
 }
 
 .inventory-filter-btn .filter-count {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  padding: 0.05rem 0.35rem;
-  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1rem 0.45rem;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-full);
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 .inventory-filter-btn.active .filter-count {
-  background: rgba(229, 169, 60, 0.22);
+  background: rgba(212, 163, 89, 0.28);
+  color: var(--color-accent-light);
 }
 
 /* Recipe List */
@@ -620,8 +663,9 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   flex: 1;
   overflow-y: auto;
   list-style: none;
-  padding: 0.5rem;
+  padding: 0.6rem 0.55rem;
   container-type: inline-size;
+  background: rgba(10, 9, 8, 0.55);
 }
 
 .recipe-list-item {
@@ -633,21 +677,21 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   text-align: left;
   padding: 0.75rem 0.85rem;
   border-radius: var(--radius-sm);
-  background: transparent;
-  border: 1px solid transparent;
+  background: rgba(30, 27, 24, 0.75);
+  border: 1px solid rgba(245, 240, 230, 0.05);
   transition: all var(--transition-fast);
   display: block;
 }
 
 .recipe-card-btn:hover {
-  background: var(--color-surface-hover);
-  border-color: var(--color-border-subtle);
+  background: rgba(43, 38, 33, 0.9);
+  border-color: rgba(212, 163, 89, 0.25);
 }
 
 .recipe-list-item.active .recipe-card-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  background: rgba(212, 163, 89, 0.12);
+  border-color: rgba(212, 163, 89, 0.35);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .recipe-item-header {
@@ -659,9 +703,9 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .recipe-item-name {
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text);
+  color: #fff;
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
@@ -671,17 +715,17 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .recipe-item-glass {
-  font-size: 0.68rem;
-  color: var(--color-text-faint);
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  color: #bfb7aa;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .recipe-list-item.active .recipe-item-glass {
-  color: var(--color-text-muted);
+  color: #e5ded2;
 }
 
 @container (max-width: 275px) {
@@ -691,41 +735,45 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .recipe-item-ingredients {
-  font-size: 0.72rem;
-  color: var(--color-text-muted);
-  line-height: 1.35;
+  font-size: 0.8rem;
+  color: #c9c3b8;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
+}
+
+.recipe-list-item.active .recipe-item-ingredients {
+  color: #ded7cb;
 }
 
 .recipe-item-status {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 500;
-  margin-top: 0.3rem;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
   line-height: 1;
 }
 
 .recipe-item-status .status-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
   flex-shrink: 0;
 }
 
 .recipe-item-status.status-ready {
-  color: #4ade80;
+  color: #8ed6aa;
 }
 
 .recipe-item-status.status-next {
-  color: #fbbf24;
+  color: #e8c47f;
 }
 
 .tag-badge {
@@ -740,9 +788,9 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .tag-badge-accent {
-  background: rgba(229, 169, 60, 0.12);
+  background: rgba(212, 163, 89, 0.12);
   color: var(--color-accent);
-  border-color: rgba(229, 169, 60, 0.25);
+  border-color: rgba(212, 163, 89, 0.25);
 }
 
 /* Sidebar Footer */
@@ -754,17 +802,26 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   justify-content: space-between;
   font-size: 0.75rem;
   color: var(--color-text-faint);
+  flex-shrink: 0;
 }
 
 /* Main Content Panel */
 .main-stage {
-  padding: 1.75rem 2.25rem;
+  height: 100%;
+  min-height: 0;
   overflow-y: auto;
-  max-width: 1200px;
+  overflow-x: hidden;
+  padding: 2.25rem 3rem 4rem;
+  min-width: 0;
+  width: 100%;
 }
 
-/* Counter View: Large Readability */
+/* Counter View: Editorial Cocktail Book Spread */
 .counter-view {
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+  min-width: 0;
   animation: fadeIn 200ms ease;
 }
 
@@ -780,26 +837,35 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 /* Title & Header Hierarchy */
 .drink-title-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
   container-type: inline-size;
+  min-width: 0;
 }
 
 .drink-title-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.drink-title-header-left {
+  min-width: 0;
+  flex: 1;
 }
 
 .drink-name {
   font-family: var(--font-display);
-  font-size: 2.6rem;
+  font-size: 2.35rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: var(--color-text);
   line-height: 1.15;
   margin-bottom: 0.35rem;
   min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .drink-actions-cluster {
@@ -894,10 +960,10 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.45rem;
-  font-size: 0.9rem;
+  gap: 0.55rem;
+  font-size: 0.92rem;
   color: var(--color-text-muted);
-  margin-top: 0.35rem;
+  margin-top: 0.45rem;
 }
 
 .drink-meta-item {
@@ -906,16 +972,74 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-weight: 400;
 }
 
+.drink-meta-riff em {
+  color: var(--color-accent-light);
+  font-style: italic;
+  font-family: var(--font-serif);
+  margin-left: 0.25rem;
+}
+
 .drink-meta-riff strong {
   color: var(--color-accent-light);
   font-weight: 600;
   margin-left: 0.25rem;
 }
 
+.meta-status-ready {
+  color: #7cb894;
+  font-weight: 500;
+  font-size: 0.82rem;
+}
+
 .meta-dot-divider {
   color: var(--color-text-faint);
   font-size: 0.65rem;
   user-select: none;
+}
+
+/* Editorial Story / Description directly under title */
+.drink-description-prose {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  margin-top: 0.85rem;
+  margin-bottom: 0.25rem;
+  max-width: 65ch;
+}
+
+/* Contextual substitution banner */
+.drink-sub-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  padding: 0.5rem 0.85rem;
+  background: rgba(185, 106, 67, 0.08);
+  border: 1px solid rgba(185, 106, 67, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  color: #d98e68;
+}
+
+.btn-sub-apply-link {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2rem 0.45rem;
+  border-radius: 3px;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-sub-apply-link:hover {
+  background: rgba(212, 163, 89, 0.15);
+  color: var(--color-accent-light);
 }
 
 /* Actionable status badges */
@@ -933,8 +1057,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   gap: 0.35rem;
   font-size: 0.78rem;
   font-weight: 500;
-  padding: 0.22rem 0.65rem;
-  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
 }
 
@@ -947,39 +1071,39 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .status-pill-ready {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.35);
-  color: #4ade80;
+  background: rgba(77, 131, 99, 0.1);
+  border-color: rgba(77, 131, 99, 0.25);
+  color: #7cb894;
 }
 
 .status-pill-next {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.4);
-  color: #fbbf24;
+  background: rgba(212, 163, 89, 0.1);
+  border-color: rgba(212, 163, 89, 0.25);
+  color: var(--color-accent-light);
 }
 
 .status-pill-swaps {
-  background: rgba(229, 169, 60, 0.12);
-  border-color: rgba(229, 169, 60, 0.35);
+  background: rgba(212, 163, 89, 0.1);
+  border-color: rgba(212, 163, 89, 0.25);
   color: var(--color-accent-light);
 }
 
 .status-pill-sub {
-  background: rgba(45, 212, 191, 0.12);
-  border-color: rgba(45, 212, 191, 0.4);
-  color: #2dd4bf;
+  background: rgba(185, 106, 67, 0.1);
+  border-color: rgba(185, 106, 67, 0.28);
+  color: #d98e68;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .status-pill-sub:hover {
-  background: rgba(45, 212, 191, 0.22);
-  border-color: rgba(45, 212, 191, 0.6);
-  color: #5eead4;
+  background: rgba(185, 106, 67, 0.18);
+  border-color: rgba(185, 106, 67, 0.45);
+  color: #ebaa88;
 }
 
 .status-pill-sub strong {
-  color: #5eead4;
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -988,16 +1112,16 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  background: rgba(45, 212, 191, 0.2);
-  color: #5eead4;
+  background: rgba(185, 106, 67, 0.2);
+  color: #ebaa88;
   padding: 0.1rem 0.4rem;
-  border-radius: 4px;
+  border-radius: 3px;
   margin-left: 0.35rem;
 }
 
 .status-pill-garnish {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--color-border);
+  background: rgba(245, 240, 230, 0.03);
+  border-color: var(--color-border-subtle);
   color: var(--color-text-muted);
 }
 
@@ -1010,23 +1134,23 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .drink-tags-bar {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   margin-top: 0.75rem;
   flex-wrap: wrap;
 }
 
 .drink-tags-label {
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-faint);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
 }
 
 .drink-tags-chips {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   flex-wrap: wrap;
 }
 
@@ -1034,19 +1158,20 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  background: rgba(139, 92, 246, 0.12);
-  border: 1px solid rgba(139, 92, 246, 0.35);
-  color: #c4b5fd;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 500;
-  padding: 0.2rem 0.6rem;
-  transition: all 0.15s ease;
+  background: rgba(245, 240, 230, 0.04);
+  border: 1px solid rgba(245, 240, 230, 0.09);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  font-weight: 400;
+  padding: 0.18rem 0.5rem;
+  transition: all var(--transition-fast);
 }
 
 .drink-tag-chip:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.55);
+  background: rgba(245, 240, 230, 0.08);
+  border-color: rgba(245, 240, 230, 0.18);
+  color: var(--color-text);
 }
 
 .drink-tag-text {
@@ -1062,9 +1187,9 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .drink-tag-remove {
   background: none;
   border: none;
-  color: rgba(196, 181, 253, 0.7);
+  color: var(--color-text-faint);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1;
   padding: 0;
   margin: 0 0 0 0.15rem;
@@ -1075,7 +1200,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .drink-tag-remove:hover {
-  color: #f87171;
+  color: var(--color-crimson);
 }
 
 .tag-input-inline-wrapper {
@@ -1084,67 +1209,67 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .tag-input-inline {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(245, 240, 230, 0.03);
   border: 1px dashed var(--color-border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   color: var(--color-text);
-  font-size: 0.78rem;
-  padding: 0.2rem 0.6rem;
-  width: 95px;
+  font-size: 0.76rem;
+  padding: 0.18rem 0.5rem;
+  width: 85px;
   transition: all 0.2s ease;
 }
 
 .tag-input-inline:focus {
-  width: 140px;
+  width: 130px;
   outline: none;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(245, 240, 230, 0.07);
   border: 1px solid var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(229, 169, 60, 0.2);
+  box-shadow: 0 0 0 2px rgba(212, 163, 89, 0.15);
 }
 
 .tag-input-inline::placeholder {
-  color: var(--color-text-muted);
+  color: var(--color-text-faint);
 }
 
 /* Stage Split: Glass on Left, Specs on Right */
 .counter-grid {
   display: grid;
-  grid-template-columns: 330px 1fr;
-  gap: 2rem;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 3.5rem;
   align-items: start;
+  min-width: 0;
+  width: 100%;
 }
 
 /* Vector Glass Column */
 .glass-column {
   display: flex;
   flex-direction: column;
-  /* align-items: center; */
   position: sticky;
-  top: 90px;
+  top: 0;
+  align-items: center;
+  width: 260px;
+  min-width: 0;
 }
 
 .glass-wrapper {
   width: 100%;
-  max-width: 330px;
-  height: 410px;
-  background:
-    radial-gradient(circle at 50% 45%, rgba(255, 180, 50, 0.09) 0%, rgba(229, 169, 60, 0.02) 45%, transparent 70%),
-    linear-gradient(180deg, rgba(24, 30, 43, 0.65) 0%, rgba(13, 17, 24, 0.8) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-lg);
+  max-width: 260px;
+  height: 340px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 25px rgba(229, 169, 60, 0.04);
+  box-shadow: none;
   position: relative;
 }
 
 .speakeasy-glass-svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
 }
 
 .fluid-layer {
@@ -1154,12 +1279,12 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .glass-meta-card {
   width: 100%;
-  max-width: 330px;
-  margin-top: 1rem;
-  padding: 0.85rem 1rem;
-  background: var(--color-surface-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  max-width: 260px;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   text-align: center;
 }
 
@@ -1179,16 +1304,16 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .glass-total-volume,
 .glass-abv {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   color: var(--color-text-muted);
 }
 
 .glass-total-volume strong,
 .glass-abv strong {
-  color: var(--color-accent-light);
+  color: var(--color-text);
   font-family: var(--font-sans);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.92rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
@@ -1222,6 +1347,55 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   line-height: 1.7;
 }
 
+.card-method-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.card-method-ordered {
+  counter-reset: method-counter;
+}
+
+.card-method-ordered > li {
+  counter-increment: method-counter;
+  display: grid;
+  grid-template-columns: 1.65rem 1fr;
+  align-items: baseline;
+  line-height: 1.65;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.card-method-ordered > li::before {
+  content: counter(method-counter) ".";
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--color-accent-light);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.card-method-unordered > li {
+  display: grid;
+  grid-template-columns: 1.35rem 1fr;
+  align-items: baseline;
+  line-height: 1.65;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.card-method-unordered > li::before {
+  content: "•";
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--color-accent-light);
+  user-select: none;
+}
+
 .card-description {
   color: var(--color-text);
   line-height: 1.65;
@@ -1253,32 +1427,73 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .specs-column {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0;
+  min-width: 0;
 }
 
 .counter-card {
-  background: var(--color-surface-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 1.25rem 1.5rem;
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  padding: 1.25rem 0;
+  box-shadow: none;
+}
+
+.counter-card:first-child {
+  padding-top: 0;
+}
+
+.counter-card:last-child {
+  border-bottom: none;
 }
 
 .counter-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 0.85rem;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .counter-card-title {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--color-accent);
+}
+
+/* Editorial Sections */
+.recipe-editorial-section {
+  margin-bottom: 2.25rem;
+}
+
+.editorial-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.editorial-section-title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-accent-light);
+  margin: 0 0 0.65rem 0;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.editorial-section-header .editorial-section-title {
+  border-bottom: none;
+  margin: 0;
+  padding-bottom: 0;
 }
 
 /* Header Controls (Servings Stepper & Unit Switch) */
@@ -1306,26 +1521,25 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .servings-stepper-box {
   display: inline-flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.32);
+  background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 3px;
+  border-radius: var(--radius-sm);
+  padding: 2px;
   gap: 2px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .servings-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--color-text);
   font-family: var(--font-sans);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
@@ -1337,7 +1551,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .servings-btn:hover:not(:disabled) {
   background: var(--color-accent);
-  color: #0b0e14;
+  color: #121110;
 }
 
 .servings-btn:active:not(:disabled) {
@@ -1350,12 +1564,12 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .servings-value {
-  min-width: 2.4rem;
+  min-width: 2.2rem;
   text-align: center;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 600;
   font-family: var(--font-sans);
-  color: var(--color-accent-light);
+  color: var(--color-text);
   letter-spacing: 0.02em;
   user-select: none;
 }
@@ -1364,12 +1578,11 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .unit-switch-group {
   display: inline-flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.32);
+  background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 3px;
+  border-radius: var(--radius-sm);
+  padding: 2px;
   gap: 2px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .unit-btn {
@@ -1379,10 +1592,10 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
   cursor: pointer;
   line-height: 1.2;
   transition: all var(--transition-fast);
@@ -1397,28 +1610,28 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .unit-btn.active {
   background: var(--color-accent);
-  color: #0b0e14;
-  font-weight: 700;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  color: #121110;
+  font-weight: 600;
 }
 
 /* Specs Table */
 .specs-list {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0;
 }
 
 .spec-row {
   display: grid;
   grid-template-columns: 85px 1fr auto;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.65rem 0.85rem;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
+  gap: 0.75rem;
+  padding: 0.65rem 0.25rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  border-radius: 0;
+  transition: background var(--transition-fast);
   cursor: pointer;
 }
 
@@ -1428,26 +1641,89 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .spec-row:hover,
 .spec-row.highlighted {
-  background: rgba(229, 169, 60, 0.08);
-  border-color: rgba(229, 169, 60, 0.35);
-  transform: translateX(4px);
+  background: rgba(245, 240, 230, 0.025);
+  border-color: var(--color-border-subtle);
+  transform: none;
 }
 
 .spec-row.is-riffed-row {
-  border-color: rgba(229, 169, 60, 0.3);
-  background: rgba(229, 169, 60, 0.05);
+  background: rgba(212, 163, 89, 0.04);
+}
+
+/* Garnish Row */
+.spec-garnish-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  padding: 0.75rem 0.25rem 0.85rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom: none;
+  cursor: default;
+}
+
+.spec-garnish-row:hover {
+  background: transparent;
+}
+
+.spec-garnish-row .spec-amount {
+  width: auto;
+  min-width: 60px;
+  flex-shrink: 0;
+  font-size: 0.88rem;
+}
+
+.spec-garnish-row .spec-amount .spec-unit {
+  font-style: italic;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  color: var(--color-accent-light);
+  margin-left: 0;
+}
+
+.spec-garnish-row .spec-ingredient {
+  flex: 1;
+  min-width: 0;
+}
+
+.spec-garnish-row .spec-ingredient-name-row {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: 100%;
+}
+
+.spec-garnish-name {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  font-style: italic;
+  white-space: normal;
+  word-break: normal;
+}
+
+.spec-garnish-row .spec-actions {
+  display: none;
+}
+
+.stock-check-glyph {
+  color: #7cb894;
+  margin-right: 0.25rem;
+  font-weight: bold;
 }
 
 .spec-amount {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: var(--color-text);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .spec-unit {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 400;
   color: var(--color-text-muted);
   margin-left: 0.25rem;
@@ -1464,8 +1740,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .spec-ingredient-name-row {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  font-size: 1rem;
+  gap: 0.5rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--color-text);
   flex-wrap: wrap;
@@ -1483,21 +1759,21 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   align-items: center;
   gap: 0.3rem;
   padding: 0.15rem 0.45rem;
-  background: rgba(45, 212, 191, 0.1);
-  border: 1px solid rgba(45, 212, 191, 0.3);
+  background: rgba(185, 106, 67, 0.1);
+  border: 1px solid rgba(185, 106, 67, 0.25);
   border-radius: var(--radius-sm);
   font-size: 0.7rem;
   font-weight: 500;
-  color: #2dd4bf;
+  color: #d98e68;
   cursor: pointer;
   line-height: 1.2;
   transition: all var(--transition-fast);
 }
 
 .btn-sub-chip:hover {
-  background: rgba(45, 212, 191, 0.2);
-  border-color: rgba(45, 212, 191, 0.55);
-  color: #5eead4;
+  background: rgba(185, 106, 67, 0.18);
+  border-color: rgba(185, 106, 67, 0.45);
+  color: #ebaa88;
 }
 
 .sub-more-badge {
@@ -1508,13 +1784,13 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .spec-riff-badge {
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.1rem 0.35rem;
   border-radius: 3px;
-  background: rgba(229, 169, 60, 0.18);
-  border: 1px solid rgba(229, 169, 60, 0.4);
+  background: rgba(212, 163, 89, 0.15);
+  border: 1px solid rgba(212, 163, 89, 0.35);
   color: var(--color-accent);
 }
 
@@ -1535,11 +1811,6 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  padding: 0.22rem 0;
-  border-radius: var(--radius-sm);
-  font-size: 0.68rem;
-  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   line-height: 1.2;
@@ -1550,41 +1821,50 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .btn-stock-toggle.in-stock {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.35);
-  color: #4ade80;
+  background: transparent;
+  border: none;
+  color: var(--color-text-faint);
+  font-size: 0.72rem;
+  font-weight: 400;
+  padding: 0.15rem 0.35rem;
+  width: auto;
 }
 
 .btn-stock-toggle.in-stock:hover {
-  background: rgba(230, 57, 70, 0.15);
-  border-color: rgba(230, 57, 70, 0.4);
-  color: #f87171;
+  background: rgba(194, 84, 80, 0.1);
+  border-radius: 3px;
+  color: #e58784;
 }
 
 .btn-stock-toggle.out-of-stock {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--color-border);
-  color: var(--color-text-muted);
+  background: rgba(212, 163, 89, 0.06);
+  border: 1px solid rgba(212, 163, 89, 0.2);
+  color: var(--color-accent-light);
+  border-radius: 3px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.18rem 0.45rem;
+  width: auto;
 }
 
 .btn-stock-toggle.out-of-stock:hover {
-  background: rgba(229, 169, 60, 0.18);
-  border-color: rgba(229, 169, 60, 0.5);
-  color: var(--color-accent);
+  background: rgba(212, 163, 89, 0.15);
+  border-color: var(--color-accent);
+  color: #ffffff;
 }
 
 .spec-staple-tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
+  width: 58px;
   font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  background: rgba(255, 255, 255, 0.03);
+  font-weight: 500;
+  color: var(--color-text-faint);
+  background: rgba(245, 240, 230, 0.03);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
-  padding: 0.22rem 0;
+  padding: 0.2rem 0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -1594,7 +1874,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .riff-toggle-btn {
   width: 100%;
-  max-width: 330px;
+  max-width: 260px;
   margin-top: 0.75rem;
   display: inline-flex;
   align-items: center;
@@ -1611,43 +1891,43 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .spec-riff-select {
   appearance: none;
   -webkit-appearance: none;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(245, 240, 230, 0.04);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
   font-size: 0.75rem;
   font-family: inherit;
   font-weight: 500;
-  padding: 0.25rem 1.4rem 0.25rem 0.55rem;
+  padding: 0.22rem 1.3rem 0.22rem 0.5rem;
   cursor: pointer;
   transition: all var(--transition-fast);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%238c92a4' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 1 5 5 9 1'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%23a69f94' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='1 1 5 5 9 1'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.45rem center;
   background-size: 8px 5px;
 }
 
 .spec-riff-select:hover {
-  background-color: rgba(229, 169, 60, 0.1);
-  border-color: rgba(229, 169, 60, 0.35);
+  background-color: rgba(212, 163, 89, 0.08);
+  border-color: rgba(212, 163, 89, 0.3);
   color: var(--color-text);
 }
 
 .spec-riff-select.active-riff {
-  background-color: rgba(229, 169, 60, 0.18);
+  background-color: rgba(212, 163, 89, 0.15);
   border-color: var(--color-accent);
   color: var(--color-accent-light);
   font-weight: 600;
 }
 
 .spec-riff-select option {
-  background-color: #161b26;
-  color: #e2e8f0;
+  background-color: #1f1c19;
+  color: #f5f2ea;
 }
 
 .riff-active-pill {
-  border-color: rgba(229, 169, 60, 0.4) !important;
-  background: rgba(229, 169, 60, 0.12) !important;
+  border-color: rgba(212, 163, 89, 0.35) !important;
+  background: rgba(212, 163, 89, 0.1) !important;
   color: var(--color-accent-light) !important;
 }
 
@@ -1660,15 +1940,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .spec-ratio {
-  width: 44px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.76rem;
-  font-weight: 500;
-  color: var(--color-text-faint);
-  background: transparent;
-  padding: 0;
-  flex-shrink: 0;
+  display: none;
 }
 
 /* Instructions & Notes */
@@ -1676,6 +1948,43 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-size: 0.95rem;
   line-height: 1.65;
   color: var(--color-text);
+}
+
+/* Recipe Editorial Footer: Source Citation & Tags */
+.recipe-editorial-footer {
+  margin-top: 2.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.editorial-source {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.editorial-source-label {
+  font-weight: 500;
+  font-style: normal;
+  color: var(--color-text-faint);
+  margin-right: 0.35rem;
+}
+
+.editorial-source a {
+  color: var(--color-accent-light);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.editorial-source a:hover {
+  color: #ffffff;
+}
+
+.recipe-editorial-footer .drink-tags-bar {
+  margin-top: 0;
 }
 
 /* Editor View */
@@ -1734,6 +2043,22 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   transition: border-color var(--transition-fast);
 }
 
+.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a69f94' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 16px;
+  padding-right: 2.2rem;
+  cursor: pointer;
+}
+
+.form-select option {
+  background-color: #1a1816;
+  color: #f5f2ea;
+}
+
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
@@ -1748,8 +2073,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .quick-paste-box {
-  background: rgba(229, 169, 60, 0.04);
-  border: 1px dashed rgba(229, 169, 60, 0.35);
+  background: rgba(212, 163, 89, 0.04);
+  border: 1px dashed rgba(212, 163, 89, 0.35);
   border-radius: var(--radius-md);
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -1818,21 +2143,21 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.35);
-  color: #c4b5fd;
-  border-radius: 999px;
-  font-size: 0.8rem;
+  background: rgba(245, 240, 230, 0.04);
+  border: 1px solid rgba(245, 240, 230, 0.09);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
   font-weight: 500;
-  padding: 0.2rem 0.6rem;
+  padding: 0.18rem 0.55rem;
 }
 
 .editor-tag-chip .btn-remove-tag {
   background: none;
   border: none;
-  color: rgba(196, 181, 253, 0.7);
+  color: var(--color-text-faint);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1;
   padding: 0;
   display: inline-flex;
@@ -1842,7 +2167,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .editor-tag-chip .btn-remove-tag:hover {
-  color: #f87171;
+  color: var(--color-crimson);
 }
 
 .editor-tag-input-row {
@@ -1882,8 +2207,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .meta-pill-accent {
-  background: rgba(229, 169, 60, 0.14);
-  border-color: rgba(229, 169, 60, 0.35);
+  background: rgba(212, 163, 89, 0.14);
+  border-color: rgba(212, 163, 89, 0.35);
   color: var(--color-accent-light);
 }
 
@@ -1924,6 +2249,19 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 0.5rem;
+}
+
+.empty-state-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.empty-state-create-btn {
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 
 /* Toast Notification */
@@ -1973,15 +2311,19 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 /* Similar Cocktails Shelf & Horizontal Scroll Carousel */
 .similar-cocktails-shelf {
-  margin-top: 1.5rem;
-  padding: 1.25rem 1.5rem 1.5rem 1.5rem;
+  margin-top: 3.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border-subtle);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .shelf-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--color-border-subtle);
 }
@@ -2014,18 +2356,21 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .shelf-nav-btn:hover {
-  background: rgba(229, 169, 60, 0.12);
-  border-color: rgba(229, 169, 60, 0.45);
+  background: rgba(212, 163, 89, 0.12);
+  border-color: rgba(212, 163, 89, 0.45);
   color: var(--color-accent);
 }
 
 .similar-cocktails-track {
   display: flex;
-  gap: 1rem;
+  gap: 1.15rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding: 0.35rem 0.25rem 0.75rem 0.25rem;
+  padding: 0.5rem 0.25rem 1.25rem 0.25rem;
   -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .similar-cocktails-track::-webkit-scrollbar {
@@ -2038,17 +2383,17 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .similar-cocktails-track::-webkit-scrollbar-thumb {
-  background: rgba(229, 169, 60, 0.25);
+  background: rgba(212, 163, 89, 0.25);
   border-radius: 4px;
 }
 
 .similar-cocktails-track::-webkit-scrollbar-thumb:hover {
-  background: rgba(229, 169, 60, 0.5);
+  background: rgba(212, 163, 89, 0.45);
 }
 
 .similar-cocktail-card {
-  flex: 0 0 200px;
-  width: 200px;
+  flex: 0 0 190px;
+  width: 190px;
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
@@ -2063,10 +2408,10 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .similar-cocktail-card:hover,
 .similar-cocktail-card:focus-visible {
-  background: rgba(229, 169, 60, 0.08);
-  border-color: rgba(229, 169, 60, 0.45);
-  transform: translateY(-4px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  background: rgba(212, 163, 89, 0.06);
+  border-color: rgba(212, 163, 89, 0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   outline: none;
 }
 
@@ -2100,37 +2445,37 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .similar-relation-badge {
   align-self: flex-start;
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   line-height: 1.2;
 }
 
 .similar-relation-badge.badge-orig {
-  background: rgba(112, 214, 255, 0.12);
-  border-color: rgba(112, 214, 255, 0.35);
-  color: #70d6ff;
+  background: rgba(185, 106, 67, 0.12);
+  border-color: rgba(185, 106, 67, 0.3);
+  color: #d98e68;
 }
 
 .similar-relation-badge.badge-riff {
-  background: rgba(229, 169, 60, 0.15);
-  border-color: rgba(229, 169, 60, 0.45);
+  background: rgba(212, 163, 89, 0.12);
+  border-color: rgba(212, 163, 89, 0.3);
   color: var(--color-accent);
 }
 
 .similar-relation-badge.badge-sibling {
-  background: rgba(190, 130, 255, 0.12);
-  border-color: rgba(190, 130, 255, 0.35);
-  color: #c996ff;
+  background: rgba(245, 240, 230, 0.05);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
 }
 
 .similar-relation-badge.badge-style {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--color-border);
-  color: var(--color-text-muted);
+  background: rgba(245, 240, 230, 0.03);
+  border-color: var(--color-border-subtle);
+  color: var(--color-text-faint);
 }
 
 .similar-card-name {
@@ -2382,20 +2727,20 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .backbar-nav-tab.active {
-  background: rgba(229, 169, 60, 0.16);
-  border-color: rgba(229, 169, 60, 0.5);
+  background: rgba(212, 163, 89, 0.16);
+  border-color: rgba(212, 163, 89, 0.45);
   color: #fff;
   font-weight: 600;
 }
 
 .backbar-nav-tab-fridge {
-  color: #8acdf9;
+  color: #9ecdb1;
 }
 
 .backbar-nav-tab-fridge.active {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.5);
-  color: #e0f2fe;
+  background: rgba(77, 131, 99, 0.18);
+  border-color: rgba(77, 131, 99, 0.45);
+  color: #e6f4ec;
 }
 
 .backbar-categories-container {
@@ -2448,7 +2793,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   align-items: center;
   gap: 0.5rem;
   padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   font-size: 0.82rem;
   font-weight: 500;
   background: rgba(255, 255, 255, 0.04);
@@ -2467,8 +2812,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .backbar-pill.active {
-  background: rgba(229, 169, 60, 0.16);
-  border-color: rgba(229, 169, 60, 0.5);
+  background: rgba(212, 163, 89, 0.15);
+  border-color: rgba(212, 163, 89, 0.45);
   color: #fdfdfd;
 }
 
@@ -2554,11 +2899,29 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   }
 }
 
+@media (min-width: 769px) {
+  .sidebar.mobile-hidden {
+    display: flex !important;
+  }
+  .main-stage.mobile-hidden {
+    display: block !important;
+  }
+}
+
 @media (max-width: 768px) {
 
-  /* Header Mobile Compact */
+  /* Header Mobile Compact: Fixed & Sticky at top */
   .app-header {
-    padding: 0.6rem 0.85rem;
+    height: 52px;
+    padding: 0 0.85rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-shrink: 0;
+    background: rgba(18, 17, 16, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .brand-group {
@@ -2580,35 +2943,20 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   }
 
   .header-actions {
-    gap: 0.4rem;
+    gap: 0.5rem;
   }
 
-  /* Demote New Drink from top-level prominence on mobile */
+  /* Hide top-level New Drink button on mobile (now accessible in Vault menu) */
   #btn-new-drink {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--color-text-muted);
-    border: 1px solid var(--color-border);
-    box-shadow: none;
-    font-weight: 500;
-    padding: 0.35rem 0.5rem;
-    min-width: 32px;
-    justify-content: center;
-  }
-
-  #btn-new-drink:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-text);
-    filter: none;
-    transform: none;
-  }
-
-  #btn-new-drink .btn-text {
     display: none;
   }
 
   .vault-menu-btn {
-    padding: 0.32rem 0.55rem;
+    min-height: 38px;
+    min-width: 38px;
+    padding: 0 0.4rem;
     font-size: 0.78rem;
+    justify-content: center;
   }
 
   .vault-menu-btn .btn-text {
@@ -2617,83 +2965,200 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
   .vault-popover {
     right: 0.75rem;
-    top: 52px;
+    top: 54px;
     width: calc(100vw - 1.5rem);
     max-width: 310px;
   }
 
   .my-bar-btn {
-    padding: 0.32rem 0.55rem;
-    font-size: 0.78rem;
-    gap: 0.35rem;
+    min-height: 38px;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8rem;
+    gap: 0.4rem;
   }
 
-  /* Two-Pane Navigation */
+  /* Fixed Viewport Mobile Layout */
+  html, body {
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  #app {
+    height: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
   .app-main {
-    grid-template-columns: 1fr;
-    min-height: calc(100vh - 53px);
-    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: calc(100vh - 52px);
+    height: calc(100dvh - 52px);
+    overflow: hidden;
+    width: 100%;
+    position: relative;
   }
 
+  /* Sidebar (Drink Library List): Sticky Search & Filters, Inner Scroll, Sticky Bottom Info Bar */
   .sidebar {
-    height: auto;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     position: static;
     border-right: none;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: none;
+    overflow: hidden;
     animation: slideInFromLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .sidebar.mobile-hidden {
-    display: none;
+    display: none !important;
+  }
+
+  .sidebar-search-box {
+    flex-shrink: 0;
+    padding: 0.75rem 0.85rem 0.45rem;
+  }
+
+  .sidebar-pack-filter {
+    flex-shrink: 0;
+    padding: 0.45rem 0.85rem 0.5rem;
+  }
+
+  .sidebar-inventory-filter {
+    flex-shrink: 0;
+    padding: 0.45rem 0.85rem 0.55rem;
+  }
+
+  .recipe-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.25rem 0.85rem 1rem;
+  }
+
+  .sidebar-footer {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1rem max(0.65rem, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--color-border-subtle);
+    background: rgba(18, 17, 16, 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    z-index: 10;
+  }
+
+  /* Main Stage (Recipe & Editor): Clean Side Margins, Smooth Scrolling */
+  .main-stage {
+    display: block;
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 1.25rem max(3.5rem, calc(2rem + env(safe-area-inset-bottom, 0px))) !important;
+    animation: slideInFromRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .main-stage.mobile-hidden {
-    display: none;
-  }
-
-  .main-stage {
-    padding: 1.75rem 0.5rem 2.5rem !important;
-    animation: slideInFromRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+    display: none !important;
   }
 
   @keyframes slideInFromRight {
     from {
-      opacity: 0.7;
-      transform: translateX(18px);
+      opacity: 0.75;
+      transform: translateX(16px);
     }
     to {
       opacity: 1;
-      transform: translateX(0);
+      transform: none;
     }
   }
 
   @keyframes slideInFromLeft {
     from {
-      opacity: 0.7;
-      transform: translateX(-18px);
+      opacity: 0.75;
+      transform: translateX(-16px);
     }
     to {
       opacity: 1;
-      transform: translateX(0);
+      transform: none;
     }
   }
 
-  /* Counter View: Mobile Title & Top Bar */
+  /* Counter View: Sticky Back Button Header */
   .counter-mobile-bar {
+    position: sticky;
+    top: 0;
+    z-index: 90;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    margin: 0 -1.25rem 1.15rem -1.25rem;
+    padding: 0.65rem 1.25rem;
+    background: rgba(18, 17, 16, 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   .mobile-back-btn {
     display: inline-flex;
-    padding: 0.28rem 0.65rem;
-    font-size: 0.78rem;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    flex-shrink: 0;
   }
 
+  /* Inline scrolled drink title to the right of < Drinks */
+  .mobile-sticky-title {
+    flex: 1;
+    min-width: 0;
+    opacity: 0;
+    transform: translateY(4px);
+    pointer-events: none;
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-sticky-title.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .mobile-sticky-name {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.01em;
+  }
+
+  /* Recipe Title & Metadata: Harmonious Sizing & Spacing */
   .drink-title-section {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.15rem;
   }
 
   .drink-title-row {
@@ -2705,9 +3170,9 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   }
 
   .drink-name {
-    font-size: clamp(1.6rem, 6vw, 2.2rem);
-    line-height: 1.15;
-    margin-bottom: 0;
+    font-size: clamp(1.75rem, 6.5vw, 2.3rem);
+    line-height: 1.18;
+    margin-bottom: 0.25rem;
     flex: 1;
     min-width: 0;
     word-break: break-word;
@@ -2731,17 +3196,32 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   }
 
   .drink-meta-row {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     gap: 0.45rem;
     margin-top: 0.45rem;
+    color: var(--color-text-muted);
+    flex-wrap: wrap;
+  }
+
+  .drink-description-prose {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    margin-top: 0.75rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .drink-sub-banner {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-sm);
   }
 
   .drink-tags-bar {
-    margin-top: 0.65rem;
+    margin-top: 0.75rem;
     gap: 0.4rem;
   }
 
-  /* Stage Split: Glass on Top (above About and Ingredients), full width */
+  /* Stage Split: Prominent Centered Glass & Enlarged Specs */
   .counter-grid {
     display: flex;
     flex-direction: column;
@@ -2756,25 +3236,51 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     top: auto;
     flex-direction: column !important;
     gap: 0.65rem;
+    margin: 0.25rem 0 0.5rem;
   }
 
   .glass-wrapper {
     width: 100%;
-    max-width: 100%;
-    height: 280px;
-    padding: 0.75rem;
+    max-width: 290px;
+    height: 330px;
+    margin: 0 auto;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .glass-meta-card {
     width: 100%;
-    max-width: 100%;
-    margin-top: 0;
+    max-width: 290px;
+    margin: 0.25rem auto 0;
+    text-align: center;
   }
 
   .glass-meta-card .glass-stats-row {
+    display: flex;
+    align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    font-size: 0.84rem;
+    font-size: 1.02rem;
+  }
+
+  .glass-meta-card .glass-total-volume,
+  .glass-meta-card .glass-abv {
+    font-size: 1.02rem;
+    color: var(--color-text-muted);
+  }
+
+  .glass-meta-card .glass-total-volume strong,
+  .glass-meta-card .glass-abv strong {
+    font-size: 1.16rem;
+    font-weight: 600;
+    color: var(--color-accent-light);
+  }
+
+  .glass-meta-card .glass-stats-divider {
+    font-size: 0.95rem;
+    opacity: 0.6;
   }
 
   .glass-meta-card .glass-source,
@@ -2784,10 +3290,12 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
   .riff-toggle-btn {
     width: 100%;
-    max-width: 100%;
-    padding: 0.5rem;
+    max-width: 320px;
+    margin: 0.65rem auto 0;
+    padding: 0.65rem 1rem;
     justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.88rem;
+    border-radius: var(--radius-sm);
   }
 
   .specs-column {
@@ -2798,7 +3306,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
   /* Card Sizing & Ingredients Table on Mobile */
   .counter-card {
-    padding: 1rem 0.5rem;
+    padding: 1.25rem 1rem;
+    border-radius: var(--radius-md);
   }
 
   .counter-card-header {
@@ -2845,17 +3354,18 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   }
 
   .spec-row {
-    grid-template-columns: 58px 1fr auto;
-    gap: 0.45rem;
-    padding: 0.55rem 0.65rem;
+    grid-template-columns: 60px 1fr auto;
+    gap: 0.55rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-sm);
   }
 
   .spec-amount {
-    font-size: 1.05rem;
+    font-size: 1.08rem;
   }
 
   .spec-unit {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     margin-left: 0.15rem;
   }
 
@@ -2918,6 +3428,99 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     gap: 0.35rem;
   }
 
+  /* Garnish Row on Mobile */
+  .spec-garnish-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.75rem 0.75rem 0.95rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.75rem;
+    border-top: 1px solid var(--color-border-subtle);
+    border-bottom: none;
+    border-radius: var(--radius-sm);
+  }
+
+  .spec-garnish-row .spec-amount {
+    width: auto;
+    min-width: 54px;
+    flex-shrink: 0;
+  }
+
+  .spec-garnish-row .spec-amount .spec-unit {
+    font-size: 0.86rem;
+    font-family: var(--font-display);
+    color: var(--color-accent-light);
+    margin-left: 0;
+  }
+
+  .spec-garnish-row .spec-ingredient {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .spec-garnish-row .spec-ingredient-name-row {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: 100%;
+  }
+
+  .spec-garnish-row .spec-garnish-name {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    white-space: normal;
+    word-break: normal;
+  }
+
+  .spec-garnish-row .spec-actions {
+    display: none;
+  }
+
+  /* Editorial Sections on Mobile */
+  .recipe-editorial-section {
+    margin-bottom: 1.75rem;
+  }
+
+  .editorial-section-title {
+    font-size: 1.15rem;
+    color: var(--color-accent-light);
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .card-instructions {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* Similar Cocktails Shelf on Mobile */
+  .similar-cocktails-shelf {
+    margin-top: 2.25rem;
+    padding-top: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .shelf-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .shelf-title {
+    font-size: 0.78rem;
+  }
+
+  .similar-cocktail-card {
+    flex: 0 0 160px;
+    width: 160px;
+    padding: 0.85rem 0.75rem;
+  }
+
+  .similar-card-glass {
+    height: 76px;
+    margin-bottom: 0.5rem;
+  }
+
   /* Backbar Modal on Mobile */
   .backbar-dialog {
     width: 96vw;
@@ -2948,6 +3551,147 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   .backbar-pill {
     padding: 0.38rem 0.68rem;
     font-size: 0.78rem;
+  }
+
+  /* Recipe Editor Mobile Optimization */
+  .editor-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 0.85rem;
+    margin-bottom: 1.15rem;
+  }
+
+  .editor-title {
+    font-size: clamp(1.4rem, 5.5vw, 1.85rem);
+    line-height: 1.2;
+    word-break: break-word;
+    min-width: 0;
+  }
+
+  .editor-header .counter-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .editor-header .counter-actions .btn {
+    min-height: 38px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.84rem;
+  }
+
+  .editor-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1.5rem;
+  }
+
+  .editor-form-col {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .editor-preview-col {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .editor-preview-col .glass-wrapper {
+    width: 100%;
+    max-width: 280px;
+    height: 300px;
+    margin: 0 auto;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .editor-specs-section {
+    margin-top: 1.25rem;
+  }
+
+  .editor-specs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .editor-spec-row {
+    display: grid;
+    grid-template-columns: 60px 80px 1fr 58px 34px;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+  }
+
+  .editor-spec-row .form-input,
+  .editor-spec-row .form-select {
+    padding: 0.55rem 0.45rem;
+    font-size: 0.86rem;
+    min-height: 38px;
+  }
+
+  .editor-spec-row .form-select {
+    padding-right: 1.4rem;
+    background-size: 12px 12px;
+    background-position: right 0.35rem center;
+  }
+
+  .editor-spec-row .spec-input-amount {
+    text-align: center;
+  }
+
+  .editor-spec-row .spec-input-abv {
+    padding: 0.55rem 0.25rem;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  .editor-spec-row .btn-remove-row {
+    min-width: 34px;
+    min-height: 38px;
+    width: 34px;
+    height: 38px;
+    padding: 0;
+  }
+
+  .editor-tag-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .editor-tag-input-field {
+    min-width: 180px;
+    flex: 1 1 180px;
+    min-height: 38px;
+  }
+
+  .editor-tag-input-row .btn {
+    min-height: 38px;
+    padding: 0.45rem 0.85rem;
+  }
+
+  .quick-paste-box {
+    padding: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .quick-paste-textarea {
+    font-size: 0.85rem;
+    height: 85px;
   }
 }
 

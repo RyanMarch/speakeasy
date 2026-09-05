@@ -5,6 +5,7 @@
 
 import { resolveGlassware } from './glassware.js';
 import { calculateFluidLayers } from './colors.js';
+import { renderGarnishesSvg } from './garnishes.js';
 
 let nextGlassId = 1;
 
@@ -106,6 +107,9 @@ export function renderGlassSvg(recipe, id = '') {
     />
   `;
 
+  // Garnishes
+  const garnishesSvg = renderGarnishesSvg(recipe, glassware, layers.length > 0 ? surfaceY : null);
+
   return `
     <svg
       class="speakeasy-glass-svg"
@@ -181,6 +185,9 @@ export function renderGlassSvg(recipe, id = '') {
       ` : ''}
 
       ${glassSheen}
+
+      <!-- Garnishes -->
+      ${garnishesSvg}
     </svg>
   `;
 }

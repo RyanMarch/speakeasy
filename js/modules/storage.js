@@ -1978,6 +1978,37 @@ export function getRecipes() {
           r.tags = [];
           updatedStorage = true;
         }
+
+        // Clean up redundant classic-family tags so drinks don't accumulate
+        // overlapping tags like "modern-classic", "essential-classics", and "classic".
+        if (Array.isArray(r.tags)) {
+          const originalTagStr = JSON.stringify(r.tags);
+          const normalizedTags = [];
+          const seen = new Set();
+
+          r.tags.forEach(rawTag => {
+            const clean = String(rawTag || '').trim().toLowerCase().replace(/^#+/, '');
+            if (!clean) return;
+
+            // Map redundant variants to canonical tag
+            let canonical = clean;
+            if (clean === 'modern-classic' || clean === 'modern-classics') {
+              canonical = 'modern-craft';
+            } else if (clean === 'essential-classic' || clean === 'essential-classics') {
+              canonical = 'classic';
+            }
+
+            if (!seen.has(canonical)) {
+              seen.add(canonical);
+              normalizedTags.push(canonical);
+            }
+          });
+
+          if (JSON.stringify(normalizedTags) !== originalTagStr) {
+            r.tags = normalizedTags;
+            updatedStorage = true;
+          }
+        }
       });
 
       // Migrate legacy random IDs (rec_... / recipe-...) to clean, consistent slugs
@@ -2156,7 +2187,12 @@ export function getAllUniqueTags(recipes = []) {
   (recipes || []).forEach(recipe => {
     if (Array.isArray(recipe.tags)) {
       recipe.tags.forEach(tag => {
-        const clean = String(tag || '').trim().toLowerCase();
+        let clean = String(tag || '').trim().toLowerCase().replace(/^#+/, '');
+        if (clean === 'modern-classic' || clean === 'modern-classics') {
+          clean = 'modern-craft';
+        } else if (clean === 'essential-classic' || clean === 'essential-classics') {
+          clean = 'classic';
+        }
         if (clean) tagSet.add(clean);
       });
     }

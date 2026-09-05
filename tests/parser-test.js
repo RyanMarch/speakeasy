@@ -1,4 +1,4 @@
-import { parseIngredientLine, parseSpecsBlock, formatFraction } from '../js/modules/parser.js';
+import { parseIngredientLine, parseSpecsBlock, formatFraction, parseMethodContent } from '../js/modules/parser.js';
 import { calculateFluidLayers, normalizeVolumeToOz } from '../js/modules/colors.js';
 import { resolveGlassware } from '../js/modules/glassware.js';
 import { calculateCocktailAbv, estimateIngredientAbv } from '../js/modules/abv.js';
@@ -487,6 +487,18 @@ if (extractedTags.filter(t => t === 'summer').length !== 1) {
 const isSorted = extractedTags.slice(1).every((item, i) => extractedTags[i].localeCompare(item) <= 0);
 if (!isSorted) throw new Error('Unique tags must be sorted alphabetically');
 
+// Verify classic tag consolidation
+const messyTagsRecipe = [
+  { id: '1', name: 'Messy Drink', tags: ['modern-classic', 'essential-classics', 'classic', 'sour'] },
+];
+const cleanedTags = getAllUniqueTags(messyTagsRecipe);
+if (cleanedTags.includes('modern-classic') || cleanedTags.includes('essential-classics')) {
+  throw new Error('getAllUniqueTags should normalize classic variants');
+}
+if (!cleanedTags.includes('classic') || !cleanedTags.includes('modern-craft')) {
+  throw new Error('getAllUniqueTags should map to canonical classic and modern-craft tags');
+}
+
 // 2. Tag query search matching
 const summerDrink = {
   name: 'Mojito',
@@ -553,6 +565,64 @@ SEED_RECIPES.forEach(recipe => {
   }
 });
 console.log(`All 100 canonical recipes verified: proper metadata, valid fluid layers, and realistic ABV calculations.`);
+
+console.log('--- Testing Method Content Parser (Ordered, Unordered, Prose) ---');
+const orderedTest = `1. Add bourbon, demerara syrup, and bitters to a mixing glass.
+2. Stir thoroughly for 25-30 seconds until well-chilled.
+3. Strain into a rocks glass over a single large ice cube.
+4. Express orange peel oils over the rim.`;
+const parsedOrdered = parseMethodContent(orderedTest);
+if (parsedOrdered.type !== 'ordered' || parsedOrdered.items.length !== 4) {
+  throw new Error(`Expected ordered method with 4 items, got: ${JSON.stringify(parsedOrdered)}`);
+}
+if (parsedOrdered.items[0] !== 'Add bourbon, demerara syrup, and bitters to a mixing glass.') {
+  throw new Error(`Expected item text without number prefix, got: "${parsedOrdered.items[0]}"`);
+}
+
+const unorderedBulletTest = `* Add vodka and lime juice
+* Shake with ice
+* Strain into coupe`;
+const parsedUnordered = parseMethodContent(unorderedBulletTest);
+if (parsedUnordered.type !== 'unordered' || parsedUnordered.items.length !== 3) {
+  throw new Error(`Expected unordered method with 3 items, got: ${JSON.stringify(parsedUnordered)}`);
+}
+
+const proseTest = 'Stirred: Standard build and chill.';
+const parsedProse = parseMethodContent(proseTest);
+if (parsedProse.type !== 'prose' || parsedProse.items.length !== 1 || parsedProse.items[0] !== proseTest) {
+  throw new Error(`Expected prose method, got: ${JSON.stringify(parsedProse)}`);
+}
+console.log('Method list detection tests passed.');
+
+console.log('--- Testing Garnish Resolution & Vector Rendering ---');
+const { resolveGarnishTypes, renderGarnishesSvg } = await import('../js/modules/garnishes.js');
+const { GLASS_TYPES } = await import('../js/modules/glassware.js');
+
+const garnishCases = [
+  { input: 'Lime wheel', expected: ['limeWheel'] },
+  { input: 'Lemon wheel & cocktail cherry', expected: ['cherry', 'lemonWheel'] },
+  { input: 'Lemon peel twist', expected: ['lemonTwist'] },
+  { input: 'Orange peel', expected: ['orangeTwist'] },
+  { input: 'Brandied cherry', expected: ['cherry'] },
+  { input: 'Castelvetrano olive', expected: ['olive'] },
+  { input: 'Half salt rim & lime wedge', expected: ['saltRim', 'limeWedge'] },
+  { input: '3 coffee beans', expected: ['coffeeBeans'] },
+  { input: 'Fresh mint bouquet', expected: ['mintSprig'] },
+  { input: 'Pineapple wedge & maraschino cherry', expected: ['cherry', 'pineappleWedge'] },
+];
+
+for (const tc of garnishCases) {
+  const res = resolveGarnishTypes(tc.input);
+  if (JSON.stringify(res) !== JSON.stringify(tc.expected)) {
+    throw new Error(`Garnish resolution mismatch for "${tc.input}": expected ${JSON.stringify(tc.expected)}, got ${JSON.stringify(res)}`);
+  }
+}
+
+const renderedSvg = renderGarnishesSvg({ garnish: 'Orange twist & cocktail cherry' }, GLASS_TYPES.rocks, 120);
+if (!renderedSvg.includes('garnish-cherry') || !renderedSvg.includes('garnish-orange-twist')) {
+  throw new Error(`Expected rendered SVG to contain cherry and twist garnishes: ${renderedSvg}`);
+}
+console.log('Garnish resolution and vector SVG rendering tests passed.');
 
 console.log('All tests completed successfully!');
 

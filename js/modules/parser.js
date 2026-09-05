@@ -109,3 +109,65 @@ export function formatFraction(amount) {
 
   return `${rounded}`;
 }
+
+/**
+ * Parses method/instructions text and detects whether it is:
+ * - 'ordered': numbered steps (1., 1), Step 1:, etc.)
+ * - 'unordered': bulleted items (-, *, •)
+ * - 'prose': plain descriptive paragraph(s)
+ *
+ * @param {string} text
+ * @returns {{ type: 'ordered' | 'unordered' | 'prose', items: string[] }}
+ */
+export function parseMethodContent(text) {
+  if (!text || typeof text !== 'string') {
+    return { type: 'prose', items: [] };
+  }
+
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return { type: 'prose', items: [] };
+  }
+
+  // Split into non-empty lines
+  const lines = trimmed
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+
+  if (lines.length === 0) {
+    return { type: 'prose', items: [] };
+  }
+
+  // Regex patterns for line prefixes
+  const orderedRegex = /^(?:(?:step\s+)?\d+[\.\)\:]\s*|\(\d+\)\s*)/i;
+  const unorderedRegex = /^[\*\-\•\–\—\>]\s+/;
+
+  // Check if lines match ordered or unordered patterns
+  const orderedMatches = lines.filter(line => orderedRegex.test(line));
+  const unorderedMatches = lines.filter(line => unorderedRegex.test(line));
+
+  // If there's multiple lines and all (or almost all) are ordered, or even a single line with "1. ..."
+  if (orderedMatches.length > 0 && (orderedMatches.length === lines.length || (lines.length > 1 && orderedMatches.length >= lines.length * 0.8))) {
+    const items = lines.map(line => line.replace(orderedRegex, '').trim()).filter(Boolean);
+    return { type: 'ordered', items };
+  }
+
+  // If unordered bulleted list
+  if (unorderedMatches.length > 0 && (unorderedMatches.length === lines.length || (lines.length > 1 && unorderedMatches.length >= lines.length * 0.8))) {
+    const items = lines.map(line => line.replace(unorderedRegex, '').trim()).filter(Boolean);
+    return { type: 'unordered', items };
+  }
+
+  // If text is a single block, check if multiple numbered items were written inline (e.g. "1. First... 2. Second... 3. Third...")
+  const inlineOrderedMatch = trimmed.match(/(?:^|\s)(?:(?:step\s+)?\d+[\.\)]\s+)/i);
+  if (inlineOrderedMatch) {
+    const inlineSplit = trimmed.split(/(?:^|\s+)(?:(?:step\s+)?\d+[\.\)]\s+)/i).map(s => s.trim()).filter(Boolean);
+    if (inlineSplit.length > 1) {
+      return { type: 'ordered', items: inlineSplit };
+    }
+  }
+
+  // Otherwise, return as prose
+  return { type: 'prose', items: [trimmed] };
+}
