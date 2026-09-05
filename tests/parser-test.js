@@ -100,7 +100,11 @@ if (!bourbonMatch || bourbonMatch.id !== 'bourbon') throw new Error('Bourbon ali
 
 const scotchMatch = findIngredient('Single Malt Scotch');
 console.log('Single Malt Scotch =>', scotchMatch?.name, `(Family: ${scotchMatch?.family})`);
-if (!scotchMatch || scotchMatch.id !== 'scotch') throw new Error('Scotch alias resolution failed');
+if (!scotchMatch || scotchMatch.id !== 'single_malt_scotch') throw new Error('Single Malt Scotch alias resolution failed');
+
+const genericScotchMatch = findIngredient('Scotch Whisky');
+console.log('Scotch Whisky =>', genericScotchMatch?.name, `(Family: ${genericScotchMatch?.family})`);
+if (!genericScotchMatch || genericScotchMatch.id !== 'scotch') throw new Error('Scotch Whisky alias resolution failed');
 
 const goslingsMatch = findIngredient('Goslings');
 console.log('Goslings =>', goslingsMatch?.name, `(Family: ${goslingsMatch?.family})`);
@@ -181,6 +185,109 @@ if (!oliveSubs.some(s => s.id === 'pickle_brine')) throw new Error('Olive juice 
 const espressoMatch = findIngredient('Fresh Espresso');
 console.log('Fresh Espresso =>', espressoMatch?.name);
 if (!espressoMatch || espressoMatch.id !== 'espresso') throw new Error('Espresso match failed');
+
+const nixtaMatch = findIngredient('Nixta Licor de Elote');
+console.log('Nixta Licor de Elote =>', nixtaMatch?.name, `(Family: ${nixtaMatch?.family})`);
+if (!nixtaMatch || nixtaMatch.id !== 'corn_liqueur') throw new Error('Nixta match failed');
+
+const falernumMatch = findIngredient('Velvet Falernum');
+console.log('Velvet Falernum =>', falernumMatch?.name, `(Family: ${falernumMatch?.family})`);
+if (!falernumMatch || falernumMatch.id !== 'spiced_liqueur') throw new Error('Spiced liqueur match failed');
+
+const stGermainMatch = findIngredient('St-Germain');
+console.log('St-Germain =>', stGermainMatch?.name, `(Family: ${stGermainMatch?.family})`);
+if (!stGermainMatch || stGermainMatch.id !== 'floral_liqueur') throw new Error('Floral liqueur match failed');
+
+const maraschinoMatch = findIngredient('Luxardo Maraschino');
+console.log('Luxardo Maraschino =>', maraschinoMatch?.name, `(ID: ${maraschinoMatch?.id})`);
+if (!maraschinoMatch || maraschinoMatch.id !== 'maraschino') throw new Error('Maraschino match failed');
+
+const heeringMatch = findIngredient('Cherry Heering');
+console.log('Cherry Heering =>', heeringMatch?.name, `(ID: ${heeringMatch?.id})`);
+if (!heeringMatch || heeringMatch.id !== 'cherry_liqueur') throw new Error('Cherry liqueur match failed');
+
+const cassisMatch = findIngredient('Crème de Cassis');
+console.log('Crème de Cassis =>', cassisMatch?.name, `(ID: ${cassisMatch?.id})`);
+if (!cassisMatch || cassisMatch.id !== 'berry_liqueur') throw new Error('Berry liqueur match failed');
+
+const apricotMatch = findIngredient('Apricot Liqueur');
+console.log('Apricot Liqueur =>', apricotMatch?.name, `(ID: ${apricotMatch?.id})`);
+if (!apricotMatch || apricotMatch.id !== 'stone_fruit_liqueur') throw new Error('Stone fruit liqueur match failed');
+
+const bananaMatch = findIngredient('Crème de Banane');
+console.log('Crème de Banane =>', bananaMatch?.name, `(ID: ${bananaMatch?.id})`);
+if (!bananaMatch || bananaMatch.id !== 'tropical_fruit_liqueur') throw new Error('Tropical/banana liqueur match failed');
+
+const blendedScotchMatch = findIngredient('Monkey Shoulder');
+console.log('Monkey Shoulder =>', blendedScotchMatch?.name, `(ID: ${blendedScotchMatch?.id})`);
+if (!blendedScotchMatch || blendedScotchMatch.id !== 'blended_scotch') throw new Error('Blended Scotch match failed');
+
+const peatedScotchMatch = findIngredient('Laphroaig 10');
+console.log('Laphroaig 10 =>', peatedScotchMatch?.name, `(ID: ${peatedScotchMatch?.id})`);
+if (!peatedScotchMatch || peatedScotchMatch.id !== 'peated_scotch') throw new Error('Peated Scotch match failed');
+
+const jovenMatch = findIngredient('Tequila Joven');
+console.log('Tequila Joven =>', jovenMatch?.name, `(ID: ${jovenMatch?.id})`);
+if (!jovenMatch || jovenMatch.id !== 'tequila_joven') throw new Error('Tequila Joven match failed');
+
+const extraAnejoMatch = findIngredient('Extra Añejo Tequila');
+console.log('Extra Añejo Tequila =>', extraAnejoMatch?.name, `(ID: ${extraAnejoMatch?.id})`);
+if (!extraAnejoMatch || extraAnejoMatch.id !== 'tequila_extra_anejo') throw new Error('Extra Añejo Tequila match failed');
+
+const redWineMatch = findIngredient('Cabernet Sauvignon');
+console.log('Cabernet Sauvignon =>', redWineMatch?.name, `(ID: ${redWineMatch?.id})`);
+if (!redWineMatch || redWineMatch.id !== 'red_wine') throw new Error('Red wine match failed');
+
+const whiteWineMatch = findIngredient('Sauvignon Blanc');
+console.log('Sauvignon Blanc =>', whiteWineMatch?.name, `(ID: ${whiteWineMatch?.id})`);
+if (!whiteWineMatch || whiteWineMatch.id !== 'white_wine') throw new Error('White wine match failed');
+
+const roseWineMatch = findIngredient('Rosé Wine');
+console.log('Rosé Wine =>', roseWineMatch?.name, `(ID: ${roseWineMatch?.id})`);
+if (!roseWineMatch || roseWineMatch.id !== 'rose_wine') throw new Error('Rosé wine match failed');
+
+const champagneMatch = findIngredient('Champagne');
+console.log('Champagne =>', champagneMatch?.name, `(Parent: ${champagneMatch?.parent})`);
+if (!champagneMatch || champagneMatch.id !== 'sparkling_wine' || champagneMatch.parent !== 'fortified_wine') {
+  throw new Error('Champagne should resolve to sparkling_wine under fortified_wine');
+}
+
+console.log('--- Testing Refrigeration & Storage Metadata ---');
+const vermouthMeta = getIngredientMetadata('Sweet Vermouth');
+console.log('Sweet Vermouth storage:', vermouthMeta?.storage, '(isRefrigerated:', vermouthMeta?.isRefrigerated, ')');
+if (!vermouthMeta || !vermouthMeta.isRefrigerated || vermouthMeta.storage !== 'fridge') {
+  throw new Error('Sweet Vermouth should be marked as refrigerated');
+}
+
+const whiteWineMeta = getIngredientMetadata('Dry White Wine');
+console.log('Dry White Wine storage:', whiteWineMeta?.storage, '(isRefrigerated:', whiteWineMeta?.isRefrigerated, ')');
+if (!whiteWineMeta || !whiteWineMeta.isRefrigerated || whiteWineMeta.storage !== 'fridge') {
+  throw new Error('Dry White Wine should be marked as refrigerated');
+}
+
+const redWineMeta = getIngredientMetadata('Dry Red Wine');
+console.log('Dry Red Wine storage:', redWineMeta?.storage, '(isRefrigerated:', redWineMeta?.isRefrigerated, ')');
+if (!redWineMeta || redWineMeta.isRefrigerated || redWineMeta.storage !== 'shelf') {
+  throw new Error('Dry Red Wine should be marked as shelf storage');
+}
+
+const bourbonMeta = getIngredientMetadata('Bourbon');
+console.log('Bourbon storage:', bourbonMeta?.storage, '(isRefrigerated:', bourbonMeta?.isRefrigerated, ')');
+if (!bourbonMeta || bourbonMeta.isRefrigerated || bourbonMeta.storage !== 'shelf') {
+  throw new Error('Bourbon should not be marked as refrigerated');
+}
+
+const simpleSyrupMeta = getIngredientMetadata('Simple Syrup');
+if (!simpleSyrupMeta || !simpleSyrupMeta.isRefrigerated) {
+  throw new Error('Simple Syrup should be marked as refrigerated');
+}
+
+const fridgeQueryMatch = ingredientMatchesQuery('Sweet Vermouth', 'fridge');
+console.log('Sweet Vermouth matches "fridge" query:', fridgeQueryMatch);
+if (!fridgeQueryMatch) throw new Error('Sweet Vermouth should match "fridge" search');
+
+const whiteWineFridgeMatch = ingredientMatchesQuery('Sauvignon Blanc', 'fridge');
+if (!whiteWineFridgeMatch) throw new Error('Sauvignon Blanc should match "fridge" search');
 
 console.log('--- Testing Bidirectional Cocktail Riffs & Similar Cocktails ---');
 import { findSimilarCocktails } from '../js/modules/taxonomy.js';
@@ -421,4 +528,31 @@ if (slug3 !== 'scotch-old-fashioned-3') {
 }
 console.log('Clean URL slug generation verified.');
 
+console.log('--- Testing 100 Canonical Seed Recipes ---');
+if (SEED_RECIPES.length !== 100) {
+  throw new Error(`Expected exactly 100 seed recipes, got ${SEED_RECIPES.length}`);
+}
+
+const cranberryItem = findIngredient('Cranberry Juice');
+if (!cranberryItem || cranberryItem.id !== 'cranberry_juice') {
+  throw new Error('Cranberry Juice failed to resolve to cranberry_juice');
+}
+
+const grapefruitSodaItem = findIngredient('Grapefruit Soda');
+if (!grapefruitSodaItem || grapefruitSodaItem.id !== 'grapefruit_soda') {
+  throw new Error('Grapefruit Soda failed to resolve to grapefruit_soda');
+}
+
+SEED_RECIPES.forEach(recipe => {
+  if (!recipe.id || !recipe.name || !recipe.glassware || !recipe.method || !Array.isArray(recipe.specs) || recipe.specs.length === 0) {
+    throw new Error(`Recipe ${recipe.name || recipe.id} has invalid structure`);
+  }
+  const abvResult = calculateCocktailAbv(recipe.specs, recipe.method);
+  if (!abvResult || abvResult.estimatedAbv <= 0) {
+    throw new Error(`Cocktail ${recipe.name} calculated invalid ABV: ${JSON.stringify(abvResult)}`);
+  }
+});
+console.log(`All 100 canonical recipes verified: proper metadata, valid fluid layers, and realistic ABV calculations.`);
+
 console.log('All tests completed successfully!');
+

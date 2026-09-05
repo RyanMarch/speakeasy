@@ -31,6 +31,39 @@ export const TAXONOMY = {
     defaultAbv: 45,
     aliases: ['rye whiskey', 'straight rye', 'maryland rye', 'rye'],
   },
+  blended_scotch: {
+    id: 'blended_scotch',
+    name: 'Blended Scotch Whisky',
+    family: 'whiskey',
+    parent: 'spirits',
+    color: '#c48232',
+    light: '#df9c4e',
+    dark: '#8c5519',
+    defaultAbv: 40,
+    aliases: ['blended scotch', 'blended scotch whisky', 'johnnie walker', 'famous grouse', 'monkey shoulder', 'dewars', 'compass box artist blend'],
+  },
+  single_malt_scotch: {
+    id: 'single_malt_scotch',
+    name: 'Single Malt Scotch',
+    family: 'whiskey',
+    parent: 'spirits',
+    color: '#c88636',
+    light: '#e19f50',
+    dark: '#8f571b',
+    defaultAbv: 43,
+    aliases: ['single malt scotch', 'single malt', 'speyside scotch', 'highland scotch', 'macallan', 'glenlivet', 'glenfiddich', 'balvenie'],
+  },
+  peated_scotch: {
+    id: 'peated_scotch',
+    name: 'Peated / Islay Scotch',
+    family: 'whiskey',
+    parent: 'spirits',
+    color: '#b56d25',
+    light: '#d28539',
+    dark: '#7f4510',
+    defaultAbv: 46,
+    aliases: ['peated scotch', 'islay scotch', 'laphroaig', 'ardbeg', 'lagavulin', 'bowmore', 'talisker', 'peated whisky'],
+  },
   scotch: {
     id: 'scotch',
     name: 'Scotch Whisky',
@@ -40,7 +73,7 @@ export const TAXONOMY = {
     light: '#df9c4e',
     dark: '#8c5519',
     defaultAbv: 43,
-    aliases: ['scotch', 'scotch whisky', 'single malt scotch', 'single malt', 'blended scotch', 'peated scotch', 'islay scotch', 'blended malt scotch', 'speyside scotch'],
+    aliases: ['scotch', 'scotch whisky', 'blended malt scotch'],
   },
   irish_whiskey: {
     id: 'irish_whiskey',
@@ -167,6 +200,17 @@ export const TAXONOMY = {
     defaultAbv: 40,
     aliases: ['blanco tequila', 'silver tequila', 'plata tequila', 'white tequila', 'tequila blanco', 'tequila'],
   },
+  tequila_joven: {
+    id: 'tequila_joven',
+    name: 'Joven / Gold Tequila',
+    family: 'tequila',
+    parent: 'spirits',
+    color: '#deb66c',
+    light: '#eed08f',
+    dark: '#aa8134',
+    defaultAbv: 40,
+    aliases: ['joven tequila', 'tequila joven', 'gold tequila', 'oro tequila', 'tequila oro', 'suave tequila'],
+  },
   tequila_reposado: {
     id: 'tequila_reposado',
     name: 'Reposado Tequila',
@@ -187,7 +231,18 @@ export const TAXONOMY = {
     light: '#d8974a',
     dark: '#885317',
     defaultAbv: 40,
-    aliases: ['añejo tequila', 'anejo tequila', 'extra añejo', 'extra anejo', 'tequila anejo'],
+    aliases: ['añejo tequila', 'anejo tequila', 'tequila anejo'],
+  },
+  tequila_extra_anejo: {
+    id: 'tequila_extra_anejo',
+    name: 'Extra Añejo Tequila',
+    family: 'tequila',
+    parent: 'spirits',
+    color: '#a15d21',
+    light: '#bf7938',
+    dark: '#713b0d',
+    defaultAbv: 40,
+    aliases: ['extra añejo', 'extra anejo', 'extra añejo tequila', 'extra anejo tequila'],
   },
   mezcal: {
     id: 'mezcal',
@@ -496,6 +551,50 @@ export const TAXONOMY = {
     defaultAbv: 15,
     aliases: ['sake', 'soju', 'shochu'],
   },
+  red_wine: {
+    id: 'red_wine',
+    name: 'Dry Red Wine',
+    family: 'wine',
+    parent: 'fortified_wine',
+    color: '#5e0b1b',
+    light: '#7a1928',
+    dark: '#3b040e',
+    defaultAbv: 13.5,
+    aliases: ['red wine', 'dry red wine', 'cabernet', 'pinot noir', 'syrah', 'shiraz', 'merlot', 'malbec', 'rioja', 'tempranillo', 'chianti', 'bordeaux'],
+  },
+  white_wine: {
+    id: 'white_wine',
+    name: 'Dry White Wine',
+    family: 'wine',
+    parent: 'fortified_wine',
+    color: '#e8ecb8',
+    light: '#f4f7d4',
+    dark: '#c2c88e',
+    defaultAbv: 12.5,
+    aliases: ['white wine', 'dry white wine', 'sauvignon blanc', 'chardonnay', 'pinot grigio', 'pinot gris', 'albarino', 'riesling', 'dry riesling'],
+  },
+  rose_wine: {
+    id: 'rose_wine',
+    name: 'Rosé Wine',
+    family: 'wine',
+    parent: 'fortified_wine',
+    color: '#e88796',
+    light: '#f5abb6',
+    dark: '#bc5b6b',
+    defaultAbv: 12.5,
+    aliases: ['rose wine', 'rosé wine', 'rose', 'rosé', 'dry rose', 'dry rosé', 'provence rose'],
+  },
+  sparkling_wine: {
+    id: 'sparkling_wine',
+    name: 'Sparkling Wine',
+    family: 'sparkling_wine',
+    parent: 'fortified_wine',
+    color: '#eedda0',
+    light: '#f7eec5',
+    dark: '#c2b070',
+    defaultAbv: 12,
+    aliases: ['champagne', 'prosecco', 'cava', 'brut sparkling wine', 'sparkling wine'],
+  },
 
   // ==========================================
   // 3. LIQUEURS, CORDIALS & AMARI (liqueurs)
@@ -610,6 +709,62 @@ export const TAXONOMY = {
     defaultAbv: 25,
     aliases: ['limoncello', 'bergamot', 'italicus'],
   },
+  // Fruit, Berry & Stone Fruit Liqueurs
+  maraschino: {
+    id: 'maraschino',
+    name: 'Maraschino Liqueur',
+    family: 'fruit_liqueur',
+    parent: 'liqueurs',
+    color: '#e5d7c3',
+    light: '#f7ede0',
+    dark: '#bda688',
+    defaultAbv: 32,
+    aliases: ['maraschino', 'luxardo', 'maraschino liqueur', 'luxardo maraschino'],
+  },
+  cherry_liqueur: {
+    id: 'cherry_liqueur',
+    name: 'Cherry Liqueur',
+    family: 'fruit_liqueur',
+    parent: 'liqueurs',
+    color: '#6e0c1f',
+    light: '#9e1a34',
+    dark: '#450410',
+    defaultAbv: 24,
+    aliases: ['cherry heering', 'cherry liqueur', 'cherry brandy', 'kirsch', 'kirschwasser', 'guignolet'],
+  },
+  berry_liqueur: {
+    id: 'berry_liqueur',
+    name: 'Berry Liqueurs',
+    family: 'fruit_liqueur',
+    parent: 'liqueurs',
+    color: '#5b122e',
+    light: '#831e44',
+    dark: '#38061a',
+    defaultAbv: 18,
+    aliases: ['crème de cassis', 'creme de cassis', 'crème de mûre', 'creme de mure', 'chambord', 'blackberry liqueur', 'raspberry liqueur', 'blackcurrant liqueur'],
+  },
+  stone_fruit_liqueur: {
+    id: 'stone_fruit_liqueur',
+    name: 'Stone Fruit Liqueurs',
+    family: 'fruit_liqueur',
+    parent: 'liqueurs',
+    color: '#d46f2c',
+    light: '#e8894b',
+    dark: '#9d4a13',
+    defaultAbv: 24,
+    aliases: ['apricot liqueur', 'apricot brandy', 'peach schnapps', 'crème de pêche', 'creme de peche', 'peach liqueur', 'plum liqueur', 'umeshu'],
+  },
+  tropical_fruit_liqueur: {
+    id: 'tropical_fruit_liqueur',
+    name: 'Tropical & Banana Liqueurs',
+    family: 'fruit_liqueur',
+    parent: 'liqueurs',
+    color: '#e0b234',
+    light: '#f0c756',
+    dark: '#a88118',
+    defaultAbv: 24,
+    aliases: ['banana liqueur', 'crème de banane', 'creme de banane', 'passion fruit liqueur', 'passoã', 'passoa', 'midori', 'melon liqueur'],
+  },
   fruit_liqueur: {
     id: 'fruit_liqueur',
     name: 'Fruit & Berry Liqueurs',
@@ -619,7 +774,7 @@ export const TAXONOMY = {
     light: '#c5324f',
     dark: '#6e0c1f',
     defaultAbv: 25,
-    aliases: ['maraschino', 'luxardo', 'crème de cassis', 'creme de cassis', 'crème de mûre', 'creme de mure', 'chambord', 'apricot liqueur', 'apricot brandy', 'peach schnapps', 'crème de pêche', 'creme de peche', 'cherry heering', 'banana liqueur', 'crème de banane', 'creme de banane'],
+    aliases: ['fruit liqueur', 'berry liqueur'],
   },
   coffee_liqueur: {
     id: 'coffee_liqueur',
@@ -654,16 +809,38 @@ export const TAXONOMY = {
     defaultAbv: 24,
     aliases: ['amaretto', 'disaronno', 'frangelico', 'nocino'],
   },
-  spiced_floral_liqueur: {
-    id: 'spiced_floral_liqueur',
-    name: 'Spiced & Floral Liqueurs',
-    family: 'spiced_floral_liqueur',
+  spiced_liqueur: {
+    id: 'spiced_liqueur',
+    name: 'Spiced Liqueurs',
+    family: 'spiced_liqueur',
     parent: 'liqueurs',
-    color: '#b57936',
-    light: '#d39855',
-    dark: '#7b4c18',
-    defaultAbv: 22,
-    aliases: ['allspice dram', 'pimento dram', 'falernum', 'velvet falernum', 'elderflower', 'st-germain', 'st germain', 'violette', 'crème de violette', 'creme de violette', 'ginger liqueur', 'domaine de canton'],
+    color: '#9a4718',
+    light: '#ba602c',
+    dark: '#6a2a07',
+    defaultAbv: 28,
+    aliases: ['allspice dram', 'pimento dram', 'falernum', 'velvet falernum', 'ginger liqueur', 'domaine de canton', 'ancho reyes', 'cinnamon liqueur'],
+  },
+  floral_liqueur: {
+    id: 'floral_liqueur',
+    name: 'Floral Liqueurs',
+    family: 'floral_liqueur',
+    parent: 'liqueurs',
+    color: '#957bb0',
+    light: '#b7a0cf',
+    dark: '#6b5087',
+    defaultAbv: 20,
+    aliases: ['elderflower', 'elderflower liqueur', 'st-germain', 'st germain', 'violette', 'crème de violette', 'creme de violette', 'rose liqueur'],
+  },
+  corn_liqueur: {
+    id: 'corn_liqueur',
+    name: 'Corn Liqueur',
+    family: 'specialty_liqueur',
+    parent: 'liqueurs',
+    color: '#e2b342',
+    light: '#f5cb68',
+    dark: '#a87e1a',
+    defaultAbv: 30,
+    aliases: ['nixta', 'nixta licor de elote', 'nixta licor elote', 'corn liqueur', 'elote liqueur', 'licor de elote'],
   },
   cream_liqueur: {
     id: 'cream_liqueur',
@@ -902,7 +1079,18 @@ export const TAXONOMY = {
     light: '#f7b958',
     dark: '#ab6c13',
     defaultAbv: 0,
-    aliases: ['cranberry juice', 'apple cider', 'apple juice'],
+    aliases: ['apple cider', 'apple juice', 'pomegranate juice'],
+  },
+  cranberry_juice: {
+    id: 'cranberry_juice',
+    name: 'Cranberry Juice',
+    family: 'fruit_juice',
+    parent: 'produce',
+    color: '#a3172e',
+    light: '#c82d47',
+    dark: '#710a1b',
+    defaultAbv: 0,
+    aliases: ['cranberry juice', 'cranberry cocktail', 'unsweetened cranberry juice', 'cranberry'],
   },
   tomato_juice: {
     id: 'tomato_juice',
@@ -1077,6 +1265,17 @@ export const TAXONOMY = {
     defaultAbv: 0,
     aliases: ['ginger ale'],
   },
+  grapefruit_soda: {
+    id: 'grapefruit_soda',
+    name: 'Grapefruit Soda',
+    family: 'soda',
+    parent: 'mixers',
+    color: '#f4c5c7',
+    light: '#fce1e2',
+    dark: '#d6979a',
+    defaultAbv: 0,
+    aliases: ['grapefruit soda', 'ting', 'jarritos grapefruit', 'squirt', 'paloma soda'],
+  },
   cola: {
     id: 'cola',
     name: 'Cola',
@@ -1087,17 +1286,6 @@ export const TAXONOMY = {
     dark: '#1f0d05',
     defaultAbv: 0,
     aliases: ['cola', 'coca-cola', 'coke'],
-  },
-  sparkling_wine: {
-    id: 'sparkling_wine',
-    name: 'Sparkling Wine',
-    family: 'sparkling_wine',
-    parent: 'mixers',
-    color: '#eedda0',
-    light: '#f7eec5',
-    dark: '#c2b070',
-    defaultAbv: 12,
-    aliases: ['champagne', 'prosecco', 'cava', 'brut sparkling wine', 'sparkling wine'],
   },
   egg_white: {
     id: 'egg_white',
@@ -1176,7 +1364,79 @@ export const TAXONOMY = {
     defaultAbv: 5.5,
     aliases: ['hard cider', 'cider', 'dry cider'],
   },
+  orange_flower_water: {
+    id: 'orange_flower_water',
+    name: 'Orange Flower Water',
+    family: 'aromatic_water',
+    parent: 'mixers',
+    color: '#ffffff',
+    light: '#ffffff',
+    dark: '#eeeeee',
+    defaultAbv: 0,
+    aliases: ['orange flower water', 'orange blossom water'],
+  },
+  celery_salt: {
+    id: 'celery_salt',
+    name: 'Celery Salt & Spices',
+    family: 'seasoning',
+    parent: 'produce',
+    color: '#d4c89c',
+    light: '#ece5c3',
+    dark: '#9a8d62',
+    defaultAbv: 0,
+    aliases: ['celery salt', 'celery seed', 'worcestershire sauce', 'worcestershire', 'hot sauce', 'tabasco', 'black pepper'],
+  },
 };
+
+// Set of taxonomy ingredient IDs that should be kept refrigerated once opened
+export const REFRIGERATED_INGREDIENT_IDS = new Set([
+  // Fortified Wines, Vermouths, Sakes & Chilled Wines
+  'sweet_vermouth',
+  'dry_vermouth',
+  'blanc_vermouth',
+  'quinquina',
+  'dry_sherry',
+  'sweet_sherry',
+  'port',
+  'oxidized_wine',
+  'asian_rice_ferments',
+  'white_wine',
+  'rose_wine',
+  'sparkling_wine',
+
+  // Perishable Syrups & Purees
+  'simple_syrup',
+  'rich_simple_syrup',
+  'demerara_syrup',
+  'orgeat',
+  'grenadine',
+  'honey_syrup',
+  'passion_fruit_syrup',
+  'ginger_syrup',
+  'cinnamon_syrup',
+  'vanilla_syrup',
+  'raspberry_syrup',
+
+  // Juices, Produce & Perishables
+  'lime_juice',
+  'lemon_juice',
+  'grapefruit_juice',
+  'orange_juice',
+  'pineapple_juice',
+  'cranberry_juice',
+  'fruit_juice',
+  'tomato_juice',
+  'olive_brine',
+  'pickle_brine',
+  'fresh_produce',
+
+  // Texture & Dairy
+  'egg_white',
+  'whole_egg',
+  'aquafaba',
+  'dairy',
+  'espresso',
+]);
 
 // Pre-build a fast alias lookup table sorted by length descending so longer phrases match first
 const ALIAS_LOOKUP = [];
@@ -1250,6 +1510,8 @@ export function getIngredientMetadata(rawText = '') {
   const item = findIngredient(rawText);
   if (!item) return null;
 
+  const isRefrigerated = REFRIGERATED_INGREDIENT_IDS.has(item.id);
+
   return {
     id: item.id,
     name: item.name,
@@ -1260,6 +1522,8 @@ export function getIngredientMetadata(rawText = '') {
     dark: item.dark,
     defaultAbv: item.defaultAbv,
     label: item.name,
+    storage: isRefrigerated ? 'fridge' : 'shelf',
+    isRefrigerated,
   };
 }
 
@@ -1278,6 +1542,11 @@ export function ingredientMatchesQuery(rawIngredientName = '', query = '') {
 
   const item = findIngredient(rawIngredientName);
   if (!item) return false;
+
+  // Check storage query: 'fridge', 'refrigerate', 'refrigerated', 'chill'
+  if (['fridge', 'refrigerated', 'refrigerate', 'chilled', 'chill'].includes(cleanQuery)) {
+    if (REFRIGERATED_INGREDIENT_IDS.has(item.id)) return true;
+  }
 
   // Check ID and canonical name
   if (normalizeText(item.id).includes(cleanQuery)) return true;
@@ -1390,11 +1659,17 @@ export function getIngredientSubstitutes(rawIngredientName = '') {
       (candidate.family === 'rum' || candidate.family === 'cane_spirits')) {
       isMatch = true;
     }
-    // 4. Fortified wine cross-family (vermouth <-> quinquina <-> sherry)
-    else if (current.parent === 'fortified_wine' && candidate.parent === 'fortified_wine') {
+    // 4. Fortified wine / vermouth cross-family (vermouth <-> quinquina <-> sherry <-> port <-> oxidized_wine)
+    else if ((current.family === 'vermouth' || current.family === 'quinquina' || current.family === 'sherry' || current.family === 'port' || current.family === 'oxidized_wine') &&
+      (candidate.family === 'vermouth' || candidate.family === 'quinquina' || candidate.family === 'sherry' || candidate.family === 'port' || candidate.family === 'oxidized_wine')) {
       isMatch = true;
     }
-    // 5. Syrups cross-family (cane_syrup <-> flavored_syrup)
+    // 5. Still & sparkling table wines cross-family (wine <-> sparkling_wine)
+    else if ((current.family === 'wine' || current.family === 'sparkling_wine') &&
+      (candidate.family === 'wine' || candidate.family === 'sparkling_wine')) {
+      isMatch = true;
+    }
+    // 6. Syrups cross-family (cane_syrup <-> flavored_syrup)
     else if ((current.family === 'cane_syrup' || current.family === 'flavored_syrup') &&
       (candidate.family === 'cane_syrup' || candidate.family === 'flavored_syrup')) {
       isMatch = true;
@@ -1613,6 +1888,14 @@ const PANTRY_STAPLE_NAMES = new Set([
   'sugar',
   'granulated sugar',
   'white sugar',
+  'orange flower water',
+  'orange blossom water',
+  'celery salt',
+  'black pepper',
+  'worcestershire sauce',
+  'worcestershire',
+  'hot sauce',
+  'tabasco',
 ]);
 
 const GENERIC_FAMILIES = {

@@ -14,7 +14,14 @@ import {
   saveInventory,
   DEFAULT_STARTER_BAR,
   getAllUniqueTags,
+  getUnitPreference,
+  saveUnitPreference,
+  getBarName,
+  saveBarName,
+  SEED_RECIPES,
 } from './js/modules/storage.js';
+
+const SEED_RECIPE_IDS = new Set(SEED_RECIPES.map(r => r.id));
 
 import {
   parseSpecsBlock,
@@ -36,6 +43,8 @@ import {
   checkIngredientStock,
   analyzeRecipeInventory,
   TAXONOMY,
+  REFRIGERATED_INGREDIENT_IDS,
+  getIngredientMetadata,
 } from './js/modules/taxonomy.js';
 
 // Application State
@@ -46,7 +55,7 @@ const state = {
   riffModeActive: false,
   searchQuery: '',
   viewMode: 'counter', // 'counter' | 'edit'
-  unitSystem: 'oz', // 'oz' | 'ml'
+  unitSystem: getUnitPreference(), // 'oz' | 'ml'
   servings: 1, // Serving multiplier (default 1, increments by 0.5)
   editorSpecs: [],
   editorTags: [],
@@ -54,7 +63,9 @@ const state = {
   glassViewEditor: null,
   inventory: new Set(getInventory()),
   inventoryFilter: 'all', // 'all' | 'can_make' | 'one_missing'
+  packFilter: 'all', // 'all' | 'classic' | 'modern-craft' | 'tropical-tiki' | 'prohibition-era' | 'aperitivo-amaro' | 'nightcaps'
   backbarSearchQuery: '',
+  backbarCategoryFilter: 'all', // 'all' | categoryKey | 'fridge'
 };
 
 // DOM References
@@ -69,17 +80,26 @@ const elements = {
   btnExportJson: document.getElementById('btn-export-json'),
   btnImportTrigger: document.getElementById('btn-import-trigger'),
   importFileInput: document.getElementById('import-file-input'),
+  btnVaultMenu: document.getElementById('btn-vault-menu'),
+  vaultPopover: document.getElementById('vault-popover'),
+  vaultBarNameInput: document.getElementById('vault-bar-name-input'),
+  vaultStatsLine: document.getElementById('vault-stats-line'),
+  popoverUnitOz: document.getElementById('popover-unit-oz'),
+  popoverUnitMl: document.getElementById('popover-unit-ml'),
+  btnResetDefaults: document.getElementById('btn-reset-defaults'),
   counterViewContainer: document.getElementById('counter-view-container'),
   editorViewContainer: document.getElementById('editor-view-container'),
   toastContainer: document.getElementById('toast-container'),
   btnMyBar: document.getElementById('btn-my-bar'),
   myBarBadge: document.getElementById('my-bar-badge'),
+  sidebarPackFilter: document.getElementById('sidebar-pack-filter'),
   sidebarInventoryFilter: document.getElementById('sidebar-inventory-filter'),
   countAll: document.getElementById('count-all'),
   countCanMake: document.getElementById('count-can-make'),
   countOneMissing: document.getElementById('count-one-missing'),
   backbarModal: document.getElementById('backbar-modal'),
   backbarSearchInput: document.getElementById('backbar-search-input'),
+  backbarNavTabs: document.getElementById('backbar-nav-tabs'),
   backbarCategoriesContainer: document.getElementById('backbar-categories-container'),
   backbarSummaryText: document.getElementById('backbar-summary-text'),
   btnStarterBar: document.getElementById('btn-starter-bar'),
@@ -140,6 +160,16 @@ function init() {
   renderRecipeList();
   renderCurrentView();
 
+  // Initialize Vault Settings Popover values
+  if (elements.popoverUnitOz && elements.popoverUnitMl) {
+    elements.popoverUnitOz.classList.toggle('active', state.unitSystem === 'oz');
+    elements.popoverUnitMl.classList.toggle('active', state.unitSystem === 'ml');
+  }
+  if (elements.vaultBarNameInput) {
+    elements.vaultBarNameInput.value = getBarName();
+  }
+  updateVaultStats();
+
   // Scroll active item into view on initial load
   setTimeout(() => {
     const activeEl = elements.recipeList.querySelector('.recipe-list-item.active');
@@ -180,6 +210,42 @@ function setupGlobalEventListeners() {
   });
 
   elements.importFileInput.addEventListener('change', handleFileImport);
+
+  // Vault Menu Popover Controls
+  elements.popoverUnitOz?.addEventListener('click', () => {
+    setUnitSystem('oz');
+  });
+
+  elements.popoverUnitMl?.addEventListener('click', () => {
+    setUnitSystem('ml');
+  });
+
+  elements.vaultBarNameInput?.addEventListener('change', (e) => {
+    const newName = saveBarName(e.target.value);
+    e.target.value = newName;
+    showToast('Bar name updated');
+  });
+
+  elements.vaultBarNameInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      elements.vaultBarNameInput.blur();
+    }
+  });
+
+  elements.btnResetDefaults?.addEventListener('click', () => {
+    if (confirm('Reset all cocktails to the default library? Custom recipe modifications will be replaced.')) {
+      state.recipes = resetToDefaults();
+      renderRecipeList();
+      if (state.recipes.length > 0) {
+        selectRecipe(state.recipes[0].id, false);
+      }
+      updateVaultStats();
+      updateMyBarBadge();
+      elements.vaultPopover?.hidePopover?.();
+      showToast('Vault reset to default cocktail library');
+    }
+  });
 
   // URL Hash routing: handle browser Back / Forward buttons and manual hash edits
   window.addEventListener('hashchange', () => {
@@ -243,16 +309,48 @@ function handleFileImport(e) {
 // Backbar taxonomy display categories
 const BACKBAR_CATEGORIES = [
   { key: 'spirits', title: 'Base Spirits' },
-  { key: 'fortified_wine', title: 'Fortified Wines & Vermouths' },
+  { key: 'fortified_wine', title: 'Vermouth & Wines' },
   { key: 'liqueurs', title: 'Liqueurs & Amari' },
   { key: 'bitters', title: 'Bitters & Tinctures' },
   { key: 'sweeteners', title: 'Syrups & Sweeteners' },
   { key: 'produce', title: 'Fresh Produce & Juices' },
-  { key: 'mixers', title: 'Mixers, Sodas & Wine' },
+  { key: 'mixers', title: 'Mixers & Sodas' },
 ];
 
 /**
- * Update header badge and modal inventory summary
+ * Update vault stats line in Settings popover
+ */
+function updateVaultStats() {
+  if (!elements.vaultStatsLine) return;
+  const customCount = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
+  const cocktailText = customCount === 1 ? '1 custom cocktail' : `${customCount} custom cocktails`;
+  const bottleCount = state.inventory.size;
+  const bottleText = bottleCount === 1 ? '1 ingredient' : `${bottleCount} ingredients`;
+  elements.vaultStatsLine.textContent = `${cocktailText} · ${bottleText}`;
+}
+
+/**
+ * Set volumetric unit system across app and persist choice
+ */
+function setUnitSystem(unit) {
+  if (unit !== 'oz' && unit !== 'ml') return;
+  state.unitSystem = unit;
+  saveUnitPreference(unit);
+
+  if (elements.popoverUnitOz && elements.popoverUnitMl) {
+    elements.popoverUnitOz.classList.toggle('active', unit === 'oz');
+    elements.popoverUnitMl.classList.toggle('active', unit === 'ml');
+  }
+
+  if (state.viewMode === 'counter' && state.activeRecipeId) {
+    renderCounterView();
+  }
+
+  showToast(`Units switched to ${unit === 'oz' ? 'Ounces (oz)' : 'Milliliters (ml)'}`);
+}
+
+/**
+ * Update header badge and modal inventory summary, and sync action button states
  */
 function updateMyBarBadge() {
   const count = state.inventory.size;
@@ -261,6 +359,33 @@ function updateMyBarBadge() {
   }
   if (elements.backbarSummaryText) {
     elements.backbarSummaryText.textContent = `${count} ${count === 1 ? 'bottle' : 'bottles'} in your backbar`;
+  }
+  updateBackbarActionButtons();
+  updateVaultStats();
+}
+
+/**
+ * Dynamically manage disabled state and helpful tooltips for Starter Bar and Clear All buttons
+ */
+function updateBackbarActionButtons() {
+  const count = state.inventory.size;
+
+  if (elements.btnClearBar) {
+    const hasBottles = count > 0;
+    elements.btnClearBar.disabled = !hasBottles;
+    elements.btnClearBar.setAttribute('aria-disabled', !hasBottles ? 'true' : 'false');
+    elements.btnClearBar.title = hasBottles
+      ? 'Clear all bottles from your backbar'
+      : 'No bottles in backbar to clear';
+  }
+
+  if (elements.btnStarterBar) {
+    const hasAllStarter = DEFAULT_STARTER_BAR.every(id => state.inventory.has(id));
+    elements.btnStarterBar.disabled = hasAllStarter;
+    elements.btnStarterBar.setAttribute('aria-disabled', hasAllStarter ? 'true' : 'false');
+    elements.btnStarterBar.title = hasAllStarter
+      ? 'All starter essentials already in your backbar'
+      : 'Add essential bar staples';
   }
 }
 
@@ -277,7 +402,23 @@ function setupBackbarEventListeners() {
     renderBackbarModalContent();
   });
 
+  // Category & Fridge Navigation Tabs inside Backbar Modal
+  elements.backbarNavTabs?.querySelectorAll('.backbar-nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const filter = tab.getAttribute('data-cat-filter') || 'all';
+      state.backbarCategoryFilter = filter;
+      elements.backbarNavTabs.querySelectorAll('.backbar-nav-tab').forEach(t => {
+        const isActive = t.getAttribute('data-cat-filter') === filter;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      renderBackbarModalContent();
+    });
+  });
+
   elements.btnStarterBar?.addEventListener('click', () => {
+    const hasAllStarter = DEFAULT_STARTER_BAR.every(id => state.inventory.has(id));
+    if (hasAllStarter) return;
     DEFAULT_STARTER_BAR.forEach(id => state.inventory.add(id));
     saveInventory(Array.from(state.inventory));
     updateMyBarBadge();
@@ -321,6 +462,20 @@ function setupBackbarEventListeners() {
     });
   }
 
+  // Sidebar themed pack filter pills
+  elements.sidebarPackFilter?.querySelectorAll('.pack-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pack = btn.getAttribute('data-pack');
+      state.packFilter = pack;
+      elements.sidebarPackFilter.querySelectorAll('.pack-pill').forEach(b => {
+        const isActive = b.getAttribute('data-pack') === pack;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      renderRecipeList();
+    });
+  });
+
   // Sidebar inventory filter tabs
   elements.sidebarInventoryFilter?.querySelectorAll('.inventory-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -341,7 +496,16 @@ function setupBackbarEventListeners() {
  */
 function openBackbarModal() {
   state.backbarSearchQuery = '';
+  state.backbarCategoryFilter = 'all';
   if (elements.backbarSearchInput) elements.backbarSearchInput.value = '';
+  if (elements.backbarNavTabs) {
+    elements.backbarNavTabs.querySelectorAll('.backbar-nav-tab').forEach(tab => {
+      const isAll = tab.getAttribute('data-cat-filter') === 'all';
+      tab.classList.toggle('active', isAll);
+      tab.setAttribute('aria-selected', isAll ? 'true' : 'false');
+    });
+  }
+  updateBackbarActionButtons();
   renderBackbarModalContent();
   if (typeof elements.backbarModal?.showModal === 'function') {
     elements.backbarModal.showModal();
@@ -382,17 +546,30 @@ function renderBackbarModalContent() {
   if (!elements.backbarCategoriesContainer) return;
 
   const query = (state.backbarSearchQuery || '').toLowerCase();
+  const catFilter = state.backbarCategoryFilter || 'all';
   const allTaxonomyItems = Object.values(TAXONOMY);
 
   let totalVisibleBottles = 0;
 
   const sectionsHtml = BACKBAR_CATEGORIES.map(cat => {
+    // If a specific category tab is selected (not 'all' and not 'fridge'), only show that category
+    if (catFilter !== 'all' && catFilter !== 'fridge' && cat.key !== catFilter) {
+      return '';
+    }
+
     const items = allTaxonomyItems.filter(item => {
       if (item.parent !== cat.key) return false;
+
+      // Fridge filter tab
+      if (catFilter === 'fridge' && !REFRIGERATED_INGREDIENT_IDS.has(item.id)) {
+        return false;
+      }
+
       if (!query) return true;
       if (item.name.toLowerCase().includes(query)) return true;
       if (item.id.toLowerCase().includes(query)) return true;
       if (item.family && item.family.toLowerCase().includes(query)) return true;
+      if (['fridge', 'refrigerated', 'refrigerate', 'chilled', 'chill'].includes(query) && REFRIGERATED_INGREDIENT_IDS.has(item.id)) return true;
       return (item.aliases || []).some(a => a.toLowerCase().includes(query));
     });
 
@@ -403,10 +580,12 @@ function renderBackbarModalContent() {
 
     const pillsHtml = items.map(item => {
       const isOwned = state.inventory.has(item.id);
+      const isFridge = REFRIGERATED_INGREDIENT_IDS.has(item.id);
       return `
-        <button type="button" class="backbar-pill ${isOwned ? 'active' : ''}" data-bottle-id="${escapeHtml(item.id)}" aria-pressed="${isOwned}">
+        <button type="button" class="backbar-pill ${isOwned ? 'active' : ''} ${isFridge ? 'is-fridge-item' : ''}" data-bottle-id="${escapeHtml(item.id)}" aria-pressed="${isOwned}" title="${isFridge ? `${escapeHtml(item.name)} (Keep refrigerated once opened)` : escapeHtml(item.name)}">
           <span class="backbar-pill-dot" style="background-color: ${item.color || '#c67828'};"></span>
           <span class="backbar-pill-name">${escapeHtml(item.name)}</span>
+          ${isFridge ? '<span class="backbar-pill-fridge-tag" aria-label="Refrigerate" title="Keep refrigerated">❄️</span>' : ''}
           ${isOwned ? '<span class="backbar-pill-check">✓</span>' : ''}
         </button>
       `;
@@ -453,8 +632,9 @@ function renderBackbarModalContent() {
 function renderRecipeList() {
   const queryMatched = state.recipes.map(recipe => {
     const matchesSearch = !state.searchQuery || recipeMatchesQuery(recipe, state.searchQuery);
+    const matchesPack = state.packFilter === 'all' || (Array.isArray(recipe.tags) && recipe.tags.includes(state.packFilter));
     const invAnalysis = analyzeRecipeInventory(recipe, state.inventory);
-    return { recipe, matchesSearch, invAnalysis };
+    return { recipe, matchesSearch, matchesPack, invAnalysis };
   });
 
   let allCount = 0;
@@ -462,7 +642,7 @@ function renderRecipeList() {
   let oneMissingCount = 0;
 
   for (const item of queryMatched) {
-    if (!item.matchesSearch) continue;
+    if (!item.matchesSearch || !item.matchesPack) continue;
     allCount++;
     if (item.invAnalysis.canMake) canMakeCount++;
     if (item.invAnalysis.isBottleNext) oneMissingCount++;
@@ -471,9 +651,10 @@ function renderRecipeList() {
   if (elements.countAll) elements.countAll.textContent = allCount;
   if (elements.countCanMake) elements.countCanMake.textContent = canMakeCount;
   if (elements.countOneMissing) elements.countOneMissing.textContent = oneMissingCount;
+  updateVaultStats();
 
   const filtered = queryMatched.filter(item => {
-    if (!item.matchesSearch) return false;
+    if (!item.matchesSearch || !item.matchesPack) return false;
     if (state.inventoryFilter === 'can_make') return item.invAnalysis.canMake;
     if (state.inventoryFilter === 'one_missing') return item.invAnalysis.isBottleNext;
     return true;
@@ -723,6 +904,9 @@ function renderCounterView() {
       stockControlHtml = `<button type="button" class="btn-stock-toggle out-of-stock" data-bottle-id="${escapeHtml(stockStatus.id)}" title="Missing from your backbar. Click to add." aria-label="Add ${escapeHtml(stockStatus.name)} to bar">+ Bar</button>`;
     }
 
+    const ingMeta = getIngredientMetadata(currentStockName);
+    const isFridgeItem = ingMeta?.isRefrigerated;
+
     return `
       <div class="spec-row ${isRiff ? 'is-riffed-row' : ''}" data-spec-index="${index}">
         <div class="spec-amount">
@@ -730,8 +914,9 @@ function renderCounterView() {
         </div>
         <div class="spec-ingredient">
           <div class="spec-ingredient-name-row">
-            <span class="color-swatch-dot" style="background-color: ${colorInfo.color}; color: ${colorInfo.color};"></span>
+            <!-- <span class="color-swatch-dot" style="background-color: ${colorInfo.color}; color: ${colorInfo.color};"></span> -->
             <span class="spec-name">${escapeHtml(spec.name)}</span>
+            ${isFridgeItem ? `<span class="spec-fridge-tag" title="Keep refrigerated once opened"><span class="fridge-icon">❄️</span> Chill</span>` : ''}
             ${isRiff ? `<span class="spec-riff-badge" title="Substituted for ${escapeHtml(spec.originalName)}">sub</span>` : ''}
           </div>
           ${isRiff ? `<div class="spec-riff-orig-note">sub for ${escapeHtml(spec.originalName)}</div>` : ''}
@@ -935,10 +1120,6 @@ function renderCounterView() {
                   <span class="servings-value" id="servings-display">${currentServings}×</span>
                   <button type="button" id="btn-servings-inc" class="servings-btn" title="Increase servings (step: 0.5)" aria-label="Increase servings">+</button>
                 </div>
-              </div>
-              <div class="unit-switch-group" role="group" aria-label="Measurement units">
-                <button id="btn-unit-oz" class="unit-btn ${state.unitSystem === 'oz' ? 'active' : ''}">OZ</button>
-                <button id="btn-unit-ml" class="unit-btn ${state.unitSystem === 'ml' ? 'active' : ''}">ML</button>
               </div>
             </div>
           </div>
@@ -1244,13 +1425,11 @@ function renderCounterView() {
   });
 
   document.getElementById('btn-unit-oz')?.addEventListener('click', () => {
-    state.unitSystem = 'oz';
-    renderCounterView();
+    setUnitSystem('oz');
   });
 
   document.getElementById('btn-unit-ml')?.addEventListener('click', () => {
-    state.unitSystem = 'ml';
-    renderCounterView();
+    setUnitSystem('ml');
   });
 
   document.getElementById('btn-edit-drink')?.addEventListener('click', () => {

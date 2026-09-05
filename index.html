@@ -7,8 +7,8 @@
   <title>Speakeasy: Cocktail Recipe Vault</title>
   <meta name="description"
     content="Local-first cocktail recipe vault with interactive vector fluid glassware layers and instant spec parsing.">
-  <link rel="stylesheet" href="css/base.css?v=10">
-  <link rel="stylesheet" href="css/index.css?v=10">
+  <link rel="stylesheet" href="css/base.css?v=11">
+  <link rel="stylesheet" href="css/index.css?v=15">
 </head>
 
 <body>
@@ -37,38 +37,140 @@
             <path d="M9 2v3h6V2"></path>
             <path d="M7 5h10v17H7z"></path>
           </svg>
-          <span class="btn-text">My Bar</span> (<span id="my-bar-badge">0</span>)
+          <span class="btn-text">My Bar</span> <span id="my-bar-badge">0</span>
         </button>
-        <button id="btn-new-drink" class="btn btn-primary" title="Create a new cocktail recipe">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        <button id="btn-new-drink" class="btn btn-primary btn-sm new-drink-btn" title="Create a new cocktail recipe">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
           <span class="btn-text">New Drink</span>
         </button>
-        <button id="btn-export-json" class="btn btn-secondary btn-sm" title="Download recipes as JSON backup">
+        <button id="btn-vault-menu" class="btn btn-secondary btn-sm vault-menu-btn" popovertarget="vault-popover"
+          title="Bar Settings & Vault">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
           </svg>
-          <span class="btn-text">Export</span>
-        </button>
-        <button id="btn-import-trigger" class="btn btn-secondary btn-sm" title="Import recipes from JSON file">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" y1="3" x2="12" y2="15"></line>
+          <span class="btn-text">Vault</span>
+          <svg class="chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.5" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
-          <span class="btn-text">Import</span>
         </button>
         <input type="file" id="import-file-input" accept=".json,application/json" style="display: none;"
           aria-label="Upload JSON recipes file">
       </div>
     </header>
+
+    <!-- Vault & App Settings Popover -->
+    <div id="vault-popover" popover="auto" class="vault-popover">
+      <div class="vault-popover-header">
+        <div class="vault-identity-avatar" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 22h8"></path>
+            <path d="M12 11v11"></path>
+            <path d="m19 3-7 8-7-8Z"></path>
+          </svg>
+        </div>
+        <div class="vault-identity-text">
+          <div class="vault-name-row">
+            <input type="text" id="vault-bar-name-input" class="vault-bar-name-input" value="Speakeasy Vault"
+              maxlength="32" title="Click to rename your bar" aria-label="Bar name">
+            <svg class="vault-edit-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            </svg>
+          </div>
+          <div class="vault-stats-line" id="vault-stats-line">0 custom cocktails · 0 ingredients</div>
+        </div>
+      </div>
+
+      <div class="vault-popover-body">
+        <!-- Section: Unit Preference -->
+        <div class="vault-section">
+          <div class="vault-section-title">Units & Measures</div>
+          <div class="vault-unit-toggle" role="group" aria-label="Measurement units preference">
+            <button type="button" id="popover-unit-oz" class="vault-unit-btn active" data-unit="oz">
+              <span class="vault-unit-label">Ounces</span>
+              <span class="vault-unit-abbr">oz</span>
+            </button>
+            <button type="button" id="popover-unit-ml" class="vault-unit-btn" data-unit="ml">
+              <span class="vault-unit-label">Milliliters</span>
+              <span class="vault-unit-abbr">ml</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section: Actions & Portability -->
+        <div class="vault-section">
+          <div class="vault-section-title">Vault Data</div>
+          <div class="vault-actions-list">
+            <button type="button" id="btn-export-json" class="vault-action-item" title="Download recipes backup">
+              <div class="vault-action-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+              </div>
+              <div class="vault-action-meta">
+                <span class="vault-action-label">Export Recipes</span>
+                <span class="vault-action-sub">Download JSON backup</span>
+              </div>
+            </button>
+
+            <button type="button" id="btn-import-trigger" class="vault-action-item" title="Import recipes from JSON">
+              <div class="vault-action-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+              <div class="vault-action-meta">
+                <span class="vault-action-label">Import Recipes</span>
+                <span class="vault-action-sub">Merge or restore from file</span>
+              </div>
+            </button>
+
+            <button type="button" id="btn-reset-defaults" class="vault-action-item vault-action-danger"
+              title="Restore default starter recipes">
+              <div class="vault-action-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                  <path d="M3 3v5h5"></path>
+                </svg>
+              </div>
+              <div class="vault-action-meta">
+                <span class="vault-action-label">Reset Default Library</span>
+                <span class="vault-action-sub">Restore original classics</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- <div class="vault-popover-footer">
+        <span class="vault-badge-offline">Local-First Vault</span>
+        <span class="vault-dot-sep">•</span>
+        <span class="vault-footer-note">Offline Ready</span>
+      </div> -->
+    </div>
+
 
     <!-- Two-Pane Application Shell -->
     <main class="app-main">
@@ -87,6 +189,22 @@
           </div>
         </div>
 
+        <!-- Themed Pack Filter Pills -->
+        <div class="sidebar-pack-filter" id="sidebar-pack-filter" role="tablist" aria-label="Cocktail packs">
+          <button type="button" class="pack-pill active" data-pack="all" role="tab" aria-selected="true">All</button>
+          <button type="button" class="pack-pill" data-pack="classic" role="tab" aria-selected="false">Classic</button>
+          <button type="button" class="pack-pill" data-pack="modern-craft" role="tab" aria-selected="false">
+            Craft</button>
+          <button type="button" class="pack-pill" data-pack="tropical-tiki" role="tab"
+            aria-selected="false">Tiki</button>
+          <button type="button" class="pack-pill" data-pack="prohibition-era" role="tab"
+            aria-selected="false">Prohibition</button>
+          <button type="button" class="pack-pill" data-pack="aperitivo-amaro" role="tab"
+            aria-selected="false">Aperitivo</button>
+          <button type="button" class="pack-pill" data-pack="nightcaps" role="tab"
+            aria-selected="false">Nightcaps</button>
+        </div>
+
         <!-- Inventory Filter Tabs -->
         <div class="sidebar-inventory-filter" id="sidebar-inventory-filter" role="tablist"
           aria-label="Inventory filter">
@@ -95,9 +213,6 @@
           </button>
           <button class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
             Ready <span class="filter-count" id="count-can-make">0</span>
-          </button>
-          <button class="inventory-filter-btn" data-filter="one_missing" role="tab" aria-selected="false">
-            Bottle Next <span class="filter-count" id="count-one-missing">0</span>
           </button>
         </div>
 
@@ -143,8 +258,8 @@
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="search" id="backbar-search-input" class="search-input" placeholder="Search taxonomy bottles..."
-              aria-label="Search backbar items">
+            <input type="search" id="backbar-search-input" class="search-input"
+              placeholder="Search bottles or ingredients..." aria-label="Search backbar items">
           </div>
           <div class="backbar-quick-actions">
             <button id="btn-starter-bar" class="btn btn-secondary btn-sm" title="Add essential bar staples">Starter
@@ -152,6 +267,30 @@
             <button id="btn-clear-bar" class="btn btn-ghost btn-sm" title="Clear all inventory bottles">Clear
               All</button>
           </div>
+        </div>
+
+        <!-- Category & Storage Filter Tabs -->
+        <div class="backbar-nav-tabs" id="backbar-nav-tabs" role="tablist" aria-label="Filter backbar by category">
+          <button type="button" class="backbar-nav-tab active" data-cat-filter="all" role="tab"
+            aria-selected="true">All</button>
+          <button type="button" class="backbar-nav-tab" data-cat-filter="spirits" role="tab"
+            aria-selected="false">Spirits</button>
+          <button type="button" class="backbar-nav-tab" data-cat-filter="fortified_wine" role="tab"
+            aria-selected="false">Vermouth & Wines</button>
+          <button type="button" class="backbar-nav-tab" data-cat-filter="liqueurs" role="tab"
+            aria-selected="false">Liqueurs & Amari</button>
+          <button type="button" class="backbar-nav-tab" data-cat-filter="bitters" role="tab"
+            aria-selected="false">Bitters</button>
+          <button type="button" class="backbar-nav-tab" data-cat-filter="sweeteners" role="tab"
+            aria-selected="false">Syrups</button>
+          <button type="button" class="backbar-nav-tab" data-cat-filter="produce" role="tab"
+            aria-selected="false">Produce & Juices</button>
+          <button type="button" class="backbar-nav-tab" data-cat-filter="mixers" role="tab"
+            aria-selected="false">Mixers</button>
+          <button type="button" class="backbar-nav-tab backbar-nav-tab-fridge" data-cat-filter="fridge" role="tab"
+            aria-selected="false">
+            <span class="fridge-icon">❄️</span> Refrigerated
+          </button>
         </div>
 
         <div class="backbar-categories-container" id="backbar-categories-container">
@@ -169,7 +308,7 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=7"></script>
+  <script type="module" src="app.js?v=11"></script>
 </body>
 
 </html>
