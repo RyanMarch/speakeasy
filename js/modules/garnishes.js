@@ -378,27 +378,39 @@ function renderOliveOnPick(rimX, rimY, isLeft = false) {
 function renderMintSprig(x, y, angle = -12) {
   return `
     <g class="garnish garnish-mint" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle})" pointer-events="none">
-      <!-- Main mint stem -->
-      <path d="M 0 20 L 0 -6" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" />
-      
-      <!-- Back / Left spreading leaf -->
-      <path d="M 0 4 C -16 2, -24 -10, -20 -24 C -8 -22, -3 -8, 0 4 Z" fill="#2e7d32" />
-      <path d="M 0 4 Q -11 -8 -20 -24" stroke="#81c784" stroke-width="1" fill="none" opacity="0.75" />
-      <path d="M -7 -4 Q -12 -5 -15 -8 M -4 0 Q -8 -2 -11 -5" stroke="#81c784" stroke-width="0.7" fill="none" opacity="0.6" />
+      <!-- Mint stem extending down into the glass interior & curving over rim -->
+      <path d="M 0 -10 Q -2 14, -7 38" stroke="#256029" stroke-width="3.6" stroke-linecap="round" fill="none" />
+      <path d="M -0.5 -10 Q -2.5 14, -7.5 38" stroke="#388e3c" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.6" />
+
+      <!-- Stem rim clasp / shadow accent -->
+      <ellipse cx="-1" cy="4" rx="3" ry="1.5" fill="rgba(0, 0, 0, 0.25)" />
+
+      <!-- Back leaf (deep shadow/depth) -->
+      <path d="M -2 -4 C -22 -14, -30 -36, -18 -52 C -4 -42, 0 -18, -2 -4 Z" fill="#1b5e20" opacity="0.9" />
+      <path d="M -2 -4 Q -14 -28 -18 -50" stroke="#4caf50" stroke-width="1.2" fill="none" opacity="0.6" />
+
+      <!-- Left spreading broad leaf -->
+      <path d="M -1 -2 C -24 -2, -38 -20, -32 -40 C -14 -36, -5 -14, -1 -2 Z" fill="#2e7d32" />
+      <path d="M -1 -2 Q -18 -16 -32 -39" stroke="#81c784" stroke-width="1.4" fill="none" opacity="0.8" />
+      <path d="M -11 -9 Q -18 -10 -24 -14 M -6 -2 Q -12 -5 -18 -8 M -16 -17 Q -22 -20 -27 -25" stroke="#a5d6a7" stroke-width="0.9" fill="none" opacity="0.65" />
 
       <!-- Right spreading leaf -->
-      <path d="M 0 6 C 16 4, 26 -8, 21 -22 C 11 -20, 4 -6, 0 6 Z" fill="#388e3c" />
-      <path d="M 0 6 Q 11 -6 21 -22" stroke="#a5d6a7" stroke-width="1" fill="none" opacity="0.75" />
-      <path d="M 7 -2 Q 12 -4 16 -7 M 4 2 Q 8 0 11 -3" stroke="#a5d6a7" stroke-width="0.7" fill="none" opacity="0.6" />
+      <path d="M 1 0 C 26 -4, 42 -22, 34 -44 C 18 -40, 6 -14, 1 0 Z" fill="#388e3c" />
+      <path d="M 1 0 Q 18 -14 34 -43" stroke="#a5d6a7" stroke-width="1.4" fill="none" opacity="0.85" />
+      <path d="M 11 -8 Q 18 -10 25 -15 M 6 -2 Q 13 -5 20 -9 M 17 -17 Q 23 -21 28 -27" stroke="#c8e6c9" stroke-width="0.9" fill="none" opacity="0.7" />
 
-      <!-- Tall center crown leaf -->
-      <path d="M 0 2 C -10 -12, -6 -32, 0 -38 C 6 -32, 10 -12, 0 2 Z" fill="#43a047" />
-      <path d="M 0 2 L 0 -36" stroke="#c8e6c9" stroke-width="1.1" fill="none" opacity="0.85" />
-      <path d="M 0 -12 L -4 -16 M 0 -12 L 4 -16 M 0 -22 L -3 -26 M 0 -22 L 3 -26" stroke="#c8e6c9" stroke-width="0.7" fill="none" opacity="0.7" />
+      <!-- Central dominant crown leaf -->
+      <path d="M 0 -6 C -16 -24, -10 -58, 0 -66 C 10 -58, 16 -24, 0 -6 Z" fill="#43a047" />
+      <path d="M 0 -6 L 0 -64" stroke="#c8e6c9" stroke-width="1.5" fill="none" opacity="0.9" />
+      <path d="M 0 -20 L -6 -28 M 0 -20 L 6 -28 M 0 -36 L -5 -43 M 0 -36 L 5 -43 M 0 -50 L -4 -55 M 0 -50 L 4 -55" stroke="#e8f5e9" stroke-width="0.9" fill="none" opacity="0.75" />
 
-      <!-- Foreground budding leaf -->
-      <path d="M 0 2 C -5 -3, -4 -12, 0 -15 C 4 -12, 5 -3, 0 2 Z" fill="#66bb6a" opacity="0.95" />
-      <path d="M 0 2 L 0 -14" stroke="#e8f5e9" stroke-width="0.7" fill="none" opacity="0.8" />
+      <!-- Mid-foreground leaf for depth and lushness -->
+      <path d="M 0 0 C -12 -10, -10 -30, 2 -34 C 10 -26, 8 -8, 0 0 Z" fill="#4caf50" />
+      <path d="M 0 0 Q 0 -16 2 -33" stroke="#c8e6c9" stroke-width="1.1" fill="none" opacity="0.85" />
+
+      <!-- Front budding tender leaf -->
+      <path d="M 0 1 C -8 -6, -6 -20, 0 -24 C 6 -20, 8 -6, 0 1 Z" fill="#66bb6a" opacity="0.98" />
+      <path d="M 0 1 L 0 -22" stroke="#e8f5e9" stroke-width="0.9" fill="none" opacity="0.85" />
     </g>
   `;
 }
@@ -510,7 +522,7 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
         rendered.push(renderOliveOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
         break;
       case 'mintSprig':
-        rendered.push(renderMintSprig(posX, posY - 4, isSlotLeft ? 12 : -12));
+        rendered.push(renderMintSprig(isSlotLeft ? rim.leftX + 4 : rim.rightX - 4, posY + 2, isSlotLeft ? 14 : -14));
         break;
       case 'pineappleWedge':
         rendered.push(renderPineappleWedge(posX, posY - 4, isSlotLeft ? -16 : 16));

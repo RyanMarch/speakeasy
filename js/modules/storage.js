@@ -5,6 +5,37 @@
 
 const STORAGE_KEY = 'speakeasy_recipes';
 
+// Canonical renames for tags that have accumulated redundant variants over time
+// (e.g. singular/plural drift, or a freeform descriptor superseded by a themed pack tag).
+const TAG_RENAMES = {
+  'modern-classic': 'modern-craft',
+  'modern-classics': 'modern-craft',
+  'essential-classic': 'classic',
+  'essential-classics': 'classic',
+  'nightcap': 'nightcaps',
+  'tiki': 'tropical-tiki',
+  'tropical': 'tropical-tiki',
+};
+
+// Tags dropped outright because they're redundant with another tag/pack and add
+// no distinguishing information (e.g. "aperitivo" duplicating the "aperitivo-amaro" pack).
+const TAG_REMOVALS = new Set(['aperitivo']);
+
+// Tags kept on their recipes (they carry real editorial meaning) but hidden from the
+// "add tag" suggestion list because they're too niche/curatorial for general reuse
+// (e.g. "ancestor" marks a specific proto-cocktail, not a reusable descriptor).
+const SUGGESTION_EXCLUDED_TAGS = new Set(['ancestor']);
+
+/**
+ * Normalize a raw tag string: lowercase, strip leading #, apply canonical renames.
+ * Returns '' if the tag is empty or has been retired outright (see TAG_REMOVALS).
+ */
+export function normalizeTagName(rawTag) {
+  const clean = String(rawTag || '').trim().toLowerCase().replace(/^#+/, '');
+  if (!clean || TAG_REMOVALS.has(clean)) return '';
+  return TAG_RENAMES[clean] || clean;
+}
+
 export const SEED_RECIPES = [
   {
     id: "old-fashioned",
@@ -17,7 +48,7 @@ export const SEED_RECIPES = [
     source: "Classic",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","whiskey-forward","slow-sipper"],
+    tags: ["classic", "whiskey-forward", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Bourbon" },
       { amount: 0.25, unit: "oz", name: "Demerara Syrup" },
@@ -36,7 +67,7 @@ export const SEED_RECIPES = [
     source: "Count Camillo Negroni, Florence (1919)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","aperitivo","bittersweet"],
+    tags: ["classic", "bittersweet"],
     specs: [
       { amount: 1, unit: "oz", name: "London Dry Gin" },
       { amount: 1, unit: "oz", name: "Campari" },
@@ -56,7 +87,7 @@ export const SEED_RECIPES = [
     notes: "Whiskey riff on the Negroni. The rich vanilla and oak tones of bourbon soften the bitter Campari.",
     riffOfId: "negroni",
     riffOfName: "Negroni",
-    tags: ["classic","whiskey-forward","aperitivo","riff"],
+    tags: ["classic", "whiskey-forward", "riff"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Bourbon" },
       { amount: 1, unit: "oz", name: "Campari" },
@@ -74,7 +105,7 @@ export const SEED_RECIPES = [
     source: "",
     sourceUrl: "",
     notes: "Shake hard with plenty of ice and fine-strain into a chilled coupe.",
-    tags: ["classic","rum","sour","summer"],
+    tags: ["classic", "rum-forward", "sour", "summer"],
     specs: [
       { amount: 2, unit: "oz", name: "White Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -92,7 +123,7 @@ export const SEED_RECIPES = [
     source: "",
     sourceUrl: "",
     notes: "Stir thoroughly with ice for 30 seconds to achieve silky dilution and chill.",
-    tags: ["classic","whiskey-forward","nightcap"],
+    tags: ["classic", "whiskey-forward", "nightcaps"],
     specs: [
       { amount: 2, unit: "oz", name: "Rye Whiskey" },
       { amount: 1, unit: "oz", name: "Sweet Vermouth" },
@@ -110,7 +141,7 @@ export const SEED_RECIPES = [
     source: "",
     sourceUrl: "",
     notes: "Shake with clean ice and fine-strain into a chilled coupe.",
-    tags: ["classic","tequila","party","sour"],
+    tags: ["classic", "tequila", "party", "sour"],
     specs: [
       { amount: 2, unit: "oz", name: "Blanco Tequila" },
       { amount: 1, unit: "oz", name: "Cointreau" },
@@ -129,7 +160,7 @@ export const SEED_RECIPES = [
     source: "",
     sourceUrl: "",
     notes: "Chill a rocks glass with ice. Coat with absinthe rinse. Stir remaining spirits with ice and strain neat.",
-    tags: ["classic","whiskey-forward","new-orleans"],
+    tags: ["classic", "whiskey-forward", "new-orleans"],
     specs: [
       { amount: 2, unit: "oz", name: "Rye Whiskey" },
       { amount: 0.25, unit: "oz", name: "Rich Simple Syrup" },
@@ -149,7 +180,7 @@ export const SEED_RECIPES = [
     source: "",
     sourceUrl: "",
     notes: "Equal parts pre-prohibition standard from the Detroit Athletic Club.",
-    tags: ["classic","herbal","equal-parts"],
+    tags: ["classic", "herbal", "equal-parts"],
     specs: [
       { amount: 0.75, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Green Chartreuse" },
@@ -168,7 +199,7 @@ export const SEED_RECIPES = [
     source: "",
     sourceUrl: "",
     notes: "Shake with ice and double strain. Optional dry shake with egg white or aquafaba for texture.",
-    tags: ["classic","sour","crowd-pleaser"],
+    tags: ["classic", "sour", "crowd-pleaser"],
     specs: [
       { amount: 2, unit: "oz", name: "Bourbon" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -187,7 +218,7 @@ export const SEED_RECIPES = [
     source: "",
     sourceUrl: "",
     notes: "Pour gin over clean ice spears, top with cold tonic water, stir once gently to preserve carbonation.",
-    tags: ["classic","refreshing","highball","summer","easy"],
+    tags: ["classic", "refreshing", "highball", "summer", "easy"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 4, unit: "oz", name: "Tonic Water" },
@@ -204,7 +235,7 @@ export const SEED_RECIPES = [
     source: "Classic (c. 1900)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","spirit-forward","gin-forward","aperitivo"],
+    tags: ["classic", "spirit-forward", "gin-forward"],
     specs: [
       { amount: 2.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.5, unit: "oz", name: "Dry Vermouth" },
@@ -222,7 +253,7 @@ export const SEED_RECIPES = [
     source: "Victor \"Trader Vic\" Bergeron, Oakland (1944)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","tiki","tropical","rum-forward"],
+    tags: ["classic", "tropical-tiki", "rum-forward"],
     specs: [
       { amount: 2, unit: "oz", name: "Aged Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -242,7 +273,7 @@ export const SEED_RECIPES = [
     source: "Toby Cecchini, The Odeon NYC (1988)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","sour","citrus-forward","party"],
+    tags: ["classic", "sour", "citrus-forward", "party"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Citron Vodka" },
       { amount: 0.75, unit: "oz", name: "Cointreau" },
@@ -261,7 +292,7 @@ export const SEED_RECIPES = [
     source: "Dick Bradsell, Fred’s Club London (1983)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","coffee","evening","party"],
+    tags: ["classic", "coffee", "evening", "party"],
     specs: [
       { amount: 2, unit: "oz", name: "Vodka" },
       { amount: 1, unit: "oz", name: "Coffee Liqueur" },
@@ -280,7 +311,7 @@ export const SEED_RECIPES = [
     source: "Harry’s New York Bar, Paris (1920s)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","sparkling","celebratory","citrus-forward"],
+    tags: ["classic", "sparkling", "celebratory", "citrus-forward"],
     specs: [
       { amount: 1, unit: "oz", name: "London Dry Gin" },
       { amount: 0.5, unit: "oz", name: "Fresh Lemon Juice" },
@@ -299,7 +330,7 @@ export const SEED_RECIPES = [
     source: "Veneto, Italy (1950s)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","aperitivo","sparkling","summer","easy"],
+    tags: ["classic", "sparkling", "summer", "easy"],
     specs: [
       { amount: 3, unit: "oz", name: "Sparkling Wine" },
       { amount: 2, unit: "oz", name: "Aperol" },
@@ -317,7 +348,7 @@ export const SEED_RECIPES = [
     source: "Ritz Hotel / Harry’s New York Bar, Paris (c. 1920)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","sour","brandy-forward"],
+    tags: ["classic", "sour", "brandy-forward"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Cognac" },
       { amount: 0.75, unit: "oz", name: "Cointreau" },
@@ -335,7 +366,7 @@ export const SEED_RECIPES = [
     source: "Sam Ross, Milk & Honey NYC (2005)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","whiskey-forward","sour","smoky"],
+    tags: ["classic", "whiskey-forward", "sour", "smoky"],
     specs: [
       { amount: 2, unit: "oz", name: "Blended Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -354,7 +385,7 @@ export const SEED_RECIPES = [
     source: "Don Javier Delgado Corona, Tequila Mexico (c. 1950s)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","highball","tequila-forward","summer","refreshing"],
+    tags: ["classic", "highball", "tequila-forward", "summer", "refreshing"],
     specs: [
       { amount: 2, unit: "oz", name: "Blanco Tequila" },
       { amount: 0.5, unit: "oz", name: "Fresh Lime Juice" },
@@ -372,7 +403,7 @@ export const SEED_RECIPES = [
     source: "Cock ‘n Bull, Los Angeles (1941)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","highball","refreshing","summer","easy"],
+    tags: ["classic", "highball", "refreshing", "summer", "easy"],
     specs: [
       { amount: 2, unit: "oz", name: "Vodka" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -390,7 +421,7 @@ export const SEED_RECIPES = [
     source: "Jerry Thomas (1876)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","highball","gin-forward","refreshing","summer"],
+    tags: ["classic", "highball", "gin-forward", "refreshing", "summer"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -409,7 +440,7 @@ export const SEED_RECIPES = [
     source: "Southern United States (c. 1800)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","whiskey-forward","summer","slow-sipper"],
+    tags: ["classic", "whiskey-forward", "summer", "slow-sipper"],
     specs: [
       { amount: 2.5, unit: "oz", name: "Bourbon" },
       { amount: 0.5, unit: "oz", name: "Demerara Syrup" },
@@ -426,7 +457,7 @@ export const SEED_RECIPES = [
     source: "Havana, Cuba (c. 1930s)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","highball","rum-forward","summer","refreshing"],
+    tags: ["classic", "highball", "rum-forward", "summer", "refreshing"],
     specs: [
       { amount: 2, unit: "oz", name: "White Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -445,7 +476,7 @@ export const SEED_RECIPES = [
     source: "Hugo Ensslin, Hotel Wallick NYC (1916)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","sour","gin-forward","floral"],
+    tags: ["classic", "sour", "gin-forward", "floral"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -464,7 +495,7 @@ export const SEED_RECIPES = [
     source: "Harry Craddock, Savoy Cocktail Book (1930)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","sour","gin-forward","aperitivo"],
+    tags: ["classic", "sour", "gin-forward"],
     specs: [
       { amount: 0.75, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Cointreau" },
@@ -484,7 +515,7 @@ export const SEED_RECIPES = [
     source: "Caffè Campari, Milan (1860s)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","aperitivo","highball","bittersweet","easy"],
+    tags: ["classic", "highball", "bittersweet", "easy"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
@@ -502,7 +533,7 @@ export const SEED_RECIPES = [
     source: "Walter Bergeron, Carousel Bar New Orleans (1938)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","spirit-forward","whiskey-forward","slow-sipper"],
+    tags: ["classic", "spirit-forward", "whiskey-forward", "slow-sipper"],
     specs: [
       { amount: 0.75, unit: "oz", name: "Rye Whiskey" },
       { amount: 0.75, unit: "oz", name: "Cognac" },
@@ -523,7 +554,7 @@ export const SEED_RECIPES = [
     source: "Victor Morris, Morris’ Bar Lima (1920s)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","sour","silky"],
+    tags: ["classic", "sour", "silky"],
     specs: [
       { amount: 2, unit: "oz", name: "Pisco" },
       { amount: 1, unit: "oz", name: "Fresh Lime Juice" },
@@ -543,7 +574,7 @@ export const SEED_RECIPES = [
     source: "British Royal Navy (c. late 19th century)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","sour","gin-forward","citrus-forward"],
+    tags: ["classic", "sour", "gin-forward", "citrus-forward"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -561,11 +592,11 @@ export const SEED_RECIPES = [
     source: "Gosling Brothers, Bermuda (c. 1920s)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic","highball","rum-forward","refreshing"],
+    tags: ["classic", "highball", "rum-forward", "refreshing"],
     specs: [
-      { amount: 2, unit: "oz", name: "Black / Blackstrap Rum" },
       { amount: 0.5, unit: "oz", name: "Fresh Lime Juice" },
-      { amount: 4, unit: "oz", name: "Ginger Beer" },
+      { amount: 5, unit: "oz", name: "Ginger Beer" },
+      { amount: 2, unit: "oz", name: "Black / Blackstrap Rum" },
     ],
   },
   {
@@ -581,7 +612,7 @@ export const SEED_RECIPES = [
     notes: "An equal-parts modern riff on the Last Word, trading gin and chartreuse for bourbon and Italian aperitifs.",
     riffOfId: "last-word",
     riffOfName: "Last Word",
-    tags: ["modern-craft","sour","bittersweet","equal-parts"],
+    tags: ["modern-craft", "sour", "bittersweet", "equal-parts"],
     specs: [
       { amount: 0.75, unit: "oz", name: "Bourbon" },
       { amount: 0.75, unit: "oz", name: "Aperol" },
@@ -602,7 +633,7 @@ export const SEED_RECIPES = [
     notes: "Simó described this modern classic as the bastard love child of a Last Word and a Paper Plane.",
     riffOfId: "last-word",
     riffOfName: "Last Word",
-    tags: ["modern-craft","mezcal-forward","smoky","equal-parts","sour"],
+    tags: ["modern-craft", "mezcal-forward", "smoky", "equal-parts", "sour"],
     specs: [
       { amount: 0.75, unit: "oz", name: "Mezcal" },
       { amount: 0.75, unit: "oz", name: "Yellow Chartreuse" },
@@ -621,7 +652,7 @@ export const SEED_RECIPES = [
     source: "Dick Bradsell, Fred's Club London (1984)",
     sourceUrl: "",
     notes: "",
-    tags: ["modern-craft","gin-forward","fruity","sour","crushed-ice"],
+    tags: ["modern-craft", "gin-forward", "fruity", "sour", "crushed-ice"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -640,7 +671,7 @@ export const SEED_RECIPES = [
     source: "Jeffrey Ong, Aviary Bar, Kuala Lumpur Hilton (1973)",
     sourceUrl: "",
     notes: "",
-    tags: ["modern-craft","tropical-tiki","rum-forward","bittersweet"],
+    tags: ["modern-craft", "tropical-tiki", "rum-forward", "bittersweet"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Black / Blackstrap Rum" },
       { amount: 0.75, unit: "oz", name: "Campari" },
@@ -662,7 +693,7 @@ export const SEED_RECIPES = [
     notes: "The definitive pure-agave Margarita template that transformed agave cocktails globally.",
     riffOfId: "margarita",
     riffOfName: "Margarita",
-    tags: ["modern-craft","agave-forward","sour","crisp"],
+    tags: ["modern-craft", "agave-forward", "sour", "crisp"],
     specs: [
       { amount: 2, unit: "oz", name: "Blanco Tequila" },
       { amount: 1, unit: "oz", name: "Fresh Lime Juice" },
@@ -682,7 +713,7 @@ export const SEED_RECIPES = [
     notes: "Credited with igniting the American craft cocktail obsession with artisanal mezcal.",
     riffOfId: "old-fashioned",
     riffOfName: "Old Fashioned",
-    tags: ["modern-craft","smoky","agave-forward","slow-sipper"],
+    tags: ["modern-craft", "smoky", "agave-forward", "slow-sipper"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Reposado Tequila" },
       { amount: 0.5, unit: "oz", name: "Mezcal" },
@@ -701,7 +732,7 @@ export const SEED_RECIPES = [
     source: "Jörg Meyer, Le Lion, Hamburg (2008)",
     sourceUrl: "",
     notes: "",
-    tags: ["modern-craft","gin-forward","herbal","sour","refreshing"],
+    tags: ["modern-craft", "gin-forward", "herbal", "sour", "refreshing"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -721,7 +752,7 @@ export const SEED_RECIPES = [
     notes: "An unapologetic bartenders handshake cocktail created from two beloved industry spirits.",
     riffOfId: "last-word",
     riffOfName: "Last Word",
-    tags: ["modern-craft","herbal","bitter","equal-parts","sour"],
+    tags: ["modern-craft", "herbal", "bitter", "equal-parts", "sour"],
     specs: [
       { amount: 0.75, unit: "oz", name: "Fernet-Branca" },
       { amount: 0.75, unit: "oz", name: "Green Chartreuse" },
@@ -742,7 +773,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "last-word",
     riffOfName: "Last Word",
-    tags: ["modern-craft","mezcal-forward","smoky","bittersweet"],
+    tags: ["modern-craft", "mezcal-forward", "smoky", "bittersweet"],
     specs: [
       { amount: 1, unit: "oz", name: "Mezcal" },
       { amount: 0.75, unit: "oz", name: "Aperol" },
@@ -763,7 +794,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "boulevardier",
     riffOfName: "Boulevardier",
-    tags: ["modern-craft","whiskey-forward","bittersweet","slow-sipper"],
+    tags: ["modern-craft", "whiskey-forward", "bittersweet", "slow-sipper"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Bourbon" },
       { amount: 0.75, unit: "oz", name: "Campari" },
@@ -784,7 +815,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "negroni",
     riffOfName: "Negroni",
-    tags: ["modern-craft","gin-forward","bittersweet","aperitivo"],
+    tags: ["modern-craft", "gin-forward", "bittersweet"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 1, unit: "oz", name: "Lillet Blanc" },
@@ -802,7 +833,7 @@ export const SEED_RECIPES = [
     source: "Valentino Bolognese, Angostura Global Cocktail Challenge (2009)",
     sourceUrl: "",
     notes: "Proof that aromatic cocktail bitters can stand proudly as a full-fledged base spirit when balanced with creamy orgeat.",
-    tags: ["modern-craft","spicy","herbal","sour","adventurous"],
+    tags: ["modern-craft", "spicy", "herbal", "sour", "adventurous"],
     specs: [
       { amount: 1, unit: "oz", name: "Angostura Bitters" },
       { amount: 0.5, unit: "oz", name: "Rye Whiskey" },
@@ -821,7 +852,7 @@ export const SEED_RECIPES = [
     source: "Jon Santer, Bruno's, San Francisco (2004)",
     sourceUrl: "",
     notes: "",
-    tags: ["modern-craft","whiskey-forward","coffee","nightcap","slow-sipper"],
+    tags: ["modern-craft", "whiskey-forward", "coffee", "nightcaps", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Bourbon" },
       { amount: 0.5, unit: "oz", name: "Coffee Liqueur" },
@@ -841,7 +872,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "manhattan",
     riffOfName: "Manhattan",
-    tags: ["modern-craft","whiskey-forward","bittersweet","slow-sipper"],
+    tags: ["modern-craft", "whiskey-forward", "bittersweet", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Rye Whiskey" },
       { amount: 1, unit: "oz", name: "Amaro Averna" },
@@ -860,7 +891,7 @@ export const SEED_RECIPES = [
     source: "Paul Harrington, Townhouse Bar, Emeryville CA (c. 1990s)",
     sourceUrl: "",
     notes: "",
-    tags: ["modern-craft","gin-forward","sour","bittersweet"],
+    tags: ["modern-craft", "gin-forward", "sour", "bittersweet"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.25, unit: "oz", name: "Campari" },
@@ -879,7 +910,7 @@ export const SEED_RECIPES = [
     source: "Donn Beach, Don the Beachcomber, Hollywood (1934)",
     sourceUrl: "",
     notes: "Famously limited to two per customer due to its immense alcoholic potency.",
-    tags: ["tropical-tiki","rum-forward","complex","potent"],
+    tags: ["tropical-tiki", "rum-forward", "complex", "potent"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Light Rum" },
       { amount: 1.5, unit: "oz", name: "Dark Rum" },
@@ -904,7 +935,7 @@ export const SEED_RECIPES = [
     source: "Daphne Henderson, Soggy Dollar Bar, Jost Van Dyke (1970s)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","rum-forward","creamy","fruity"],
+    tags: ["tropical-tiki", "rum-forward", "creamy", "fruity"],
     specs: [
       { amount: 2, unit: "oz", name: "Dark Rum" },
       { amount: 4, unit: "oz", name: "Pineapple Juice" },
@@ -923,7 +954,7 @@ export const SEED_RECIPES = [
     source: "Ramón \"Monchito\" Marrero, Caribe Hilton, San Juan (1954)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","rum-forward","creamy","sweet"],
+    tags: ["tropical-tiki", "rum-forward", "creamy", "sweet"],
     specs: [
       { amount: 2, unit: "oz", name: "Light Rum" },
       { amount: 2, unit: "oz", name: "Cream of Coconut" },
@@ -941,7 +972,7 @@ export const SEED_RECIPES = [
     source: "Brazilian Classic (c. early 20th century)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","cachaca-forward","sour","refreshing"],
+    tags: ["tropical-tiki", "cachaca-forward", "sour", "refreshing"],
     specs: [
       { amount: 2, unit: "oz", name: "Cachaça" },
       { amount: 0.75, unit: "oz", name: "Simple Syrup" },
@@ -959,7 +990,7 @@ export const SEED_RECIPES = [
     source: "Martinique & Guadeloupe Traditional",
     sourceUrl: "",
     notes: "Traditionally served with the bottle on the table so the drinker can prepare their own measure (chacun prépare sa propre mort).",
-    tags: ["tropical-tiki","rhum-agricole","spirit-forward","minimalist"],
+    tags: ["tropical-tiki", "rhum-agricole", "spirit-forward", "minimalist"],
     specs: [
       { amount: 2, unit: "oz", name: "Rhum Agricole" },
       { amount: 0.25, unit: "oz", name: "Cane Sugar Syrup" },
@@ -977,7 +1008,7 @@ export const SEED_RECIPES = [
     source: "Donn Beach, Hollywood (c. 1940s)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","rum-forward","spiced","complex"],
+    tags: ["tropical-tiki", "rum-forward", "spiced", "complex"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Rhum Agricole" },
       { amount: 0.5, unit: "oz", name: "Dark Rum" },
@@ -999,7 +1030,7 @@ export const SEED_RECIPES = [
     source: "Victor \"Trader Vic\" Bergeron (1941)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","rum-forward","potent","sour"],
+    tags: ["tropical-tiki", "rum-forward", "potent", "sour"],
     specs: [
       { amount: 1, unit: "oz", name: "Light Rum" },
       { amount: 1, unit: "oz", name: "Dark Rum" },
@@ -1021,7 +1052,7 @@ export const SEED_RECIPES = [
     source: "Ngiam Tong Boon, Long Bar, Raffles Hotel (c. 1915)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","gin-forward","fruity","complex","highball"],
+    tags: ["tropical-tiki", "gin-forward", "fruity", "complex", "highball"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.5, unit: "oz", name: "Cherry Heering" },
@@ -1044,7 +1075,7 @@ export const SEED_RECIPES = [
     source: "J. \"Popo\" Galsini, IBA World Championship winner (1967)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","gin-forward","fruity","sour"],
+    tags: ["tropical-tiki", "gin-forward", "fruity", "sour"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -1064,7 +1095,7 @@ export const SEED_RECIPES = [
     source: "Traditional Bajan Cocktail, Barbados",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","rum-forward","spiced","slow-sipper"],
+    tags: ["tropical-tiki", "rum-forward", "spiced", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Black / Blackstrap Rum" },
       { amount: 0.75, unit: "oz", name: "Falernum" },
@@ -1083,7 +1114,7 @@ export const SEED_RECIPES = [
     source: "Victor \"Trader Vic\" Bergeron (1940s)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","potent","citrus-forward","complex"],
+    tags: ["tropical-tiki", "potent", "citrus-forward", "complex"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Light Rum" },
       { amount: 0.75, unit: "oz", name: "Cognac" },
@@ -1105,7 +1136,7 @@ export const SEED_RECIPES = [
     source: "Harry Yee, Kaiser Hawaiian Village Hotel, Waikiki (1957)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","rum-forward","sweet","refreshing"],
+    tags: ["tropical-tiki", "rum-forward", "sweet", "refreshing"],
     specs: [
       { amount: 1, unit: "oz", name: "Light Rum" },
       { amount: 1, unit: "oz", name: "Vodka" },
@@ -1125,7 +1156,7 @@ export const SEED_RECIPES = [
     source: "Pat O'Brien's Bar, New Orleans (c. 1940s)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","rum-forward","fruity","potent"],
+    tags: ["tropical-tiki", "rum-forward", "fruity", "potent"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Light Rum" },
       { amount: 1.5, unit: "oz", name: "Dark Rum" },
@@ -1146,7 +1177,7 @@ export const SEED_RECIPES = [
     source: "Wil P. Taylor, Hotel Nacional de Cuba, Havana (1930s)",
     sourceUrl: "",
     notes: "",
-    tags: ["tropical-tiki","rum-forward","fruity","sour"],
+    tags: ["tropical-tiki", "rum-forward", "fruity", "sour"],
     specs: [
       { amount: 1.5, unit: "oz", name: "White Rum" },
       { amount: 1, unit: "oz", name: "Pineapple Juice" },
@@ -1168,7 +1199,7 @@ export const SEED_RECIPES = [
     notes: "Originally requested by Hemingway without sugar to accommodate his diabetes, later balanced with a touch of maraschino by the bar.",
     riffOfId: "daiquiri",
     riffOfName: "Daiquiri",
-    tags: ["tropical-tiki","rum-forward","sour","crisp"],
+    tags: ["tropical-tiki", "rum-forward", "sour", "crisp"],
     specs: [
       { amount: 2, unit: "oz", name: "White Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -1187,7 +1218,7 @@ export const SEED_RECIPES = [
     source: "O.H. Byron, The Modern Bartenders' Guide (1884)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era","gin-forward","bittersweet","ancestor","slow-sipper"],
+    tags: ["prohibition-era", "gin-forward", "bittersweet", "ancestor", "slow-sipper"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Old Tom Gin" },
       { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
@@ -1207,7 +1238,7 @@ export const SEED_RECIPES = [
     source: "Ada Coleman, American Bar, Savoy Hotel London (1903)",
     sourceUrl: "",
     notes: "Created for the comedic actor Charles Hawtrey, who exclaimed: By Jove, Coley, that is the real hanky-panky!",
-    tags: ["prohibition-era","gin-forward","bittersweet","historic"],
+    tags: ["prohibition-era", "gin-forward", "bittersweet", "historic"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
@@ -1225,7 +1256,7 @@ export const SEED_RECIPES = [
     source: "Prohibition Era (c. 1920s)",
     sourceUrl: "",
     notes: "Named after 1920s slang meaning the absolute best.",
-    tags: ["prohibition-era","gin-forward","sour","crisp"],
+    tags: ["prohibition-era", "gin-forward", "sour", "crisp"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -1243,7 +1274,7 @@ export const SEED_RECIPES = [
     source: "21 Club, New York City (c. 1920s)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era","gin-forward","herbal","sour","refreshing"],
+    tags: ["prohibition-era", "gin-forward", "herbal", "sour", "refreshing"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -1261,7 +1292,7 @@ export const SEED_RECIPES = [
     source: "Bellevue-Stratford Hotel, Philadelphia (c. 1896)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era","gin-forward","silky","sour","berry"],
+    tags: ["prohibition-era", "gin-forward", "silky", "sour", "berry"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.5, unit: "oz", name: "Dry Vermouth" },
@@ -1281,7 +1312,7 @@ export const SEED_RECIPES = [
     source: "Harry Craddock, The Savoy Cocktail Book (1930)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era","whiskey-forward","fruity","equal-parts"],
+    tags: ["prohibition-era", "whiskey-forward", "fruity", "equal-parts"],
     specs: [
       { amount: 0.75, unit: "oz", name: "Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Sweet Vermouth" },
@@ -1302,7 +1333,7 @@ export const SEED_RECIPES = [
     notes: "Created to commemorate the premiere of an operetta based on Scottish folk hero Rob Roy MacGregor.",
     riffOfId: "manhattan",
     riffOfName: "Manhattan",
-    tags: ["prohibition-era","whiskey-forward","smoky","slow-sipper"],
+    tags: ["prohibition-era", "whiskey-forward", "smoky", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Scotch Whisky" },
       { amount: 1, unit: "oz", name: "Sweet Vermouth" },
@@ -1320,7 +1351,7 @@ export const SEED_RECIPES = [
     source: "Harry MacElhone, Harry's New York Bar, Paris (1919)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era","gin-forward","sour","silky"],
+    tags: ["prohibition-era", "gin-forward", "sour", "silky"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Cointreau" },
@@ -1339,7 +1370,7 @@ export const SEED_RECIPES = [
     source: "Harry MacElhone, Harry's New York Bar, Paris (c. 1920s)",
     sourceUrl: "",
     notes: "Named cheekily after Dr. Serge Voronoff’s eccentric surgical longevity experiments in 1920s Paris.",
-    tags: ["prohibition-era","gin-forward","fruity","anise-kissed"],
+    tags: ["prohibition-era", "gin-forward", "fruity"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 1.5, unit: "oz", name: "Orange Juice" },
@@ -1358,7 +1389,7 @@ export const SEED_RECIPES = [
     source: "Fred Kaufman, Hotel Sevilla-Biltmore, Havana (1920s)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era","rum-forward","fruity","silky"],
+    tags: ["prohibition-era", "rum-forward", "fruity", "silky"],
     specs: [
       { amount: 1.5, unit: "oz", name: "White Rum" },
       { amount: 1.5, unit: "oz", name: "Pineapple Juice" },
@@ -1377,7 +1408,7 @@ export const SEED_RECIPES = [
     source: "Harry's New York Bar, Paris (1924)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era","whiskey-forward","sour","historic"],
+    tags: ["prohibition-era", "whiskey-forward", "sour", "historic"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Rye Whiskey" },
       { amount: 1, unit: "oz", name: "Dry Vermouth" },
@@ -1397,7 +1428,7 @@ export const SEED_RECIPES = [
     source: "Rector's, New York City (c. 1910s)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era","cognac-forward","creamy","dessert","nightcap"],
+    tags: ["prohibition-era", "cognac-forward", "creamy", "dessert", "nightcaps"],
     specs: [
       { amount: 1, unit: "oz", name: "Cognac" },
       { amount: 1, unit: "oz", name: "Crème de Cacao" },
@@ -1415,7 +1446,7 @@ export const SEED_RECIPES = [
     source: "Henry C. Ramos, Imperial Cabinet Saloon, New Orleans (1888)",
     sourceUrl: "",
     notes: "Ramos famously employed a chain of 35 shaker boys during Mardi Gras to meet the demand for this 12-minute shake drink.",
-    tags: ["prohibition-era","gin-forward","silky","legendary","highball"],
+    tags: ["prohibition-era", "gin-forward", "silky", "legendary", "highball"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.5, unit: "oz", name: "Fresh Lemon Juice" },
@@ -1440,7 +1471,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "sidecar",
     riffOfName: "Sidecar",
-    tags: ["prohibition-era","cognac-forward","potent","sour"],
+    tags: ["prohibition-era", "cognac-forward", "potent", "sour"],
     specs: [
       { amount: 1, unit: "oz", name: "Cognac" },
       { amount: 1, unit: "oz", name: "White Rum" },
@@ -1461,7 +1492,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "aviation",
     riffOfName: "Aviation",
-    tags: ["prohibition-era","gin-forward","sour","crisp"],
+    tags: ["prohibition-era", "gin-forward", "sour", "crisp"],
     specs: [
       { amount: 2, unit: "oz", name: "Old Tom Gin" },
       { amount: 0.25, unit: "oz", name: "Maraschino Liqueur" },
@@ -1480,7 +1511,7 @@ export const SEED_RECIPES = [
     source: "Italian Classic / Revived by Dante NYC (c. 1860s / 2015)",
     sourceUrl: "",
     notes: "",
-    tags: ["aperitivo-amaro","bittersweet","citrus-forward","low-abv","highball"],
+    tags: ["aperitivo-amaro", "bittersweet", "citrus-forward", "low-abv", "highball"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 4, unit: "oz", name: "Orange Juice" },
@@ -1499,7 +1530,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "negroni",
     riffOfName: "Negroni",
-    tags: ["aperitivo-amaro","bittersweet","sparkling","effervescent"],
+    tags: ["aperitivo-amaro", "bittersweet", "sparkling", "effervescent"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
@@ -1517,7 +1548,7 @@ export const SEED_RECIPES = [
     source: "Venetian Spritz Tradition",
     sourceUrl: "",
     notes: "",
-    tags: ["aperitivo-amaro","bittersweet","herbal","low-abv","sparkling"],
+    tags: ["aperitivo-amaro", "bittersweet", "herbal", "low-abv", "sparkling"],
     specs: [
       { amount: 2, unit: "oz", name: "Cynar" },
       { amount: 3, unit: "oz", name: "Sparkling Wine" },
@@ -1535,7 +1566,7 @@ export const SEED_RECIPES = [
     source: "Italian Cafe Classic (1930s)",
     sourceUrl: "",
     notes: "",
-    tags: ["aperitivo-amaro","bittersweet","wine-forward","low-abv","refreshing"],
+    tags: ["aperitivo-amaro", "bittersweet", "wine-forward", "low-abv", "refreshing"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 2.5, unit: "oz", name: "Dry White Wine" },
@@ -1555,7 +1586,7 @@ export const SEED_RECIPES = [
     notes: "Created for a visiting German cardinal who admired red cocktails matching his papal vestments.",
     riffOfId: "negroni",
     riffOfName: "Negroni",
-    tags: ["aperitivo-amaro","gin-forward","bittersweet","crisp"],
+    tags: ["aperitivo-amaro", "gin-forward", "bittersweet", "crisp"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Dry Vermouth" },
@@ -1573,7 +1604,7 @@ export const SEED_RECIPES = [
     source: "French Classic (c. 1920s)",
     sourceUrl: "",
     notes: "",
-    tags: ["aperitivo-amaro","gin-forward","bittersweet","elegant"],
+    tags: ["aperitivo-amaro", "gin-forward", "bittersweet", "elegant"],
     specs: [
       { amount: 1.5, unit: "oz", name: "London Dry Gin" },
       { amount: 0.5, unit: "oz", name: "Campari" },
@@ -1592,7 +1623,7 @@ export const SEED_RECIPES = [
     source: "David Embury, The Fine Art of Mixing Drinks (1948)",
     sourceUrl: "",
     notes: "",
-    tags: ["aperitivo-amaro","whiskey-forward","bitter","slow-sipper"],
+    tags: ["aperitivo-amaro", "whiskey-forward", "bitter", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Rye Whiskey" },
       { amount: 0.25, unit: "oz", name: "Fernet-Branca" },
@@ -1611,7 +1642,7 @@ export const SEED_RECIPES = [
     source: "Hoffman House, New York City (c. 1884)",
     sourceUrl: "",
     notes: "Named to celebrate the record-breaking 500th performance of the Broadway musical Adonis.",
-    tags: ["aperitivo-amaro","low-abv","sherry-forward","nutty","slow-sipper"],
+    tags: ["aperitivo-amaro", "low-abv", "sherry-forward", "nutty", "slow-sipper"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Sweet Sherry" },
       { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
@@ -1629,7 +1660,7 @@ export const SEED_RECIPES = [
     source: "Louis Eppinger, Grand Hotel, Yokohama (c. 1890s)",
     sourceUrl: "",
     notes: "",
-    tags: ["aperitivo-amaro","low-abv","sherry-forward","dry","crisp"],
+    tags: ["aperitivo-amaro", "low-abv", "sherry-forward", "dry", "crisp"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Dry Sherry" },
       { amount: 1.5, unit: "oz", name: "Dry Vermouth" },
@@ -1648,7 +1679,7 @@ export const SEED_RECIPES = [
     source: "American Classic (c. 1830s)",
     sourceUrl: "",
     notes: "Charles Dickens featured this drink in The Life and Adventures of Martin Chuzzlewit.",
-    tags: ["aperitivo-amaro","low-abv","sherry-forward","fruity","crushed-ice"],
+    tags: ["aperitivo-amaro", "low-abv", "sherry-forward", "fruity", "crushed-ice"],
     specs: [
       { amount: 3, unit: "oz", name: "Dry Sherry" },
       { amount: 0.5, unit: "oz", name: "Simple Syrup" },
@@ -1666,9 +1697,9 @@ export const SEED_RECIPES = [
     source: "James Pimm, London (c. 1840s)",
     sourceUrl: "",
     notes: "The official cocktail of the Wimbledon tennis tournament.",
-    tags: ["aperitivo-amaro","low-abv","refreshing","herbal","highball"],
+    tags: ["aperitivo-amaro", "low-abv", "refreshing", "herbal", "highball"],
     specs: [
-      { amount: 2, unit: "oz", name: "Red Bitter" },
+      { amount: 2, unit: "oz", name: "Pimm's No. 1" },
       { amount: 0.5, unit: "oz", name: "Fresh Lemon Juice" },
       { amount: 4, unit: "oz", name: "Ginger Ale" },
     ],
@@ -1676,15 +1707,15 @@ export const SEED_RECIPES = [
   {
     id: "hugo-spritz",
     name: "Hugo Spritz",
-    glassware: "Highball",
+    glassware: "Wine",
     method: "Built",
     garnish: "Fresh mint sprig & lime wheel",
-    description: "The breezy South Tyrolean alpine spritz that conquered central Europe, uniting elderflower liqueur, sparkling Prosecco, soda, and torn mint.",
+    description: "Also known as the Elderflower Spritz, this breezy South Tyrolean alpine spritz unites elderflower liqueur, sparkling Prosecco, soda, and torn mint.",
     instructions: "1. Add fresh mint leaves and elderflower liqueur to a wine glass and gently press.\n2. Fill the glass with ice cubes.\n3. Pour in chilled Prosecco and a splash of sparkling club soda.\n4. Stir gently from the bottom and garnish with a mint sprig and lime.",
     source: "Roland Gruber, Naturno, South Tyrol (2005)",
     sourceUrl: "",
-    notes: "",
-    tags: ["aperitivo-amaro","low-abv","sparkling","floral","refreshing"],
+    notes: "Often called an Elderflower Spritz or St-Germain Spritz.",
+    tags: ["aperitivo-amaro", "low-abv", "sparkling", "floral", "refreshing", "summer"],
     specs: [
       { amount: 1.5, unit: "oz", name: "St-Germain" },
       { amount: 3, unit: "oz", name: "Sparkling Wine" },
@@ -1702,7 +1733,7 @@ export const SEED_RECIPES = [
     source: "Savoy Cocktail Book (c. 1890s / 1930)",
     sourceUrl: "",
     notes: "",
-    tags: ["aperitivo-amaro","whiskey-forward","herbal","slow-sipper"],
+    tags: ["aperitivo-amaro", "whiskey-forward", "herbal", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Irish Whiskey" },
       { amount: 1, unit: "oz", name: "Dry Vermouth" },
@@ -1721,7 +1752,7 @@ export const SEED_RECIPES = [
     source: "Brazilian Classic (c. 1950s)",
     sourceUrl: "",
     notes: "Literally translates to \"Tail of the Rooster\" (cock-tail).",
-    tags: ["aperitivo-amaro","cachaca-forward","bittersweet","slow-sipper"],
+    tags: ["aperitivo-amaro", "cachaca-forward", "bittersweet", "slow-sipper"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Cachaça" },
       { amount: 0.75, unit: "oz", name: "Sweet Vermouth" },
@@ -1739,7 +1770,7 @@ export const SEED_RECIPES = [
     source: "Gaspare Campari, Caffè Camparino, Milan (c. 1860s)",
     sourceUrl: "",
     notes: "The direct ancestor of both the Americano (added soda) and the Negroni (added gin).",
-    tags: ["aperitivo-amaro","bittersweet","ancestor","low-abv","equal-parts"],
+    tags: ["aperitivo-amaro", "bittersweet", "ancestor", "low-abv", "equal-parts"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
@@ -1756,7 +1787,7 @@ export const SEED_RECIPES = [
     source: "Ian Fleming, Casino Royale (1953)",
     sourceUrl: "",
     notes: "Named for double agent Vesper Lynd because once you have tasted it, you won't want to drink anything else.",
-    tags: ["nightcaps","gin-forward","vodka-forward","potent","crisp"],
+    tags: ["nightcaps", "gin-forward", "vodka-forward", "potent", "crisp"],
     specs: [
       { amount: 2.25, unit: "oz", name: "London Dry Gin" },
       { amount: 0.75, unit: "oz", name: "Vodka" },
@@ -1774,7 +1805,7 @@ export const SEED_RECIPES = [
     source: "21 Club, New York City (c. 1960s)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps","whiskey-forward","sweet","slow-sipper"],
+    tags: ["nightcaps", "whiskey-forward", "sweet", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Drambuie" },
@@ -1791,7 +1822,7 @@ export const SEED_RECIPES = [
     source: "1970s Classic (named after the film The Godfather)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps","whiskey-forward","sweet","slow-sipper"],
+    tags: ["nightcaps", "whiskey-forward", "sweet", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Amaretto" },
@@ -1808,7 +1839,7 @@ export const SEED_RECIPES = [
     source: "1960s Classic",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps","creamy","coffee","dessert"],
+    tags: ["nightcaps", "creamy", "coffee", "dessert"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Vodka" },
       { amount: 1, unit: "oz", name: "Coffee Liqueur" },
@@ -1826,7 +1857,7 @@ export const SEED_RECIPES = [
     source: "Gustave Tops, Hotel Métropole, Brussels (1949)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps","vodka-forward","coffee","slow-sipper"],
+    tags: ["nightcaps", "vodka-forward", "coffee", "slow-sipper"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Vodka" },
       { amount: 0.75, unit: "oz", name: "Coffee Liqueur" },
@@ -1843,7 +1874,7 @@ export const SEED_RECIPES = [
     source: "Victor \"Trader Vic\" Bergeron (1946)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps","agave-forward","highball","spicy","refreshing"],
+    tags: ["nightcaps", "agave-forward", "highball", "spicy", "refreshing"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Reposado Tequila" },
       { amount: 0.5, unit: "oz", name: "Crème de Cassis" },
@@ -1862,7 +1893,7 @@ export const SEED_RECIPES = [
     source: "Jerry Thomas, How to Mix Drinks (1862)",
     sourceUrl: "",
     notes: "Created to honor the first Japanese diplomatic mission to the United States in 1860.",
-    tags: ["nightcaps","cognac-forward","nutty","historic","slow-sipper"],
+    tags: ["nightcaps", "cognac-forward", "nutty", "historic", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Cognac" },
       { amount: 0.5, unit: "oz", name: "Orgeat" },
@@ -1880,7 +1911,7 @@ export const SEED_RECIPES = [
     source: "1970s Classic (named after the Gene Hackman film)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps","cognac-forward","sweet","equal-parts","nightcap"],
+    tags: ["nightcaps", "cognac-forward", "sweet", "equal-parts"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Cognac" },
       { amount: 1.5, unit: "oz", name: "Amaretto" },
@@ -1897,7 +1928,7 @@ export const SEED_RECIPES = [
     source: "Brennan's, New Orleans (Traditional Creole Classic)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps","cognac-forward","creamy","historic","brunch"],
+    tags: ["nightcaps", "cognac-forward", "creamy", "historic", "brunch"],
     specs: [
       { amount: 2, unit: "oz", name: "Cognac" },
       { amount: 3, unit: "oz", name: "Milk" },
@@ -1915,7 +1946,7 @@ export const SEED_RECIPES = [
     source: "Fernand Petiot, Harry's New York Bar, Paris (1921)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps","vodka-forward","savory","brunch","highball"],
+    tags: ["nightcaps", "vodka-forward", "savory", "brunch", "highball"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Vodka" },
       { amount: 4, unit: "oz", name: "Tomato Juice" },
@@ -1923,6 +1954,62 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Worcestershire Sauce" },
       { amount: 2, unit: "drops", name: "Hot Sauce" },
       { amount: 1, unit: "dash", name: "Celery Salt" },
+    ],
+  },
+  {
+    id: "elderflower-spritz",
+    name: "Elderflower Spritz",
+    glassware: "Wine",
+    method: "Built",
+    garnish: "Lemon wheel & fresh mint sprig",
+    description: "A bright, effervescent spritz showcasing floral elderflower liqueur crowned with sparkling prosecco and soda water.",
+    instructions: "1. Fill a wine glass generously with cubed ice.\n2. Pour in elderflower liqueur and sparkling wine.\n3. Top with a splash of chilled club soda.\n4. Stir gently from the bottom up to combine without knocking out the carbonation.\n5. Garnish with a fresh lemon wheel and a smacked mint sprig.",
+    source: "Modern Spritz Template",
+    sourceUrl: "",
+    notes: "A beloved patio staple. For a mint-muddled alpine variation, see the Hugo Spritz.",
+    tags: ["aperitivo-amaro", "low-abv", "sparkling", "floral", "refreshing", "summer", "easy"],
+    specs: [
+      { amount: 2, unit: "oz", name: "St-Germain" },
+      { amount: 3, unit: "oz", name: "Sparkling Wine" },
+      { amount: 1, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  {
+    id: "french-77",
+    name: "French 77",
+    glassware: "Flute",
+    method: "Shaken",
+    garnish: "Lemon twist",
+    description: "An elegant floral riff on the classic French 75, substituting elderflower liqueur for gin alongside crisp lemon and Champagne.",
+    instructions: "1. Add elderflower liqueur and fresh lemon juice to a shaker tin with ice.\n2. Shake briefly until chilled.\n3. Strain into a chilled champagne flute.\n4. Top with chilled dry sparkling wine.\n5. Express the oils from a lemon peel twist over the glass and garnish.",
+    source: "Modern Craft Variation",
+    sourceUrl: "",
+    notes: "Riff on the French 75 swapping gin for elderflower liqueur.",
+    riffOfId: "french-75",
+    riffOfName: "French 75",
+    tags: ["modern-craft", "sparkling", "floral", "sour", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "St-Germain" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
+      { amount: 3, unit: "oz", name: "Sparkling Wine" },
+    ],
+  },
+  {
+    id: "st-germain-cocktail",
+    name: "St-Germain Cocktail",
+    glassware: "Wine",
+    method: "Built",
+    garnish: "Lemon twist",
+    description: "The signature aperitif crafted to showcase elderflower liqueur with dry white sparkling wine and soda water.",
+    instructions: "1. Fill a tall wine glass or Collins glass with fresh ice.\n2. Add St-Germain elderflower liqueur.\n3. Top with brut Champagne or dry sparkling wine and club soda.\n4. Stir gently once to combine.\n5. Garnish with a lemon twist.",
+    source: "St-Germain House Recipe (c. 2007)",
+    sourceUrl: "",
+    notes: "",
+    tags: ["modern-craft", "sparkling", "floral", "low-abv", "easy"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "St-Germain" },
+      { amount: 2, unit: "oz", name: "Sparkling Wine" },
+      { amount: 2, unit: "oz", name: "Club Soda" },
     ],
   },
 ];
@@ -1955,6 +2042,14 @@ export function getRecipes() {
             r.notes = '';
             updatedStorage = true;
           }
+          // Fix legacy errant specs for Pimm's No. 1 Cup
+          if (r.id === 'pimms-cup' && Array.isArray(r.specs)) {
+            const redBitter = r.specs.find(s => s.name === 'Red Bitter');
+            if (redBitter) {
+              redBitter.name = "Pimm's No. 1";
+              updatedStorage = true;
+            }
+          }
           // Backfill all properties from seed that might be missing in older stored versions
           Object.keys(seed).forEach(key => {
             if (r[key] === undefined || r[key] === null || r[key] === '') {
@@ -1979,24 +2074,16 @@ export function getRecipes() {
           updatedStorage = true;
         }
 
-        // Clean up redundant classic-family tags so drinks don't accumulate
-        // overlapping tags like "modern-classic", "essential-classics", and "classic".
+        // Clean up redundant/retired tags so drinks don't accumulate overlapping
+        // variants like "modern-classic" vs "modern-craft", or "nightcap" vs "nightcaps".
         if (Array.isArray(r.tags)) {
           const originalTagStr = JSON.stringify(r.tags);
           const normalizedTags = [];
           const seen = new Set();
 
           r.tags.forEach(rawTag => {
-            const clean = String(rawTag || '').trim().toLowerCase().replace(/^#+/, '');
-            if (!clean) return;
-
-            // Map redundant variants to canonical tag
-            let canonical = clean;
-            if (clean === 'modern-classic' || clean === 'modern-classics') {
-              canonical = 'modern-craft';
-            } else if (clean === 'essential-classic' || clean === 'essential-classics') {
-              canonical = 'classic';
-            }
+            const canonical = normalizeTagName(rawTag);
+            if (!canonical) return;
 
             if (!seen.has(canonical)) {
               seen.add(canonical);
@@ -2187,13 +2274,8 @@ export function getAllUniqueTags(recipes = []) {
   (recipes || []).forEach(recipe => {
     if (Array.isArray(recipe.tags)) {
       recipe.tags.forEach(tag => {
-        let clean = String(tag || '').trim().toLowerCase().replace(/^#+/, '');
-        if (clean === 'modern-classic' || clean === 'modern-classics') {
-          clean = 'modern-craft';
-        } else if (clean === 'essential-classic' || clean === 'essential-classics') {
-          clean = 'classic';
-        }
-        if (clean) tagSet.add(clean);
+        const clean = normalizeTagName(tag);
+        if (clean && !SUGGESTION_EXCLUDED_TAGS.has(clean)) tagSet.add(clean);
       });
     }
   });
@@ -2309,6 +2391,101 @@ export function saveBarName(name) {
   } catch (err) {
     console.error('Failed to save bar name:', err);
     return name;
+  }
+}
+
+const GLASS_VIEW_STORAGE_KEY = 'speakeasy_glass_view_mode';
+
+export function getGlassViewPreference() {
+  try {
+    const val = localStorage.getItem(GLASS_VIEW_STORAGE_KEY);
+    return val === 'blended' ? 'blended' : 'layered';
+  } catch {
+    return 'layered';
+  }
+}
+
+export function saveGlassViewPreference(mode) {
+  try {
+    const clean = mode === 'blended' ? 'blended' : 'layered';
+    localStorage.setItem(GLASS_VIEW_STORAGE_KEY, clean);
+    return clean;
+  } catch (err) {
+    console.error('Failed to save glass view preference:', err);
+    return mode;
+  }
+}
+
+// Tags a user has "pinned" to appear as their own browsable collection on the Home
+// page (e.g. tagging drinks "#house-favorites" and pinning that tag as a shelf).
+const PINNED_TAGS_STORAGE_KEY = 'speakeasy_pinned_tags';
+
+export function getPinnedTags() {
+  try {
+    const raw = localStorage.getItem(PINNED_TAGS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter(t => typeof t === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function savePinnedTags(tags) {
+  try {
+    const clean = Array.isArray(tags) ? tags.filter(t => typeof t === 'string') : [];
+    localStorage.setItem(PINNED_TAGS_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
+  } catch (err) {
+    console.error('Failed to save pinned tags:', err);
+    return tags;
+  }
+}
+
+// Recipe view history, most-recent-first, for the Home page's "Recently Viewed" shelf.
+const RECENTLY_VIEWED_STORAGE_KEY = 'speakeasy_recently_viewed';
+const RECENTLY_VIEWED_MAX = 15;
+
+export function getRecentlyViewed() {
+  try {
+    const raw = localStorage.getItem(RECENTLY_VIEWED_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter(id => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function recordRecentlyViewed(recipeId) {
+  if (!recipeId) return;
+  try {
+    const existing = getRecentlyViewed().filter(id => id !== recipeId);
+    const updated = [recipeId, ...existing].slice(0, RECENTLY_VIEWED_MAX);
+    localStorage.setItem(RECENTLY_VIEWED_STORAGE_KEY, JSON.stringify(updated));
+  } catch (err) {
+    console.error('Failed to record recently viewed recipe:', err);
+  }
+}
+
+const SORT_PREFERENCE_STORAGE_KEY = 'speakeasy_library_sort';
+const VALID_SORT_OPTIONS = new Set(['curated', 'name-asc', 'name-desc', 'ready', 'specs-asc']);
+
+export function getSortPreference() {
+  try {
+    const val = localStorage.getItem(SORT_PREFERENCE_STORAGE_KEY);
+    return VALID_SORT_OPTIONS.has(val) ? val : 'curated';
+  } catch {
+    return 'curated';
+  }
+}
+
+export function saveSortPreference(sortOption) {
+  try {
+    const clean = VALID_SORT_OPTIONS.has(sortOption) ? sortOption : 'curated';
+    localStorage.setItem(SORT_PREFERENCE_STORAGE_KEY, clean);
+    return clean;
+  } catch (err) {
+    console.error('Failed to save sort preference:', err);
+    return sortOption;
   }
 }
 

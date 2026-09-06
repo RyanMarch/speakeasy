@@ -30,6 +30,16 @@
   gap: 0.75rem;
 }
 
+.brand-group-btn {
+  text-align: left;
+  border-radius: var(--radius-sm);
+  transition: opacity var(--transition-fast);
+}
+
+.brand-group-btn:hover {
+  opacity: 0.82;
+}
+
 .brand-icon {
   width: 32px;
   height: 32px;
@@ -413,7 +423,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .btn-primary {
   background: var(--color-accent);
-  color: #121110;
+  color: var(--color-on-accent);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -421,7 +431,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .btn-primary:hover:not(:disabled) {
   background: var(--color-accent-light);
-  color: #121110;
+  color: var(--color-on-accent);
   transform: translateY(-1px);
 }
 
@@ -517,19 +527,29 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .search-input {
+  appearance: none;
+  -webkit-appearance: none;
   width: 100%;
   padding: 0.55rem 0.75rem 0.55rem 2.25rem;
   background: rgba(245, 240, 230, 0.04);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  color: #fff;
+  color: var(--color-text-bright);
   font-size: 0.92rem;
   outline: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
+.search-input::-webkit-search-cancel-button,
+.search-input::-webkit-search-decoration {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
 .search-input::placeholder {
-  color: #a69f94;
+  color: var(--color-text-muted);
 }
 
 .search-input:focus {
@@ -578,7 +598,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   background: transparent;
   border: 1px solid rgba(245, 240, 230, 0.08);
   border-radius: var(--radius-sm);
-  color: #bfb7aa;
+  color: var(--color-text-secondary);
   padding: 0.4rem 0.85rem;
   font-size: 0.82rem;
   font-weight: 500;
@@ -592,14 +612,14 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .pack-pill:hover:not(.active) {
   background: rgba(245, 240, 230, 0.05);
-  color: #fff;
+  color: var(--color-text-bright);
   border-color: rgba(245, 240, 230, 0.15);
 }
 
 .pack-pill.active {
   background: rgba(212, 163, 89, 0.15);
   border-color: rgba(212, 163, 89, 0.35);
-  color: #fff;
+  color: var(--color-text-bright);
   font-weight: 600;
 }
 
@@ -618,7 +638,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   background: rgba(245, 240, 230, 0.04);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
-  color: #c9c3b8;
+  color: var(--color-text-secondary);
   padding: 0.5rem 0.75rem;
   font-size: 0.84rem;
   font-weight: 600;
@@ -634,14 +654,14 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .inventory-filter-btn:hover {
   background: rgba(245, 240, 230, 0.08);
-  color: #fff;
+  color: var(--color-text-bright);
   border-color: var(--color-border);
 }
 
 .inventory-filter-btn.active {
   background: rgba(212, 163, 89, 0.15);
   border-color: rgba(212, 163, 89, 0.4);
-  color: #fff;
+  color: var(--color-text-bright);
 }
 
 .inventory-filter-btn .filter-count {
@@ -656,6 +676,70 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .inventory-filter-btn.active .filter-count {
   background: rgba(212, 163, 89, 0.28);
   color: var(--color-accent-light);
+}
+
+/* Sidebar Sort Bar */
+.sidebar-sort-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: rgba(18, 16, 14, 0.65);
+}
+
+.sidebar-sort-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-sort-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-sort-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(245, 240, 230, 0.04);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 500;
+  padding: 0.22rem 1.35rem 0.22rem 0.5rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23a59d93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+}
+
+.sidebar-sort-select:hover {
+  color: var(--color-text-bright);
+  background-color: rgba(245, 240, 230, 0.08);
+  border-color: var(--color-border-subtle);
+}
+
+.sidebar-sort-select:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  color: var(--color-text-bright);
+}
+
+.sidebar-sort-select option {
+  background: #1e1b18;
+  color: #f5f0e6;
 }
 
 /* Recipe List */
@@ -705,18 +789,18 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .recipe-item-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-text-bright);
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
 
 .recipe-list-item.active .recipe-item-name {
-  color: #fff;
+  color: var(--color-text-bright);
 }
 
 .recipe-item-glass {
   font-size: 0.75rem;
-  color: #bfb7aa;
+  color: var(--color-text-secondary);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -725,7 +809,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .recipe-list-item.active .recipe-item-glass {
-  color: #e5ded2;
+  color: var(--color-text-active);
 }
 
 @container (max-width: 275px) {
@@ -736,7 +820,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .recipe-item-ingredients {
   font-size: 0.8rem;
-  color: #c9c3b8;
+  color: var(--color-text-secondary);
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -747,7 +831,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .recipe-list-item.active .recipe-item-ingredients {
-  color: #ded7cb;
+  color: var(--color-text-active);
 }
 
 .recipe-item-status {
@@ -769,11 +853,11 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .recipe-item-status.status-ready {
-  color: #8ed6aa;
+  color: var(--color-success-light);
 }
 
 .recipe-item-status.status-next {
-  color: #e8c47f;
+  color: var(--color-accent-light);
 }
 
 .tag-badge {
@@ -908,7 +992,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .action-icon-btn:hover {
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  color: var(--color-text-bright);
 }
 
 .action-icon-btn:active {
@@ -986,7 +1070,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .meta-status-ready {
-  color: #7cb894;
+  color: var(--color-success);
   font-weight: 500;
   font-size: 0.82rem;
 }
@@ -1021,7 +1105,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   border: 1px solid rgba(185, 106, 67, 0.25);
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
-  color: #d98e68;
+  color: var(--color-sub);
 }
 
 .btn-sub-apply-link {
@@ -1073,7 +1157,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .status-pill-ready {
   background: rgba(77, 131, 99, 0.1);
   border-color: rgba(77, 131, 99, 0.25);
-  color: #7cb894;
+  color: var(--color-success);
 }
 
 .status-pill-next {
@@ -1091,7 +1175,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .status-pill-sub {
   background: rgba(185, 106, 67, 0.1);
   border-color: rgba(185, 106, 67, 0.28);
-  color: #d98e68;
+  color: var(--color-sub);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -1099,7 +1183,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .status-pill-sub:hover {
   background: rgba(185, 106, 67, 0.18);
   border-color: rgba(185, 106, 67, 0.45);
-  color: #ebaa88;
+  color: var(--color-sub-light);
 }
 
 .status-pill-sub strong {
@@ -1113,7 +1197,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   background: rgba(185, 106, 67, 0.2);
-  color: #ebaa88;
+  color: var(--color-sub-light);
   padding: 0.1rem 0.4rem;
   border-radius: 3px;
   margin-left: 0.35rem;
@@ -1180,7 +1264,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .drink-tag-text:hover {
-  color: #fff;
+  color: var(--color-text-bright);
   text-decoration: underline;
 }
 
@@ -1192,7 +1276,9 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-size: 0.85rem;
   line-height: 1;
   padding: 0;
-  margin: 0 0 0 0.15rem;
+  margin: -5px -5px -5px 0.15rem;
+  min-width: 24px;
+  min-height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1206,17 +1292,89 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .tag-input-inline-wrapper {
   display: inline-flex;
   align-items: center;
+  position: relative;
+}
+
+/* Custom Tag Autocomplete Dropdown (replaces native <datalist>, which renders as an
+   unstyled, unfiltered, full-height list on mobile browsers) */
+.tag-input-autocomplete-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.tag-input-autocomplete-wrapper .editor-tag-input-field {
+  width: 100%;
+}
+
+.tag-suggest-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+}
+
+.tag-suggest-item {
+  padding: 0.55rem 0.65rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.tag-suggest-item:hover,
+.tag-suggest-item.active {
+  background: rgba(212, 163, 89, 0.12);
+  color: var(--color-text);
+}
+
+.tag-suggest-item-empty {
+  padding: 0.55rem 0.65rem;
+  font-size: 0.8rem;
+  color: var(--color-text-faint);
+  font-style: italic;
+  cursor: default;
+}
+
+/* The inline "+ Add tag" input is a narrow pill, not a full-width field, so its
+   suggestion list needs its own width rather than matching the input's width. */
+.tag-input-inline-wrapper .tag-suggest-list {
+  left: 0;
+  right: auto;
+  width: max-content;
+  min-width: 180px;
+  max-width: min(220px, calc(100vw - 2rem));
 }
 
 .tag-input-inline {
-  background: rgba(245, 240, 230, 0.03);
-  border: 1px dashed var(--color-border);
+  background: rgba(245, 240, 230, 0.04);
+  border: 1px solid rgba(245, 240, 230, 0.09);
   border-radius: var(--radius-sm);
   color: var(--color-text);
   font-size: 0.76rem;
   padding: 0.18rem 0.5rem;
   width: 85px;
   transition: all 0.2s ease;
+}
+
+.tag-input-inline:hover {
+  background: rgba(245, 240, 230, 0.08);
+  border-color: rgba(245, 240, 230, 0.18);
 }
 
 .tag-input-inline:focus {
@@ -1228,7 +1386,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .tag-input-inline::placeholder {
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
 }
 
 /* Stage Split: Glass on Left, Specs on Right */
@@ -1270,6 +1428,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   width: 100%;
   height: 100%;
   filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+  will-change: transform, filter;
 }
 
 .fluid-layer {
@@ -1277,11 +1436,183 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   cursor: pointer;
 }
 
+/* Layered vs Blended Cross-fade and Vortex Animation */
+.fluid-stack .fluid-layered-group,
+.fluid-stack .fluid-blended-group {
+  transition: opacity 550ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
+              filter 650ms ease;
+  transform-origin: 120px 200px;
+}
+
+/* Default Mode Displays */
+.fluid-stack[data-mode="layered"] .fluid-layered-group {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+  filter: none;
+}
+
+.fluid-stack[data-mode="layered"] .fluid-blended-group {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.96) translateY(6px);
+  filter: blur(4px);
+}
+
+.fluid-stack[data-mode="blended"] .fluid-layered-group {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(1.04) translateY(-4px);
+  filter: blur(5px);
+}
+
+.fluid-stack[data-mode="blended"] .fluid-blended-group {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+  filter: none;
+}
+
+/* Indulgent Over-The-Top Swirl & Vortex Shake Keyframes */
+@keyframes cocktailSwirlForward {
+  0% {
+    transform: rotate(0deg) scale(1);
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+  }
+  15% {
+    transform: rotate(-3.5deg) scale(1.025) translateY(-3px);
+  }
+  30% {
+    transform: rotate(4deg) scale(1.04) translateY(-1px);
+    filter: drop-shadow(0 14px 28px rgba(0, 150, 199, 0.45));
+  }
+  48% {
+    transform: rotate(-3deg) scale(1.02);
+  }
+  65% {
+    transform: rotate(2deg) scale(1.01) translateY(-1px);
+  }
+  82% {
+    transform: rotate(-1deg) scale(1.005);
+  }
+  100% {
+    transform: rotate(0deg) scale(1) translateY(0);
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+  }
+}
+
+@keyframes cocktailSwirlBackward {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(3deg) scale(1.02) translateY(-2px);
+  }
+  45% {
+    transform: rotate(-3.5deg) scale(1.03);
+  }
+  70% {
+    transform: rotate(1.5deg) scale(1.01);
+  }
+  100% {
+    transform: rotate(0deg) scale(1) translateY(0);
+  }
+}
+
+@keyframes fluidVortexDistort {
+  0% {
+    filter: none;
+    transform: scale(1);
+  }
+  25% {
+    filter: url(#glass-1-swirl);
+    transform: scale(1.05) rotate(4deg);
+  }
+  50% {
+    filter: brightness(1.28) contrast(1.15) saturate(1.3);
+    transform: scale(1.02) rotate(-3deg);
+  }
+  75% {
+    filter: brightness(1.1) saturate(1.15);
+    transform: scale(1.01) rotate(1deg);
+  }
+  100% {
+    filter: none;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.speakeasy-glass-svg.is-blending-forward {
+  animation: cocktailSwirlForward 850ms cubic-bezier(0.25, 1, 0.3, 1) forwards;
+}
+
+.speakeasy-glass-svg.is-blending-forward .fluid-stack {
+  animation: fluidVortexDistort 850ms ease-in-out forwards;
+}
+
+.speakeasy-glass-svg.is-blending-backward {
+  animation: cocktailSwirlBackward 750ms cubic-bezier(0.25, 1, 0.3, 1) forwards;
+}
+
+/* Glass View Segmented Switch */
+.glass-view-toggle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.glass-view-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 3px;
+  gap: 2px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.glass-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.73rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 180ms ease;
+  user-select: none;
+}
+
+.glass-view-btn:hover:not(.active) {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.glass-view-btn.active {
+  background: var(--color-accent);
+  color: var(--color-text-bright);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.glass-view-btn svg {
+  flex-shrink: 0;
+}
+
 .glass-meta-card {
   width: 100%;
   max-width: 260px;
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.25rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.25rem;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -1308,6 +1639,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   color: var(--color-text-muted);
 }
 
+
 .glass-total-volume strong,
 .glass-abv strong {
   color: var(--color-text);
@@ -1333,7 +1665,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .glass-source a:hover {
-  color: #ffffff;
+  color: var(--color-text-bright);
 }
 
 .glass-interaction-tip {
@@ -1420,7 +1752,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .card-source a:hover {
-  color: #ffffff;
+  color: var(--color-text-bright);
 }
 
 /* Specs Column */
@@ -1551,7 +1883,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .servings-btn:hover:not(:disabled) {
   background: var(--color-accent);
-  color: #121110;
+  color: var(--color-on-accent);
 }
 
 .servings-btn:active:not(:disabled) {
@@ -1610,7 +1942,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .unit-btn.active {
   background: var(--color-accent);
-  color: #121110;
+  color: var(--color-on-accent);
   font-weight: 600;
 }
 
@@ -1708,7 +2040,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .stock-check-glyph {
-  color: #7cb894;
+  color: var(--color-success);
   margin-right: 0.25rem;
   font-weight: bold;
 }
@@ -1764,7 +2096,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   border-radius: var(--radius-sm);
   font-size: 0.7rem;
   font-weight: 500;
-  color: #d98e68;
+  color: var(--color-sub);
   cursor: pointer;
   line-height: 1.2;
   transition: all var(--transition-fast);
@@ -1773,7 +2105,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .btn-sub-chip:hover {
   background: rgba(185, 106, 67, 0.18);
   border-color: rgba(185, 106, 67, 0.45);
-  color: #ebaa88;
+  color: var(--color-sub-light);
 }
 
 .sub-more-badge {
@@ -1850,7 +2182,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .btn-stock-toggle.out-of-stock:hover {
   background: rgba(212, 163, 89, 0.15);
   border-color: var(--color-accent);
-  color: #ffffff;
+  color: var(--color-text-bright);
 }
 
 .spec-staple-tag {
@@ -1921,8 +2253,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .spec-riff-select option {
-  background-color: #1f1c19;
-  color: #f5f2ea;
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
 .riff-active-pill {
@@ -1980,7 +2312,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .editorial-source a:hover {
-  color: #ffffff;
+  color: var(--color-text-bright);
 }
 
 .recipe-editorial-footer .drink-tags-bar {
@@ -2055,8 +2387,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .form-select option {
-  background-color: #1a1816;
-  color: #f5f2ea;
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
 .form-input:focus,
@@ -2160,6 +2492,9 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-size: 0.85rem;
   line-height: 1;
   padding: 0;
+  margin: -5px -5px -5px 0;
+  min-width: 24px;
+  min-height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2457,7 +2792,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .similar-relation-badge.badge-orig {
   background: rgba(185, 106, 67, 0.12);
   border-color: rgba(185, 106, 67, 0.3);
-  color: #d98e68;
+  color: var(--color-sub);
 }
 
 .similar-relation-badge.badge-riff {
@@ -2476,6 +2811,12 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   background: rgba(245, 240, 230, 0.03);
   border-color: var(--color-border-subtle);
   color: var(--color-text-faint);
+}
+
+.similar-relation-badge.badge-ready {
+  background: rgba(77, 131, 99, 0.12);
+  border-color: rgba(77, 131, 99, 0.3);
+  color: var(--color-success);
 }
 
 .similar-card-name {
@@ -2511,6 +2852,128 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   overflow: hidden;
   text-overflow: ellipsis;
   padding-top: 0.1rem;
+}
+
+/* Home Landing Page */
+.home-view {
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+  min-width: 0;
+  animation: fadeIn 200ms ease;
+}
+
+.home-stats-card {
+  padding: 1.75rem 0 1.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.home-stats-name {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  margin-bottom: 0.85rem;
+}
+
+.home-stats-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.home-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.home-stat strong {
+  font-family: var(--font-sans);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-accent-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.home-stat span {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.home-stat-divider {
+  width: 1px;
+  height: 1.1rem;
+  background: var(--color-border);
+}
+
+.home-browse-all-btn {
+  display: none;
+}
+
+/* Pin-a-Tag Row */
+.home-pin-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.home-pin-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-faint);
+}
+
+.home-pin-input-wrapper .tag-input-inline {
+  width: 110px;
+}
+
+.home-pin-input-wrapper .tag-input-inline:focus {
+  width: 150px;
+}
+
+/* Home Collection Shelves (reuses .similar-cocktails-shelf / .similar-cocktail-card) */
+.home-pin-row + .home-shelf {
+  margin-top: 1.5rem;
+}
+
+.home-unpin-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0;
+  margin: -5px -5px -5px 0;
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.home-unpin-btn:hover {
+  color: var(--color-crimson);
+}
+
+.home-empty-state {
+  padding: 2.5rem 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Reserve space before a shelf's cards are lazily hydrated (see setupHomeViewEvents),
+   so shelves further down the page don't jump around as ones above them fill in. */
+.home-track:empty {
+  min-height: 218px;
 }
 
 /* Bottle Next Recommendation Note */
@@ -2729,7 +3192,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .backbar-nav-tab.active {
   background: rgba(212, 163, 89, 0.16);
   border-color: rgba(212, 163, 89, 0.45);
-  color: #fff;
+  color: var(--color-text-bright);
   font-weight: 600;
 }
 
@@ -2909,6 +3372,20 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 @media (max-width: 768px) {
+  /* Prevent iOS automatic zoom on focus by ensuring minimum 16px font-size */
+  input,
+  select,
+  textarea,
+  .form-input,
+  .form-select,
+  .form-textarea,
+  .search-input,
+  .vault-bar-name-input,
+  .quick-paste-textarea,
+  .editor-tag-input-field,
+  .tag-input-inline {
+    font-size: 16px !important;
+  }
 
   /* Header Mobile Compact: Fixed & Sticky at top */
   .app-header {
@@ -3112,10 +3589,11 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     gap: 0.75rem;
     margin: 0 -1.25rem 1.15rem -1.25rem;
     padding: 0.65rem 1.25rem;
-    background: rgba(18, 17, 16, 0.94);
+    background: rgba(18, 17, 16, 0.98);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--color-border-subtle);
+    transform: translateZ(0);
   }
 
   .mobile-back-btn {
@@ -3163,17 +3641,21 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
   .drink-title-row {
     display: flex;
-    flex-direction: row;
+    flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
     gap: 0.75rem;
+  }
+
+  .drink-title-header-left {
+    min-width: 0;
+    flex: 1 1 180px;
   }
 
   .drink-name {
     font-size: clamp(1.75rem, 6.5vw, 2.3rem);
     line-height: 1.18;
     margin-bottom: 0.25rem;
-    flex: 1;
     min-width: 0;
     word-break: break-word;
   }
@@ -3182,7 +3664,10 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     margin-top: 0.15rem;
     flex-shrink: 0;
     display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 0.35rem;
+    max-width: 100%;
   }
 
   .action-icon-btn {
@@ -3360,6 +3845,17 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     border-radius: var(--radius-sm);
   }
 
+  .counter-view.riff-mode-active .spec-row {
+    grid-template-columns: 55px 1fr auto auto;
+    gap: 0.4rem;
+  }
+
+  .spec-riff-select {
+    font-size: 0.7rem;
+    padding: 0.2rem 1.1rem 0.2rem 0.4rem;
+    max-width: 105px;
+  }
+
   .spec-amount {
     font-size: 1.08rem;
   }
@@ -3521,6 +4017,27 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     margin-bottom: 0.5rem;
   }
 
+  /* Home Landing Page on Mobile */
+  .home-stats-card {
+    padding: 1.25rem 0 1.15rem;
+  }
+
+  .home-stats-name {
+    font-size: 1.6rem;
+  }
+
+  .home-browse-all-btn {
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.25rem;
+  }
+
+  .home-pin-row {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
   /* Backbar Modal on Mobile */
   .backbar-dialog {
     width: 96vw;
@@ -3639,7 +4156,6 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   .editor-spec-row .form-input,
   .editor-spec-row .form-select {
     padding: 0.55rem 0.45rem;
-    font-size: 0.86rem;
     min-height: 38px;
   }
 
@@ -3655,7 +4171,6 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
   .editor-spec-row .spec-input-abv {
     padding: 0.55rem 0.25rem;
-    font-size: 0.8rem;
     text-align: center;
   }
 

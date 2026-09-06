@@ -16,9 +16,18 @@ import {
   getAllUniqueTags,
   getUnitPreference,
   saveUnitPreference,
+  getGlassViewPreference,
+  saveGlassViewPreference,
   getBarName,
   saveBarName,
   SEED_RECIPES,
+  normalizeTagName,
+  getPinnedTags,
+  savePinnedTags,
+  getSortPreference,
+  saveSortPreference,
+  getRecentlyViewed,
+  recordRecentlyViewed,
 } from './js/modules/storage.js';
 
 const SEED_RECIPE_IDS = new Set(SEED_RECIPES.map(r => r.id));
@@ -55,8 +64,10 @@ const state = {
   activeRiffs: {}, // { [specIndex]: substituteTaxonomyId }
   riffModeActive: false,
   searchQuery: '',
-  viewMode: 'counter', // 'counter' | 'edit'
+  viewMode: 'counter', // 'home' | 'counter' | 'edit'
+  pinnedTags: getPinnedTags(),
   unitSystem: getUnitPreference(), // 'oz' | 'ml'
+  glassViewMode: getGlassViewPreference(), // 'layered' | 'blended'
   servings: 1, // Serving multiplier (default 1, increments by 0.5)
   editorSpecs: [],
   editorTags: [],
@@ -64,6 +75,7 @@ const state = {
   glassViewEditor: null,
   inventory: new Set(getInventory()),
   inventoryFilter: 'all', // 'all' | 'can_make' | 'one_missing'
+  sortPreference: getSortPreference(), // 'curated' | 'name-asc' | 'name-desc' | 'ready' | 'specs-asc'
   packFilter: 'all', // 'all' | 'classic' | 'modern-craft' | 'tropical-tiki' | 'prohibition-era' | 'aperitivo-amaro' | 'nightcaps'
   backbarSearchQuery: '',
   backbarCategoryFilter: 'all', // 'all' | categoryKey | 'fridge'
@@ -88,14 +100,19 @@ const elements = {
   vaultStatsLine: document.getElementById('vault-stats-line'),
   popoverUnitOz: document.getElementById('popover-unit-oz'),
   popoverUnitMl: document.getElementById('popover-unit-ml'),
+  popoverGlassLayered: document.getElementById('popover-glass-layered'),
+  popoverGlassBlended: document.getElementById('popover-glass-blended'),
   btnResetDefaults: document.getElementById('btn-reset-defaults'),
   counterViewContainer: document.getElementById('counter-view-container'),
   editorViewContainer: document.getElementById('editor-view-container'),
+  homeViewContainer: document.getElementById('home-view-container'),
+  btnGoHome: document.getElementById('btn-go-home'),
   toastContainer: document.getElementById('toast-container'),
   btnMyBar: document.getElementById('btn-my-bar'),
   myBarBadge: document.getElementById('my-bar-badge'),
   sidebarPackFilter: document.getElementById('sidebar-pack-filter'),
   sidebarInventoryFilter: document.getElementById('sidebar-inventory-filter'),
+  sidebarSortSelect: document.getElementById('sidebar-sort-select'),
   countAll: document.getElementById('count-all'),
   countCanMake: document.getElementById('count-can-make'),
   countOneMissing: document.getElementById('count-one-missing'),
@@ -134,26 +151,27 @@ function init() {
     }
   }
 
+  // A hash that resolves to a real recipe is a deep link: land straight on that recipe.
+  // Otherwise, land on Home rather than always defaulting to the top of the library.
+  const deepLinkedToRecipe = Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
+
   if (!initialId && state.recipes.length > 0) {
     initialId = state.recipes[0].id;
   }
 
   state.activeRecipeId = initialId;
+  state.viewMode = deepLinkedToRecipe ? 'counter' : 'home';
   // If a specific recipe was requested via hash, keep it in sync; otherwise do not force a hash onto a clean URL
-  if (urlHash && initialId) {
+  if (urlHash && initialId && deepLinkedToRecipe) {
     history.replaceState(null, '', `#${initialId}`);
   }
 
-  // On mobile screens, show the recipe stage if a hash was specified, otherwise start on the cocktail list
+  // On mobile screens, Home and the recipe stage both live in the main-stage pane,
+  // so either way start there; the drink list is reached from within Home/back-nav.
   const isMobile = window.innerWidth <= 768;
   if (isMobile) {
-    if (urlHash) {
-      elements.sidebar.classList.add('mobile-hidden');
-      elements.mainStage.classList.remove('mobile-hidden');
-    } else {
-      elements.sidebar.classList.remove('mobile-hidden');
-      elements.mainStage.classList.add('mobile-hidden');
-    }
+    elements.sidebar.classList.add('mobile-hidden');
+    elements.mainStage.classList.remove('mobile-hidden');
   }
 
   setupGlobalEventListeners();
@@ -166,6 +184,10 @@ function init() {
   if (elements.popoverUnitOz && elements.popoverUnitMl) {
     elements.popoverUnitOz.classList.toggle('active', state.unitSystem === 'oz');
     elements.popoverUnitMl.classList.toggle('active', state.unitSystem === 'ml');
+  }
+  if (elements.popoverGlassLayered && elements.popoverGlassBlended) {
+    elements.popoverGlassLayered.classList.toggle('active', state.glassViewMode === 'layered');
+    elements.popoverGlassBlended.classList.toggle('active', state.glassViewMode === 'blended');
   }
   if (elements.vaultBarNameInput) {
     elements.vaultBarNameInput.value = getBarName();
@@ -198,6 +220,10 @@ function setupGlobalEventListeners() {
   });
 
   // Header Actions
+  elements.btnGoHome?.addEventListener('click', () => {
+    goHome();
+  });
+
   elements.btnNewDrink.addEventListener('click', () => {
     openEditor(null);
   });
@@ -224,6 +250,14 @@ function setupGlobalEventListeners() {
 
   elements.importFileInput.addEventListener('change', handleFileImport);
 
+  // Sidebar Sort Select
+  if (elements.sidebarSortSelect) {
+    elements.sidebarSortSelect.value = state.sortPreference;
+    elements.sidebarSortSelect.addEventListener('change', (e) => {
+      setLibrarySort(e.target.value);
+    });
+  }
+
   // Vault Menu Popover Controls
   elements.popoverUnitOz?.addEventListener('click', () => {
     setUnitSystem('oz');
@@ -231,6 +265,14 @@ function setupGlobalEventListeners() {
 
   elements.popoverUnitMl?.addEventListener('click', () => {
     setUnitSystem('ml');
+  });
+
+  elements.popoverGlassLayered?.addEventListener('click', () => {
+    setGlassViewMode('layered');
+  });
+
+  elements.popoverGlassBlended?.addEventListener('click', () => {
+    setGlassViewMode('blended');
   });
 
   elements.vaultBarNameInput?.addEventListener('change', (e) => {
@@ -264,11 +306,14 @@ function setupGlobalEventListeners() {
   window.addEventListener('hashchange', () => {
     const rawHash = window.location.hash.replace(/^#+/, '').trim();
     if (!rawHash) {
-      // User removed the hash from URL: return to list view on mobile or preserve view without hash
-      if (elements.sidebar && elements.mainStage) {
-        elements.sidebar.classList.remove('mobile-hidden');
-        elements.mainStage.classList.add('mobile-hidden');
+      // User navigated back past the last recipe (or cleared the hash manually): land on Home
+      if (state.viewMode !== 'home') {
+        state.viewMode = 'home';
+        renderRecipeList();
+        renderCurrentView();
       }
+      elements.sidebar.classList.add('mobile-hidden');
+      elements.mainStage.classList.remove('mobile-hidden');
       return;
     }
     if (rawHash !== state.activeRecipeId && state.recipes.some(r => r.id === rawHash)) {
@@ -360,6 +405,57 @@ function setUnitSystem(unit) {
   }
 
   showToast(`Units switched to ${unit === 'oz' ? 'Ounces (oz)' : 'Milliliters (ml)'}`);
+}
+
+/**
+ * Set default glass view mode (layered vs blended) and persist choice
+ */
+function setGlassViewMode(mode) {
+  if (mode !== 'layered' && mode !== 'blended') return;
+  if (state.glassViewMode === mode) return; // Already in requested mode
+  state.glassViewMode = mode;
+  saveGlassViewPreference(mode);
+
+  if (elements.popoverGlassLayered && elements.popoverGlassBlended) {
+    elements.popoverGlassLayered.classList.toggle('active', mode === 'layered');
+    elements.popoverGlassBlended.classList.toggle('active', mode === 'blended');
+  }
+
+  if (state.glassViewMain) {
+    state.glassViewMain.setMode(mode);
+  }
+
+  const toggleBtns = elements.counterViewContainer?.querySelectorAll('.glass-view-btn');
+  toggleBtns?.forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+  });
+
+  showToast(`Glass view switched to ${mode === 'blended' ? 'Mixed Color' : 'Layered Specs'}`);
+}
+
+/**
+ * Set library list sort preference, persist to storage, and re-render sidebar
+ */
+function setLibrarySort(sortOption) {
+  if (state.sortPreference === sortOption) return;
+  state.sortPreference = sortOption;
+  saveSortPreference(sortOption);
+
+  if (elements.sidebarSortSelect && elements.sidebarSortSelect.value !== sortOption) {
+    elements.sidebarSortSelect.value = sortOption;
+  }
+
+  renderRecipeList();
+
+  const labels = {
+    'curated': 'Curated',
+    'name-asc': 'Alphabetical (A–Z)',
+    'name-desc': 'Alphabetical (Z–A)',
+    'ready': 'Backbar Readiness',
+    'specs-asc': 'Fewest Ingredients',
+  };
+  const label = labels[sortOption] || 'Selected';
+  showToast(`Sorted by ${label}`);
 }
 
 /**
@@ -583,7 +679,8 @@ function renderBackbarModalContent() {
       if (item.id.toLowerCase().includes(query)) return true;
       if (item.family && item.family.toLowerCase().includes(query)) return true;
       if (['fridge', 'refrigerated', 'refrigerate', 'chilled', 'chill'].includes(query) && REFRIGERATED_INGREDIENT_IDS.has(item.id)) return true;
-      return (item.aliases || []).some(a => a.toLowerCase().includes(query));
+      if ((item.aliases || []).some(a => a.toLowerCase().includes(query))) return true;
+      return (item.brands || []).some(b => b.toLowerCase().includes(query));
     });
 
     if (items.length === 0) return '';
@@ -673,6 +770,34 @@ function renderRecipeList() {
     return true;
   });
 
+  // Apply library list sort
+  const sortMode = state.sortPreference || 'curated';
+  if (sortMode === 'name-asc') {
+    filtered.sort((a, b) => a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' }));
+  } else if (sortMode === 'name-desc') {
+    filtered.sort((a, b) => b.recipe.name.localeCompare(a.recipe.name, undefined, { sensitivity: 'base' }));
+  } else if (sortMode === 'ready') {
+    filtered.sort((a, b) => {
+      // 1. Ready to make first
+      if (a.invAnalysis.canMake !== b.invAnalysis.canMake) {
+        return a.invAnalysis.canMake ? -1 : 1;
+      }
+      // 2. 1 bottle missing next
+      if (a.invAnalysis.isBottleNext !== b.invAnalysis.isBottleNext) {
+        return a.invAnalysis.isBottleNext ? -1 : 1;
+      }
+      // 3. Keep original curated order
+      return 0;
+    });
+  } else if (sortMode === 'specs-asc') {
+    filtered.sort((a, b) => {
+      const lenA = (a.recipe.specs || []).length;
+      const lenB = (b.recipe.specs || []).length;
+      if (lenA !== lenB) return lenA - lenB;
+      return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+    });
+  }
+
   elements.recipeCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Cocktail' : 'Cocktails'}`;
 
   if (filtered.length === 0) {
@@ -713,7 +838,7 @@ function renderRecipeList() {
   }
 
   elements.recipeList.innerHTML =  /*html*/filtered.map(({ recipe, invAnalysis }) => {
-    const isActive = recipe.id === state.activeRecipeId;
+    const isActive = state.viewMode === 'counter' && recipe.id === state.activeRecipeId;
     const specsPreview = (recipe.specs || []).map(s => s.name).slice(0, 3).join(', ');
 
     let inventoryStatusHtml = '';
@@ -768,6 +893,105 @@ function filterByTag(tag) {
 }
 
 /**
+ * Wire a text input to a small, app-styled autocomplete dropdown of tag suggestions.
+ * Replaces native <input list> + <datalist>, which on mobile browsers renders as an
+ * unstyled dropdown showing the *entire* unfiltered tag list rather than filtering as you type.
+ *
+ * @param {HTMLInputElement} inputEl - the text input
+ * @param {HTMLElement} listEl - an empty <ul> positioned to appear below the input
+ * @param {() => string[]} getSuggestions - returns the current pool of candidate tags
+ * @param {(tag: string) => void} onPick - called with the chosen/typed tag; input is cleared after
+ */
+function setupTagAutocomplete(inputEl, listEl, getSuggestions, onPick) {
+  if (!inputEl || !listEl) return;
+
+  let matches = [];
+  let activeIndex = -1;
+
+  const close = () => {
+    listEl.hidden = true;
+    listEl.innerHTML = '';
+    matches = [];
+    activeIndex = -1;
+  };
+
+  const renderList = () => {
+    const query = inputEl.value.trim().toLowerCase().replace(/^#+/, '');
+    const pool = getSuggestions();
+    // No result cap: the list scrolls (see .tag-suggest-list max-height), so truncating
+    // here would silently hide entries below the fold with no way to reach them.
+    matches = query ? pool.filter(t => t.includes(query)) : pool;
+
+    if (!matches.length) {
+      if (query) {
+        listEl.hidden = false;
+        listEl.innerHTML = `<li class="tag-suggest-item-empty">Press Enter to create "#${escapeHtml(query)}"</li>`;
+      } else {
+        close();
+      }
+      return;
+    }
+
+    listEl.innerHTML = matches.map((tag, i) => `
+      <li class="tag-suggest-item${i === activeIndex ? ' active' : ''}" role="option" data-index="${i}">#${escapeHtml(tag)}</li>
+    `).join('');
+    listEl.hidden = false;
+
+    if (activeIndex >= 0) {
+      listEl.querySelector('.tag-suggest-item.active')?.scrollIntoView({ block: 'nearest' });
+    }
+  };
+
+  const pick = (tag) => {
+    onPick(tag);
+    inputEl.value = '';
+    close();
+  };
+
+  inputEl.addEventListener('input', () => {
+    activeIndex = -1;
+    renderList();
+  });
+
+  inputEl.addEventListener('focus', renderList);
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' && !listEl.hidden && matches.length) {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, matches.length - 1);
+      renderList();
+    } else if (e.key === 'ArrowUp' && !listEl.hidden && matches.length) {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+      renderList();
+    } else if (e.key === 'Escape') {
+      close();
+    } else if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      if (activeIndex >= 0 && matches[activeIndex]) {
+        pick(matches[activeIndex]);
+      } else if (inputEl.value.trim()) {
+        pick(inputEl.value);
+      }
+    }
+  });
+
+  // mousedown (not click) fires before the input's blur handler, so the tap registers
+  // before the dropdown gets torn down
+  listEl.addEventListener('mousedown', (e) => {
+    const item = e.target.closest('.tag-suggest-item');
+    if (!item) return;
+    e.preventDefault();
+    const idx = Number(item.dataset.index);
+    if (matches[idx]) pick(matches[idx]);
+  });
+
+  inputEl.addEventListener('blur', () => {
+    setTimeout(close, 120);
+  });
+}
+
+/**
  * Select a recipe and display counter view
  */
 function selectRecipe(id, updateHistory = true) {
@@ -781,6 +1005,7 @@ function selectRecipe(id, updateHistory = true) {
   }
   state.activeRecipeId = id;
   state.viewMode = 'counter';
+  recordRecentlyViewed(id);
 
   try {
     localStorage.setItem('speakeasy_last_active_recipe', id);
@@ -812,13 +1037,290 @@ function selectRecipe(id, updateHistory = true) {
  */
 function renderCurrentView() {
   if (state.viewMode === 'edit') {
+    elements.homeViewContainer.style.display = 'none';
     elements.counterViewContainer.style.display = 'none';
     elements.editorViewContainer.style.display = 'block';
+    elements.btnNewDrink.style.display = 'none';
+  } else if (state.viewMode === 'home') {
+    elements.editorViewContainer.style.display = 'none';
+    elements.counterViewContainer.style.display = 'none';
+    elements.homeViewContainer.style.display = 'block';
+    elements.btnNewDrink.style.display = '';
+    renderHomeView();
   } else {
+    elements.homeViewContainer.style.display = 'none';
     elements.editorViewContainer.style.display = 'none';
     elements.counterViewContainer.style.display = 'block';
+    elements.btnNewDrink.style.display = '';
     renderCounterView();
   }
+}
+
+/**
+ * Navigate to the Home landing page
+ */
+function goHome() {
+  state.viewMode = 'home';
+  if (window.location.hash) {
+    history.pushState(null, '', window.location.pathname + window.location.search);
+  }
+  renderRecipeList();
+  renderCurrentView();
+
+  // Mobile navigation: Home lives in the main-stage pane, same as a recipe or the editor
+  elements.sidebar.classList.add('mobile-hidden');
+  elements.mainStage.classList.remove('mobile-hidden');
+  if (elements.mainStage) {
+    elements.mainStage.scrollTop = 0;
+  }
+}
+
+/**
+ * Reveal the drink list (sidebar) on mobile, where Home/recipe/editor otherwise
+ * occupy the entire screen
+ */
+function showDrinksListMobile() {
+  elements.sidebar.classList.remove('mobile-hidden');
+  elements.mainStage.classList.add('mobile-hidden');
+}
+
+// Curated Home collections. Each maps to an existing recipe tag; rows with no
+// matching recipes are simply skipped, so this list can grow without upkeep.
+const HOME_DEFAULT_COLLECTIONS = [
+  { key: 'classic', title: 'Classic Cocktails' },
+  { key: 'modern-craft', title: 'Modern Craft' },
+  { key: 'tropical-tiki', title: 'Tropical & Tiki' },
+  { key: 'prohibition-era', title: 'Prohibition Era' },
+  { key: 'aperitivo-amaro', title: 'Aperitivo & Amaro' },
+  { key: 'nightcaps', title: 'Nightcaps' },
+  { key: 'gin-forward', title: 'Gin-Forward' },
+  { key: 'whiskey-forward', title: 'Whiskey-Forward' },
+  { key: 'rum-forward', title: 'Rum-Forward' },
+];
+
+function formatTagTitle(tag) {
+  return tag.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+// Populated by renderHomeView() and read by the IntersectionObserver in
+// setupHomeViewEvents() to lazily fill in each shelf's cards (see below).
+let homeCollectionsCache = [];
+
+/**
+ * Render the Home landing page: bar stats + horizontally-scrolling collection shelves.
+ * Shelf cards (which each render a full inline SVG glass) are lazy-hydrated on scroll
+ * rather than all at once, so the initial paint stays fast regardless of library size.
+ */
+function renderHomeView() {
+  const container = elements.homeViewContainer;
+  if (!container) return;
+
+  const barName = getBarName();
+  const ingredientCount = state.inventory.size;
+  const cocktailCount = state.recipes.length;
+
+  const recentlyViewedIds = getRecentlyViewed();
+  const recentlyViewedRecipes = recentlyViewedIds
+    .map(id => state.recipes.find(r => r.id === id))
+    .filter(Boolean);
+  const recentlyViewedCollection = recentlyViewedRecipes.length > 0 ? [{
+    key: '__recently-viewed__',
+    title: 'Recently Viewed',
+    pinned: false,
+    recipes: recentlyViewedRecipes,
+  }] : [];
+
+  const pinnedCollections = state.pinnedTags
+    .map(tag => ({
+      key: tag,
+      title: formatTagTitle(tag),
+      pinned: true,
+      recipes: state.recipes.filter(r => Array.isArray(r.tags) && r.tags.includes(tag)),
+    }))
+    .filter(c => c.recipes.length > 0);
+
+  const defaultCollections = HOME_DEFAULT_COLLECTIONS
+    .map(c => ({
+      ...c,
+      pinned: false,
+      recipes: state.recipes.filter(r => Array.isArray(r.tags) && r.tags.includes(c.key)),
+    }))
+    .filter(c => c.recipes.length > 0);
+
+  const allCollections = [...recentlyViewedCollection, ...pinnedCollections, ...defaultCollections];
+  homeCollectionsCache = allCollections;
+  const pinnableTags = getAllUniqueTags(state.recipes).filter(t => !state.pinnedTags.includes(t));
+
+  container.innerHTML =  /*html*/`
+    <div class="home-stats-card">
+      <div class="home-stats-name">${escapeHtml(barName)}</div>
+      <div class="home-stats-row">
+        <div class="home-stat">
+          <strong>${cocktailCount}</strong>
+          <span>${cocktailCount === 1 ? 'Cocktail' : 'Cocktails'}</span>
+        </div>
+        <div class="home-stat-divider" aria-hidden="true"></div>
+        <div class="home-stat">
+          <strong>${ingredientCount}</strong>
+          <span>${ingredientCount === 1 ? 'Ingredient' : 'Ingredients'} in Bar</span>
+        </div>
+      </div>
+      <button type="button" id="btn-home-browse-all" class="btn btn-secondary btn-sm home-browse-all-btn">
+        Browse All Drinks
+      </button>
+    </div>
+
+    <div class="home-pin-row">
+      <span class="home-pin-label">Pin a tag as a collection</span>
+      <div class="tag-input-inline-wrapper home-pin-input-wrapper">
+        <input type="text" id="home-pin-tag-input" class="tag-input-inline home-pin-input"
+          placeholder="+ Pin tag..." aria-label="Pin a tag as a Home collection" autocomplete="off">
+        <ul class="tag-suggest-list" id="home-pin-suggest-list" role="listbox" hidden></ul>
+      </div>
+    </div>
+
+    ${allCollections.length > 0 ? allCollections.map(renderHomeShelf).join('') : /*html*/`
+      <div class="home-empty-state">
+        <p>No collections yet — tag a few drinks and they'll show up here as browsable rows.</p>
+      </div>
+    `}
+  `;
+
+  setupHomeViewEvents(pinnableTags);
+}
+
+function renderHomeShelf(col, idx) {
+  return  /*html*/`
+    <div class="similar-cocktails-shelf home-shelf">
+      <div class="counter-card-header shelf-header">
+        <div class="shelf-header-left">
+          <span class="counter-card-title">${escapeHtml(col.title)}</span>
+          ${col.pinned ? `
+            <button type="button" class="home-unpin-btn" data-action="unpin-tag" data-tag="${escapeHtml(col.key)}"
+              title="Remove this collection from Home" aria-label="Remove ${escapeHtml(col.title)} collection">×</button>
+          ` : ''}
+        </div>
+        <div class="shelf-scroll-controls">
+          <button type="button" class="shelf-nav-btn shelf-nav-prev" aria-label="Scroll ${escapeHtml(col.title)} left" title="Scroll left">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button type="button" class="shelf-nav-btn shelf-nav-next" aria-label="Scroll ${escapeHtml(col.title)} right" title="Scroll right">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+      <!-- Cards are hydrated lazily by an IntersectionObserver in setupHomeViewEvents() -->
+      <div class="similar-cocktails-track home-track" data-shelf-idx="${idx}"></div>
+    </div>
+  `;
+}
+
+function renderHomeCard(recipe, collectionKey, idx) {
+  const invAnalysis = analyzeRecipeInventory(recipe, state.inventory);
+  const specNames = (recipe.specs || []).map(s => s.name).filter(Boolean);
+  return  /*html*/`
+    <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(recipe.id)}" role="button" tabindex="0">
+      <div class="similar-card-glass">
+        ${renderGlassSvg(recipe, `home-glass-${collectionKey}-${recipe.id}-${idx}`)}
+      </div>
+      <div class="similar-card-body">
+        ${invAnalysis.canMake ? `<span class="similar-relation-badge badge-ready">Ready</span>` : ''}
+        <h4 class="similar-card-name" title="${escapeHtml(recipe.name)}">${escapeHtml(recipe.name)}</h4>
+        <div class="similar-card-meta">
+          <span>${escapeHtml(recipe.glassware || 'Glass')}</span>
+          <span class="meta-dot">•</span>
+          <span>${escapeHtml(recipe.method || 'Build')}</span>
+        </div>
+        <div class="similar-card-specs" title="${escapeHtml(specNames.join(', '))}">
+          ${escapeHtml(specNames.slice(0, 3).join(', '))}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Wire up Home page interactions: shelf scroll/nav, card selection, and the
+ * "pin a tag" autocomplete used to add/remove user-curated collections
+ */
+function setupHomeViewEvents(pinnableTags) {
+  const container = elements.homeViewContainer;
+  if (!container) return;
+
+  document.getElementById('btn-home-browse-all')?.addEventListener('click', () => {
+    showDrinksListMobile();
+  });
+
+  container.querySelectorAll('.home-shelf').forEach(shelf => {
+    const track = shelf.querySelector('.home-track');
+    shelf.querySelector('.shelf-nav-prev')?.addEventListener('click', () => {
+      track?.scrollBy({ left: -600, behavior: 'smooth' });
+    });
+    shelf.querySelector('.shelf-nav-next')?.addEventListener('click', () => {
+      track?.scrollBy({ left: 600, behavior: 'smooth' });
+    });
+  });
+
+  // Lazily hydrate each shelf's cards (each renders a full inline SVG glass) only once
+  // it scrolls near the viewport, so an initial Home render never has to draw all of
+  // them at once no matter how many collections/recipes exist.
+  const hydrateShelf = (track) => {
+    const idx = Number(track.dataset.shelfIdx);
+    const col = homeCollectionsCache[idx];
+    if (!col) return;
+
+    track.innerHTML = col.recipes.map((recipe, i) => renderHomeCard(recipe, col.key, i)).join('');
+
+    track.querySelectorAll('.similar-cocktail-card').forEach(el => {
+      const targetId = el.getAttribute('data-recipe-id');
+      el.addEventListener('click', () => {
+        if (targetId) selectRecipe(targetId);
+      });
+      el.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && targetId) {
+          e.preventDefault();
+          selectRecipe(targetId);
+        }
+      });
+    });
+  };
+
+  const shelfObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      hydrateShelf(entry.target);
+      observer.unobserve(entry.target);
+    });
+  }, { root: null, rootMargin: '600px 0px', threshold: 0 });
+
+  container.querySelectorAll('.home-track').forEach(track => shelfObserver.observe(track));
+
+  container.querySelectorAll('[data-action="unpin-tag"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.getAttribute('data-tag');
+      if (!tag) return;
+      state.pinnedTags = state.pinnedTags.filter(t => t !== tag);
+      savePinnedTags(state.pinnedTags);
+      renderHomeView();
+    });
+  });
+
+  const pinInput = document.getElementById('home-pin-tag-input');
+  const pinTag = (rawTag) => {
+    const clean = normalizeTagName(rawTag);
+    if (!clean || state.pinnedTags.includes(clean)) return;
+    state.pinnedTags = [...state.pinnedTags, clean];
+    savePinnedTags(state.pinnedTags);
+    renderHomeView();
+    showToast(`Pinned #${clean} to Home`);
+  };
+
+  setupTagAutocomplete(
+    pinInput,
+    document.getElementById('home-pin-suggest-list'),
+    () => pinnableTags,
+    pinTag
+  );
 }
 
 /**
@@ -1073,6 +1575,27 @@ function renderCounterView() {
           <!-- Rendered via GlassView -->
         </div>
 
+        <!-- Glass Presentation Mode Switch: Layers vs Blended -->
+        <div class="glass-view-toggle-wrap">
+          <div class="glass-view-toggle" role="group" aria-label="Cocktail presentation mode">
+            <button type="button" class="glass-view-btn ${state.glassViewMode === 'layered' ? 'active' : ''}" data-mode="layered" title="View ingredient fluid ratio layers">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+              <span>Layers</span>
+            </button>
+            <button type="button" class="glass-view-btn ${state.glassViewMode === 'blended' ? 'active' : ''}" data-mode="blended" title="View blended cocktail color">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 3a9 9 0 0 1 9 9 9 9 0 0 1-9 9"></path>
+              </svg>
+              <span>Mixed</span>
+            </button>
+          </div>
+        </div>
+
         <div class="glass-meta-card">
           <div class="glass-stats-row">
             <span class="glass-total-volume">${escapeHtml(totalDisplay)}</span>
@@ -1189,10 +1712,8 @@ function renderCounterView() {
                 </span>
               `).join('')}
               <div class="tag-input-inline-wrapper">
-                <input type="text" id="input-inline-tag" class="tag-input-inline" placeholder="+ Add tag..." list="tag-suggestions-list" aria-label="Add tag">
-                <datalist id="tag-suggestions-list">
-                  ${availableTags.map(t => `<option value="${escapeHtml(t)}">`).join('')}
-                </datalist>
+                <input type="text" id="input-inline-tag" class="tag-input-inline" placeholder="+ Add tag..." aria-label="Add tag" autocomplete="off">
+                <ul class="tag-suggest-list" id="inline-tag-suggest-list" role="listbox" hidden></ul>
               </div>
             </div>
           </div>
@@ -1263,6 +1784,7 @@ function renderCounterView() {
   // Render vector SVG glass
   const glassContainer = document.getElementById('glass-wrapper');
   state.glassViewMain = new GlassView(glassContainer, {
+    initialMode: state.glassViewMode,
     onLayerHover: (index) => {
       const rows = elements.counterViewContainer.querySelectorAll('.spec-row');
       rows.forEach((row, i) => {
@@ -1270,7 +1792,18 @@ function renderCounterView() {
       });
     },
   });
-  state.glassViewMain.render(effectiveRecipe);
+  state.glassViewMain.render(effectiveRecipe, state.glassViewMode);
+
+  // Wire Glass View Presentation Switch (Layers vs Blended)
+  const glassToggleBtns = elements.counterViewContainer.querySelectorAll('.glass-view-btn');
+  glassToggleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetMode = btn.getAttribute('data-mode');
+      if (targetMode) {
+        setGlassViewMode(targetMode);
+      }
+    });
+  });
 
   // Synchronize spec row hover to SVG glass highlight
   const specRows = elements.counterViewContainer.querySelectorAll('.spec-row');
@@ -1481,15 +2014,8 @@ function renderCounterView() {
   // Counter View: Inline tag addition
   const inlineTagInput = document.getElementById('input-inline-tag');
   const addTagToCurrentRecipe = (rawTag) => {
-    if (!rawTag) return;
-    let cleanTag = rawTag.trim().toLowerCase().replace(/^#+/, '');
+    const cleanTag = normalizeTagName(rawTag);
     if (!cleanTag) return;
-
-    if (cleanTag === 'modern-classic' || cleanTag === 'modern-classics') {
-      cleanTag = 'modern-craft';
-    } else if (cleanTag === 'essential-classic' || cleanTag === 'essential-classics') {
-      cleanTag = 'classic';
-    }
 
     const currentTags = Array.isArray(recipe.tags) ? [...recipe.tags] : [];
     if (currentTags.includes(cleanTag)) {
@@ -1506,18 +2032,12 @@ function renderCounterView() {
     showToast(`Added #${cleanTag} to ${recipe.name}`);
   };
 
-  if (inlineTagInput) {
-    inlineTagInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ',') {
-        e.preventDefault();
-        addTagToCurrentRecipe(inlineTagInput.value);
-      }
-    });
-
-    inlineTagInput.addEventListener('change', () => {
-      addTagToCurrentRecipe(inlineTagInput.value);
-    });
-  }
+  setupTagAutocomplete(
+    inlineTagInput,
+    document.getElementById('inline-tag-suggest-list'),
+    () => availableTags,
+    addTagToCurrentRecipe
+  );
 
   // Remove tag button
   elements.counterViewContainer.querySelectorAll('.drink-tag-remove').forEach(btn => {
@@ -1688,16 +2208,17 @@ function openEditor(recipe = null) {
           <div class="editor-tags-box">
             <div id="editor-tags-list" class="editor-tags-list"></div>
             <div class="editor-tag-input-row">
-              <input
-                type="text"
-                id="editor-tag-input"
-                class="form-input editor-tag-input-field"
-                placeholder="Type a tag name and press Enter..."
-                list="editor-tag-suggestions"
-                autocomplete="off"
-              />
+              <div class="tag-input-autocomplete-wrapper">
+                <input
+                  type="text"
+                  id="editor-tag-input"
+                  class="form-input editor-tag-input-field"
+                  placeholder="Type a tag name and press Enter..."
+                  autocomplete="off"
+                />
+                <ul class="tag-suggest-list" id="editor-tag-suggest-list" role="listbox" hidden></ul>
+              </div>
               <button type="button" id="btn-add-editor-tag" class="btn btn-secondary btn-sm">+ Add Tag</button>
-              <datalist id="editor-tag-suggestions"></datalist>
             </div>
           </div>
           <div class="field-hint" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
@@ -1768,7 +2289,6 @@ function openEditor(recipe = null) {
 
   renderEditorSpecRows();
   renderEditorTagChips();
-  updateEditorTagSuggestions();
   setupEditorEvents(currentData.id);
   renderCurrentView();
   updateEditorGlassPreview();
@@ -1929,21 +2449,8 @@ function renderEditorTagChips() {
       const tag = btn.getAttribute('data-tag');
       state.editorTags = state.editorTags.filter(t => t !== tag);
       renderEditorTagChips();
-      updateEditorTagSuggestions();
     });
   });
-}
-
-/**
- * Update editor tag datalist suggestions with unassigned unique tags
- */
-function updateEditorTagSuggestions() {
-  const datalist = document.getElementById('editor-tag-suggestions');
-  if (!datalist) return;
-
-  const allTags = getAllUniqueTags(state.recipes);
-  const available = allTags.filter(t => !state.editorTags.includes(t));
-  datalist.innerHTML =  /*html*/available.map(t => `<option value="${escapeHtml(t)}"></option>`).join('');
 }
 
 /**
@@ -2006,37 +2513,25 @@ function setupEditorEvents(recipeId) {
 
   // Editor Tags management
   const editorTagInput = document.getElementById('editor-tag-input');
-  const addEditorTag = () => {
-    if (!editorTagInput) return;
-    let raw = editorTagInput.value.trim().toLowerCase().replace(/^#+/, '');
+  const addEditorTag = (tagOverride) => {
+    const raw = normalizeTagName(tagOverride ?? editorTagInput?.value);
     if (!raw) return;
-
-    if (raw === 'modern-classic' || raw === 'modern-classics') {
-      raw = 'modern-craft';
-    } else if (raw === 'essential-classic' || raw === 'essential-classics') {
-      raw = 'classic';
-    }
 
     if (!state.editorTags.includes(raw)) {
       state.editorTags.push(raw);
       renderEditorTagChips();
-      updateEditorTagSuggestions();
     }
-    editorTagInput.value = '';
+    if (editorTagInput) editorTagInput.value = '';
   };
 
-  document.getElementById('btn-add-editor-tag')?.addEventListener('click', addEditorTag);
+  document.getElementById('btn-add-editor-tag')?.addEventListener('click', () => addEditorTag());
 
-  editorTagInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addEditorTag();
-    }
-  });
-
-  editorTagInput?.addEventListener('change', () => {
-    addEditorTag();
-  });
+  setupTagAutocomplete(
+    editorTagInput,
+    document.getElementById('editor-tag-suggest-list'),
+    () => getAllUniqueTags(state.recipes).filter(t => !state.editorTags.includes(t)),
+    addEditorTag
+  );
 
   // Cancel
   document.getElementById('btn-cancel-edit')?.addEventListener('click', cancelEditor);
@@ -2058,14 +2553,16 @@ function updateEditorGlassPreview() {
   const name = document.getElementById('edit-name')?.value || 'Preview';
   const garnish = document.getElementById('edit-garnish')?.value || '';
 
-  state.glassViewEditor = new GlassView(container);
+  state.glassViewEditor = new GlassView(container, {
+    initialMode: state.glassViewMode,
+  });
 
   state.glassViewEditor.render({
     name,
     glassware,
     garnish,
     specs: state.editorSpecs,
-  });
+  }, state.glassViewMode);
 
   const method = document.getElementById('edit-method')?.value || 'Stirred';
   const abvBadge = document.getElementById('editor-abv-badge');
@@ -2211,4 +2708,24 @@ function escapeHtml(str) {
 }
 
 // Boot
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+
+  // Prevent iOS Safari pinch gesture zoom on controls and main app viewport
+  document.addEventListener('gesturestart', (e) => {
+    e.preventDefault();
+  }, { passive: false });
+
+  // Prevent double-tap zoom on buttons and interactive elements
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      if (e.target.closest('button, input, select, textarea, .btn, .recipe-list-item, .vault-action-item, .backbar-pill')) {
+        e.preventDefault();
+        e.target.click?.();
+      }
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+});
