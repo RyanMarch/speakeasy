@@ -1575,7 +1575,7 @@ export const TAXONOMY = {
     light: '#85d44d',
     dark: '#488220',
     defaultAbv: 0,
-    aliases: ['fresh mint', 'mint', 'basil', 'cucumber', 'ginger root', 'berries', 'blackberries', 'strawberries'],
+    aliases: ['fresh mint', 'mint', 'basil', 'cucumber', 'ginger root', 'berries', 'blackberries', 'strawberries', 'grapes', 'green grapes'],
   },
 
   // ==========================================
@@ -1822,7 +1822,7 @@ export const TAXONOMY = {
     light: '#ece5c3',
     dark: '#9a8d62',
     defaultAbv: 0,
-    aliases: ['celery salt', 'celery seed', 'worcestershire sauce', 'worcestershire', 'hot sauce', 'tabasco', 'black pepper'],
+    aliases: ['celery salt', 'celery seed', 'worcestershire sauce', 'worcestershire', 'hot sauce', 'tabasco', 'black pepper', 'salt', 'sea salt', 'kosher salt'],
   },
 };
 
