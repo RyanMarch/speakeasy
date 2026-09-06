@@ -634,7 +634,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .inventory-filter-btn {
-  min-height: 42px;
+  min-height: 30px;
   background: rgba(245, 240, 230, 0.04);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
@@ -1440,8 +1440,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .fluid-stack .fluid-layered-group,
 .fluid-stack .fluid-blended-group {
   transition: opacity 550ms cubic-bezier(0.16, 1, 0.3, 1),
-              transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
-              filter 650ms ease;
+    transform 650ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 650ms ease;
   transform-origin: 120px 200px;
 }
 
@@ -1480,22 +1480,28 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     transform: rotate(0deg) scale(1);
     filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
   }
+
   15% {
     transform: rotate(-3.5deg) scale(1.025) translateY(-3px);
   }
+
   30% {
     transform: rotate(4deg) scale(1.04) translateY(-1px);
     filter: drop-shadow(0 14px 28px rgba(0, 150, 199, 0.45));
   }
+
   48% {
     transform: rotate(-3deg) scale(1.02);
   }
+
   65% {
     transform: rotate(2deg) scale(1.01) translateY(-1px);
   }
+
   82% {
     transform: rotate(-1deg) scale(1.005);
   }
+
   100% {
     transform: rotate(0deg) scale(1) translateY(0);
     filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
@@ -1506,15 +1512,19 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   0% {
     transform: rotate(0deg) scale(1);
   }
+
   20% {
     transform: rotate(3deg) scale(1.02) translateY(-2px);
   }
+
   45% {
     transform: rotate(-3.5deg) scale(1.03);
   }
+
   70% {
     transform: rotate(1.5deg) scale(1.01);
   }
+
   100% {
     transform: rotate(0deg) scale(1) translateY(0);
   }
@@ -1525,18 +1535,22 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     filter: none;
     transform: scale(1);
   }
+
   25% {
     filter: url(#glass-1-swirl);
     transform: scale(1.05) rotate(4deg);
   }
+
   50% {
     filter: brightness(1.28) contrast(1.15) saturate(1.3);
     transform: scale(1.02) rotate(-3deg);
   }
+
   75% {
     filter: brightness(1.1) saturate(1.15);
     transform: scale(1.01) rotate(1deg);
   }
+
   100% {
     filter: none;
     transform: scale(1) rotate(0deg);
@@ -1692,7 +1706,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   counter-reset: method-counter;
 }
 
-.card-method-ordered > li {
+.card-method-ordered>li {
   counter-increment: method-counter;
   display: grid;
   grid-template-columns: 1.65rem 1fr;
@@ -1702,7 +1716,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-size: 0.95rem;
 }
 
-.card-method-ordered > li::before {
+.card-method-ordered>li::before {
   content: counter(method-counter) ".";
   font-family: var(--font-sans);
   font-weight: 600;
@@ -1711,7 +1725,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   user-select: none;
 }
 
-.card-method-unordered > li {
+.card-method-unordered>li {
   display: grid;
   grid-template-columns: 1.35rem 1fr;
   align-items: baseline;
@@ -1720,7 +1734,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   font-size: 0.95rem;
 }
 
-.card-method-unordered > li::before {
+.card-method-unordered>li::before {
   content: "•";
   font-size: 1.1rem;
   line-height: 1;
@@ -2938,7 +2952,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 /* Home Collection Shelves (reuses .similar-cocktails-shelf / .similar-cocktail-card) */
-.home-pin-row + .home-shelf {
+.home-pin-row+.home-shelf {
   margin-top: 1.5rem;
 }
 
@@ -3060,6 +3074,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -3069,6 +3084,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -3079,6 +3095,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     animation: none;
     opacity: 1;
   }
+
   .backbar-dialog::backdrop {
     animation: none;
     opacity: 1;
@@ -3281,17 +3298,23 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .backbar-pill-dot {
-  width: 9px;
-  height: 9px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 0 1px currentColor;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform var(--transition-fast);
 }
 
-.backbar-pill-check {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--color-accent);
-  margin-left: 0.2rem;
+.backbar-pill.active .backbar-pill-dot {
+  transform: scale(1.08);
 }
 
 .backbar-pill-fridge-tag {
@@ -3366,12 +3389,27 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   .sidebar.mobile-hidden {
     display: flex !important;
   }
+
   .main-stage.mobile-hidden {
     display: block !important;
+  }
+
+  /* On wide windows, .counter-view/.home-view center at max-width:980px, leaving
+     unused space on either side within .main-stage. Let card shelves reclaim that
+     space and scroll out to the true edge of .main-stage's content box, while the
+     shelf's own left edge (and everything else) stays exactly where it was.
+     Sidebar (310px) and .main-stage's own padding (3rem) are fixed constants, so
+     the "wasted" width past the 980px column can be computed with plain calc(). */
+  .similar-cocktails-shelf {
+    --shelf-bleed: max(0px, (100vw - 310px - 6rem - 980px) / 2);
+    width: auto;
+    max-width: none;
+    margin-right: calc(-1 * var(--shelf-bleed));
   }
 }
 
 @media (max-width: 768px) {
+
   /* Prevent iOS automatic zoom on focus by ensuring minimum 16px font-size */
   input,
   select,
@@ -3455,7 +3493,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   }
 
   /* Fixed Viewport Mobile Layout */
-  html, body {
+  html,
+  body {
     height: 100%;
     height: 100dvh;
     overflow: hidden;
@@ -3540,7 +3579,10 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     z-index: 10;
   }
 
-  /* Main Stage (Recipe & Editor): Clean Side Margins, Smooth Scrolling */
+  /* Main Stage (Recipe & Editor): Clean Side Margins, Smooth Scrolling
+     No horizontal padding here — it lives on the view containers below instead,
+     so horizontally-scrolling shelves (.similar-cocktails-track) can bleed to the
+     true screen edges while everything else keeps the same 1.25rem inset. */
   .main-stage {
     display: block;
     flex: 1;
@@ -3548,8 +3590,45 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 0 1.25rem max(3.5rem, calc(2rem + env(safe-area-inset-bottom, 0px))) !important;
+    padding: 0 0 max(3.5rem, calc(2rem + env(safe-area-inset-bottom, 0px))) !important;
     animation: slideInFromRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .home-view,
+  .counter-view,
+  .editor-view {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  /* Shelves bleed back out of that padding so their card tracks can scroll
+     edge-to-edge; the track's own matching padding keeps the first/last card
+     aligned with the rest of the page's content. */
+  .similar-cocktails-shelf {
+    width: auto;
+    max-width: none;
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+  }
+
+  .shelf-header {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .similar-cocktails-track {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    /* scroll-snap-type (base rule) snaps card edges flush with the scrollport,
+       which ignores plain padding and yanks scrollLeft to 20px at rest — undoing
+       the inset above. scroll-padding tells the snap algorithm to treat this
+       much space as part of the scrollport, so it settles at scrollLeft: 0. */
+    scroll-padding-left: 1.25rem;
+    scroll-padding-right: 1.25rem;
+  }
+
+  .similar-cocktails-track::-webkit-scrollbar-track {
+    margin: 0 1.25rem;
   }
 
   .main-stage.mobile-hidden {
@@ -3561,6 +3640,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
       opacity: 0.75;
       transform: translateX(16px);
     }
+
     to {
       opacity: 1;
       transform: none;
@@ -3572,6 +3652,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
       opacity: 0.75;
       transform: translateX(-16px);
     }
+
     to {
       opacity: 1;
       transform: none;
