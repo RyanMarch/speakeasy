@@ -19,6 +19,44 @@ export const TAXONOMY = {
     dark: '#914f11',
     defaultAbv: 45,
     aliases: ['bourbon whiskey', 'kentucky straight bourbon', 'straight bourbon', 'high-rye bourbon', 'wheated bourbon', 'bourbon'],
+    brands: [
+      'Buffalo Trace',
+      "Maker's Mark",
+      'Makers Mark',
+      'Wild Turkey',
+      'Wild Turkey 101',
+      'Four Roses',
+      'Four Roses Single Barrel',
+      'Four Roses Small Batch',
+      'Woodford Reserve',
+      'Bulleit Bourbon',
+      'Bulleit',
+      'Elijah Craig',
+      'Elijah Craig Small Batch',
+      'Knob Creek',
+      'Knob Creek 9',
+      'Old Forester',
+      'Old Forester 100',
+      'Old Forester 1920',
+      'Evan Williams',
+      'Evan Williams Bottled in Bond',
+      'Jim Beam',
+      'Eagle Rare',
+      'Blanton\'s',
+      'Blantons',
+      'Weller',
+      'W.L. Weller',
+      'Special Reserve',
+      'Antique 107',
+      'Michter\'s Bourbon',
+      'Michters US 1 Bourbon',
+      'Basil Hayden',
+      'Basil Hayden\'s',
+      'Russell\'s Reserve',
+      'Russells Reserve',
+      'Pappy Van Winkle',
+      'Van Winkle',
+    ],
   },
   rye_whiskey: {
     id: 'rye_whiskey',
@@ -30,6 +68,26 @@ export const TAXONOMY = {
     dark: '#884b12',
     defaultAbv: 45,
     aliases: ['rye whiskey', 'straight rye', 'maryland rye', 'rye'],
+    brands: [
+      'Rittenhouse',
+      'Rittenhouse Rye',
+      'Bulleit Rye',
+      'WhistlePig',
+      'Whistle Pig',
+      'Sazerac Rye',
+      'Baby Saz',
+      'High West Double Rye',
+      'High West Rendezvous Rye',
+      'Michter\'s Rye',
+      'Michters US 1 Rye',
+      'Old Overholt',
+      'Wild Turkey 101 Rye',
+      'Knob Creek Rye',
+      'Woodford Reserve Rye',
+      'Pikesville Rye',
+      'Templeton Rye',
+      'Redemption Rye',
+    ],
   },
   blended_scotch: {
     id: 'blended_scotch',
@@ -40,7 +98,22 @@ export const TAXONOMY = {
     light: '#df9c4e',
     dark: '#8c5519',
     defaultAbv: 40,
-    aliases: ['blended scotch', 'blended scotch whisky', 'johnnie walker', 'famous grouse', 'monkey shoulder', 'dewars', 'compass box artist blend'],
+    aliases: ['blended scotch', 'blended scotch whisky'],
+    brands: [
+      'Johnnie Walker',
+      'Johnnie Walker Black',
+      'Johnnie Walker Red',
+      'Famous Grouse',
+      'The Famous Grouse',
+      'Monkey Shoulder',
+      'Dewars',
+      "Dewar's White Label",
+      'Compass Box Artist Blend',
+      'Compass Box',
+      'Chivas Regal',
+      'Cutty Sark',
+      'J&B',
+    ],
   },
   single_malt_scotch: {
     id: 'single_malt_scotch',
@@ -51,7 +124,22 @@ export const TAXONOMY = {
     light: '#e19f50',
     dark: '#8f571b',
     defaultAbv: 43,
-    aliases: ['single malt scotch', 'single malt', 'speyside scotch', 'highland scotch', 'macallan', 'glenlivet', 'glenfiddich', 'balvenie'],
+    aliases: ['single malt scotch', 'single malt', 'speyside scotch', 'highland scotch'],
+    brands: [
+      'Macallan',
+      'The Macallan',
+      'Glenlivet',
+      'The Glenlivet',
+      'Glenfiddich',
+      'Balvenie',
+      'The Balvenie',
+      'Glenmorangie',
+      'Highland Park',
+      'Oban',
+      'Dalmore',
+      'The Dalmore',
+      'Aberlour',
+    ],
   },
   peated_scotch: {
     id: 'peated_scotch',
@@ -62,7 +150,20 @@ export const TAXONOMY = {
     light: '#d28539',
     dark: '#7f4510',
     defaultAbv: 46,
-    aliases: ['peated scotch', 'islay scotch', 'laphroaig', 'ardbeg', 'lagavulin', 'bowmore', 'talisker', 'peated whisky'],
+    aliases: ['peated scotch', 'islay scotch', 'peated whisky'],
+    brands: [
+      'Laphroaig',
+      'Laphroaig 10',
+      'Ardbeg',
+      'Ardbeg 10',
+      'Lagavulin',
+      'Lagavulin 16',
+      'Bowmore',
+      'Talisker',
+      'Talisker 10',
+      'Caol Ila',
+      'Bruichladdich Port Charlotte',
+    ],
   },
   scotch: {
     id: 'scotch',
@@ -85,6 +186,20 @@ export const TAXONOMY = {
     dark: '#945c1f',
     defaultAbv: 40,
     aliases: ['irish whiskey', 'single pot still irish whiskey', 'blended irish whiskey'],
+    brands: [
+      'Jameson',
+      'Jameson Black Barrel',
+      'Redbreast',
+      'Redbreast 12',
+      'Bushmills',
+      'Bushmills Black Bush',
+      'Tullamore D.E.W.',
+      'Tullamore Dew',
+      'Teeling',
+      'Green Spot',
+      'Yellow Spot',
+      'Powers',
+    ],
   },
   japanese_whiskey: {
     id: 'japanese_whiskey',
@@ -96,6 +211,20 @@ export const TAXONOMY = {
     dark: '#92581c',
     defaultAbv: 43,
     aliases: ['japanese whisky', 'japanese whiskey'],
+    brands: [
+      'Suntory Toki',
+      'Toki',
+      'Yamazaki',
+      'Yamazaki 12',
+      'Hakushu',
+      'Hakushu 12',
+      'Hibiki Japanese Harmony',
+      'Hibiki',
+      'Nikka Coffey Grain',
+      'Nikka Coffey Malt',
+      'Nikka from the Barrel',
+      'Nikka Yoichi',
+    ],
   },
   canadian_whisky: {
     id: 'canadian_whisky',
@@ -107,6 +236,13 @@ export const TAXONOMY = {
     dark: '#8a4f15',
     defaultAbv: 40,
     aliases: ['canadian whisky', 'canadian whiskey', 'canadian rye'],
+    brands: [
+      'Crown Royal',
+      'Canadian Club',
+      'Lot 40',
+      'Seagram\'s 7',
+      'Seagrams 7',
+    ],
   },
 
   // Cane Spirits Family
@@ -120,6 +256,19 @@ export const TAXONOMY = {
     dark: '#b0c5d2',
     defaultAbv: 40,
     aliases: ['light rum', 'white rum', 'silver rum', 'blanco rum', 'carta blanca'],
+    brands: [
+      'Bacardi Superior',
+      'Bacardi Silver',
+      'Bacardi',
+      'Plantation 3 Stars',
+      'Planteray 3 Stars',
+      'Flor de Caña 4',
+      'Flor de Cana 4',
+      'Havana Club 3',
+      'El Dorado 3',
+      'Probitas',
+      'Real McCoy 3',
+    ],
   },
   aged_rum: {
     id: 'aged_rum',
@@ -131,6 +280,25 @@ export const TAXONOMY = {
     dark: '#682e09',
     defaultAbv: 40,
     aliases: ['gold rum', 'aged rum', 'añejo rum', 'anejo rum', 'amber rum', 'dark rum', 'navy strength rum', 'demerara rum', 'rum'],
+    brands: [
+      'Plantation 5 Year',
+      'Planteray 5 Year',
+      'Plantation Original Dark',
+      'El Dorado 5',
+      'El Dorado 8',
+      'El Dorado 12',
+      'Mount Gay Eclipse',
+      'Mount Gay Black Barrel',
+      'Mount Gay XO',
+      'Diplomático Reserva Exclusiva',
+      'Diplomatico',
+      'Appleton Estate 8',
+      'Appleton Estate 12',
+      'Flor de Caña 7',
+      'Flor de Cana 7',
+      'Ron Zacapa 23',
+      'Santa Teresa 1796',
+    ],
   },
   blackstrap_rum: {
     id: 'blackstrap_rum',
@@ -141,7 +309,16 @@ export const TAXONOMY = {
     light: '#633116',
     dark: '#240d03',
     defaultAbv: 40,
-    aliases: ['blackstrap rum', 'blackstrap', 'black rum', 'goslings', 'coruba', 'cruzan black strap'],
+    aliases: ['blackstrap rum', 'blackstrap', 'black rum'],
+    brands: [
+      "Goslings Black Seal",
+      'Goslings',
+      'Coruba Dark',
+      'Coruba',
+      'Cruzan Black Strap',
+      'Myers\'s Rum',
+      'Myerss Rum',
+    ],
   },
   overproof_rum: {
     id: 'overproof_rum',
@@ -152,7 +329,16 @@ export const TAXONOMY = {
     light: '#e0833e',
     dark: '#8e4310',
     defaultAbv: 63,
-    aliases: ['overproof rum', 'wray & nephew', 'wray and nephew', '151 rum', 'plantation o.f.t.d.', 'o.f.t.d.'],
+    aliases: ['overproof rum', '151 rum'],
+    brands: [
+      'Wray & Nephew',
+      'Wray and Nephew',
+      'Plantation O.F.T.D.',
+      'Planteray O.F.T.D.',
+      'O.F.T.D.',
+      'Lemon Hart 151',
+      'Hamilton 151',
+    ],
   },
   jamaican_rum: {
     id: 'jamaican_rum',
@@ -163,7 +349,18 @@ export const TAXONOMY = {
     light: '#c7743b',
     dark: '#753b11',
     defaultAbv: 46,
-    aliases: ['jamaican rum', 'high-ester rum', 'funk rum', 'smith & cross', 'smith and cross', 'appleton', 'pot still rum'],
+    aliases: ['jamaican rum', 'high-ester rum', 'funk rum', 'pot still rum'],
+    brands: [
+      'Smith & Cross',
+      'Smith and Cross',
+      'Appleton Estate Signature',
+      'Appleton Estate',
+      'Appleton',
+      'Hampden Estate',
+      'Rum-Bar Overproof',
+      'Rum Fire',
+      'Worth Park',
+    ],
   },
   rhum_agricole: {
     id: 'rhum_agricole',
@@ -175,6 +372,15 @@ export const TAXONOMY = {
     dark: '#adc5d3',
     defaultAbv: 50,
     aliases: ['rhum agricole', 'agricole blanc', 'aged agricole', 'martinique rum', 'agricole'],
+    brands: [
+      'Clément',
+      'Clement',
+      'Rhum J.M',
+      'Rhum JM',
+      'Neisson',
+      'La Favorite',
+      'Damoiseau',
+    ],
   },
   cachaca: {
     id: 'cachaca',
@@ -186,6 +392,16 @@ export const TAXONOMY = {
     dark: '#b0c5d2',
     defaultAbv: 40,
     aliases: ['cachaça', 'cachaca'],
+    brands: [
+      'Leblon',
+      'Avuá',
+      'Avua',
+      'Novo Fogo',
+      'Ypióca',
+      'Ypioca',
+      'Pitú',
+      'Pitu',
+    ],
   },
 
   // Agave Spirits Family
@@ -199,6 +415,32 @@ export const TAXONOMY = {
     dark: '#a9c2d1',
     defaultAbv: 40,
     aliases: ['blanco tequila', 'silver tequila', 'plata tequila', 'white tequila', 'tequila blanco', 'tequila'],
+    brands: [
+      'Espolòn Blanco',
+      'Espolon Blanco',
+      'Espolòn',
+      'Espolon',
+      'Fortaleza Blanco',
+      'Fortaleza',
+      'Tequila Ocho Plata',
+      'Tequila Ocho',
+      'Ocho Blanco',
+      'Ocho',
+      'Siete Leguas Blanco',
+      'Siete Leguas',
+      'Casamigos Blanco',
+      'Casamigos',
+      'Don Julio Blanco',
+      'Don Julio',
+      'Patrón Silver',
+      'Patron Silver',
+      'Patrón',
+      'Patron',
+      'G4 Blanco',
+      'El Tesoro Blanco',
+      'El Tequileño Blanco',
+      'Herradura Blanco',
+    ],
   },
   tequila_joven: {
     id: 'tequila_joven',
@@ -210,6 +452,11 @@ export const TAXONOMY = {
     dark: '#aa8134',
     defaultAbv: 40,
     aliases: ['joven tequila', 'tequila joven', 'gold tequila', 'oro tequila', 'tequila oro', 'suave tequila'],
+    brands: [
+      'Casa Dragones Joven',
+      'Clase Azul Gold',
+      'Jose Cuervo Especial Gold',
+    ],
   },
   tequila_reposado: {
     id: 'tequila_reposado',
@@ -221,6 +468,18 @@ export const TAXONOMY = {
     dark: '#9f762b',
     defaultAbv: 40,
     aliases: ['reposado tequila', 'tequila reposado', 'reposado'],
+    brands: [
+      'Espolòn Reposado',
+      'Espolon Reposado',
+      'Fortaleza Reposado',
+      'Tequila Ocho Reposado',
+      'Casamigos Reposado',
+      'Don Julio Reposado',
+      'El Tesoro Reposado',
+      'Siete Leguas Reposado',
+      'Clase Azul Reposado',
+      'Herradura Reposado',
+    ],
   },
   tequila_anejo: {
     id: 'tequila_anejo',
@@ -232,6 +491,16 @@ export const TAXONOMY = {
     dark: '#885317',
     defaultAbv: 40,
     aliases: ['añejo tequila', 'anejo tequila', 'tequila anejo'],
+    brands: [
+      'Fortaleza Añejo',
+      'Fortaleza Anejo',
+      'Don Julio 1942',
+      'El Tesoro Añejo',
+      'Casamigos Añejo',
+      'Tequila Ocho Añejo',
+      'Espolòn Añejo',
+      'Herradura Añejo',
+    ],
   },
   tequila_extra_anejo: {
     id: 'tequila_extra_anejo',
@@ -243,6 +512,12 @@ export const TAXONOMY = {
     dark: '#713b0d',
     defaultAbv: 40,
     aliases: ['extra añejo', 'extra anejo', 'extra añejo tequila', 'extra anejo tequila'],
+    brands: [
+      'Tears of Llorona',
+      'El Tesoro Paradiso',
+      'Don Julio Real',
+      'Cuervo Reserva de la Familia',
+    ],
   },
   mezcal: {
     id: 'mezcal',
@@ -254,6 +529,24 @@ export const TAXONOMY = {
     dark: '#a2bdcb',
     defaultAbv: 45,
     aliases: ['mezcal', 'espadín', 'espadin', 'tobalá', 'tobala', 'mezcal joven'],
+    brands: [
+      'Del Maguey Vida',
+      'Del Maguey',
+      'Vida Mezcal',
+      'Banhez Ensemble',
+      'Banhez',
+      'Ilegal Mezcal Joven',
+      'Ilegal Mezcal',
+      'Ilegal',
+      'Montelobos Espadín',
+      'Montelobos',
+      'Bozal Ensamble',
+      'Bozal',
+      'Alipús',
+      'Alipus',
+      'Rey Campero',
+      'Nuestra Soledad',
+    ],
   },
   regional_agave: {
     id: 'regional_agave',
@@ -265,6 +558,11 @@ export const TAXONOMY = {
     dark: '#a5c0ce',
     defaultAbv: 44,
     aliases: ['raicilla', 'sotol', 'bacanora'],
+    brands: [
+      'La Venenosa Raicilla',
+      'Sotol Porfidio',
+      'Fabriquero Bacanora',
+    ],
   },
 
   // Gin & Juniper Spirits Family
@@ -278,6 +576,22 @@ export const TAXONOMY = {
     dark: '#a5c0d1',
     defaultAbv: 43,
     aliases: ['london dry gin', 'london dry', 'dry gin', 'gin'],
+    brands: [
+      'Tanqueray',
+      'Tanqueray No. Ten',
+      'Tanqueray 10',
+      'Beefeater',
+      'Beefeater 24',
+      'Bombay Sapphire',
+      'Bombay',
+      'Sipsmith',
+      'Fords Gin',
+      'Boodles',
+      "Gordon's",
+      'Gordons',
+      'Broker\'s',
+      'Brokers',
+    ],
   },
   plymouth_gin: {
     id: 'plymouth_gin',
@@ -289,6 +603,10 @@ export const TAXONOMY = {
     dark: '#a5c0d1',
     defaultAbv: 41.2,
     aliases: ['plymouth gin', 'plymouth'],
+    brands: [
+      'Plymouth Gin Original',
+      'Plymouth Navy Strength',
+    ],
   },
   old_tom_gin: {
     id: 'old_tom_gin',
@@ -300,6 +618,12 @@ export const TAXONOMY = {
     dark: '#b2a887',
     defaultAbv: 40,
     aliases: ['old tom gin', 'old tom'],
+    brands: [
+      'Hayman\'s Old Tom',
+      'Haymans Old Tom',
+      'Ransom Old Tom',
+      'Anchor Old Tom',
+    ],
   },
   genever: {
     id: 'genever',
@@ -311,6 +635,12 @@ export const TAXONOMY = {
     dark: '#b3a98e',
     defaultAbv: 38,
     aliases: ['genever', 'dutch gin', 'holland gin'],
+    brands: [
+      'Bols Genever',
+      'Bols',
+      'Boomsma Jonge',
+      'Rutte Old Simon',
+    ],
   },
   modern_gin: {
     id: 'modern_gin',
@@ -322,6 +652,27 @@ export const TAXONOMY = {
     dark: '#a5c0d1',
     defaultAbv: 42,
     aliases: ['modern gin', 'contemporary gin', 'botanical gin', 'western gin', 'western dry gin'],
+    brands: [
+      "Hendrick's",
+      'Hendricks',
+      'Hendricks Gin',
+      'Aviation Gin',
+      'Aviation American Gin',
+      'Aviation',
+      'Roku',
+      'Roku Gin',
+      'The Botanist',
+      'Botanist',
+      'Monkey 47',
+      'St. George Terroir',
+      'St George Terroir',
+      'St. George Botanivore',
+      'Empress 1908',
+      'Empress Gin',
+      'Ki No Bi',
+      'Barr Hill Gin',
+      'Malfy Gin',
+    ],
   },
   navy_strength_gin: {
     id: 'navy_strength_gin',
@@ -333,6 +684,14 @@ export const TAXONOMY = {
     dark: '#a5c0d1',
     defaultAbv: 57,
     aliases: ['navy strength gin', 'navy gin', 'gunpowder gin'],
+    brands: [
+      'Drumshanbo Gunpowder',
+      'Perry\'s Tot',
+      'Perrys Tot',
+      'Hayman\'s Royal Dock',
+      'Plymouth Navy Strength',
+      'Ford\'s Officers\' Reserve',
+    ],
   },
   sloe_gin: {
     id: 'sloe_gin',
@@ -425,6 +784,21 @@ export const TAXONOMY = {
     dark: '#a5c0d1',
     defaultAbv: 40,
     aliases: ['vodka', 'plain vodka', 'grain vodka', 'potato vodka'],
+    brands: [
+      "Tito's",
+      'Titos',
+      'Titos Handmade Vodka',
+      'Grey Goose',
+      'Ketel One',
+      'Belvedere',
+      'Absolut',
+      'Stolichnaya',
+      'Stoli',
+      'Chopin',
+      'Reyka',
+      'Haku Vodka',
+      'Beluga',
+    ],
   },
   flavored_vodka: {
     id: 'flavored_vodka',
@@ -436,6 +810,11 @@ export const TAXONOMY = {
     dark: '#a8c2d2',
     defaultAbv: 40,
     aliases: ['flavored vodka', 'citrus vodka', 'vanilla vodka'],
+    brands: [
+      'Absolut Citron',
+      'Ketel One Citroen',
+      'Grey Goose Le Citron',
+    ],
   },
   aquavit: {
     id: 'aquavit',
@@ -447,6 +826,13 @@ export const TAXONOMY = {
     dark: '#a8c2d2',
     defaultAbv: 42,
     aliases: ['aquavit', 'akvavit'],
+    brands: [
+      'Linie Aquavit',
+      'Aalborg',
+      'Krogstad',
+      'Brennivín',
+      'Brennivin',
+    ],
   },
 
   // ==========================================
@@ -685,7 +1071,18 @@ export const TAXONOMY = {
     light: '#f4b75a',
     dark: '#a86c18',
     defaultAbv: 35,
-    aliases: ['dry curacao', 'dry curaçao', 'pierre ferrand dry curaçao', 'pierre ferrand dry curacao', 'curacao', 'curaçao', 'blue curacao', 'blue curaçao'],
+    aliases: ['dry curacao', 'dry curaçao', 'pierre ferrand dry curaçao', 'pierre ferrand dry curacao', 'curacao', 'curaçao', 'orange curacao', 'orange curaçao'],
+  },
+  blue_curacao: {
+    id: 'blue_curacao',
+    name: 'Blue Curaçao',
+    family: 'orange_liqueur',
+    parent: 'liqueurs',
+    color: '#0096c7',
+    light: '#48cae4',
+    dark: '#023e8a',
+    defaultAbv: 25,
+    aliases: ['blue curacao', 'blue curaçao', 'curacao blue', 'curaçao blue'],
   },
   brandy_orange_liqueur: {
     id: 'brandy_orange_liqueur',
@@ -830,6 +1227,17 @@ export const TAXONOMY = {
     dark: '#6b5087',
     defaultAbv: 20,
     aliases: ['elderflower', 'elderflower liqueur', 'st-germain', 'st germain', 'violette', 'crème de violette', 'creme de violette', 'rose liqueur'],
+  },
+  fruit_cup: {
+    id: 'fruit_cup',
+    name: "Pimm's No. 1 / Fruit Cup",
+    family: 'specialty_liqueur',
+    parent: 'liqueurs',
+    color: '#8b3d1f',
+    light: '#ad522d',
+    dark: '#5e230e',
+    defaultAbv: 25,
+    aliases: ["pimm's no. 1", "pimm's no 1", "pimms no 1", "pimms no. 1", "pimm's", 'pimms', 'fruit cup'],
   },
   corn_liqueur: {
     id: 'corn_liqueur',
@@ -1320,6 +1728,36 @@ export const TAXONOMY = {
     defaultAbv: 0,
     aliases: ['aquafaba', 'chickpea brine'],
   },
+  cocktail_foamer: {
+    id: 'cocktail_foamer',
+    name: 'Cocktail Foamer',
+    family: 'texture',
+    parent: 'mixers',
+    color: '#f4ece1',
+    light: '#ffffff',
+    dark: '#dbd1c3',
+    defaultAbv: 0,
+    aliases: [
+      'cocktail foamer',
+      'foamer',
+      'cocktail foaming agent',
+      'foaming drops',
+      'vegan foamer',
+      'wonderfoam',
+      'miraculous foamer',
+      'stillabunt',
+      'fee foam',
+      'fee brothers fee foam',
+    ],
+    brands: [
+      'Fee Brothers Fee Foam',
+      'Fee Foam',
+      'Wonderfoam',
+      'Ms. Better\'s Bitters Miraculous Foamer',
+      'Miraculous Foamer',
+      'Stillabunt',
+    ],
+  },
   dairy: {
     id: 'dairy',
     name: 'Cream & Milk',
@@ -1442,7 +1880,12 @@ export const REFRIGERATED_INGREDIENT_IDS = new Set([
 const ALIAS_LOOKUP = [];
 for (const key of Object.keys(TAXONOMY)) {
   const item = TAXONOMY[key];
-  const allNames = new Set([item.id, item.name.toLowerCase(), ...(item.aliases || []).map(a => a.toLowerCase())]);
+  const allNames = new Set([
+    item.id,
+    item.name.toLowerCase(),
+    ...(item.aliases || []).map(a => a.toLowerCase()),
+    ...(item.brands || []).map(b => b.toLowerCase()),
+  ]);
   for (const alias of allNames) {
     ALIAS_LOOKUP.push({
       alias,
@@ -1522,6 +1965,7 @@ export function getIngredientMetadata(rawText = '') {
     dark: item.dark,
     defaultAbv: item.defaultAbv,
     label: item.name,
+    brands: item.brands || [],
     storage: isRefrigerated ? 'fridge' : 'shelf',
     isRefrigerated,
   };
@@ -1579,9 +2023,14 @@ export function ingredientMatchesQuery(rawIngredientName = '', query = '') {
     return true;
   }
 
-  // Check aliases
+  // Check aliases and brands
   for (const alias of item.aliases || []) {
     if (normalizeText(alias).includes(cleanQuery)) {
+      return true;
+    }
+  }
+  for (const brand of item.brands || []) {
+    if (normalizeText(brand).includes(cleanQuery)) {
       return true;
     }
   }
@@ -1845,42 +2294,41 @@ export function findSimilarCocktails(currentRecipe, allRecipes = []) {
       matchCount += 0.5;
     }
 
-    if (matchCount >= 2.5) {
+    if (matchCount >= 2) {
       formulaMatches.push({
         recipe: candidate,
         relation: 'Similar Style',
-        badgeClass: 'badge-style',
-        score: matchCount,
+        badgeClass: 'badge-family',
+        matchCount,
       });
     }
   }
 
-  formulaMatches.sort((a, b) => b.score - a.score);
+  // Sort formula matches by score descending
+  formulaMatches.sort((a, b) => b.matchCount - a.matchCount);
 
-  for (const match of formulaMatches) {
+  // Combine results up to a maximum of 6 related cocktails
+  for (const fm of formulaMatches) {
     if (results.length >= 6) break;
-    results.push({
-      recipe: match.recipe,
-      relation: match.relation,
-      badgeClass: match.badgeClass,
-    });
-    addedIds.add(match.recipe.id);
+    results.push(fm);
+    addedIds.add(fm.recipe.id);
   }
 
-  return results;
+  return results.slice(0, 6);
 }
 
 // ==========================================
 // Backbar Inventory & Bottle Next Engine
 // ==========================================
 
-const PANTRY_STAPLE_NAMES = new Set([
-  'water',
+// Set of pantry staple ingredient names that home bartenders are assumed to always have in stock
+export const PANTRY_STAPLE_NAMES = new Set([
   'ice',
   'tap water',
   'cold water',
   'hot water',
   'chilled water',
+  'water',
   'saline',
   'saline solution',
   'saline solution (20%)',
@@ -1909,7 +2357,7 @@ const GENERIC_FAMILIES = {
 
 /**
  * Checks whether an ingredient is present in the user's inventory.
- * Handles pantry staples, direct matches, aliases, and child-to-parent hierarchy.
+ * Handles pantry staples, direct matches, aliases, brands, and child-to-parent hierarchy.
  */
 export function checkIngredientStock(specName, inventorySet = new Set()) {
   if (!specName) return { inStock: true, isStaple: true };
@@ -1920,7 +2368,7 @@ export function checkIngredientStock(specName, inventorySet = new Set()) {
     return { inStock: true, isStaple: true, name: specName };
   }
 
-  // 2. Direct ID or Alias match in inventory
+  // 2. Direct ID, Alias, or Brand match in inventory
   const item = findIngredient(specName);
   if (item) {
     if (inventorySet.has(item.id)) {
@@ -1928,6 +2376,11 @@ export function checkIngredientStock(specName, inventorySet = new Set()) {
     }
     for (const alias of item.aliases || []) {
       if (inventorySet.has(alias.toLowerCase())) {
+        return { inStock: true, item, id: item.id, name: item.name };
+      }
+    }
+    for (const brand of item.brands || []) {
+      if (inventorySet.has(brand.toLowerCase())) {
         return { inStock: true, item, id: item.id, name: item.name };
       }
     }
