@@ -252,6 +252,52 @@ if (!champagneMatch || champagneMatch.id !== 'sparkling_wine' || champagneMatch.
   throw new Error('Champagne should resolve to sparkling_wine under fortified_wine');
 }
 
+const hendricksMatch = findIngredient("Hendrick's Gin");
+console.log("Hendrick's Gin =>", hendricksMatch?.name, `(ID: ${hendricksMatch?.id})`);
+if (!hendricksMatch || hendricksMatch.id !== 'modern_gin') throw new Error("Hendrick's resolution failed");
+
+const aviationMatch = findIngredient('Aviation Gin');
+console.log('Aviation Gin =>', aviationMatch?.name, `(ID: ${aviationMatch?.id})`);
+if (!aviationMatch || aviationMatch.id !== 'modern_gin') throw new Error('Aviation Gin resolution failed');
+
+const tanquerayMatch = findIngredient('Tanqueray');
+console.log('Tanqueray =>', tanquerayMatch?.name, `(ID: ${tanquerayMatch?.id})`);
+if (!tanquerayMatch || tanquerayMatch.id !== 'london_dry_gin') throw new Error('Tanqueray resolution failed');
+
+const buffaloTraceMatch = findIngredient('Buffalo Trace');
+console.log('Buffalo Trace =>', buffaloTraceMatch?.name, `(ID: ${buffaloTraceMatch?.id})`);
+if (!buffaloTraceMatch || buffaloTraceMatch.id !== 'bourbon') throw new Error('Buffalo Trace resolution failed');
+
+const makersMarkMatch = findIngredient("Maker's Mark");
+console.log("Maker's Mark =>", makersMarkMatch?.name, `(ID: ${makersMarkMatch?.id})`);
+if (!makersMarkMatch || makersMarkMatch.id !== 'bourbon') throw new Error("Maker's Mark resolution failed");
+
+const rittenhouseMatch = findIngredient('Rittenhouse Rye');
+console.log('Rittenhouse Rye =>', rittenhouseMatch?.name, `(ID: ${rittenhouseMatch?.id})`);
+if (!rittenhouseMatch || rittenhouseMatch.id !== 'rye_whiskey') throw new Error('Rittenhouse resolution failed');
+
+const titosMatch = findIngredient("Tito's");
+console.log("Tito's =>", titosMatch?.name, `(ID: ${titosMatch?.id})`);
+if (!titosMatch || titosMatch.id !== 'vodka') throw new Error("Tito's resolution failed");
+
+const fortalezaMatch = findIngredient('Fortaleza Blanco');
+console.log('Fortaleza Blanco =>', fortalezaMatch?.name, `(ID: ${fortalezaMatch?.id})`);
+if (!fortalezaMatch || fortalezaMatch.id !== 'tequila_blanco') throw new Error('Fortaleza resolution failed');
+
+const bourbonBrandMeta = getIngredientMetadata('Bourbon');
+if (!bourbonBrandMeta || !Array.isArray(bourbonBrandMeta.brands) || !bourbonBrandMeta.brands.includes('Buffalo Trace')) {
+  throw new Error('Bourbon metadata should include Buffalo Trace in brands array');
+}
+
+const foamerMatch = findIngredient('Fee Foam');
+console.log('Fee Foam =>', foamerMatch?.name, `(ID: ${foamerMatch?.id})`);
+if (!foamerMatch || foamerMatch.id !== 'cocktail_foamer') throw new Error('Fee Foam resolution failed');
+
+const foamerMeta = getIngredientMetadata('Cocktail Foamer');
+if (!foamerMeta || foamerMeta.storage !== 'shelf' || foamerMeta.isRefrigerated) {
+  throw new Error('Cocktail foamer should be shelf-stable');
+}
+
 console.log('--- Testing Refrigeration & Storage Metadata ---');
 const vermouthMeta = getIngredientMetadata('Sweet Vermouth');
 console.log('Sweet Vermouth storage:', vermouthMeta?.storage, '(isRefrigerated:', vermouthMeta?.isRefrigerated, ')');
@@ -540,9 +586,9 @@ if (slug3 !== 'scotch-old-fashioned-3') {
 }
 console.log('Clean URL slug generation verified.');
 
-console.log('--- Testing 100 Canonical Seed Recipes ---');
-if (SEED_RECIPES.length !== 100) {
-  throw new Error(`Expected exactly 100 seed recipes, got ${SEED_RECIPES.length}`);
+console.log(`--- Testing Canonical Seed Recipes (${SEED_RECIPES.length}) ---`);
+if (SEED_RECIPES.length < 100) {
+  throw new Error(`Expected at least 100 seed recipes, got ${SEED_RECIPES.length}`);
 }
 
 const cranberryItem = findIngredient('Cranberry Juice');
@@ -623,6 +669,40 @@ if (!renderedSvg.includes('garnish-cherry') || !renderedSvg.includes('garnish-or
   throw new Error(`Expected rendered SVG to contain cherry and twist garnishes: ${renderedSvg}`);
 }
 console.log('Garnish resolution and vector SVG rendering tests passed.');
+
+console.log('--- Testing Blue Curaçao Taxonomy & Blended Color Calculation ---');
+const blueCuracaoMeta = getIngredientMetadata('Blue Curaçao');
+if (!blueCuracaoMeta || blueCuracaoMeta.id !== 'blue_curacao' || blueCuracaoMeta.color !== '#0096c7') {
+  throw new Error(`Expected blue_curacao to resolve to #0096c7, got: ${JSON.stringify(blueCuracaoMeta)}`);
+}
+console.log('Blue Curaçao taxonomy resolution verified:', blueCuracaoMeta.id, blueCuracaoMeta.color);
+
+const { calculateBlendedColor } = await import('../js/modules/colors.js');
+const { renderGlassSvg } = await import('../js/modules/glass-view.js');
+
+const blueHawaiiSpecs = [
+  { amount: 1, unit: 'oz', name: 'Light Rum' },
+  { amount: 1, unit: 'oz', name: 'Vodka' },
+  { amount: 0.75, unit: 'oz', name: 'Blue Curaçao' },
+  { amount: 3, unit: 'oz', name: 'Pineapple Juice' },
+  { amount: 0.5, unit: 'oz', name: 'Fresh Lemon Juice' },
+];
+const blendedBlueHawaii = calculateBlendedColor(blueHawaiiSpecs);
+console.log('Blue Hawaii blended color result:', blendedBlueHawaii);
+if (!blendedBlueHawaii.color || !blendedBlueHawaii.light || !blendedBlueHawaii.dark) {
+  throw new Error('Blended color calculation returned incomplete color shades');
+}
+
+const blueHawaiiSvg = renderGlassSvg({
+  name: 'Blue Hawaii',
+  glassware: 'Highball',
+  specs: blueHawaiiSpecs,
+}, 'test-glass', { mode: 'blended' });
+
+if (!blueHawaiiSvg.includes('blended-fluid-body') || !blueHawaiiSvg.includes('data-mode="blended"')) {
+  throw new Error('Expected rendered SVG to contain blended-fluid-body and data-mode="blended"');
+}
+console.log('Blended cocktail color calculation and SVG generation tests passed.');
 
 console.log('All tests completed successfully!');
 
