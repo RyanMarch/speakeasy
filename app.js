@@ -278,6 +278,9 @@ function setupGlobalEventListeners() {
   elements.vaultBarNameInput?.addEventListener('change', (e) => {
     const newName = saveBarName(e.target.value);
     e.target.value = newName;
+    if (state.viewMode === 'home') {
+      renderHomeView();
+    }
     showToast('Bar name updated');
   });
 
@@ -449,10 +452,9 @@ function setLibrarySort(sortOption) {
 
   const labels = {
     'curated': 'Curated',
-    'name-asc': 'Alphabetical (A–Z)',
-    'name-desc': 'Alphabetical (Z–A)',
-    'ready': 'Backbar Readiness',
+    'ready': 'Ready to Make',
     'specs-asc': 'Fewest Ingredients',
+    'name-asc': 'Alphabetical (A–Z)',
   };
   const label = labels[sortOption] || 'Selected';
   showToast(`Sorted by ${label}`);
@@ -534,6 +536,8 @@ function setupBackbarEventListeners() {
     renderRecipeList();
     if (state.viewMode === 'counter') {
       renderCounterView();
+    } else if (state.viewMode === 'home') {
+      renderHomeView();
     }
     renderBackbarModalContent();
     showToast('Loaded Starter Bar essentials');
@@ -548,6 +552,8 @@ function setupBackbarEventListeners() {
       renderRecipeList();
       if (state.viewMode === 'counter') {
         renderCounterView();
+      } else if (state.viewMode === 'home') {
+        renderHomeView();
       }
       renderBackbarModalContent();
       showToast('Cleared backbar inventory');
@@ -644,8 +650,34 @@ function toggleInventoryBottle(bottleId) {
   renderRecipeList();
   if (state.viewMode === 'counter') {
     renderCounterView();
+  } else if (state.viewMode === 'home') {
+    renderHomeView();
   }
   renderBackbarModalContent();
+}
+
+/**
+ * Compute accessible high-contrast text color (#111111 vs #ffffff) for a hex background
+ * using standard relative luminance formula (WCAG 2.1)
+ */
+function getContrastColor(hexColor) {
+  if (!hexColor || typeof hexColor !== 'string') return '#111111';
+  let hex = hexColor.replace('#', '').trim();
+  if (hex.length === 3) {
+    hex = hex.split('').map(c => c + c).join('');
+  }
+  if (hex.length !== 6) return '#111111';
+
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  const toLinear = (c) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+
+  // Contrast against black (L=0): (L + 0.05) / 0.05
+  // Contrast against white (L=1): 1.05 / (L + 0.05)
+  return L > 0.35 ? '#111111' : '#ffffff';
 }
 
 /**
@@ -691,12 +723,13 @@ function renderBackbarModalContent() {
     const pillsHtml = items.map(item => {
       const isOwned = state.inventory.has(item.id);
       const isFridge = REFRIGERATED_INGREDIENT_IDS.has(item.id);
+      const bg = item.color || '#c67828';
+      const textColor = getContrastColor(bg);
       return `
         <button type="button" class="backbar-pill ${isOwned ? 'active' : ''} ${isFridge ? 'is-fridge-item' : ''}" data-bottle-id="${escapeHtml(item.id)}" aria-pressed="${isOwned}" title="${isFridge ? `${escapeHtml(item.name)} (Keep refrigerated once opened)` : escapeHtml(item.name)}">
-          <span class="backbar-pill-dot" style="background-color: ${item.color || '#c67828'};"></span>
+          <span class="backbar-pill-dot" style="background-color: ${bg}; color: ${textColor};">${isOwned ? '✓' : ''}</span>
           <span class="backbar-pill-name">${escapeHtml(item.name)}</span>
           ${isFridge ? '<span class="backbar-pill-fridge-tag" aria-label="Refrigerate" title="Keep refrigerated">❄️</span>' : ''}
-          ${isOwned ? '<span class="backbar-pill-check">✓</span>' : ''}
         </button>
       `;
     }).join('');

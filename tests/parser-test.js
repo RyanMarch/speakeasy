@@ -587,8 +587,8 @@ if (slug3 !== 'scotch-old-fashioned-3') {
 console.log('Clean URL slug generation verified.');
 
 console.log(`--- Testing Canonical Seed Recipes (${SEED_RECIPES.length}) ---`);
-if (SEED_RECIPES.length < 100) {
-  throw new Error(`Expected at least 100 seed recipes, got ${SEED_RECIPES.length}`);
+if (SEED_RECIPES.length < 150) {
+  throw new Error(`Expected at least 150 seed recipes, got ${SEED_RECIPES.length}`);
 }
 
 const cranberryItem = findIngredient('Cranberry Juice');
@@ -610,7 +610,7 @@ SEED_RECIPES.forEach(recipe => {
     throw new Error(`Cocktail ${recipe.name} calculated invalid ABV: ${JSON.stringify(abvResult)}`);
   }
 });
-console.log(`All 100 canonical recipes verified: proper metadata, valid fluid layers, and realistic ABV calculations.`);
+console.log(`All 150 canonical recipes verified: proper metadata, valid fluid layers, and realistic ABV calculations.`);
 
 console.log('--- Testing Method Content Parser (Ordered, Unordered, Prose) ---');
 const orderedTest = `1. Add bourbon, demerara syrup, and bitters to a mixing glass.
