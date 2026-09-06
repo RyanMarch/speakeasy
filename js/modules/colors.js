@@ -152,3 +152,184 @@ export function calculateFluidLayers(specs = []) {
     };
   });
 }
+
+/**
+ * Helper to parse hex string (#rgb or #rrggbb) or hsl to {r, g, b}
+ */
+export function hexToRgb(hex) {
+  if (!hex) return { r: 210, g: 226, b: 236 };
+  let clean = hex.trim();
+  if (clean.startsWith('hsl')) {
+    const m = clean.match(/hsl\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)/i);
+    if (m) {
+      const h = parseFloat(m[1]) / 360;
+      const s = parseFloat(m[2]) / 100;
+      const l = parseFloat(m[3]) / 100;
+      return hslToRgb(h, s, l);
+    }
+    return { r: 210, g: 226, b: 236 };
+  }
+
+  clean = clean.replace('#', '');
+  if (clean.length === 3) {
+    clean = clean.split('').map(c => c + c).join('');
+  }
+  const num = parseInt(clean, 16);
+  if (isNaN(num)) return { r: 210, g: 226, b: 236 };
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255,
+  };
+}
+
+export function rgbToHex(r, g, b) {
+  const clamp = (val) => Math.max(0, Math.min(255, Math.round(val)));
+  return '#' + [r, g, b].map(v => clamp(v).toString(16).padStart(2, '0')).join('');
+}
+
+function hslToRgb(h, s, l) {
+  let r, g, b;
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0; // achromatic
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return { h, s, l };
+}
+
+/**
+ * Derives coordinated highlight and shadow tones from a base hex color
+ */
+export function deriveShades(baseHex) {
+  const rgb = hexToRgb(baseHex);
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+  // Light highlight: higher lightness, slightly boosted saturation
+  const lightL = Math.min(0.92, hsl.l + 0.16);
+  const lightS = Math.min(1, hsl.s * 1.05);
+  const lightRgb = hslToRgb(hsl.h, lightS, lightL);
+
+  // Dark shadow: lower lightness, deeper depth
+  const darkL = Math.max(0.12, hsl.l - 0.22);
+  const darkS = Math.min(1, hsl.s * 1.12);
+  const darkRgb = hslToRgb(hsl.h, darkS, darkL);
+
+  return {
+    color: baseHex,
+    light: rgbToHex(lightRgb.r, lightRgb.g, lightRgb.b),
+    dark: rgbToHex(darkRgb.r, darkRgb.g, darkRgb.b),
+  };
+}
+
+/**
+ * Calculates a unified blended color from liquid specs by volume weighting.
+ * Takes into account dominant tinting (e.g. blue curacao or campari strongly tinting pale liquids)
+ * and opacity/dairy body.
+ */
+export function calculateBlendedColor(specs = []) {
+  const layers = calculateFluidLayers(specs);
+  if (layers.length === 0) {
+    return {
+      color: '#d2e2ec',
+      light: '#e7f0f6',
+      dark: '#a5c0d1',
+      label: 'Clear',
+      dominantName: 'Clear Spirit',
+    };
+  }
+
+  if (layers.length === 1) {
+    return {
+      color: layers[0].color,
+      light: layers[0].light,
+      dark: layers[0].dark,
+      label: layers[0].label,
+      dominantName: layers[0].spec?.name || layers[0].label,
+    };
+  }
+
+  // Weight ingredients by volumetric ratio and tinting dye potency
+  // Highly concentrated colored liqueurs (e.g. blue curaçao, campari, grenadine, chartreuse)
+  // possess extraordinary tinting strength (staining even large volumes of light citrus or spirit)
+  let weightedR = 0;
+  let weightedG = 0;
+  let weightedB = 0;
+  let totalWeight = 0;
+
+  for (const layer of layers) {
+    const rgb = hexToRgb(layer.color);
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const nameLower = (layer.spec?.name || '').toLowerCase();
+    
+    // Potency weight: High-chroma saturated ingredients tint drinks significantly
+    let potency = 1 + (hsl.s * 1.5);
+    if (/blue cura[cç]ao|cura[cç]ao blue/i.test(nameLower)) {
+      // Blue Curaçao uses brilliant blue dye (E133 / FD&C Blue No. 1) which aggressively turns drinks vivid cyan/aqua
+      potency *= 5.5;
+    } else if (/campari|grenadine|midori|cassis|cynar/i.test(nameLower)) {
+      potency *= 3.0;
+    } else if (/chartreuse|galliano|strega|cura[cç]ao/i.test(nameLower)) {
+      potency *= 2.0;
+    } else if (hsl.s < 0.15) {
+      // Neutral clear spirits (vodka, gin, light rum, seltzer) dilute without altering tint
+      potency *= 0.4;
+    }
+
+    const weight = layer.volOz * potency;
+
+    weightedR += rgb.r * weight;
+    weightedG += rgb.g * weight;
+    weightedB += rgb.b * weight;
+    totalWeight += weight;
+  }
+
+  const avgR = totalWeight > 0 ? weightedR / totalWeight : 210;
+  const avgG = totalWeight > 0 ? weightedG / totalWeight : 226;
+  const avgB = totalWeight > 0 ? weightedB / totalWeight : 236;
+
+  const baseHex = rgbToHex(avgR, avgG, avgB);
+  const shades = deriveShades(baseHex);
+
+  return {
+    color: shades.color,
+    light: shades.light,
+    dark: shades.dark,
+    label: 'Blended Cocktail',
+    dominantName: layers.reduce((max, cur) => (cur.volOz > max.volOz ? cur : max), layers[0])?.spec?.name || 'Blended',
+  };
+}
