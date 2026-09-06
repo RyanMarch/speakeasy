@@ -35,7 +35,8 @@
   <div id="app">
     <!-- Main Header -->
     <header class="app-header">
-      <button type="button" id="btn-go-home" class="brand-group brand-group-btn" title="Go to Home" aria-label="Go to Home">
+      <button type="button" id="btn-go-home" class="brand-group brand-group-btn" title="Go to Home"
+        aria-label="Go to Home">
         <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M8 22h8" />
@@ -220,8 +221,8 @@
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="search" id="search-input" class="search-input"
-              placeholder="Search drinks, spirits..." aria-label="Search recipes">
+            <input type="search" id="search-input" class="search-input" placeholder="Search drinks, spirits..."
+              aria-label="Search recipes">
             <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
           </div>
         </div>
@@ -251,6 +252,27 @@
           <button class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
             Ready <span class="filter-count" id="count-can-make">0</span>
           </button>
+        </div>
+
+        <!-- Sidebar Sort Controls Bar -->
+        <div class="sidebar-sort-bar">
+          <label for="sidebar-sort-select" class="sidebar-sort-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="12" x2="14" y2="12"></line>
+              <line x1="4" y1="18" x2="8" y2="18"></line>
+            </svg>
+            <span>Sort</span>
+          </label>
+          <div class="sidebar-sort-select-wrap">
+            <select id="sidebar-sort-select" class="sidebar-sort-select" aria-label="Sort cocktail list">
+              <option value="curated">Curated</option>
+              <option value="ready">Ready to Make</option>
+              <option value="specs-asc">Fewest Ingredients</option>
+              <option value="name-asc">Alphabetical (A–Z)</option>
+            </select>
+          </div>
         </div>
 
         <ul class="recipe-list" id="recipe-list" role="listbox" aria-label="Recipe List">
