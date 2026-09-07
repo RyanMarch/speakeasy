@@ -36,12 +36,13 @@ import {
 } from '../modules/taxonomy.js';
 
 import { calculateCocktailAbv } from '../modules/abv.js';
-import { calculateBalanceProfile, renderFlavorRadarSvg } from '../modules/balance.js';
+import { calculateBalanceProfile, renderFlavorRadarSvg, calculatePalateSimilarity } from '../modules/balance.js';
 import { calculateFluidLayers, getIngredientColor } from '../modules/colors.js';
-import { formatFraction, parseMethodContent } from '../modules/parser.js';
+import { formatFraction, parseMethodContent, renderInstructionTimers } from '../modules/parser.js';
 import { GlassView, renderGlassSvg } from '../modules/glass-view.js';
 import { setupTagAutocomplete, filterByTag } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
+import { openTimerModal } from '../components/timer-modal.js';
 
 let _selectRecipeFn = null;
 let _openEditorFn = null;
@@ -89,7 +90,7 @@ export function releaseWakeLock() {
   const sentinel = wakeLockSentinel;
   wakeLockSentinel = null;
   if (sentinel) {
-    sentinel.release().catch(() => {});
+    sentinel.release().catch(() => { });
   }
   updateWakeLockIndicator();
 }
@@ -194,6 +195,84 @@ export function confirmDeleteRecipe(recipe) {
 }
 
 /**
+ * Formats a numeric palate match percentage into a plain English descriptor and tier styling class.
+ * @param {number} percentage
+ * @returns {{ label: string, tierClass: string }}
+ */
+export function formatPalateMatchLabel(percentage) {
+  const match = Math.round(percentage);
+  if (match >= 91) return { label: 'Close Match', tierClass: 'match-high' };
+  if (match >= 80) return { label: 'Similar Vibe', tierClass: 'match-mid' };
+  return null;
+}
+
+/**
+ * Discovers similar and riff-connected cocktails across the vault with palate similarity integration.
+ * Guarantees parent/child/sibling recipes as top priority, then ranks remaining candidates
+ * by palate match percentage and shared technique/profile.
+ */
+export function getEnhancedSimilarCocktails(currentRecipe, allRecipes = []) {
+  if (!currentRecipe || !Array.isArray(allRecipes)) return [];
+
+  const lineageMatches = findSimilarCocktails(currentRecipe, allRecipes);
+  const results = [];
+  const addedIds = new Set([currentRecipe.id]);
+
+  // Direct Riff / Lineage: Top priority (parent, child, and sibling riffs remain first)
+  for (const item of lineageMatches) {
+    if (item.isParent || item.isChild || item.isSibling) {
+      const palateMatch = calculatePalateSimilarity(currentRecipe, item.recipe);
+      results.push({
+        ...item,
+        palateMatch,
+      });
+      addedIds.add(item.recipe.id);
+    }
+  }
+
+  // Palate & Balance Matches: Rank remaining catalog recipes by palate similarity and shared technique
+  const candidates = [];
+  for (const candidate of allRecipes) {
+    if (addedIds.has(candidate.id)) continue;
+
+    const palateMatch = calculatePalateSimilarity(currentRecipe, candidate);
+    let techniqueScore = 0;
+
+    if (candidate.method && currentRecipe.method && candidate.method.toLowerCase() === currentRecipe.method.toLowerCase()) {
+      techniqueScore += 10;
+    }
+    if (candidate.glassware && currentRecipe.glassware && candidate.glassware.toLowerCase() === currentRecipe.glassware.toLowerCase()) {
+      techniqueScore += 5;
+    }
+
+    const existingStyleMatch = lineageMatches.find(m => m.recipe.id === candidate.id);
+    if (existingStyleMatch) {
+      techniqueScore += (existingStyleMatch.matchCount || 2) * 5;
+    }
+
+    const totalScore = palateMatch * 0.7 + techniqueScore * 0.3;
+
+    candidates.push({
+      recipe: candidate,
+      relation: existingStyleMatch ? existingStyleMatch.relation : 'Similar Style',
+      badgeClass: existingStyleMatch ? existingStyleMatch.badgeClass : 'badge-family',
+      palateMatch,
+      totalScore,
+    });
+  }
+
+  candidates.sort((a, b) => b.totalScore - a.totalScore || b.palateMatch - a.palateMatch);
+
+  for (const candidate of candidates) {
+    if (results.length >= 6) break;
+    results.push(candidate);
+    addedIds.add(candidate.recipe.id);
+  }
+
+  return results.slice(0, 6);
+}
+
+/**
  * Render Counter View (optimized for high-contrast viewing on bar counter)
  */
 export function renderCounterView() {
@@ -233,7 +312,7 @@ export function renderCounterView() {
     specs: effectiveSpecs,
   };
 
-  const similarCocktails = findSimilarCocktails(recipe, state.recipes);
+  const similarCocktails = getEnhancedSimilarCocktails(recipe, state.recipes);
   const lineage = getRecipeRiffLineage(recipe, state.recipes);
   const invAnalysis = analyzeRecipeInventory(effectiveRecipe, state.inventory);
 
@@ -561,55 +640,55 @@ export function renderCounterView() {
 
         <!-- Method Section -->
         ${(() => {
-          const rawMethodText = recipe.instructions ||
-            (recipe.notes ? `${recipe.method ? `${recipe.method}: ` : ''}${recipe.notes}` : `${recipe.method || 'Standard'}: Standard build and chill.`);
-          if (!rawMethodText || !rawMethodText.trim()) return '';
+      const rawMethodText = recipe.instructions ||
+        (recipe.notes ? `${recipe.method ? `${recipe.method}: ` : ''}${recipe.notes}` : `${recipe.method || 'Standard'}: Standard build and chill.`);
+      if (!rawMethodText || !rawMethodText.trim()) return '';
 
-          const parsed = parseMethodContent(rawMethodText);
-          let methodBodyHtml = '';
+      const parsed = parseMethodContent(rawMethodText);
+      let methodBodyHtml = '';
 
-          if (parsed.type === 'ordered') {
-            methodBodyHtml = /*html*/ `
+      if (parsed.type === 'ordered') {
+        methodBodyHtml = /*html*/ `
               <ol class="card-method-list card-method-ordered">
-                ${parsed.items.map(item => `<li><span>${escapeHtml(item)}</span></li>`).join('')}
+                ${parsed.items.map(item => `<li><span>${renderInstructionTimers(item, escapeHtml)}</span></li>`).join('')}
               </ol>
             `;
-          } else if (parsed.type === 'unordered') {
-            methodBodyHtml = /*html*/ `
+      } else if (parsed.type === 'unordered') {
+        methodBodyHtml = /*html*/ `
               <ul class="card-method-list card-method-unordered">
-                ${parsed.items.map(item => `<li><span>${escapeHtml(item)}</span></li>`).join('')}
+                ${parsed.items.map(item => `<li><span>${renderInstructionTimers(item, escapeHtml)}</span></li>`).join('')}
               </ul>
             `;
-          } else {
-            methodBodyHtml = /*html*/ `
-              <div class="card-content-text card-instructions">${escapeHtml(rawMethodText)}</div>
+      } else {
+        methodBodyHtml = /*html*/ `
+              <div class="card-content-text card-instructions">${renderInstructionTimers(rawMethodText, escapeHtml)}</div>
             `;
-          }
+      }
 
-          return /*html*/ `
+      return /*html*/ `
             <div class="recipe-editorial-section">
               <h3 class="editorial-section-title">Method</h3>
               ${methodBodyHtml}
             </div>
           `;
-        })()}
+    })()}
 
         <!-- Additional Notes (if distinct from instructions) -->
         ${(() => {
-          if (!recipe.notes || !recipe.notes.trim()) return '';
-          if (!recipe.instructions || !recipe.instructions.trim()) return '';
-          const notesText = recipe.notes.trim();
-          const instrText = recipe.instructions.trim();
-          if (notesText.toLowerCase() === instrText.toLowerCase()) return '';
-          if (instrText.toLowerCase().includes(notesText.toLowerCase())) return '';
-          if (
-            (notesText.toLowerCase().includes('build over') && instrText.toLowerCase().includes('large ice cube')) ||
-            (notesText.toLowerCase().includes('stir with cracked ice') && instrText.toLowerCase().includes('stir for')) ||
-            (notesText.toLowerCase().includes('stir thoroughly') && instrText.toLowerCase().includes('stir'))
-          ) {
-            return '';
-          }
-          return /*html*/ `
+      if (!recipe.notes || !recipe.notes.trim()) return '';
+      if (!recipe.instructions || !recipe.instructions.trim()) return '';
+      const notesText = recipe.notes.trim();
+      const instrText = recipe.instructions.trim();
+      if (notesText.toLowerCase() === instrText.toLowerCase()) return '';
+      if (instrText.toLowerCase().includes(notesText.toLowerCase())) return '';
+      if (
+        (notesText.toLowerCase().includes('build over') && instrText.toLowerCase().includes('large ice cube')) ||
+        (notesText.toLowerCase().includes('stir with cracked ice') && instrText.toLowerCase().includes('stir for')) ||
+        (notesText.toLowerCase().includes('stir thoroughly') && instrText.toLowerCase().includes('stir'))
+      ) {
+        return '';
+      }
+      return /*html*/ `
             <div class="recipe-editorial-section">
               <h3 class="editorial-section-title">Notes</h3>
               <p class="card-content-text">
@@ -617,7 +696,7 @@ export function renderCounterView() {
               </p>
             </div>
           `;
-        })()}
+    })()}
 
         <!-- Flavor Radar: Mobile placement, directly above the tag cloud -->
         <div class="flavor-radar-card flavor-radar-mobile">
@@ -686,13 +765,19 @@ export function renderCounterView() {
         </div>
 
         <div class="similar-cocktails-track" id="similar-cocktails-track">
-          ${similarCocktails.map((item, idx) => `
+          ${similarCocktails.map((item, idx) => {
+      const isGenealogy = item.relation && item.relation !== 'Similar Style';
+      const palateInfo = item.palateMatch !== undefined ? formatPalateMatchLabel(item.palateMatch) : null;
+      return `
             <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(item.recipe.id)}" role="button" tabindex="0">
               <div class="similar-card-glass">
                 ${renderGlassSvg(item.recipe, `sim-glass-${item.recipe.id}-${idx}`)}
               </div>
               <div class="similar-card-body">
-                <span class="similar-relation-badge ${item.badgeClass || ''}">${escapeHtml(item.relation)}</span>
+                <div class="similar-card-badges">
+                  ${isGenealogy ? `<span class="similar-relation-badge ${item.badgeClass || ''}">${escapeHtml(item.relation)}</span>` : ''}
+                  ${palateInfo ? `<span class="similar-palate-badge ${palateInfo.tierClass}" title="${item.palateMatch}% palate match">${escapeHtml(palateInfo.label)}</span>` : ''}
+                </div>
                 <h4 class="similar-card-name" title="${escapeHtml(item.recipe.name)}">${escapeHtml(item.recipe.name)}</h4>
                 <div class="similar-card-meta">
                   <span>${escapeHtml(item.recipe.glassware || 'Glass')}</span>
@@ -704,7 +789,8 @@ export function renderCounterView() {
                 </div>
               </div>
             </div>
-          `).join('')}
+          `;
+    }).join('')}
         </div>
       </div>
     ` : ''}
@@ -880,6 +966,17 @@ export function renderCounterView() {
   });
   document.getElementById('btn-similar-next')?.addEventListener('click', () => {
     simTrack?.scrollBy({ left: 260, behavior: 'smooth' });
+  });
+
+  // Wire Smart Counter Timer token chips
+  elements.counterViewContainer.querySelectorAll('.timer-token').forEach(token => {
+    token.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const seconds = parseInt(token.getAttribute('data-seconds'), 10);
+      if (seconds > 0) {
+        openTimerModal(seconds);
+      }
+    });
   });
 
   elements.counterViewContainer.querySelectorAll('.similar-cocktail-card').forEach(el => {
