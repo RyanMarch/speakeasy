@@ -28,6 +28,11 @@ import {
   saveSortPreference,
   getRecentlyViewed,
   recordRecentlyViewed,
+  getHiddenRecipeIds,
+  hideRecipe,
+  unhideRecipe,
+  unhideAllRecipes,
+  isRecipeHidden,
 } from './js/modules/storage.js';
 
 const SEED_RECIPE_IDS = new Set(SEED_RECIPES.map(r => r.id));
@@ -125,6 +130,13 @@ const elements = {
   btnClearBar: document.getElementById('btn-clear-bar'),
   btnCloseBackbar: document.getElementById('btn-close-backbar'),
   btnDoneBackbar: document.getElementById('btn-done-backbar'),
+  btnManageHidden: document.getElementById('btn-manage-hidden'),
+  vaultHiddenSub: document.getElementById('vault-hidden-sub'),
+  hiddenRecipesModal: document.getElementById('hidden-recipes-modal'),
+  hiddenRecipesContainer: document.getElementById('hidden-recipes-container'),
+  btnCloseHiddenModal: document.getElementById('btn-close-hidden-modal'),
+  btnDoneHiddenModal: document.getElementById('btn-done-hidden-modal'),
+  btnUnhideAll: document.getElementById('btn-unhide-all'),
 };
 
 /**
@@ -176,6 +188,7 @@ function init() {
 
   setupGlobalEventListeners();
   setupBackbarEventListeners();
+  setupHiddenModalEventListeners();
   updateMyBarBadge();
   renderRecipeList();
   renderCurrentView();
@@ -382,6 +395,13 @@ const BACKBAR_CATEGORIES = [
  * Update vault stats line in Settings popover
  */
 function updateVaultStats() {
+  const hiddenCount = getHiddenRecipeIds().length;
+  if (elements.btnManageHidden) {
+    elements.btnManageHidden.style.display = hiddenCount > 0 ? '' : 'none';
+  }
+  if (elements.vaultHiddenSub) {
+    elements.vaultHiddenSub.textContent = hiddenCount === 1 ? '1 drink hidden' : `${hiddenCount} drinks hidden`;
+  }
   if (!elements.vaultStatsLine) return;
   const customCount = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
   const cocktailText = customCount === 1 ? '1 custom cocktail' : `${customCount} custom cocktails`;
@@ -602,6 +622,140 @@ function setupBackbarEventListeners() {
         b.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
       renderRecipeList();
+    });
+  });
+}
+
+/**
+ * Hidden Cocktails Modal Event Listeners & Management
+ */
+function setupHiddenModalEventListeners() {
+  elements.btnManageHidden?.addEventListener('click', () => {
+    if (elements.vaultPopover?.hidePopover) {
+      try {
+        elements.vaultPopover.hidePopover();
+      } catch (err) {
+        // Ignore if already closed
+      }
+    }
+    openHiddenModal();
+  });
+
+  elements.btnCloseHiddenModal?.addEventListener('click', closeHiddenModal);
+  elements.btnDoneHiddenModal?.addEventListener('click', closeHiddenModal);
+
+  elements.btnUnhideAll?.addEventListener('click', () => {
+    const hiddenCount = getHiddenRecipeIds().length;
+    if (hiddenCount === 0) return;
+
+    unhideAllRecipes();
+    state.recipes = getRecipes();
+    renderRecipeList();
+    if (state.viewMode === 'counter') {
+      renderCounterView();
+    } else if (state.viewMode === 'home') {
+      renderHomeView();
+    }
+    updateVaultStats();
+    renderHiddenRecipesModal();
+    showToast(`Restored all ${hiddenCount} hidden cocktails`);
+  });
+
+  // Light dismiss fallback for browsers without closedby="any"
+  if (elements.hiddenRecipesModal && !('closedBy' in HTMLDialogElement.prototype)) {
+    elements.hiddenRecipesModal.addEventListener('click', (event) => {
+      if (event.target !== elements.hiddenRecipesModal) return;
+      const rect = elements.hiddenRecipesModal.getBoundingClientRect();
+      const isDialogContent = (
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width
+      );
+      if (!isDialogContent) {
+        closeHiddenModal();
+      }
+    });
+  }
+}
+
+/**
+ * Open Hidden Cocktails Modal
+ */
+function openHiddenModal() {
+  renderHiddenRecipesModal();
+  if (typeof elements.hiddenRecipesModal?.showModal === 'function') {
+    elements.hiddenRecipesModal.showModal();
+  }
+}
+
+/**
+ * Close Hidden Cocktails Modal
+ */
+function closeHiddenModal() {
+  if (typeof elements.hiddenRecipesModal?.close === 'function') {
+    elements.hiddenRecipesModal.close();
+  }
+}
+
+/**
+ * Render contents of the Hidden Cocktails Modal
+ */
+function renderHiddenRecipesModal() {
+  if (!elements.hiddenRecipesContainer) return;
+
+  const hiddenIds = getHiddenRecipeIds();
+  if (elements.btnUnhideAll) {
+    elements.btnUnhideAll.style.display = hiddenIds.length > 0 ? '' : 'none';
+  }
+
+  if (hiddenIds.length === 0) {
+    elements.hiddenRecipesContainer.innerHTML = /*html*/`
+      <div class="hidden-empty-state">
+        <span class="hidden-empty-title">No hidden cocktails</span>
+        <p>Default recipes you hide from your library will appear here so you can restore them anytime.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Resolve hidden seed recipe objects
+  const hiddenDrinks = hiddenIds.map(id => {
+    return SEED_RECIPES.find(s => s.id === id) || { id, name: id, glassware: '', method: '' };
+  });
+
+  elements.hiddenRecipesContainer.innerHTML = /*html*/hiddenDrinks.map(drink => {
+    const subParts = [drink.glassware, drink.method].filter(Boolean).join(' · ');
+    return /*html*/`
+      <div class="hidden-recipe-row" data-id="${escapeHtml(drink.id)}">
+        <div class="hidden-recipe-meta">
+          <span class="hidden-recipe-name">${escapeHtml(drink.name)}</span>
+          ${subParts ? `<span class="hidden-recipe-sub">${escapeHtml(subParts)}</span>` : ''}
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm btn-action-unhide" data-id="${escapeHtml(drink.id)}" aria-label="Unhide ${escapeHtml(drink.name)}">
+          Unhide
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  // Wire up individual Unhide action buttons
+  elements.hiddenRecipesContainer.querySelectorAll('.btn-action-unhide').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const drinkId = btn.getAttribute('data-id');
+      if (!drinkId) return;
+      const drinkObj = SEED_RECIPES.find(s => s.id === drinkId) || { id: drinkId, name: drinkId };
+      unhideRecipe(drinkId);
+      state.recipes = getRecipes();
+      renderRecipeList();
+      if (state.viewMode === 'counter') {
+        renderCounterView();
+      } else if (state.viewMode === 'home') {
+        renderHomeView();
+      }
+      updateVaultStats();
+      renderHiddenRecipesModal();
+      showToast(`Restored "${drinkObj.name}" to library`);
     });
   });
 }
@@ -1375,7 +1529,8 @@ function setupHomeViewEvents(pinnableTags) {
  * Render Counter View (optimized for high-contrast viewing on bar counter)
  */
 function renderCounterView() {
-  const recipe = state.recipes.find(r => r.id === state.activeRecipeId);
+  const recipe = state.recipes.find(r => r.id === state.activeRecipeId)
+    || SEED_RECIPES.find(r => r.id === state.activeRecipeId);
   if (!recipe) {
     elements.counterViewContainer.innerHTML =  /*html*/`
       <div class="empty-state">
@@ -1419,6 +1574,9 @@ function renderCounterView() {
 
   const layers = calculateFluidLayers(effectiveSpecs);
   const baseTotalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
+  const isSeed = SEED_RECIPE_IDS.has(recipe.id);
+  const isCurrentlyHidden = isRecipeHidden(recipe.id);
+
   const currentServings = state.servings || 1;
   const scaledTotalOz = baseTotalOz * currentServings;
   const totalDisplay = state.unitSystem === 'ml'
@@ -1594,16 +1752,40 @@ function renderCounterView() {
             <span class="action-btn-text">Duplicate</span>
           </button>
 
-          <button id="btn-delete-drink" class="action-icon-btn action-icon-btn-danger" title="Delete recipe" aria-label="Delete recipe">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            <span class="action-btn-text">Delete</span>
-          </button>
+          ${isSeed ? `
+            <button id="btn-hide-drink" class="action-icon-btn ${isCurrentlyHidden ? 'action-icon-btn-hidden' : ''}" title="${isCurrentlyHidden ? 'Hidden from your library (click to unhide)' : 'Hide from library'}" aria-label="${isCurrentlyHidden ? 'Unhide recipe' : 'Hide recipe'}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+              <span class="action-btn-text">${isCurrentlyHidden ? 'Hidden' : 'Hide'}</span>
+            </button>
+          ` : `
+            <button id="btn-delete-drink" class="action-icon-btn action-icon-btn-danger" title="Delete recipe" aria-label="Delete recipe">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span class="action-btn-text">Delete</span>
+            </button>
+          `}
         </div>
       </div>
 
       <!-- Story / Description directly under title -->
       ${recipe.description ? `
         <p class="drink-description-prose">${escapeHtml(recipe.description)}</p>
+      ` : ''}
+
+      <!-- Prominent in-place status banner when recipe is currently hidden -->
+      ${isCurrentlyHidden ? `
+        <div class="drink-hidden-banner" role="status">
+          <span class="drink-hidden-banner-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+            This cocktail is currently <strong>Hidden</strong> from your library list.
+          </span>
+          <button type="button" class="btn-banner-unhide" id="btn-banner-unhide">Unhide Cocktail ↵</button>
+        </div>
       ` : ''}
 
       <!-- Contextual substitution notice when applicable -->
@@ -2044,6 +2226,14 @@ function renderCounterView() {
 
   document.getElementById('btn-duplicate-drink')?.addEventListener('click', () => {
     duplicateRecipe(recipe);
+  });
+
+  document.getElementById('btn-hide-drink')?.addEventListener('click', () => {
+    toggleHideRecipe(recipe);
+  });
+
+  document.getElementById('btn-banner-unhide')?.addEventListener('click', () => {
+    toggleHideRecipe(recipe);
   });
 
   document.getElementById('btn-delete-drink')?.addEventListener('click', () => {
@@ -2703,26 +2893,74 @@ function duplicateRecipe(recipe) {
 }
 
 /**
+ * Toggle hide/unhide status for a seed recipe.
+ * Keeps user directly on the recipe view and provides clear, immediate in-place feedback.
+ */
+function toggleHideRecipe(recipe) {
+  if (!recipe || !recipe.id) return;
+  const currentlyHidden = isRecipeHidden(recipe.id);
+
+  const listItemEl = elements.recipeList?.querySelector(`.recipe-list-item[data-id="${recipe.id}"]`);
+
+  const executeHideStateUpdate = () => {
+    state.recipes = getRecipes();
+    renderRecipeList();
+    if (state.viewMode === 'counter') {
+      renderCounterView();
+    } else if (state.viewMode === 'home') {
+      renderHomeView();
+    }
+    updateVaultStats();
+  };
+
+  if (!currentlyHidden) {
+    hideRecipe(recipe.id);
+    showToast(`Hidden "${recipe.name}" from library`);
+    if (listItemEl) {
+      listItemEl.classList.add('is-exiting');
+      setTimeout(executeHideStateUpdate, 240);
+      return;
+    }
+  } else {
+    unhideRecipe(recipe.id);
+    showToast(`Restored "${recipe.name}" to library`);
+  }
+
+  executeHideStateUpdate();
+}
+
+/**
  * Confirm and delete a recipe
  */
 function confirmDeleteRecipe(recipe) {
-  if (confirm(`Delete "${recipe.name}" from your vault? This cannot be undone.`)) {
-    const updated = deleteRecipe(recipe.id);
-    state.recipes = updated;
-    if (state.recipes.length > 0) {
-      selectRecipe(state.recipes[0].id);
-    } else {
-      state.activeRecipeId = null;
-      history.replaceState(null, '', window.location.pathname);
-      try {
-        localStorage.removeItem('speakeasy_last_active_recipe');
-      } catch {
-        // Ignore
+  if (confirm(`Delete "${recipe.name}" from your library? This cannot be undone.`)) {
+    const listItemEl = elements.recipeList?.querySelector(`.recipe-list-item[data-id="${recipe.id}"]`);
+
+    const executeDelete = () => {
+      const updated = deleteRecipe(recipe.id);
+      state.recipes = updated;
+      if (state.recipes.length > 0) {
+        selectRecipe(state.recipes[0].id);
+      } else {
+        state.activeRecipeId = null;
+        history.replaceState(null, '', window.location.pathname);
+        try {
+          localStorage.removeItem('speakeasy_last_active_recipe');
+        } catch {
+          // Ignore
+        }
+        renderRecipeList();
+        renderCurrentView();
       }
-      renderRecipeList();
-      renderCurrentView();
+      showToast(`Deleted "${recipe.name}"`);
+    };
+
+    if (listItemEl) {
+      listItemEl.classList.add('is-exiting');
+      setTimeout(executeDelete, 240);
+    } else {
+      executeDelete();
     }
-    showToast(`Deleted "${recipe.name}"`);
   }
 }
 

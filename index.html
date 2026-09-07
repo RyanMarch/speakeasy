@@ -154,6 +154,20 @@
               </div>
             </button>
 
+            <button type="button" id="btn-manage-hidden" class="vault-action-item" title="View and restore hidden cocktails">
+              <div class="vault-action-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </div>
+              <div class="vault-action-meta">
+                <span class="vault-action-label">Hidden Cocktails</span>
+                <span class="vault-action-sub" id="vault-hidden-sub">0 drinks hidden</span>
+              </div>
+            </button>
+
             <button type="button" id="btn-export-json" class="vault-action-item" title="Download recipes backup">
               <div class="vault-action-icon">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -368,11 +382,33 @@
       </div>
     </dialog>
 
+    <!-- Hidden Recipes Management Modal Dialog -->
+    <dialog id="hidden-recipes-modal" class="backbar-dialog hidden-recipes-dialog" aria-labelledby="hidden-modal-title">
+      <div class="backbar-dialog-container">
+        <div class="backbar-dialog-header">
+          <div class="backbar-header-info">
+            <h2 class="backbar-dialog-title" id="hidden-modal-title">Hidden Cocktails</h2>
+            <p class="backbar-dialog-subtitle">Manage default recipes you've hidden from your library. Unhide anytime to restore.</p>
+          </div>
+          <button id="btn-close-hidden-modal" class="btn btn-ghost btn-modal-close" aria-label="Close dialog">✕</button>
+        </div>
+
+        <div class="hidden-recipes-body" id="hidden-recipes-container">
+          <!-- Dynamically populated hidden recipe list -->
+        </div>
+
+        <div class="backbar-dialog-footer">
+          <button id="btn-unhide-all" class="btn btn-secondary btn-sm">Unhide All</button>
+          <button id="btn-done-hidden-modal" class="btn btn-primary btn-sm">Done</button>
+        </div>
+      </div>
+    </dialog>
+
     <!-- Toast Notifications Area -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=13"></script>
+  <script type="module" src="app.js?v=23"></script>
 </body>
 
 </html>
