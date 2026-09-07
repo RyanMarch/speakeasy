@@ -239,6 +239,14 @@
               aria-label="Search recipes">
             <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
           </div>
+          <!-- <div class="sidebar-sort-select-wrap">
+            <select id="sidebar-sort-select" class="sidebar-sort-select" aria-label="Sort cocktail list">
+              <option value="curated">Curated</option>
+              <option value="ready">Ready</option>
+              <option value="specs-asc">Simple</option>
+              <option value="name-asc">A–Z</option>
+            </select>
+          </div> -->
         </div>
 
         <!-- Themed Pack Filter Pills -->
@@ -257,44 +265,31 @@
             aria-selected="false">Nightcaps</button>
         </div>
 
-        <!-- Inventory Filter Tabs -->
-        <div class="sidebar-inventory-filter" id="sidebar-inventory-filter" role="tablist"
-          aria-label="Inventory filter">
-          <button class="inventory-filter-btn active" data-filter="all" role="tab" aria-selected="true">
-            All <span class="filter-count" id="count-all">0</span>
-          </button>
-          <button class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
-            Ready <span class="filter-count" id="count-can-make">0</span>
-          </button>
-        </div>
-
-        <!-- Sidebar Sort Controls Bar -->
-        <div class="sidebar-sort-bar">
-          <label for="sidebar-sort-select" class="sidebar-sort-label">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="4" y1="6" x2="20" y2="6"></line>
-              <line x1="4" y1="12" x2="14" y2="12"></line>
-              <line x1="4" y1="18" x2="8" y2="18"></line>
-            </svg>
-            <span>Sort</span>
-          </label>
-          <div class="sidebar-sort-select-wrap">
-            <select id="sidebar-sort-select" class="sidebar-sort-select" aria-label="Sort cocktail list">
-              <option value="curated">Curated</option>
-              <option value="ready">Ready to Make</option>
-              <option value="specs-asc">Fewest Ingredients</option>
-              <option value="name-asc">Alphabetical (A–Z)</option>
-            </select>
-          </div>
-        </div>
-
         <ul class="recipe-list" id="recipe-list" role="listbox" aria-label="Recipe List">
           <!-- Dynamically populated recipe cards -->
         </ul>
 
         <div class="sidebar-footer">
-          <span id="recipe-count-badge">0 Cocktails</span>
+          <button type="button" id="btn-footer-home" class="footer-nav-btn" aria-label="Go to Home"
+            title="Home showcase">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+          </button>
+
+          <!-- Bottom Inventory Filter Toggle Switch -->
+          <div class="sidebar-inventory-filter footer-inventory-toggle" id="sidebar-inventory-filter" role="tablist"
+            aria-label="Filter drinks by bar inventory">
+            <button type="button" class="inventory-filter-btn active" data-filter="all" role="tab" aria-selected="true">
+              All <span class="filter-count" id="count-all">0</span>
+            </button>
+            <button type="button" class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
+              Ready <span class="filter-count" id="count-can-make">0</span>
+            </button>
+          </div>
         </div>
       </aside>
 
