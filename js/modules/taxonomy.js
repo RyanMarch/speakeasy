@@ -2508,4 +2508,111 @@ export function analyzeRecipeInventory(recipe, inventorySet = new Set()) {
   };
 }
 
+/**
+ * Flavor Profile Data (for the Dynamic Flavor Radar)
+ *
+ * Normalized 0.0-1.0 taste-intensity scores per taxonomy `family`, on four axes:
+ * sweet, sour, bitter, herbal. (The fifth radar axis, "boozy", is deliberately NOT
+ * modeled here — it's derived straight from each ingredient's existing `defaultAbv`
+ * in js/modules/balance.js, since that data is already accurate and hand-tuning a
+ * second "booziness" number per family would just be a worse duplicate of it.)
+ *
+ * Families are intentionally coarse (a family covers many ingredients), so a handful
+ * of well-known ids that meaningfully diverge from their family's default get an
+ * explicit override in ID_FLAVOR_OVERRIDES below — e.g. the `amaro` family spans
+ * everything from bright, sweetish Aperol-style bitters to Fernet, so the family
+ * default alone isn't accurate enough for those.
+ */
+const FAMILY_FLAVOR_PROFILES = {
+  // Base spirits — mostly booze-only; character comes from what they're mixed with
+  gin: { sweet: 0, sour: 0, bitter: 0.05, herbal: 0.35 },
+  whiskey: { sweet: 0.1, sour: 0, bitter: 0.1, herbal: 0.05 },
+  rum: { sweet: 0.15, sour: 0, bitter: 0, herbal: 0 },
+  cane_spirits: { sweet: 0.1, sour: 0, bitter: 0, herbal: 0.05 },
+  agave_spirits: { sweet: 0.05, sour: 0, bitter: 0.05, herbal: 0.1 },
+  tequila: { sweet: 0.05, sour: 0, bitter: 0.05, herbal: 0.1 },
+  neutral_spirits: { sweet: 0, sour: 0, bitter: 0, herbal: 0 },
+  brandy: { sweet: 0.15, sour: 0, bitter: 0.05, herbal: 0 },
+  fermented: { sweet: 0.15, sour: 0.15, bitter: 0.15, herbal: 0 },
+  asian_rice_ferments: { sweet: 0.2, sour: 0.05, bitter: 0, herbal: 0 },
+
+  // Anise, botanicals & herbal liqueurs
+  anise: { sweet: 0.1, sour: 0, bitter: 0.1, herbal: 0.8 },
+  botanical_liqueur: { sweet: 0.4, sour: 0, bitter: 0.15, herbal: 0.7 },
+  floral_liqueur: { sweet: 0.5, sour: 0, bitter: 0, herbal: 0.3 },
+  spiced_liqueur: { sweet: 0.4, sour: 0, bitter: 0.05, herbal: 0.35 },
+  specialty_liqueur: { sweet: 0.4, sour: 0, bitter: 0.1, herbal: 0.2 },
+  aromatic_water: { sweet: 0.1, sour: 0, bitter: 0, herbal: 0.5 },
+
+  // Sweet liqueurs
+  orange_liqueur: { sweet: 0.55, sour: 0.1, bitter: 0.05, herbal: 0 },
+  fruit_liqueur: { sweet: 0.55, sour: 0.05, bitter: 0, herbal: 0 },
+  cream_liqueur: { sweet: 0.7, sour: 0, bitter: 0, herbal: 0 },
+  nut_seed_liqueur: { sweet: 0.6, sour: 0, bitter: 0.05, herbal: 0 },
+  coffee: { sweet: 0.5, sour: 0, bitter: 0.25, herbal: 0 },
+
+  // Amari & bittersweet aperitif wines (see ID_FLAVOR_OVERRIDES for specific amari)
+  amaro: { sweet: 0.3, sour: 0, bitter: 0.55, herbal: 0.4 },
+  vermouth: { sweet: 0.15, sour: 0.05, bitter: 0.15, herbal: 0.3 },
+  quinquina: { sweet: 0.25, sour: 0.05, bitter: 0.3, herbal: 0.25 },
+  sherry: { sweet: 0.2, sour: 0.05, bitter: 0, herbal: 0.05 },
+  port: { sweet: 0.55, sour: 0, bitter: 0.05, herbal: 0 },
+  oxidized_wine: { sweet: 0.35, sour: 0.05, bitter: 0.05, herbal: 0 },
+  wine: { sweet: 0.15, sour: 0.15, bitter: 0, herbal: 0 },
+  sparkling_wine: { sweet: 0.15, sour: 0.15, bitter: 0, herbal: 0 },
+
+  // Bitters & tinctures — tiny volumes (dashes) so their weight in a recipe stays small
+  bitters: { sweet: 0, sour: 0, bitter: 0.9, herbal: 0.3 },
+  tinctures: { sweet: 0, sour: 0, bitter: 0.5, herbal: 0.4 },
+
+  // Juices, produce & acids
+  citrus_juice: { sweet: 0.05, sour: 0.9, bitter: 0.05, herbal: 0 },
+  fruit_juice: { sweet: 0.5, sour: 0.2, bitter: 0, herbal: 0 },
+  fresh_produce: { sweet: 0, sour: 0, bitter: 0.05, herbal: 0.6 },
+  acids: { sweet: 0, sour: 0.9, bitter: 0, herbal: 0 },
+
+  // Sweeteners
+  cane_syrup: { sweet: 0.9, sour: 0, bitter: 0, herbal: 0 },
+  flavored_syrup: { sweet: 0.75, sour: 0.05, bitter: 0, herbal: 0.1 },
+  raw_sweetener: { sweet: 0.85, sour: 0, bitter: 0, herbal: 0 },
+
+  // Savory & texture — mostly flavor-neutral on this scale
+  brine: { sweet: 0, sour: 0.3, bitter: 0.1, herbal: 0 },
+  savory: { sweet: 0.1, sour: 0.3, bitter: 0.1, herbal: 0.1 },
+  seasoning: { sweet: 0, sour: 0, bitter: 0, herbal: 0.2 },
+  texture: { sweet: 0, sour: 0, bitter: 0, herbal: 0 },
+  soda: { sweet: 0.2, sour: 0, bitter: 0.05, herbal: 0 },
+};
+
+// Ingredient ids whose real-world character meaningfully diverges from their
+// family's default above — mostly amari (which range from bright/bitter-Campari
+// to deeply bitter Fernet) and vermouths (sweet vs. dry are very different drinks).
+const ID_FLAVOR_OVERRIDES = {
+  red_bitter: { sweet: 0.25, sour: 0, bitter: 0.85, herbal: 0.15 },       // Campari, Aperol
+  herbal_amaro: { sweet: 0.35, sour: 0, bitter: 0.45, herbal: 0.5 },      // Averna, Cynar, Nonino
+  fernet_alpine: { sweet: 0.1, sour: 0, bitter: 0.7, herbal: 0.85 },      // Fernet-Branca, Braulio
+  gentian: { sweet: 0.15, sour: 0.05, bitter: 0.75, herbal: 0.4 },        // Suze, Salers
+  sweet_vermouth: { sweet: 0.55, sour: 0.05, bitter: 0.25, herbal: 0.3 },
+  dry_vermouth: { sweet: 0.1, sour: 0.15, bitter: 0.2, herbal: 0.35 },
+  blanc_vermouth: { sweet: 0.4, sour: 0.1, bitter: 0.1, herbal: 0.35 },
+};
+
+const NEUTRAL_FLAVOR_PROFILE = { sweet: 0, sour: 0, bitter: 0, herbal: 0 };
+
+/**
+ * Resolves the sweet/sour/bitter/herbal profile for a raw ingredient string, via
+ * (in priority order) an id-level override, its family's default, or — for
+ * unrecognized/custom ingredients — a flavor-neutral fallback so they still
+ * contribute their volume without skewing any single axis.
+ */
+export function getFlavorProfile(rawIngredientName = '') {
+  const item = findIngredient(rawIngredientName);
+  if (!item) return { ...NEUTRAL_FLAVOR_PROFILE };
+  const override = ID_FLAVOR_OVERRIDES[item.id];
+  if (override) return { ...override };
+  const familyDefault = FAMILY_FLAVOR_PROFILES[item.family];
+  if (familyDefault) return { ...familyDefault };
+  return { ...NEUTRAL_FLAVOR_PROFILE };
+}
+
 
