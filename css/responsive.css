@@ -718,6 +718,25 @@
     font-size: 1.08rem;
   }
 
+  /* Riff mode's amount column is only 52px wide on mobile — the number input
+     and its "oz" label both have to fit that, so both shrink further than
+     their desktop sizing. */
+  .spec-amount-input {
+    width: 2.3rem;
+    font-size: 0.85rem;
+    padding: 0.2rem 0.25rem;
+  }
+
+  .counter-view.riff-mode-active .spec-amount .spec-unit {
+    font-size: 0.68rem;
+    margin-left: 0.15rem;
+  }
+
+  .btn-remove-extra-spec {
+    width: 24px;
+    height: 24px;
+  }
+
   .spec-unit {
     font-size: 0.75rem;
     margin-left: 0.15rem;
