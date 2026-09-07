@@ -971,7 +971,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 2.25rem 3rem 4rem;
+  padding: 2.25rem 0 0;
   min-width: 0;
   width: 100%;
 }
@@ -2862,7 +2862,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .similar-card-glass {
-  height: 86px;
+  height: 190px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2875,7 +2875,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .similar-card-glass svg {
   height: 100%;
   width: auto;
-  max-width: 90px;
+  max-width: 160px;
 }
 
 .similar-cocktail-card:hover .similar-card-glass {
@@ -2967,6 +2967,9 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 /* Home Landing Page */
 .home-view {
+  /* Matches .counter-view's cap exactly so Home and a recipe page share the same
+     margins at every desktop width — see the shared --shelf-bleed rule below,
+     which relies on both containers using this same 980px. */
   max-width: 980px;
   width: 100%;
   margin: 0 auto;
@@ -2975,17 +2978,22 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .home-stats-card {
-  padding: 1.75rem 0 1.5rem;
+  /* No top padding — matches .drink-title-section, which has none of its own,
+     so "Speakeasy Vault" and a recipe's name start at the exact same height. */
+  padding: 0 0 1.5rem;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .home-stats-name {
+  /* Identical styling to .drink-name (recipe title) by design — these are the
+     two "page title" positions or the app, and should read as the same thing. */
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 2.35rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   color: var(--color-text);
-  margin-bottom: 0.85rem;
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
 }
 
 .home-stats-row {
@@ -3491,17 +3499,61 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     display: block !important;
   }
 
-  /* On wide windows, .counter-view/.home-view center at max-width:980px, leaving
-     unused space on either side within .main-stage. Let card shelves reclaim that
-     space and scroll out to the true edge of .main-stage's content box, while the
-     shelf's own left edge (and everything else) stays exactly where it was.
-     Sidebar (310px) and .main-stage's own padding (3rem) are fixed constants, so
-     the "wasted" width past the 980px column can be computed with plain calc(). */
+  /* Between the mobile breakpoint and roughly ~1300px (.counter-view's 980px cap +
+     sidebar), .counter-view/.home-view aren't yet narrower than their own max-width,
+     so margin:auto centering contributes nothing — with no padding of their own,
+     content would sit flush against the sidebar and the window edge (the "tablet
+     looks broken" bug). --desktop-inset gives every desktop width a real minimum
+     gutter; --shelf-bleed (added on top) is ONLY the *extra* space reclaimed once
+     the cap-vs-.main-stage gap actually opens up past that gutter. */
+  .home-view,
+  .counter-view,
+  .editor-view {
+    --desktop-inset: 1.5rem;
+    padding-left: var(--desktop-inset);
+    padding-right: var(--desktop-inset);
+  }
+
+  /* Card shelves reclaim BOTH that gutter and any further cap-vs-.main-stage gap,
+     scrolling out to the true edges of .main-stage's content box on both sides —
+     the track's own padding-left compensates so the first card's resting position
+     still lines up with the title/text above it, exactly the way the right side
+     already works when scrolled to its end. Sidebar width (310px) and .home-view/
+     .counter-view's shared 980px cap are fixed constants (.main-stage itself
+     carries no horizontal padding), so the "wasted" width past that cap can be
+     computed with plain calc() — one formula for both containers, since Home and
+     a recipe page share the same cap by design (see .home-view above). If that
+     cap, --desktop-inset, or .main-stage's own padding changes, this needs to
+     change with them — that's the one sharp edge of this approach. */
   .similar-cocktails-shelf {
-    --shelf-bleed: max(0px, (100vw - 310px - 6rem - 980px) / 2);
+    --shelf-bleed: max(0px, (100vw - 310px - 980px) / 2);
     width: auto;
     max-width: none;
-    margin-right: calc(-1 * var(--shelf-bleed));
+    margin-left: calc(-1 * (var(--desktop-inset) + var(--shelf-bleed)));
+    margin-right: calc(-1 * (var(--desktop-inset) + var(--shelf-bleed)));
+  }
+
+  .similar-cocktails-track {
+    padding-left: calc(0.25rem + var(--desktop-inset) + var(--shelf-bleed));
+    /* Same scroll-snap issue as mobile: without scroll-padding to match, the snap
+       algorithm ignores the padding above and yanks scrollLeft off of 0 at rest. */
+    scroll-padding-left: calc(0.25rem + var(--desktop-inset) + var(--shelf-bleed));
+  }
+
+  /* The shelf now bleeds out to .main-stage's true edges on both sides, so the
+     header (title + prev/next arrows) and the scrollbar need their own inset to
+     line back up with the page's actual content column — otherwise they sit
+     flush against the sidebar/window edge instead of matching everything else.
+     This has to track --desktop-inset + --shelf-bleed (not a flat rem value): the
+     bleed amount changes with viewport width, so only the matching variables keep
+     these aligned with the title/text above them at every width. */
+  .shelf-header {
+    padding-left: calc(var(--desktop-inset) + var(--shelf-bleed));
+    padding-right: calc(var(--desktop-inset) + var(--shelf-bleed));
+  }
+
+  .similar-cocktails-track::-webkit-scrollbar-track {
+    margin: 0 calc(var(--desktop-inset) + var(--shelf-bleed));
   }
 }
 
@@ -3593,19 +3645,25 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     gap: 0.4rem;
   }
 
-  /* Fixed Viewport Mobile Layout */
+  /* Document-Level Scrolling Mobile Layout
+     Allow the window/document to scroll so Mobile Safari collapses its address bar
+     and bottom toolbar chrome when scrolling. */
   html,
   body {
-    height: 100%;
-    height: 100dvh;
-    overflow: hidden;
+    height: auto;
+    min-height: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   #app {
-    height: 100%;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
+    height: auto;
+    min-height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
     display: flex;
     flex-direction: column;
   }
@@ -3615,26 +3673,26 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     flex-direction: column;
     flex: 1;
     min-height: 0;
-    height: calc(100vh - 52px);
-    height: calc(100dvh - 52px);
-    overflow: hidden;
+    height: auto;
+    overflow: visible;
     width: 100%;
     position: relative;
   }
 
-  /* Sidebar (Drink Library List): Sticky Search & Filters, Inner Scroll, Sticky Bottom Info Bar */
+  /* Sidebar (Drink Library List): Sticky Search & Filters, Document Scroll, Sticky Bottom Info Bar */
   .sidebar {
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    height: 100%;
-    min-height: 0;
+    height: auto;
+    min-height: calc(100vh - 52px);
+    min-height: calc(100dvh - 52px);
     display: flex;
     flex-direction: column;
     position: static;
     border-right: none;
     border-bottom: none;
-    overflow: hidden;
+    overflow: visible;
     animation: slideInFromLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
@@ -3644,33 +3702,36 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
   .sidebar-search-box {
     flex-shrink: 0;
-    padding: 0.75rem 0.85rem 0.45rem;
+    padding: 0.55rem 0.85rem 0.4rem;
+    gap: 0.5rem;
+  }
+
+  .sidebar-sort-select {
+    height: 36px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
   }
 
   .sidebar-pack-filter {
     flex-shrink: 0;
-    padding: 0.45rem 0.85rem 0.5rem;
-  }
-
-  .sidebar-inventory-filter {
-    flex-shrink: 0;
-    padding: 0.45rem 0.85rem 0.55rem;
+    padding: 0.4rem 0.85rem 0.45rem;
   }
 
   .recipe-list {
-    flex: 1;
+    flex: 1 0 auto;
     min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
     padding: 0.25rem 0.85rem 1rem;
   }
 
   .sidebar-footer {
+    position: sticky;
+    bottom: 0;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.65rem 1rem max(0.65rem, env(safe-area-inset-bottom, 0px));
+    padding: 0.55rem 0.85rem max(0.55rem, env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--color-border-subtle);
     background: rgba(18, 17, 16, 0.98);
     backdrop-filter: blur(12px);
@@ -3680,56 +3741,69 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     z-index: 10;
   }
 
-  /* Main Stage (Recipe & Editor): Clean Side Margins, Smooth Scrolling
+  /* Main Stage (Recipe & Editor): Clean Side Margins, Document Scrolling
      No horizontal padding here — it lives on the view containers below instead,
      so horizontally-scrolling shelves (.similar-cocktails-track) can bleed to the
      true screen edges while everything else keeps the same 1.25rem inset. */
   .main-stage {
     display: block;
     flex: 1;
-    min-height: 0;
-    height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    min-height: calc(100vh - 52px);
+    min-height: calc(100dvh - 52px);
+    height: auto;
+    overflow: visible;
     padding: 0 0 max(3.5rem, calc(2rem + env(safe-area-inset-bottom, 0px))) !important;
     animation: slideInFromRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Shared side inset for the whole mobile layout. The view containers
+     themselves carry NO padding (so the card row's default 100% width already
+     reaches the true screen edges, no bleed hack needed) — instead every
+     direct-child section that isn't the card row gets its own inset. Bump
+     this one value to change "how narrow does mobile feel" everywhere. */
+  .main-stage {
+    --mobile-inset: 1rem;
   }
 
   .home-view,
   .counter-view,
   .editor-view {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+    padding-left: 0;
+    padding-right: 0;
   }
 
-  /* Shelves bleed back out of that padding so their card tracks can scroll
-     edge-to-edge; the track's own matching padding keeps the first/last card
-     aligned with the rest of the page's content. */
-  .similar-cocktails-shelf {
-    width: auto;
-    max-width: none;
-    margin-left: -1.25rem;
-    margin-right: -1.25rem;
+  .counter-view>.counter-mobile-bar,
+  .counter-view>.drink-title-section,
+  .counter-view>.counter-grid,
+  .home-view>.home-stats-card,
+  .home-view>.home-pin-row,
+  .home-view>.home-empty-state,
+  .editor-view>.editor-header,
+  .editor-view>.editor-grid {
+    padding-left: var(--mobile-inset);
+    padding-right: var(--mobile-inset);
   }
 
+  /* The card row itself is excluded from the rule above — its track manages
+     its own inset (below) so cards can scroll past it to the true edge. */
   .shelf-header {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+    padding-left: var(--mobile-inset);
+    padding-right: var(--mobile-inset);
   }
 
   .similar-cocktails-track {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+    padding-left: var(--mobile-inset);
+    padding-right: var(--mobile-inset);
     /* scroll-snap-type (base rule) snaps card edges flush with the scrollport,
        which ignores plain padding and yanks scrollLeft to 20px at rest — undoing
        the inset above. scroll-padding tells the snap algorithm to treat this
        much space as part of the scrollport, so it settles at scrollLeft: 0. */
-    scroll-padding-left: 1.25rem;
-    scroll-padding-right: 1.25rem;
+    scroll-padding-left: var(--mobile-inset);
+    scroll-padding-right: var(--mobile-inset);
   }
 
   .similar-cocktails-track::-webkit-scrollbar-track {
-    margin: 0 1.25rem;
+    margin: 0 var(--mobile-inset);
   }
 
   .main-stage.mobile-hidden {
@@ -3763,14 +3837,14 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   /* Counter View: Sticky Back Button Header */
   .counter-mobile-bar {
     position: sticky;
-    top: 0;
+    top: 52px;
     z-index: 90;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     gap: 0.75rem;
-    margin: 0 -1.25rem 1.15rem -1.25rem;
-    padding: 0.65rem 1.25rem;
+    margin-bottom: 1.15rem;
+    padding: 0.65rem 0;
     background: rgba(18, 17, 16, 0.98);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -3818,7 +3892,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
   /* Recipe Title & Metadata: Harmonious Sizing & Spacing */
   .drink-title-section {
-    margin-bottom: 1.15rem;
+    margin-bottom: 0;
   }
 
   .drink-title-row {
@@ -3902,7 +3976,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     position: static;
     top: auto;
     flex-direction: column !important;
-    gap: 0.65rem;
+    gap: 0.3rem;
     margin: 0.25rem 0 0.5rem;
   }
 
@@ -3911,7 +3985,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     max-width: 290px;
     height: 330px;
     margin: 0 auto;
-    padding: 0.5rem;
+    padding-top: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4195,17 +4269,22 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   }
 
   .similar-card-glass {
-    height: 76px;
+    height: 150px;
     margin-bottom: 0.5rem;
   }
 
   /* Home Landing Page on Mobile */
   .home-stats-card {
-    padding: 1.25rem 0 1.15rem;
+    /* No top padding — matches .drink-title-section (margin-bottom:0 above),
+       so "Speakeasy Vault" and a recipe's name start at the same height here too. */
+    padding: 0 0 1.15rem;
   }
 
   .home-stats-name {
-    font-size: 1.6rem;
+    /* Identical to .drink-name's mobile treatment, same reasoning as desktop. */
+    font-size: clamp(1.75rem, 6.5vw, 2.3rem);
+    line-height: 1.18;
+    margin-bottom: 0.25rem;
   }
 
   .home-browse-all-btn {

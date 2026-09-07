@@ -1327,6 +1327,7 @@ function goHome() {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
+  window.scrollTo({ top: 0 });
 }
 
 /**
@@ -2295,6 +2296,7 @@ function renderCounterView() {
   document.getElementById('btn-mobile-back')?.addEventListener('click', () => {
     elements.sidebar.classList.remove('mobile-hidden');
     elements.mainStage.classList.add('mobile-hidden');
+    window.scrollTo({ top: 0 });
     if (window.location.hash) {
       history.pushState(null, '', window.location.pathname + window.location.search);
     }
@@ -2600,6 +2602,7 @@ function openEditor(recipe = null) {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
+  window.scrollTo({ top: 0 });
 }
 
 /**
