@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx wrangler pages dev . --port 8789",
-    "lint:syntax": "node --check app.js js/*.js js/modules/*.js functions/api/*.js functions/api/**/*.js 2>/dev/null || true",
+    "lint:syntax": "node --check app.js sw.js js/*.js js/modules/*.js functions/api/*.js functions/api/**/*.js 2>/dev/null || true",
     "test": "npm run lint:syntax && node tests/parser-test.js"
   },
   "devDependencies": {
