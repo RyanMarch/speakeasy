@@ -2319,31 +2319,43 @@ function renderCounterView() {
     });
   });
 
-  // Mobile Sticky Header Title Observer:
-  // Shows the drink name inline next to "< Drinks" once the main drink name scrolls out of view.
+  // Sticky Header Title Observer (Mobile and Desktop):
+  // Shows the drink name inline next to "< Drinks" (mobile) or in the top app header (desktop)
+  // once the main drink name scrolls out of view.
   const mobileStickyTitle = document.getElementById('mobile-sticky-title');
+  const desktopStickyTitle = elements.desktopStickyTitle;
+  if (elements.desktopStickyName) {
+    elements.desktopStickyName.textContent = recipe.name;
+  }
   const drinkHeading = elements.counterViewContainer.querySelector('.drink-name');
-  if (mobileStickyTitle && drinkHeading && elements.mainStage) {
+  if (drinkHeading && elements.mainStage) {
     if (window._counterScrollObserver) {
       window._counterScrollObserver.disconnect();
     }
     const stickyBar = document.getElementById('counter-mobile-bar');
-    const stickyBarHeight = stickyBar ? stickyBar.offsetHeight : 44;
+    const stickyBarHeight = stickyBar && stickyBar.offsetHeight > 0 ? stickyBar.offsetHeight : 0;
+
+    const isMobile = window.innerWidth <= 768;
+    const headerHeight = isMobile ? 52 : 0;
+    const topOffset = headerHeight + stickyBarHeight;
 
     window._counterScrollObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        // When the drink name header is intersecting (visible), hide the sticky inline title.
-        // When it scrolls up above the sticky bar (not intersecting and boundingClientRect is top), show it.
-        const isPast = !entry.isIntersecting && entry.boundingClientRect.top < (stickyBarHeight + 20);
-        if (isPast) {
-          mobileStickyTitle.classList.add('visible');
+        // When the drink name header is visible, hide the sticky title.
+        // When it has scrolled up past the top of the scroll container / header offset, show it.
+        const rootTop = entry.rootBounds ? entry.rootBounds.top : topOffset;
+        const isPast = !entry.isIntersecting && entry.boundingClientRect.bottom <= (rootTop + 20);
+        if (isPast && state.viewMode === 'counter') {
+          mobileStickyTitle?.classList.add('visible');
+          desktopStickyTitle?.classList.add('visible');
         } else {
-          mobileStickyTitle.classList.remove('visible');
+          mobileStickyTitle?.classList.remove('visible');
+          desktopStickyTitle?.classList.remove('visible');
         }
       });
     }, {
-      root: elements.mainStage,
-      rootMargin: `-${stickyBarHeight}px 0px 0px 0px`,
+      root: isMobile ? null : elements.mainStage,
+      rootMargin: `-${topOffset}px 0px 0px 0px`,
       threshold: 0,
     });
 
