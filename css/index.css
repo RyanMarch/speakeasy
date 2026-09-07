@@ -1880,7 +1880,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 .counter-card-title {
-  font-size: 0.72rem;
+  font-size: 0.95rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -2304,6 +2304,80 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   gap: 0.5rem;
 }
 
+/* Flavor Balance Radar
+   Rendered twice by app.js (identical markup, different container) — one copy lands
+   below "Make a Riff" on desktop, the other above the tag cloud on mobile. Only one
+   is ever visible at a time; see the breakpoint rules further down. */
+.flavor-radar-card {
+  width: 100%;
+  max-width: 260px;
+  margin-top: 1.25rem;
+  padding: 0.5rem 1.8rem 0.1rem;
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.flavor-radar-mobile {
+  display: none;
+  max-width: 320px;
+  margin: 1.75rem auto 0;
+}
+
+.flavor-radar-title {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: 0.35rem;
+}
+
+.flavor-radar-svg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  overflow: visible;
+}
+
+.flavor-radar-ring {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.flavor-radar-axis-line {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.flavor-radar-shape {
+  fill: rgba(212, 163, 89, 0.22);
+  stroke: var(--color-accent);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+
+.flavor-radar-dot {
+  fill: var(--color-accent-light);
+}
+
+.flavor-radar-label {
+  fill: var(--color-text-secondary);
+  font-size: 8.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.flavor-radar-value {
+  fill: var(--color-text-faint);
+  font-size: 7.5px;
+  font-weight: 500;
+}
+
 .spec-riff-wrapper {
   position: relative;
   display: inline-flex;
@@ -2374,7 +2448,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 /* Recipe Editorial Footer: Source Citation & Tags */
 .recipe-editorial-footer {
-  margin-top: 2.25rem;
+  margin-top: 0.25rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--color-border-subtle);
   display: flex;
@@ -2749,8 +2823,13 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   ::view-transition-old(root),
   ::view-transition-new(root) {
+    animation: none;
+  }
+
+  .wake-lock-btn.active svg {
     animation: none;
   }
 }
@@ -2759,7 +2838,6 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 .similar-cocktails-shelf {
   margin-top: 3.5rem;
   padding-top: 2rem;
-  border-top: 1px solid var(--color-border-subtle);
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -2769,9 +2847,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .shelf-header-left {
@@ -2976,7 +3053,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
      which relies on both containers using this same 980px. */
   max-width: 980px;
   width: 100%;
-  margin: 0 auto;
+  margin: 0 auto 7rem;
   min-width: 0;
   animation: fadeIn 200ms ease;
 }
@@ -3520,7 +3597,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   .counter-view,
   .editor-view {
     --desktop-inset: 1.5rem;
-    padding-left: var(--desktop-inset);
+    /* padding-left: var(--desktop-inset); */
     padding-right: var(--desktop-inset);
   }
 
@@ -3908,7 +3985,7 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   .mobile-sticky-name {
     display: block;
     font-family: var(--font-display);
-    font-size: 0.95rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--color-text);
     white-space: nowrap;
@@ -4016,6 +4093,16 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  /* Flavor radar swaps places on mobile: hide the desktop copy (glass column) and
+     show the one placed above the tag cloud further down the page instead. */
+  .flavor-radar-desktop {
+    display: none;
+  }
+
+  .flavor-radar-mobile {
+    display: block;
   }
 
   .glass-meta-card {
@@ -4501,6 +4588,35 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 @media (max-width: 340px) {
   .recipe-item-glass {
     display: none;
+  }
+}
+
+/* Wake Lock Indicator — mirrors .action-icon-btn-hidden's "active" gold treatment */
+.wake-lock-btn.active {
+  background: rgba(212, 163, 89, 0.14);
+  border-color: rgba(212, 163, 89, 0.45);
+  color: var(--color-accent-light);
+}
+
+.wake-lock-btn.active:hover {
+  background: rgba(212, 163, 89, 0.22);
+  border-color: var(--color-accent-light);
+  color: #fff;
+}
+
+.wake-lock-btn.active svg {
+  animation: wakeLockPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes wakeLockPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
   }
 }
 
