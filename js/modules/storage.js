@@ -3754,11 +3754,13 @@ export function getRecipes() {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
       let updatedStorage = false;
+      const hiddenIds = new Set(getHiddenRecipeIds());
 
-      // Automatically backfill any canonical seed recipes missing from stored list
+      // Automatically backfill any canonical seed recipes missing from stored list,
+      // UNLESS the user explicitly hid them.
       SEED_RECIPES.forEach(seedRecipe => {
         const exists = parsed.some(r => r.id === seedRecipe.id);
-        if (!exists) {
+        if (!exists && !hiddenIds.has(seedRecipe.id)) {
           parsed.push({ ...seedRecipe });
           updatedStorage = true;
         }
@@ -3862,13 +3864,15 @@ export function getRecipes() {
       if (updatedStorage) {
         saveRecipes(parsed);
       }
-      return parsed;
+      return parsed.filter(r => !hiddenIds.has(r.id));
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_RECIPES));
-    return SEED_RECIPES;
+    const hiddenIds = new Set(getHiddenRecipeIds());
+    return SEED_RECIPES.filter(r => !hiddenIds.has(r.id));
   } catch (err) {
     console.error('Failed to read recipes from localStorage:', err);
-    return SEED_RECIPES;
+    const hiddenIds = new Set(getHiddenRecipeIds());
+    return SEED_RECIPES.filter(r => !hiddenIds.has(r.id));
   }
 }
 
@@ -4018,6 +4022,7 @@ export function getAllUniqueTags(recipes = []) {
 }
 
 export function resetToDefaults() {
+  saveHiddenRecipeIds([]);
   saveRecipes(SEED_RECIPES);
   return SEED_RECIPES;
 }
@@ -4112,15 +4117,15 @@ export function saveUnitPreference(unit) {
 export function getBarName() {
   try {
     const val = localStorage.getItem(BAR_NAME_STORAGE_KEY);
-    return val && val.trim() ? val.trim() : 'Speakeasy Vault';
+    return val && val.trim() ? val.trim() : 'Speakeasy Cocktail Library';
   } catch {
-    return 'Speakeasy Vault';
+    return 'Speakeasy Cocktail Library';
   }
 }
 
 export function saveBarName(name) {
   try {
-    const clean = (name || '').trim() || 'Speakeasy Vault';
+    const clean = (name || '').trim() || 'Speakeasy Cocktail Library';
     localStorage.setItem(BAR_NAME_STORAGE_KEY, clean);
     return clean;
   } catch (err) {
