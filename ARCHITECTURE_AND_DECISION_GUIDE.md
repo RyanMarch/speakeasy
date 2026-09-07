@@ -22,19 +22,42 @@ Speakeasy is a local-first web application for cocktail enthusiasts and bartende
 ```
 speakeasy/
 ├── index.html                 # Semantic single-page layout, modals, SVG symbol defs
-├── app.js                     # Application coordinator, routing/views, DOM event wiring
+├── app.js                     # Application lifecycle, routing, and coordinator (~280 lines)
 ├── css/
 │   ├── base.css               # Design tokens, typography variables, color palette
-│   └── index.css              # Component styles, layouts, responsive rules, animations
-├── js/modules/
-│   ├── taxonomy.js            # Hierarchical ingredient graph, brand mapping, search, substitutes
-│   ├── storage.js             # LocalStorage manager, 182 canonical seed recipes, import/export
-│   ├── parser.js              # Natural text ingredient parser, fractions, method formatter
-│   ├── glassware.js           # Glassware geometric profiles, fluid paths, clip paths
-│   ├── glass-view.js          # SVG renderer for layered liquids, ice, and blended cocktails
-│   ├── garnishes.js           # Garnish parser and vector garnish SVG renderer
-│   ├── colors.js              # Color calculation, hex blending, and volume normalization
-│   └── abv.js                 # Proof heuristics, method-based dilution (stir/shake/build/blend)
+│   ├── layout.css             # App shell, header, top-bar, vault popover
+│   ├── recipe-list.css        # Sidebar list, search, sort, pack pills, segmented filter
+│   ├── counter-view.css       # Recipe spread, vector glass, specs table, servings, riffs
+│   ├── home-view.css          # Home landing page, shelves, card carousels, pin-a-tag
+│   ├── editor.css             # Recipe editor modal, spec rows, tag chips
+│   ├── modals.css             # Backbar inventory drawer, hidden recipes modal
+│   ├── responsive.css         # Bottom mobile nav, mobile sheets, breakpoints
+│   └── index.css              # Master aggregator importing modular stylesheets
+├── js/
+│   ├── state.js               # Shared application state, DOM cache, inventory cache
+│   ├── router.js              # Application routing and View Transitions API coordinator
+│   ├── data/
+│   │   └── seed-recipes.js    # 182 canonical seed recipes
+│   ├── views/
+│   │   ├── home-view.js       # Home view shelves, carousels, pin-a-tag bar
+│   │   ├── counter-view.js    # Single recipe view, glassware sync, radar, servings, riffs
+│   │   └── recipe-list-view.js# Sidebar list, search, sort select, pack pills, tag autocomplete
+│   ├── components/
+│   │   ├── top-bar.js         # Header brand navigation, desktop sticky title, vault popover
+│   │   ├── editor-modal.js    # Quick-paste recipe editor, natural language spec parser
+│   │   ├── backbar-modal.js   # Inventory drawer modal, bottle toggling, category tabs
+│   │   ├── hidden-modal.js    # Hidden cocktails management modal
+│   │   └── toast.js           # Toast notifications and HTML escaping utility
+│   └── modules/
+│       ├── taxonomy.js        # Hierarchical ingredient graph, brand mapping, search, substitutes
+│       ├── storage.js         # LocalStorage manager, import/export, re-exports seed recipes
+│       ├── parser.js          # Natural text ingredient parser, fractions, method formatter
+│       ├── glassware.js       # Glassware geometric profiles, fluid paths, clip paths
+│       ├── glass-view.js      # SVG renderer for layered liquids, ice, and blended cocktails
+│       ├── garnishes.js       # Garnish parser and vector garnish SVG renderer
+│       ├── colors.js          # Color calculation, hex blending, and volume normalization
+│       ├── balance.js         # Flavor balance radar calculation and SVG renderer
+│       └── abv.js             # Proof heuristics, method-based dilution (stir/shake/build/blend)
 ├── assets/                    # Favicons, web app icons, and graphics
 ├── tests/
 │   └── parser-test.js         # Headless test runner covering parsing, taxonomy, ABV, and seeds
