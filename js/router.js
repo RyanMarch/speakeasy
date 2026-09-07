@@ -23,6 +23,7 @@ export function selectRecipe(id, updateHistory = true) {
     state.activeRiffs = {};
     state.riffAmountOverrides = {};
     state.riffExtraSpecs = [];
+    state.riffRemovedSpecs = new Set();
     state.riffModeActive = false;
     state.servings = 1;
   }
