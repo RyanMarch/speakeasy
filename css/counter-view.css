@@ -1177,6 +1177,101 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Riff Mode: Inline Amount & Ingredient-Name Editing */
+.spec-amount-input {
+  width: 3.2rem;
+  background: rgba(245, 240, 230, 0.05);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  padding: 0.25rem 0.35rem;
+  transition: all var(--transition-fast);
+}
+
+.spec-amount-input:hover {
+  border-color: rgba(212, 163, 89, 0.35);
+}
+
+.spec-amount-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background: rgba(212, 163, 89, 0.06);
+}
+
+.spec-name-input {
+  width: 100%;
+  background: rgba(245, 240, 230, 0.05);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 0.3rem 0.55rem;
+  transition: all var(--transition-fast);
+}
+
+.spec-name-input:hover {
+  border-color: rgba(212, 163, 89, 0.35);
+}
+
+.spec-name-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background: rgba(212, 163, 89, 0.06);
+}
+
+.spec-row.is-extra-row {
+  background: rgba(124, 184, 148, 0.05);
+}
+
+.btn-remove-spec-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-faint);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.btn-remove-spec-row:hover {
+  color: var(--color-crimson);
+  background: rgba(199, 98, 94, 0.1);
+  border-color: rgba(199, 98, 94, 0.3);
+}
+
+.btn-add-riff-ingredient {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  background: rgba(212, 163, 89, 0.05);
+  border: 1px dashed rgba(212, 163, 89, 0.35);
+  border-radius: var(--radius-md);
+  color: var(--color-accent-light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.btn-add-riff-ingredient:hover {
+  background: rgba(212, 163, 89, 0.12);
+  border-color: var(--color-accent);
+  color: var(--color-accent-light);
+}
+
 .spec-unit {
   font-size: 0.82rem;
   font-weight: 400;

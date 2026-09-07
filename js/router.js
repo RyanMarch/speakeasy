@@ -21,6 +21,9 @@ export function selectRecipe(id, updateHistory = true) {
 
   if (state.activeRecipeId !== id) {
     state.activeRiffs = {};
+    state.riffAmountOverrides = {};
+    state.riffExtraSpecs = [];
+    state.riffRemovedSpecs = new Set();
     state.riffModeActive = false;
     state.servings = 1;
   }
@@ -139,9 +142,36 @@ export function goHome() {
 }
 
 /**
- * Reveal the drink list (sidebar) on mobile
+ * Reveal the drink list (sidebar) on mobile.
+ * @param {Object} [options]
+ * @param {boolean} [options.focusSearch] - Focus (and open the keyboard for) the
+ *   search input once the list is visible — used by the "Search Cocktails" entry
+ *   point so it actually drops the user into typing, not just a list they'd still
+ *   have to tap into themselves.
+ * @param {string} [options.query] - Prefill the search input with this text (e.g.
+ *   a tag tapped from a recipe) and re-render the list filtered to match.
  */
-export function showDrinksListMobile() {
+export function showDrinksListMobile({ focusSearch = false, query } = {}) {
   elements.sidebar?.classList.remove('mobile-hidden');
   elements.mainStage?.classList.add('mobile-hidden');
+
+  if (typeof query === 'string' && elements.searchInput) {
+    elements.searchInput.value = query;
+    state.searchQuery = query.trim().toLowerCase();
+    elements.searchClearBtn?.classList.toggle('visible', state.searchQuery.length > 0);
+    renderRecipeList();
+  }
+
+  if (focusSearch && elements.searchInput) {
+    // Must be synchronous, not deferred via setTimeout/rAF: iOS Safari only
+    // raises the virtual keyboard for a .focus() called directly within the
+    // click handler's own call stack. A deferred focus still sets
+    // document.activeElement, but the keyboard never appears — which is exactly
+    // what made this look like "nothing happened" when tapping Search.
+    elements.searchInput.focus();
+    if (typeof query === 'string') {
+      const len = elements.searchInput.value.length;
+      elements.searchInput.setSelectionRange(len, len);
+    }
+  }
 }

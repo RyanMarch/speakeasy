@@ -8,10 +8,12 @@ import { escapeHtml, showToast } from '../components/toast.js';
 
 let _openEditorFn = null;
 let _updateVaultStatsFn = null;
+let _showDrinksListMobileFn = null;
 
-export function setRecipeListCallbacks({ openEditor, updateVaultStats }) {
+export function setRecipeListCallbacks({ openEditor, updateVaultStats, showDrinksListMobile }) {
   if (openEditor) _openEditorFn = openEditor;
   if (updateVaultStats) _updateVaultStatsFn = updateVaultStats;
+  if (showDrinksListMobile) _showDrinksListMobileFn = showDrinksListMobile;
 }
 
 /**
@@ -164,6 +166,12 @@ export function filterByTag(tag) {
   elements.searchClearBtn?.classList.add('visible');
   renderRecipeList();
   showToast(`Filtered by #${tag}`);
+  // On mobile the sidebar/list is hidden while viewing a recipe — a tag tapped
+  // from there needs to actually bring the filtered list into view, not just
+  // filter it invisibly in the background. No-op on desktop, where the sidebar
+  // is already visible (toggling its mobile-only "hidden" classes there does
+  // nothing, since responsive.css only acts on them under the mobile breakpoint).
+  _showDrinksListMobileFn?.();
 }
 
 /**
