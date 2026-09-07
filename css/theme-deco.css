@@ -1,0 +1,436 @@
+/* ==========================================================================
+   Speakeasy Theme: Art Deco Midnight Navy & Gold
+   Fonts: Gurmukhi MN & Mid Century Sans (with Playfair Display & Inter fallbacks)
+   ========================================================================== */
+
+/* Google Fonts for Mid-Century & Art Deco Typography with full Unicode coverage */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Josefin+Sans:ital,wght@0,300..700;1,300..700&family=Jost:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+/* Gurmukhi MN Font Face */
+@font-face {
+  font-family: 'Gurmukhi MN';
+  src: local('Gurmukhi MN'),
+    url('../assets/fonts/gurmukhi-mn.ttf') format('truetype');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Midnight Navy Color Theme Palette (sampled directly from reference: #243144) */
+  --color-bg: #020f20;
+  --color-bg-alt: #1a2433;
+  --color-surface: #2c3c54;
+  --color-surface-card: #2c3b52;
+  --color-surface-hover: #354763;
+
+  /* Art Deco Gold Borders and Frames (bold metallic gold from reference: #ebbc72) */
+  --color-border: rgba(235, 188, 114, 0.45);
+  --color-border-subtle: rgba(235, 188, 114, 0.22);
+  --color-border-active: #ebbc72;
+
+  /* Cream and Crisp High-Contrast Text Tones */
+  --color-text: #ffffff;
+  --color-text-bright: #ffffff;
+  --color-text-secondary: #f0eae1;
+  --color-text-active: #ffffff;
+  --color-text-muted: #d5dde6;
+  --color-text-faint: #9fb0c4;
+  --color-on-accent: #192331;
+
+  /* Art Deco Vibrant Warm Gold */
+  --color-accent: #ebbc72;
+  --color-accent-light: #f3cf8e;
+  --color-accent-dark: #c99849;
+  --color-accent-glow: rgba(235, 188, 114, 0.25);
+
+  /* Functional Accents */
+  --color-crimson: #e06260;
+  --color-emerald: #4ea877;
+  --color-sky: #ebbc72;
+
+  --color-success: #70be8e;
+  --color-success-light: #97e2b4;
+  --color-sub: #e59a6e;
+  --color-sub-light: #f3b490;
+
+  /* Typography Stack: Gurmukhi MN & Mid-Century Sans (DM Sans / Josefin Sans) with fallbacks */
+  --font-display: 'Gurmukhi MN', 'Playfair Display', Georgia, serif;
+  --font-sans: 'DM Sans', 'Josefin Sans', 'Jost', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-deco: 'Josefin Sans', 'Gurmukhi MN', 'Playfair Display', sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --shadow-sm: 0 1px 4px rgba(10, 18, 28, 0.4);
+  --shadow-md: 0 6px 18px rgba(10, 18, 28, 0.5);
+  --shadow-lg: 0 14px 34px rgba(10, 18, 28, 0.65);
+  --shadow-glow: 0 0 24px var(--color-accent-glow);
+
+  --transition-fast: 150ms ease;
+  --transition-normal: 240ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  --sidebar-width: 350px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+}
+
+body {
+  background-color: var(--color-bg);
+  background-image: none;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.5;
+  touch-action: manipulation;
+}
+
+@media (min-width: 769px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+button,
+input,
+select,
+textarea,
+a {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+/* Header & Navigation surfaces */
+.app-header {
+  background: #1b2738 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 2px solid var(--color-accent) !important;
+  box-shadow: 0 1px 0 rgba(235, 188, 114, 0.3), 0 4px 16px rgba(10, 18, 28, 0.35) !important;
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  letter-spacing: 0.16em;
+  color: var(--color-accent) !important;
+}
+
+/* Sidebar surfaces & recipe list */
+.sidebar {
+  background: var(--color-bg) !important;
+  border-right: 2px solid var(--color-accent) !important;
+  box-shadow: 1px 0 0 rgba(235, 188, 114, 0.25) !important;
+}
+
+.sidebar-search-box {
+  background: #111d2e !important;
+  border-bottom: 1.5px solid rgba(235, 188, 114, 0.35) !important;
+  padding: 0.75rem 0.85rem 0.65rem !important;
+}
+
+.search-input {
+  background: #1a283c !important;
+  border: 1.5px solid rgba(235, 188, 114, 0.4) !important;
+  border-radius: var(--radius-sm) !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+}
+
+.search-input::placeholder {
+  color: #9fb0c4 !important;
+}
+
+.search-input:focus {
+  border-color: var(--color-accent) !important;
+  background: #20314a !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(235, 188, 114, 0.35) !important;
+}
+
+.search-icon {
+  color: var(--color-accent) !important;
+  opacity: 0.85;
+}
+
+.sidebar-pack-filter {
+  background: #0d1726 !important;
+  border-bottom: 1.5px solid rgba(235, 188, 114, 0.3) !important;
+  padding: 0.6rem 0.85rem !important;
+}
+
+.pack-pill {
+  background: #1a283c !important;
+  border: 1px solid rgba(235, 188, 114, 0.3) !important;
+  color: #d5dde6 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+}
+
+.pack-pill:hover:not(.active) {
+  background: #253752 !important;
+  border-color: var(--color-accent) !important;
+  color: #ffffff !important;
+}
+
+.pack-pill.active {
+  background: var(--color-accent) !important;
+  border-color: var(--color-accent-light) !important;
+  color: var(--color-on-accent) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(235, 188, 114, 0.35) !important;
+}
+
+.recipe-list {
+  background: transparent !important;
+}
+
+.sidebar-footer {
+  background: #0d1726 !important;
+  border-top: 1.5px solid rgba(235, 188, 114, 0.3) !important;
+}
+
+.footer-inventory-toggle {
+  background: #142032 !important;
+  border: 1px solid rgba(235, 188, 114, 0.3) !important;
+}
+
+.inventory-filter-btn {
+  color: #abb8c9 !important;
+}
+
+.inventory-filter-btn:hover:not(.active) {
+  background: #1f2f47 !important;
+  color: #ffffff !important;
+}
+
+.inventory-filter-btn.active {
+  background: var(--color-accent) !important;
+  color: var(--color-on-accent) !important;
+  font-weight: 700 !important;
+}
+
+.inventory-filter-btn.active .filter-count {
+  background: rgba(0, 0, 0, 0.2) !important;
+  color: var(--color-on-accent) !important;
+}
+
+.recipe-card-btn {
+  background: #1a283c !important;
+  border: 1.5px solid rgba(235, 188, 114, 0.25) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+}
+
+.recipe-card-btn:hover {
+  background: #253752 !important;
+  border-color: rgba(235, 188, 114, 0.6) !important;
+}
+
+.recipe-list-item.active .recipe-card-btn {
+  background: rgba(235, 188, 114, 0.16) !important;
+  border: 2px solid var(--color-accent) !important;
+  box-shadow: 0 0 12px rgba(235, 188, 114, 0.25) !important;
+}
+
+.recipe-item-name {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #ffffff !important;
+}
+
+.recipe-item-glass {
+  color: var(--color-accent) !important;
+  font-weight: 700 !important;
+}
+
+.sidebar-sort-select {
+  background-color: #1a283c !important;
+  border: 1.5px solid rgba(235, 188, 114, 0.4) !important;
+  color: var(--color-text-bright) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.sidebar-sort-select:focus-visible {
+  border-color: var(--color-accent) !important;
+}
+
+.sidebar-sort-select option {
+  background: #111d2e !important;
+  color: #ffffff !important;
+}
+
+/* Modals & Popovers */
+.vault-popover {
+  background: #243144 !important;
+  border: 2px solid var(--color-accent) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(235, 188, 114, 0.3) !important;
+}
+
+.backbar-dialog {
+  background: #243144 !important;
+  border: 2px solid var(--color-accent) !important;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 20px rgba(235, 188, 114, 0.2) !important;
+}
+
+/* Main Detail View Art Deco Borders & Accents */
+.main-stage {
+  background: var(--color-bg) !important;
+}
+
+.counter-view {
+  position: relative;
+}
+
+.drink-title-section {
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--color-accent) !important;
+  box-shadow: 0 1px 0 rgba(235, 188, 114, 0.35);
+  margin-bottom: 2rem;
+}
+
+.drink-name {
+  font-family: var(--font-display) !important;
+  color: var(--color-text-bright) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em !important;
+}
+
+.editorial-section-title,
+.counter-card-title {
+  color: var(--color-accent) !important;
+  letter-spacing: 0.08em;
+  border-bottom: 1.5px solid rgba(235, 188, 114, 0.35) !important;
+}
+
+.flavor-radar-card {
+  background: #1f2b3c !important;
+  border: 1px solid rgba(235, 188, 114, 0.35) !important;
+}
+
+.bottle-next-banner {
+  background: #1f2b3c !important;
+  border: 1px solid rgba(235, 188, 114, 0.35) !important;
+}
+
+.spec-row {
+  border-bottom-color: rgba(235, 188, 114, 0.22) !important;
+}
+
+.spec-row:hover,
+.spec-row.highlighted {
+  background: rgba(235, 188, 114, 0.08) !important;
+}
+
+.similar-cocktail-card {
+  background: #27374d !important;
+  border: 1px solid rgba(235, 188, 114, 0.35) !important;
+}
+
+.similar-cocktail-card:hover {
+  background: #31445e !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 12px rgba(235, 188, 114, 0.25) !important;
+}
+
+.btn-primary {
+  background: var(--color-accent) !important;
+  color: var(--color-on-accent) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  font-weight: 700 !important;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-light) !important;
+  box-shadow: 0 0 12px rgba(235, 188, 114, 0.4) !important;
+}
+
+.btn-secondary {
+  border: 1px solid rgba(235, 188, 114, 0.4) !important;
+  background: rgba(235, 188, 114, 0.08) !important;
+  color: var(--color-text-bright) !important;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(235, 188, 114, 0.18) !important;
+  border-color: var(--color-accent) !important;
+}
+
+/* Detail view typography & controls contrast */
+.action-icon-btn {
+  background: #1f2b3c !important;
+  border: 1px solid rgba(235, 188, 114, 0.35) !important;
+  color: #e4dcce !important;
+}
+
+.action-icon-btn:hover {
+  background: #27374d !important;
+  border-color: var(--color-accent) !important;
+  color: #ffffff !important;
+}
+
+.drink-sub-banner {
+  background: rgba(229, 154, 110, 0.12) !important;
+  border: 1px solid rgba(229, 154, 110, 0.4) !important;
+  color: #f3b490 !important;
+}
+
+.spec-amount {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.spec-unit {
+  color: var(--color-accent-light) !important;
+  font-family: var(--font-display) !important;
+  font-style: italic !important;
+}
+
+.spec-ingredient-name-row {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.spec-garnish-name {
+  color: #f0eae1 !important;
+}
+
+.card-content-text {
+  color: #f0eae1 !important;
+  line-height: 1.7 !important;
+}
+
+.drink-meta-row {
+  color: #d5dde6 !important;
+}
