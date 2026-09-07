@@ -1520,8 +1520,8 @@ function renderCounterView() {
     </div>
   ` : '';
 
+  elements.counterViewContainer.classList.toggle('riff-mode-active', state.riffModeActive);
   elements.counterViewContainer.innerHTML =  /*html*/`
-    <div class="counter-view ${state.riffModeActive ? 'riff-mode-active' : ''}">
     <!-- Mobile Back Navigation (hidden on desktop) -->
     <div class="counter-mobile-bar" id="counter-mobile-bar">
       <button id="btn-mobile-back" class="btn btn-secondary btn-sm mobile-back-btn" aria-label="Back to drinks list">
@@ -1811,7 +1811,6 @@ function renderCounterView() {
         </div>
       </div>
     ` : ''}
-  </div> <!-- end .counter-view -->
   `;
 
   // Render vector SVG glass
