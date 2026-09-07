@@ -3023,7 +3023,726 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "oz", name: "Club Soda" },
     ],
   },
+  // 48. Dirty Martini
+  {
+    id: "dirty-martini",
+    name: "Dirty Martini",
+    glassware: "Martini",
+    method: "Stirred",
+    garnish: "Castelvetrano olive",
+    description: "The beloved savory classic accenting crisp gin with dry French vermouth and salty olive brine.",
+    instructions: "1. Add gin, dry vermouth, and olive brine to a mixing glass filled with ice.\n2. Stir thoroughly for 25-30 seconds until ice-cold and properly diluted.\n3. Fine strain into a chilled martini glass.\n4. Garnish with an olive on a pick.",
+    source: "John O'Connor, Waldorf Astoria NYC (1901)",
+    sourceUrl: "",
+    notes: "A timeless savory variation of the Dry Martini.",
+    riffOfId: "dry-martini",
+    riffOfName: "Dry Martini",
+    tags: ["classic", "spirit-forward", "gin-forward", "savory", "riff"],
+    specs: [
+      { amount: 2.5, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.5, unit: "oz", name: "Dry Vermouth" },
+      { amount: 0.5, unit: "oz", name: "Olive Brine" },
+    ],
+  },
+  // 49. Gibson
+  {
+    id: "gibson",
+    name: "Gibson",
+    glassware: "Martini",
+    method: "Stirred",
+    garnish: "Cocktail onion",
+    description: "An elegant, silky dry martini riff distinguished by the subtle savory sweetness of a pickled cocktail pearl onion.",
+    instructions: "1. Combine gin and dry vermouth in a mixing glass filled with cracked ice.\n2. Stir briskly for 30 seconds until thoroughly chilled and diluted.\n3. Strain into a chilled martini glass or coupe.\n4. Garnish with a cocktail pearl onion on a pick.",
+    source: "Charles Dana Gibson / Players Club NYC (c. 1900s)",
+    sourceUrl: "",
+    notes: "A dry martini garnished with a pickled pearl onion instead of an olive or twist.",
+    riffOfId: "dry-martini",
+    riffOfName: "Dry Martini",
+    tags: ["classic", "spirit-forward", "gin-forward", "savory", "riff"],
+    specs: [
+      { amount: 2.5, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.5, unit: "oz", name: "Dry Vermouth" },
+    ],
+  },
+  // 50. Michelada
+  {
+    id: "michelada",
+    name: "Michelada",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wheel & chili-salt rim",
+    description: "A restorative Mexican beer cocktail spiked with tart fresh lime, fiery hot sauce, savory Worcestershire, and chilled crisp lager.",
+    instructions: "1. Run a cut lime wedge around the rim of a tall chilled glass and dip in chili-salt.\n2. Fill glass with fresh ice cubes.\n3. Add fresh lime juice, Worcestershire sauce, hot sauce, and a pinch of salt.\n4. Top slowly with chilled Mexican lager.\n5. Give a gentle single stir to integrate and garnish with a lime wheel.",
+    source: "Traditional Mexican (c. mid-20th century)",
+    sourceUrl: "",
+    notes: "Classic Mexican savory beer cocktail with chili-salt rim.",
+    tags: ["savory", "beer", "refreshing", "summer", "low-proof"],
+    specs: [
+      { amount: 6, unit: "oz", name: "Mexican Lager" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 2, unit: "dashes", name: "Worcestershire Sauce" },
+      { amount: 2, unit: "dashes", name: "Hot Sauce" },
+    ],
+  },
+  // 51. Green Park
+  {
+    id: "green-park",
+    name: "Green Park",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Fresh basil leaf",
+    description: "A vibrant London craft standard blending herbaceous fresh basil with London dry gin, lemon, and silky egg white foam.",
+    instructions: "1. Drop fresh basil leaves into the shaker tin and muddle gently to release oils.\n2. Add gin, lemon juice, simple syrup, and egg white.\n3. Dry shake vigorously without ice for 10 seconds to emulsify.\n4. Add ice and shake hard for another 12 seconds until frosty.\n5. Double strain into a chilled coupe and float a small basil leaf on the foam.",
+    source: "Erik Lorincz, The American Bar at The Savoy London (2011)",
+    sourceUrl: "",
+    notes: "Erik Lorincz's competition-winning modern sour showcasing fresh basil.",
+    riffOfId: "gin-basil-smash",
+    riffOfName: "Gin Basil Smash",
+    tags: ["modern-craft", "gin-forward", "sour", "herbal", "savory", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
+      { amount: 0.5, unit: "oz", name: "Simple Syrup" },
+      { amount: 0.75, unit: "oz", name: "Egg White" },
+    ],
+  },
+  // 52. Dirty Mezcalita
+  {
+    id: "dirty-mezcalita",
+    name: "Dirty Mezcalita",
+    glassware: "Rocks",
+    method: "Shaken",
+    garnish: "Lime wheel & half salt rim",
+    description: "An earthy, smoky agave sour laced with savory olive brine and rich orange liqueur over rocks.",
+    instructions: "1. Rim half of a rocks glass with chili-salt or sea salt.\n2. Combine mezcal, Cointreau, fresh lime juice, olive brine, and agave nectar in a shaker with ice.\n3. Shake hard for 12 seconds until thoroughly chilled.\n4. Strain over fresh ice into the prepared rocks glass.\n5. Garnish with a fresh lime wheel.",
+    source: "Modern Craft Bar Standard",
+    sourceUrl: "",
+    notes: "A savory, briny riff on the Mezcalita.",
+    riffOfId: "mezcalita",
+    riffOfName: "Mezcalita",
+    tags: ["modern-craft", "mezcal-forward", "smoky", "sour", "savory", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Mezcal" },
+      { amount: 0.75, unit: "oz", name: "Cointreau" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 0.5, unit: "oz", name: "Olive Brine" },
+      { amount: 0.25, unit: "oz", name: "Agave Nectar" },
+    ],
+  },
+  // 53. Chartreuse Swizzle
+  {
+    id: "chartreuse-swizzle",
+    name: "Chartreuse Swizzle",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Mint sprig & grated nutmeg",
+    description: "A modern cult classic featuring Green Chartreuse swizzled with tropical pineapple, fresh lime, and spicy falernum over crushed ice.",
+    instructions: "1. In a tall Collins or highball glass, combine Green Chartreuse, pineapple juice, fresh lime juice, and falernum.\n2. Fill glass two-thirds full with crushed ice.\n3. Insert a swizzle stick (or barspoon) and spin rapidly between palms until frost forms on the outside of the glass.\n4. Top with additional crushed ice to form a mound.\n5. Garnish with a generous fresh mint bouquet and freshly grated nutmeg.",
+    source: "Marco Dionysos, Smuggler's Cove San Francisco (c. 2002)",
+    sourceUrl: "",
+    notes: "The iconic herbal tiki swizzle that crowned Green Chartreuse a modern craft darling.",
+    tags: ["modern-craft", "tropical-tiki", "herbal", "refreshing", "highball"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Green Chartreuse" },
+      { amount: 1.5, unit: "oz", name: "Pineapple Juice" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 0.5, unit: "oz", name: "Falernum" },
+    ],
+  },
+  // 54. Metropole
+  {
+    id: "metropole",
+    name: "Metropole",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Cocktail cherry or lemon twist",
+    description: "An elegant pre-Prohibition Manhattan variant showcasing rich French brandy or cognac paired with dry vermouth, Peychaud's, and aromatic bitters.",
+    instructions: "1. Combine cognac, dry vermouth, simple syrup, and both bitters in a mixing glass with ice.\n2. Stir thoroughly for 25-30 seconds until ice-cold and properly diluted.\n3. Strain into a chilled coupe or cocktail glass.\n4. Express lemon peel oils or garnish with a brandied cherry.",
+    source: "Hotel Metropole, New York City (c. 1890s)",
+    sourceUrl: "",
+    notes: "A brandy Manhattan variation using dry vermouth and Peychaud's bitters.",
+    riffOfId: "manhattan",
+    riffOfName: "Manhattan",
+    tags: ["classic", "spirit-forward", "nightcaps", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Cognac" },
+      { amount: 1, unit: "oz", name: "Dry Vermouth" },
+      { amount: 1, unit: "barspoon", name: "Simple Syrup" },
+      { amount: 1, unit: "dash", name: "Peychaud's Bitters" },
+      { amount: 1, unit: "dash", name: "Angostura Bitters" },
+    ],
+  },
+  // 55. Apium
+  {
+    id: "apium",
+    name: "Apium",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Fresh mint sprig or cucumber slice",
+    description: "A crisp, botanical savory cooler highlighting London dry gin shaken with fresh celery juice, lime, and cooling spearmint.",
+    instructions: "1. Combine gin, fresh lime juice, fresh celery juice, simple syrup, and mint leaves in a cocktail shaker.\n2. Fill shaker with ice and shake vigorously for 12 seconds.\n3. Double strain into a chilled coupe.\n4. Garnish with a fresh mint sprig.",
+    source: "Charles Baker, The Gentleman's Companion (1939)",
+    sourceUrl: "",
+    notes: "Historic garden-fresh celery sour named after the botanical genus for wild celery.",
+    tags: ["classic", "gin-forward", "savory", "sour", "herbal", "refreshing"],
+    specs: [
+      { amount: 2, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.75, unit: "oz", name: "Fresh Celery Juice" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 0.5, unit: "oz", name: "Simple Syrup" },
+    ],
+  },
+  // 56. Paris Is Burning
+  {
+    id: "paris-is-burning",
+    name: "Paris Is Burning",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Lemon peel twist",
+    description: "A smoldering, bittersweet modern classic marrying earthy mezcal, crisp dry gin, elderflower liqueur, and bitter gentian Suze.",
+    instructions: "1. Combine mezcal, London dry gin, St-Germain, and Suze in a mixing glass filled with cracked ice.\n2. Stir briskly for 25-30 seconds until ice-cold.\n3. Strain into a chilled coupe.\n4. Express a lemon peel over the surface and drop it into the glass.",
+    source: "Thurman Wise, Milk & Honey NYC (2009)",
+    sourceUrl: "",
+    notes: "A complex bittersweet marriage of mezcal, gin, floral elderflower, and gentian amaro.",
+    tags: ["modern-craft", "mezcal-forward", "gin-forward", "bittersweet", "smoky", "spirit-forward"],
+    specs: [
+      { amount: 1, unit: "oz", name: "Mezcal" },
+      { amount: 1, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.75, unit: "oz", name: "St-Germain" },
+      { amount: 0.5, unit: "oz", name: "Suze" },
+    ],
+  },
+  // 57. Royal Bermuda Yacht Club
+  {
+    id: "royal-bermuda-yacht-club",
+    name: "Royal Bermuda Yacht Club",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lime wheel",
+    description: "An aristocratic Caribbean sour upgrading the classic Daiquiri with aged Barbados rum, spiced velvet falernum, Cointreau, and fresh lime.",
+    instructions: "1. Combine aged rum, velvet falernum, fresh lime juice, and Cointreau in a cocktail shaker.\n2. Fill with ice and shake hard for 10-12 seconds until thoroughly chilled.\n3. Fine strain into a chilled coupe.\n4. Garnish with a fresh lime wheel.",
+    source: "Trader Vic's Bartender's Guide (1947)",
+    sourceUrl: "",
+    notes: "The definitive spiced tiki-sour riff on the Daiquiri.",
+    riffOfId: "daiquiri",
+    riffOfName: "Daiquiri",
+    tags: ["classic", "rum-forward", "tropical-tiki", "sour", "spiced", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Aged Rum" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 0.5, unit: "oz", name: "Velvet Falernum" },
+      { amount: 0.25, unit: "oz", name: "Cointreau" },
+    ],
+  },
+  // 58. Flannel Shirt
+  {
+    id: "flannel-shirt",
+    name: "Flannel Shirt",
+    glassware: "Rocks",
+    method: "Stirred",
+    garnish: "Orange twist",
+    description: "The ultimate cozy autumn nightcap layering peaty blended Scotch with apple cider, bitter amaro Averna, and warm spice.",
+    instructions: "1. Combine blended Scotch, apple cider, amaro Averna, lemon juice, rich demerara syrup, and St. Elizabeth Allspice Dram in a mixing glass with ice.\n2. Stir thoroughly for 25 seconds until chilled.\n3. Strain into a rocks glass over a single large cube of ice.\n4. Express fresh orange peel oils over the surface and garnish.",
+    source: "Jeffrey Morgenthaler, Clyde Common Portland (c. 2010)",
+    sourceUrl: "",
+    notes: "Morgenthaler's celebrated autumn Scotch, cider, and amaro sour.",
+    tags: ["modern-craft", "whiskey-forward", "nightcaps", "autumn", "comforting"],
+    specs: [
+      { amount: 1.75, unit: "oz", name: "Blended Scotch Whisky" },
+      { amount: 1.5, unit: "oz", name: "Apple Cider" },
+      { amount: 0.75, unit: "oz", name: "Amaro Averna" },
+      { amount: 0.5, unit: "oz", name: "Fresh Lemon Juice" },
+      { amount: 0.25, unit: "oz", name: "Demerara Syrup" },
+      { amount: 0.25, unit: "oz", name: "Allspice Dram" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  // 59. Stone Fence
+  {
+    id: "stone-fence",
+    name: "Stone Fence",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Apple slice or lemon wheel",
+    description: "One of America's oldest historical potables, spiking crisp, effervescent hard cider with spicy rye whiskey and Angostura bitters.",
+    instructions: "1. Fill a tall highball glass with fresh ice cubes.\n2. Add rye whiskey and two dashes of Angostura bitters.\n3. Top gently with chilled dry hard cider.\n4. Stir lightly once to combine and garnish with an apple slice or lemon wheel.",
+    source: "Colonial American Traditional (c. 1770s)",
+    sourceUrl: "",
+    notes: "Revolutionary-era American cocktail pairing spirits and hard cider.",
+    tags: ["classic", "whiskey-forward", "ancestor", "highball", "refreshing", "autumn"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Rye Whiskey" },
+      { amount: 4, unit: "oz", name: "Hard Cider" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  // 60. Brandy Crusta
+  {
+    id: "brandy-crusta",
+    name: "Brandy Crusta",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Full sugar rim & wide lemon horse's neck peel",
+    description: "The flamboyant 1850s New Orleans progenitor to the Sidecar, featuring fine cognac, curaçao, Maraschino, and a continuous sugar-crusted rim.",
+    instructions: "1. Moisten the outside rim of a chilled coupe or small wine glass and roll in superfine sugar to create a wide crust.\n2. Line the inside wall of the glass with a long, wide spiral lemon horse's neck peel.\n3. In an ice-filled shaker, combine cognac, curaçao, lemon juice, Maraschino liqueur, simple syrup, and Boker's/Angostura bitters.\n4. Shake vigorously for 12 seconds.\n5. Fine strain into the prepared crusted glass.",
+    source: "Joseph Santini, City Exchange New Orleans (c. 1850s)",
+    sourceUrl: "",
+    notes: "Historic ancestor to the Sidecar and Margarita, famous for its elaborate sugar crust and curled lemon lining.",
+    tags: ["classic", "ancestor", "sour", "nightcaps"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Cognac" },
+      { amount: 0.5, unit: "oz", name: "Fresh Lemon Juice" },
+      { amount: 0.25, unit: "oz", name: "Dry Curaçao" },
+      { amount: 0.25, unit: "oz", name: "Maraschino Liqueur" },
+      { amount: 0.25, unit: "oz", name: "Simple Syrup" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  // 61. Shoulder Season
+  {
+    id: "shoulder-season",
+    name: "Shoulder Season",
+    glassware: "Rocks",
+    method: "Stirred",
+    garnish: "Apple slice",
+    description: "A cozy, cold-weather Old Fashioned riff balancing spicy rye and rich apple brandy with maple syrup, aromatic Angostura, and black walnut bitters.",
+    instructions: "1. Combine rye whiskey, apple brandy, maple syrup, Angostura bitters, and walnut bitters in a mixing glass with ice.\n2. Stir thoroughly for 25-30 seconds until well-chilled and integrated.\n3. Strain into a rocks glass over a large ice cube.\n4. Garnish with a freshly cut apple slice.",
+    source: "Tuxedo No. 2",
+    sourceUrl: "https://tuxedono2.com/shoulder-season-cocktail-recipe",
+    notes: "An autumn Old Fashioned riff combining rye, apple brandy, maple, and walnut bitters.",
+    riffOfId: "old-fashioned",
+    riffOfName: "Old Fashioned",
+    tags: ["modern-craft", "whiskey-forward", "autumn", "comforting", "spirit-forward", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.5, unit: "oz", name: "Apple Brandy" },
+      { amount: 0.25, unit: "oz", name: "Maple Syrup" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+      { amount: 2, unit: "dashes", name: "Walnut Bitters" },
+    ],
+  },
+  // 62. Monte Carlo
+  {
+    id: "monte-carlo",
+    name: "Monte Carlo",
+    glassware: "Rocks",
+    method: "Stirred",
+    garnish: "Lemon twist",
+    description: "A decadent rye Manhattan riff swapping vermouth for herbal, honeyed Bénédictine liqueur and aromatic Peychaud's bitters.",
+    instructions: "1. Combine rye whiskey, Bénédictine, and Angostura bitters in a mixing glass with cracked ice.\n2. Stir thoroughly for 25-30 seconds until ice-cold.\n3. Strain over a single large ice cube into an old fashioned rocks glass.\n4. Express lemon peel oils over the surface and drop peel into the drink.",
+    source: "David Embury, The Fine Art of Mixing Drinks (1948)",
+    sourceUrl: "",
+    notes: "A rich Manhattan riff substituting herbal Bénédictine for vermouth.",
+    riffOfId: "manhattan",
+    riffOfName: "Manhattan",
+    tags: ["classic", "spirit-forward", "whiskey-forward", "nightcaps", "herbal", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.5, unit: "oz", name: "Bénédictine" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  // 63. À La Louisienne
+  {
+    id: "a-la-louisienne",
+    name: "À La Louisienne",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Brandied cocktail cherry",
+    description: "A legendary New Orleans Creole masterpiece blending spicy rye whiskey with sweet vermouth, herbal Bénédictine, Peychaud's, and absinthe.",
+    instructions: "1. Combine rye whiskey, sweet vermouth, Bénédictine, absinthe, and Peychaud's bitters in a mixing glass filled with ice.\n2. Stir smoothly for 30 seconds until thoroughly chilled and integrated.\n3. Strain into a chilled coupe or cocktail glass.\n4. Garnish with a brandied cocktail cherry.",
+    source: "Restaurant de la Louisiane, New Orleans (c. 1930s)",
+    sourceUrl: "",
+    notes: "The Creole cousin to the Vieux Carré and Manhattan with absinthe and Bénédictine.",
+    riffOfId: "vieux-carre",
+    riffOfName: "Vieux Carré",
+    tags: ["classic", "spirit-forward", "whiskey-forward", "nightcaps", "herbal", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.75, unit: "oz", name: "Sweet Vermouth" },
+      { amount: 0.5, unit: "oz", name: "Bénédictine" },
+      { amount: 3, unit: "dashes", name: "Absinthe" },
+      { amount: 3, unit: "dashes", name: "Peychaud's Bitters" },
+    ],
+  },
+  // 64. Mexican Firing Squad
+  {
+    id: "mexican-firing-squad",
+    name: "Mexican Firing Squad",
+    glassware: "Rocks",
+    method: "Shaken",
+    garnish: "Lime wheel & brandied cherry",
+    description: "A spicy, vibrant 1930s Mexican craft classic shaking 100% agave tequila with tart lime, rich pomegranate grenadine, and aromatic Angostura.",
+    instructions: "1. Combine blanco tequila, fresh lime juice, real pomegranate grenadine, and Angostura bitters in a cocktail shaker with ice.\n2. Shake hard for 12 seconds until frosty.\n3. Strain over fresh ice into a rocks glass.\n4. Garnish with a fresh lime wheel and cherry.",
+    source: "Charles H. Baker Jr., The Gentleman's Companion (1937)",
+    sourceUrl: "",
+    notes: "Created at the La Cucaracha Club in Mexico City.",
+    tags: ["classic", "tequila-forward", "sour", "spicy", "summer"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blanco Tequila" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 0.75, unit: "oz", name: "Grenadine" },
+      { amount: 4, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  // 65. Artichoke Hold
+  {
+    id: "artichoke-hold",
+    name: "Artichoke Hold",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Mint sprig",
+    description: "A brilliant modern amaro sour pairing bitter Cynar with funky Jamaican overproof rum, floral St-Germain, lime, and rich almond orgeat.",
+    instructions: "1. Add Cynar, Jamaican overproof rum, St-Germain, fresh lime juice, and orgeat to a shaker with ice.\n2. Shake vigorously for 12 seconds.\n3. Fine strain into a chilled coupe.\n4. Slap a fresh mint sprig and float as garnish.",
+    source: "Jeremy Oertel, Donna Brooklyn NYC (2013)",
+    sourceUrl: "",
+    notes: "A bittersweet tiki-sour modern masterpiece centering Cynar.",
+    tags: ["modern-craft", "amaro-forward", "rum-forward", "tropical-tiki", "sour", "bittersweet"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Cynar" },
+      { amount: 0.75, unit: "oz", name: "Overproof Rum" },
+      { amount: 0.5, unit: "oz", name: "St-Germain" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 0.5, unit: "oz", name: "Orgeat" },
+    ],
+  },
+  // 66. Blinker
+  {
+    id: "blinker",
+    name: "Blinker",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Grapefruit twist",
+    description: "A brisk, bright 1930s high-proof sour pairing spicy rye whiskey with freshly squeezed tart grapefruit juice and sweet raspberry syrup.",
+    instructions: "1. Combine rye whiskey, fresh grapefruit juice, and raspberry syrup in an ice-filled shaker.\n2. Shake hard for 12 seconds until thoroughly cold.\n3. Fine strain into a chilled coupe.\n4. Express grapefruit oils over the drink and discard or trim twist.",
+    source: "Patrick Gavin Duffy, The Official Mixer's Manual (1934)",
+    sourceUrl: "",
+    notes: "Classic pre-Prohibition rye whiskey sour sweetened with raspberry syrup.",
+    tags: ["classic", "whiskey-forward", "sour", "refreshing", "fruity"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Rye Whiskey" },
+      { amount: 1, unit: "oz", name: "Fresh Grapefruit Juice" },
+      { amount: 0.25, unit: "oz", name: "Raspberry Syrup" },
+    ],
+  },
+  // 67. Brown Derby
+  {
+    id: "brown-derby",
+    name: "Brown Derby",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Grapefruit peel twist",
+    description: "The Hollywood Golden Age classic pairing warm Kentucky bourbon with fresh bittersweet pink grapefruit and rich wildflower honey syrup.",
+    instructions: "1. Combine bourbon, fresh grapefruit juice, and honey syrup in a shaker with ice.\n2. Shake vigorously for 12 seconds until icy.\n3. Double strain into a chilled cocktail coupe.\n4. Express fresh grapefruit peel twist over the rim.",
+    source: "Vendôme Club / Brown Derby, Los Angeles (1930s)",
+    sourceUrl: "",
+    notes: "Named after the iconic hat-shaped Los Angeles restaurant.",
+    tags: ["classic", "whiskey-forward", "sour", "refreshing"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Bourbon" },
+      { amount: 1, unit: "oz", name: "Fresh Grapefruit Juice" },
+      { amount: 0.5, unit: "oz", name: "Honey Syrup" },
+    ],
+  },
+  // 68. Red Hook
+  {
+    id: "red-hook",
+    name: "Red Hook",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Brandied cocktail cherry",
+    description: "The brooding modern Brooklyn borough classic matching spicy rye whiskey with rich, bittersweet Punt e Mes vermouth and dry Maraschino.",
+    instructions: "1. Add rye whiskey, Punt e Mes (sweet vermouth), and Maraschino liqueur to a mixing glass filled with ice.\n2. Stir smoothly for 25-30 seconds until ice-cold and properly diluted.\n3. Strain into a chilled coupe.\n4. Garnish with a brandied cocktail cherry.",
+    source: "Vincenzo Errico, Milk & Honey NYC (2003)",
+    sourceUrl: "",
+    notes: "The breakout modern craft Manhattan variation that spawned the NYC borough cocktail revival.",
+    riffOfId: "brooklyn",
+    riffOfName: "Brooklyn",
+    tags: ["modern-craft", "whiskey-forward", "spirit-forward", "nightcaps", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.5, unit: "oz", name: "Sweet Vermouth" },
+      { amount: 0.5, unit: "oz", name: "Maraschino Liqueur" },
+    ],
+  },
+  // 69. Diamondback
+  {
+    id: "diamondback",
+    name: "Diamondback",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Cocktail cherry or apple slice",
+    description: "A potent Baltimore pre-Prohibition powerhouse melding spicy rye whiskey with bonded apple brandy and herbal Yellow Chartreuse.",
+    instructions: "1. Combine rye whiskey, apple brandy (Applejack), and Yellow Chartreuse in a mixing glass with cracked ice.\n2. Stir thoroughly for 25-30 seconds until cold and diluted.\n3. Strain into a chilled coupe.\n4. Garnish with a brandied cherry.",
+    source: "Lord Baltimore Hotel, Baltimore (1951)",
+    sourceUrl: "",
+    notes: "Named for the Diamondback Lounge in Baltimore's historic Lord Baltimore Hotel.",
+    tags: ["classic", "whiskey-forward", "spirit-forward", "nightcaps", "herbal"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.75, unit: "oz", name: "Apple Brandy" },
+      { amount: 0.75, unit: "oz", name: "Yellow Chartreuse" },
+    ],
+  },
+  // 70. Fancy Free
+  {
+    id: "fancy-free",
+    name: "Fancy Free",
+    glassware: "Rocks",
+    method: "Stirred",
+    garnish: "Orange peel twist",
+    description: "An opulent, nut-and-cherry accented Old Fashioned riff pairing rich bourbon with dry Maraschino liqueur and dual citrus bitters.",
+    instructions: "1. Combine bourbon, Maraschino liqueur, Angostura bitters, and orange bitters in a mixing glass filled with ice.\n2. Stir briskly for 25 seconds until thoroughly chilled.\n3. Strain into a rocks glass over a single large ice cube.\n4. Express fresh orange peel oils over the glass and drop it in.",
+    source: "Crosby Gaige's Cocktail Guide (1944)",
+    sourceUrl: "",
+    notes: "A timeless mid-century Old Fashioned variation substituting Maraschino for simple syrup.",
+    riffOfId: "old-fashioned",
+    riffOfName: "Old Fashioned",
+    tags: ["classic", "whiskey-forward", "spirit-forward", "slow-sipper", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Bourbon" },
+      { amount: 0.5, unit: "oz", name: "Maraschino Liqueur" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+      { amount: 1, unit: "dash", name: "Orange Bitters" },
+    ],
+  },
+  // 71. Brooklyn
+  {
+    id: "brooklyn",
+    name: "Brooklyn",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Cocktail cherry",
+    description: "The seminal outer-borough Manhattan cousin pairing spicy rye whiskey with crisp dry vermouth, Maraschino, and bitter gentian Amer Picon.",
+    instructions: "1. Combine rye whiskey, dry vermouth, Maraschino liqueur, and Amer Picon in a mixing glass filled with cracked ice.\n2. Stir smoothly for 30 seconds until ice-cold and diluted.\n3. Strain into a chilled cocktail coupe.\n4. Garnish with a brandied cherry.",
+    source: "J.A. Grohusko, Jack's Manual (1908)",
+    sourceUrl: "",
+    notes: "The historic Manhattan borough counterpart using dry vermouth and bitter orange gentian.",
+    riffOfId: "manhattan",
+    riffOfName: "Manhattan",
+    tags: ["classic", "whiskey-forward", "spirit-forward", "nightcaps", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.75, unit: "oz", name: "Dry Vermouth" },
+      { amount: 0.25, unit: "oz", name: "Maraschino Liqueur" },
+      { amount: 0.25, unit: "oz", name: "Amer Picon" },
+    ],
+  },
+  // 72. El Presidente
+  {
+    id: "el-presidente",
+    name: "El Presidente",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Orange twist & cocktail cherry",
+    description: "The aristocrat of 1920s Havana, stirring light Cuban-style white rum with delicate blanc vermouth, dry curaçao, and real pomegranate grenadine.",
+    instructions: "1. Add white rum, blanc vermouth, dry curaçao, and grenadine to a mixing glass filled with ice.\n2. Stir gracefully for 25-30 seconds until frosty and silky.\n3. Strain into a chilled coupe.\n4. Express fresh orange oils over the rim and garnish with a brandied cherry.",
+    source: "Eddie Woelke, Jockey Club Havana (c. 1915)",
+    sourceUrl: "",
+    notes: "Havana's sophisticated Prohibition-era stirred rum classic.",
+    tags: ["classic", "rum-forward", "spirit-forward", "tropical-tiki"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "White Rum" },
+      { amount: 1.5, unit: "oz", name: "Blanc Vermouth" },
+      { amount: 0.25, unit: "oz", name: "Dry Curaçao" },
+      { amount: 1, unit: "barspoon", name: "Grenadine" },
+    ],
+  },
+  // 73. Air Mail
+  {
+    id: "airmail",
+    name: "Air Mail",
+    glassware: "Flute",
+    method: "Shaken",
+    garnish: "Lime wheel or mint sprig",
+    description: "An effervescent Caribbean celebration shaking golden aged rum with tart lime juice and rich honey syrup, topped with dry sparkling wine.",
+    instructions: "1. Combine aged rum, fresh lime juice, and honey syrup in a shaker with ice.\n2. Shake hard for 10-12 seconds until cold.\n3. Strain into a chilled Champagne flute or coupe.\n4. Top gently with chilled dry sparkling wine.\n5. Garnish with a thin lime wheel.",
+    source: "W.C. Whitfield, Here's How (1941)",
+    sourceUrl: "",
+    notes: "Commemorates the inauguration of international airmail postal service in the Caribbean.",
+    tags: ["classic", "rum-forward", "sour", "refreshing", "effervescent"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Aged Rum" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 0.75, unit: "oz", name: "Honey Syrup" },
+      { amount: 2, unit: "oz", name: "Sparkling Wine" },
+    ],
+  },
+  // 74. Twelve Mile Limit
+  {
+    id: "twelve-mile-limit",
+    name: "Twelve Mile Limit",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lemon twist",
+    description: "A daring 1934 Prohibition triple-spirit sour combining white rum, spicy rye, and French cognac with fresh lemon and pomegranate grenadine.",
+    instructions: "1. Combine white rum, rye whiskey, cognac, fresh lemon juice, and grenadine in a cocktail shaker.\n2. Fill with ice and shake hard for 12 seconds.\n3. Double strain into a chilled coupe.\n4. Garnish with a lemon twist.",
+    source: "Tommy Millard (c. 1934)",
+    sourceUrl: "",
+    notes: "Named for the nautical boundary where U.S. coastal jurisdiction ended during Prohibition.",
+    tags: ["classic", "rum-forward", "whiskey-forward", "sour", "nightcaps"],
+    specs: [
+      { amount: 1, unit: "oz", name: "White Rum" },
+      { amount: 0.5, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.5, unit: "oz", name: "Cognac" },
+      { amount: 0.5, unit: "oz", name: "Fresh Lemon Juice" },
+      { amount: 0.5, unit: "oz", name: "Grenadine" },
+    ],
+  },
+  // 75. Jack Rose
+  {
+    id: "jack-rose",
+    name: "Jack Rose",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Apple slice or lemon twist",
+    description: "An indelible pre-Prohibition American standard balancing historic bonded applejack with tart fresh lemon and rich pomegranate grenadine.",
+    instructions: "1. Combine applejack, fresh lemon juice, and real pomegranate grenadine in a shaker with ice.\n2. Shake vigorously for 12 seconds until frosty.\n3. Fine strain into a chilled cocktail coupe.\n4. Garnish with a thin apple slice or lemon twist.",
+    source: "Frank J. May, New Jersey (c. 1900s)",
+    sourceUrl: "",
+    notes: "One of the six cornerstone cocktails in David Embury's The Fine Art of Mixing Drinks.",
+    tags: ["classic", "ancestor", "sour", "autumn", "fruity"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Apple Brandy" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
+      { amount: 0.5, unit: "oz", name: "Grenadine" },
+    ],
+  },
+  // 76. Harvey Wallbanger
+  {
+    id: "harvey-wallbanger",
+    name: "Harvey Wallbanger",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Orange wheel & cocktail cherry",
+    description: "The breezy 1970s California retro icon elevating fresh orange juice and crisp vodka with an aromatic float of golden Galliano vanilla liqueur.",
+    instructions: "1. Fill a tall highball glass with fresh ice cubes.\n2. Add vodka and fresh orange juice, then stir well to combine.\n3. Float Galliano over the back of a barspoon on top of the drink.\n4. Garnish with an orange wheel and cherry on a pick.",
+    source: "Donato 'Duke' Antone, Blackwatch Bar Sunset Strip (c. 1950s)",
+    sourceUrl: "",
+    notes: "The iconic Screwdriver riff elevated by herbal, vanilla-accented Galliano.",
+    riffOfId: "screwdriver",
+    riffOfName: "Screwdriver",
+    tags: ["classic", "vodka-forward", "highball", "fruity", "refreshing", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 4, unit: "oz", name: "Orange Juice" },
+      { amount: 0.5, unit: "oz", name: "Galliano" },
+    ],
+  },
+  // 77. Hot Toddy
+  {
+    id: "hot-toddy",
+    name: "Hot Toddy",
+    glassware: "Mug",
+    method: "Built",
+    garnish: "Lemon wheel studded with cloves & cinnamon stick",
+    description: "The time-honored winter restorative blending warming whiskey with steaming water, fragrant honey, fresh lemon, and aromatic winter spices.",
+    instructions: "1. Warm a mug by filling with boiling water for 30 seconds, then discard.\n2. Add whiskey, honey, and fresh lemon juice to the mug.\n3. Top with boiling water and stir thoroughly until the honey dissolves.\n4. Garnish with a clove-studded lemon wheel and a whole cinnamon stick.",
+    source: "Scottish Traditional (c. 18th century)",
+    sourceUrl: "",
+    notes: "The definitive hot winter restorative.",
+    tags: ["classic", "whiskey-forward", "nightcaps", "comforting", "ancestor"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Bourbon" },
+      { amount: 0.75, unit: "oz", name: "Honey Syrup" },
+      { amount: 0.5, unit: "oz", name: "Fresh Lemon Juice" },
+      { amount: 4, unit: "oz", name: "Chilled Water" },
+    ],
+  },
+  // 78. Gin Rickey
+  {
+    id: "gin-rickey",
+    name: "Gin Rickey",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Spent lime half & lime wheel",
+    description: "Washington D.C.'s official historic cooler delivering absolute botanical refreshment with gin, fresh lime, and effervescent club soda—no sugar added.",
+    instructions: "1. Fill a tall highball glass with cracked ice.\n2. Squeeze the juice of half a lime into the glass and drop the spent shell in.\n3. Add London dry gin.\n4. Top with cold, highly carbonated club soda and give a brief gentle stir.",
+    source: "Shoomaker's Bar, Washington D.C. (1880s)",
+    sourceUrl: "",
+    notes: "Washington D.C.'s historic zero-sugar highball refresher.",
+    tags: ["classic", "gin-forward", "highball", "refreshing", "summer", "low-proof"],
+    specs: [
+      { amount: 2, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
+      { amount: 4, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  // 79. Presbyterian
+  {
+    id: "presbyterian",
+    name: "Presbyterian",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lemon twist",
+    description: "A snappy turn-of-the-century thirst quencher pairing rich whiskey with equal parts sparkling ginger ale and crisp club soda.",
+    instructions: "1. Fill a tall highball glass with fresh ice cubes.\n2. Pour in bourbon or blended Scotch whisky.\n3. Top with equal parts chilled ginger ale and club soda.\n4. Stir gently once to integrate without losing effervescence.\n5. Garnish with an expressed lemon peel twist.",
+    source: "Traditional American Highball (c. 1890s)",
+    sourceUrl: "",
+    notes: "A timeless highball splitting sweet ginger ale with crisp club soda.",
+    tags: ["classic", "whiskey-forward", "highball", "refreshing", "ancestor"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Bourbon" },
+      { amount: 2, unit: "oz", name: "Ginger Ale" },
+      { amount: 2, unit: "oz", name: "Club Soda" },
+    ],
+  },
 ];
+
+// ==========================================
+// Hidden Recipes Persistence
+// ==========================================
+const HIDDEN_RECIPES_STORAGE_KEY = 'speakeasy_hidden_recipes';
+
+export function getHiddenRecipeIds() {
+  try {
+    const raw = localStorage.getItem(HIDDEN_RECIPES_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(id => typeof id === 'string') : [];
+  } catch (err) {
+    console.error('Failed to read hidden recipes from localStorage:', err);
+    return [];
+  }
+}
+
+export function saveHiddenRecipeIds(ids) {
+  try {
+    const clean = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
+    localStorage.setItem(HIDDEN_RECIPES_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
+  } catch (err) {
+    console.error('Failed to save hidden recipes to localStorage:', err);
+    return ids;
+  }
+}
+
+export function isRecipeHidden(id) {
+  if (!id) return false;
+  return getHiddenRecipeIds().includes(id);
+}
+
+export function hideRecipe(id) {
+  if (!id) return getHiddenRecipeIds();
+  const current = getHiddenRecipeIds();
+  if (!current.includes(id)) {
+    current.push(id);
+    saveHiddenRecipeIds(current);
+  }
+  return current;
+}
+
+export function unhideRecipe(id) {
+  if (!id) return getHiddenRecipeIds();
+  const current = getHiddenRecipeIds().filter(hId => hId !== id);
+  saveHiddenRecipeIds(current);
+  return current;
+}
+
+export function unhideAllRecipes() {
+  saveHiddenRecipeIds([]);
+  return [];
+}
 
 export function getRecipes() {
   try {
@@ -3060,6 +3779,11 @@ export function getRecipes() {
               redBitter.name = "Pimm's No. 1";
               updatedStorage = true;
             }
+          }
+          // Update Shoulder Season to Tuxedo No. 2 specs if stored under the earlier draft
+          if (r.id === 'shoulder-season' && r.source !== 'Tuxedo No. 2') {
+            Object.assign(r, { ...seed });
+            updatedStorage = true;
           }
           // Backfill all properties from seed that might be missing in older stored versions
           Object.keys(seed).forEach(key => {
