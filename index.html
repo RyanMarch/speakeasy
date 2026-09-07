@@ -16,11 +16,11 @@
   <meta name="theme-color" content="#121110">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/base.css?v=15">
-  <link rel="stylesheet" href="css/index.css?v=47">
+  <link rel="stylesheet" href="css/base.css?v=16">
+  <link rel="stylesheet" href="css/index.css?v=48">
   <!-- Preload the ES module graph so the browser fetches it in parallel instead of
        discovering each import one-by-one as app.js's static imports are parsed. -->
-  <link rel="modulepreload" href="app.js?v=30">
+  <link rel="modulepreload" href="app.js?v=31">
   <link rel="modulepreload" href="js/state.js">
   <link rel="modulepreload" href="js/router.js">
   <link rel="modulepreload" href="js/data/seed-recipes.js">
@@ -31,6 +31,7 @@
   <link rel="modulepreload" href="js/components/backbar-modal.js">
   <link rel="modulepreload" href="js/components/hidden-modal.js">
   <link rel="modulepreload" href="js/components/editor-modal.js">
+  <link rel="modulepreload" href="js/components/timer-modal.js">
   <link rel="modulepreload" href="js/components/toast.js">
   <link rel="modulepreload" href="js/modules/storage.js">
   <link rel="modulepreload" href="js/modules/parser.js">
@@ -250,7 +251,7 @@
       <aside class="sidebar" id="sidebar" aria-label="Cocktail library sidebar">
         <div class="sidebar-search-box">
           <div class="search-input-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -338,13 +339,19 @@
         <div class="backbar-dialog-header">
           <div>
             <h2 id="backbar-modal-title" class="backbar-dialog-title">Personal Backbar</h2>
-            <p class="backbar-dialog-subtitle">Select the bottles and bar staples you keep in stock.</p>
+            <p class="backbar-dialog-subtitle" id="backbar-dialog-subtitle">Select the bottles and bar staples you keep in stock.</p>
           </div>
           <button id="btn-close-backbar" class="btn btn-ghost btn-sm close-modal-btn"
             aria-label="Close modal">✕</button>
         </div>
 
-        <div class="backbar-toolbar">
+        <!-- Backbar View Switcher: My Bar vs Shopping List -->
+        <div class="backbar-view-switcher" id="backbar-view-switcher" role="tablist" aria-label="Backbar views">
+          <button type="button" class="backbar-view-tab active" id="tab-backbar-my-bar" data-view="inventory" role="tab" aria-selected="true">My Bar</button>
+          <button type="button" class="backbar-view-tab" id="tab-backbar-shopping-list" data-view="shopping" role="tab" aria-selected="false">Shopping List</button>
+        </div>
+
+        <div class="backbar-toolbar" id="backbar-inventory-toolbar">
           <div class="search-input-wrapper backbar-search-wrapper">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -390,6 +397,10 @@
           <!-- Dynamically populated taxonomy categories and bottle pills -->
         </div>
 
+        <div class="backbar-shopping-container" id="backbar-shopping-container" style="display: none;">
+          <!-- Dynamically populated ranked unlock shopping list -->
+        </div>
+
         <div class="backbar-dialog-footer">
           <span class="backbar-summary-text" id="backbar-summary-text">0 bottles in your backbar</span>
           <button id="btn-done-backbar" class="btn btn-primary btn-sm">Done</button>
@@ -420,11 +431,14 @@
       </div>
     </dialog>
 
+    <!-- Smart Counter Timer Toast (Non-modal floating widget) -->
+    <div id="timer-modal" class="timer-toast" role="status" aria-live="polite" style="display: none;"></div>
+
     <!-- Toast Notifications Area -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=30"></script>
+  <script type="module" src="app.js?v=31"></script>
 </body>
 
 </html>

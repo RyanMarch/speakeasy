@@ -171,3 +171,70 @@ export function parseMethodContent(text) {
   // Otherwise, return as prose
   return { type: 'prose', items: [trimmed] };
 }
+
+/**
+ * Scans instruction text for durations specified in seconds.
+ * Matches formats like "30 seconds", "25-30 seconds", "10-12 secs", "15 sec", "1 second".
+ * For ranges, the upper number is taken as the target timer duration.
+ *
+ * @param {string} instructionText
+ * @returns {Array<{text: string, label: string, seconds: number, index: number, length: number}>}
+ */
+export function detectTimers(instructionText) {
+  if (!instructionText || typeof instructionText !== 'string') {
+    return [];
+  }
+
+  const regex = /\b(?:(\d+)\s*[-–—]\s*)?(\d+)\s*(?:seconds?|secs?)\b/gi;
+  const matches = [];
+  let match;
+
+  while ((match = regex.exec(instructionText)) !== null) {
+    const rawMatch = match[0];
+    const seconds = parseInt(match[2], 10);
+    if (!isNaN(seconds) && seconds > 0) {
+      matches.push({
+        text: rawMatch,
+        label: rawMatch,
+        seconds,
+        index: match.index,
+        length: rawMatch.length,
+      });
+    }
+  }
+
+  return matches;
+}
+
+/**
+ * Replaces duration text in an instruction string with interactive timer buttons.
+ *
+ * @param {string} text
+ * @param {(str: string) => string} [escapeFn]
+ * @returns {string}
+ */
+export function renderInstructionTimers(text, escapeFn = (s) => s) {
+  if (!text || typeof text !== 'string') return '';
+  const timers = detectTimers(text);
+  if (timers.length === 0) {
+    return escapeFn(text);
+  }
+
+  let html = '';
+  let lastIndex = 0;
+
+  for (const timer of timers) {
+    if (timer.index > lastIndex) {
+      html += escapeFn(text.substring(lastIndex, timer.index));
+    }
+    html += `<button type="button" class="timer-token" data-seconds="${timer.seconds}" aria-label="Start ${timer.seconds} second timer">${escapeFn(timer.text)}</button>`;
+    lastIndex = timer.index + timer.length;
+  }
+
+  if (lastIndex < text.length) {
+    html += escapeFn(text.substring(lastIndex));
+  }
+
+  return html;
+}
+

@@ -115,6 +115,26 @@ async function runTests() {
   assert(typeof toastMod.showToast === 'function', 'toast.js exports showToast()');
   assert(typeof toastMod.escapeHtml === 'function', 'toast.js exports escapeHtml()');
 
+  const timerModalMod = await import('../js/components/timer-modal.js');
+  assert(typeof timerModalMod.openTimerModal === 'function', 'timer-modal.js exports openTimerModal()');
+  assert(typeof timerModalMod.closeTimerModal === 'function', 'timer-modal.js exports closeTimerModal()');
+  assert(typeof timerModalMod.setupTimerModalEventListeners === 'function', 'timer-modal.js exports setupTimerModalEventListeners()');
+
+  const parserMod = await import('../js/modules/parser.js');
+  assert(typeof parserMod.detectTimers === 'function', 'parser.js exports detectTimers()');
+  assert(typeof parserMod.renderInstructionTimers === 'function', 'parser.js exports renderInstructionTimers()');
+
+  const balanceMod = await import('../js/modules/balance.js');
+  assert(typeof balanceMod.calculatePalateSimilarity === 'function', 'balance.js exports calculatePalateSimilarity()');
+
+  const taxonomyMod = await import('../js/modules/taxonomy.js');
+  assert(typeof taxonomyMod.getRankedShoppingList === 'function', 'taxonomy.js exports getRankedShoppingList()');
+
+  assert(typeof counterViewMod.getEnhancedSimilarCocktails === 'function', 'counter-view.js exports getEnhancedSimilarCocktails()');
+  assert(typeof counterViewMod.formatPalateMatchLabel === 'function', 'counter-view.js exports formatPalateMatchLabel()');
+  assert(typeof backbarModalMod.renderShoppingListContent === 'function', 'backbar-modal.js exports renderShoppingListContent()');
+
+
   const appMod = await import('../app.js');
   assert(typeof appMod === 'object', 'app.js imports and evaluates successfully');
 
