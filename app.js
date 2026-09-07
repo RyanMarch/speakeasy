@@ -50,6 +50,7 @@ import {
 
 import { GlassView, renderGlassSvg } from './js/modules/glass-view.js';
 import { calculateCocktailAbv, estimateIngredientAbv } from './js/modules/abv.js';
+import { calculateBalanceProfile, renderFlavorRadarSvg } from './js/modules/balance.js';
 import {
   recipeMatchesQuery,
   getIngredientSubstitutes,
@@ -374,6 +375,17 @@ function setupGlobalEventListeners() {
       if (state.viewMode !== 'counter' || rawHash !== state.activeRecipeId) {
         selectRecipe(rawHash, false);
       }
+    }
+  });
+
+  // Wake Lock is silently released by the browser whenever the tab is hidden
+  // (backgrounded, screen locked, app-switched away from) and does not resume on
+  // its own — re-acquire it on return, but only if a recipe is still on screen.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      releaseWakeLock();
+    } else if (state.viewMode === 'counter') {
+      requestWakeLock();
     }
   });
 
@@ -1286,6 +1298,51 @@ function selectRecipe(id, updateHistory = true) {
  * back/forward, which includes a trackpad's swipe-to-go-back gesture, since that
  * just triggers our existing hashchange handler like any other history change).
  */
+/**
+ * Screen Wake Lock — keeps the display on while a recipe is open, so the counter
+ * doesn't dim/lock mid-pour. Requested on entering the recipe view, released on
+ * leaving it, and re-synced on tab visibility changes (a held lock is silently
+ * released by the browser whenever the tab is hidden, and won't resume on its own).
+ */
+let wakeLockSentinel = null;
+
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator) || wakeLockSentinel) return;
+  try {
+    wakeLockSentinel = await navigator.wakeLock.request('screen');
+    wakeLockSentinel.addEventListener('release', () => {
+      wakeLockSentinel = null;
+      updateWakeLockIndicator();
+    });
+    updateWakeLockIndicator();
+  } catch (err) {
+    // Denied (e.g. low battery mode) or unsupported in this context — the indicator
+    // simply reflects "not held," no need to surface an error to the user.
+    wakeLockSentinel = null;
+    updateWakeLockIndicator();
+  }
+}
+
+function releaseWakeLock() {
+  const sentinel = wakeLockSentinel;
+  wakeLockSentinel = null;
+  if (sentinel) {
+    sentinel.release().catch(() => {});
+  }
+  updateWakeLockIndicator();
+}
+
+function updateWakeLockIndicator() {
+  const btn = document.getElementById('btn-wake-lock');
+  if (!btn) return;
+  const active = !!wakeLockSentinel;
+  btn.classList.toggle('active', active);
+  btn.setAttribute('aria-pressed', String(active));
+  btn.title = active
+    ? 'Screen will stay awake while you view this drink (tap to allow it to sleep)'
+    : 'Screen may turn off automatically (tap to keep it awake)';
+}
+
 function renderCurrentView() {
   const applyView = () => {
     if (state.viewMode === 'edit') {
@@ -1298,6 +1355,7 @@ function renderCurrentView() {
       elements.btnNewDrink.style.display = 'none';
       elements.desktopStickyTitle?.classList.remove('visible');
       document.getElementById('mobile-sticky-title')?.classList.remove('visible');
+      releaseWakeLock();
     } else if (state.viewMode === 'home') {
       if (window._counterScrollObserver) {
         window._counterScrollObserver.disconnect();
@@ -1309,12 +1367,14 @@ function renderCurrentView() {
       elements.desktopStickyTitle?.classList.remove('visible');
       document.getElementById('mobile-sticky-title')?.classList.remove('visible');
       renderHomeView();
+      releaseWakeLock();
     } else {
       elements.homeViewContainer.style.display = 'none';
       elements.editorViewContainer.style.display = 'none';
       elements.counterViewContainer.style.display = 'block';
       elements.btnNewDrink.style.display = '';
       renderCounterView();
+      requestWakeLock();
     }
   };
 
@@ -1671,6 +1731,14 @@ function renderCounterView() {
   const roundedAbv = Math.round(abvInfo.estimatedAbv);
   const abvDisplay = roundedAbv > 0 ? `${roundedAbv}% ABV` : 'Non-Alcoholic';
 
+  // Flavor radar: rendered twice (see counter-grid markup below) — once for the
+  // desktop placement below "Make a Riff", once for the mobile placement above the
+  // tag cloud. Those two spots sit in entirely different branches of the layout at
+  // different breakpoints, not just a reordered version of the same box, so a single
+  // shared element can't satisfy both via CSS alone the way the sticky title does.
+  const flavorProfile = calculateBalanceProfile(effectiveSpecs);
+  const flavorRadarSvg = renderFlavorRadarSvg(flavorProfile);
+
   const specsListHtml = effectiveSpecs.map((spec, index) => {
     let amountText = '';
     let unitText = spec.unit || '';
@@ -1815,6 +1883,22 @@ function renderCounterView() {
 
         <!-- Quiet Action Toolbar -->
         <div class="drink-actions-cluster" role="toolbar" aria-label="Recipe actions">
+          ${'wakeLock' in navigator ? `
+            <button id="btn-wake-lock" class="action-icon-btn wake-lock-btn" title="Keep screen awake while mixing" aria-label="Toggle keep-screen-awake" aria-pressed="false">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"></circle>
+                <line x1="12" y1="2" x2="12" y2="4"></line>
+                <line x1="12" y1="20" x2="12" y2="22"></line>
+                <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line>
+                <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>
+                <line x1="2" y1="12" x2="4" y2="12"></line>
+                <line x1="20" y1="12" x2="22" y2="12"></line>
+                <line x1="4.93" y1="19.07" x2="6.34" y2="17.66"></line>
+                <line x1="17.66" y1="6.34" x2="19.07" y2="4.93"></line>
+              </svg>
+              <span class="action-btn-text">Awake</span>
+            </button>
+          ` : ''}
           ${hasActiveRiffs ? `
             <button id="btn-reset-riff" class="btn btn-secondary btn-sm" title="Revert back to original cocktail specs">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
@@ -1922,6 +2006,12 @@ function renderCounterView() {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
           ${state.riffModeActive ? 'Done Riffing' : 'Make a Riff'}
         </button>
+
+        <!-- Flavor Radar: Desktop placement, directly below "Make a Riff" -->
+        <div class="flavor-radar-card flavor-radar-desktop">
+          <span class="flavor-radar-title">Flavor Profile</span>
+          ${flavorRadarSvg}
+        </div>
       </div>
 
       <!-- Right Column: Specs Table, Method & Notes -->
@@ -2008,6 +2098,12 @@ function renderCounterView() {
             </div>
           `;
     })()}
+
+        <!-- Flavor Radar: Mobile placement, directly above the tag cloud -->
+        <div class="flavor-radar-card flavor-radar-mobile">
+          <span class="flavor-radar-title">Flavor Profile</span>
+          ${flavorRadarSvg}
+        </div>
 
         <!-- Editorial Footer: Source Citation & Tags -->
         <footer class="recipe-editorial-footer">
@@ -2304,6 +2400,15 @@ function renderCounterView() {
   document.getElementById('btn-unit-ml')?.addEventListener('click', () => {
     setUnitSystem('ml');
   });
+
+  document.getElementById('btn-wake-lock')?.addEventListener('click', () => {
+    if (wakeLockSentinel) {
+      releaseWakeLock();
+    } else {
+      requestWakeLock();
+    }
+  });
+  updateWakeLockIndicator();
 
   document.getElementById('btn-edit-drink')?.addEventListener('click', () => {
     openEditor(recipe);
@@ -3113,3 +3218,15 @@ document.addEventListener('DOMContentLoaded', () => {
     lastTouchEnd = now;
   }, { passive: false });
 });
+
+// Register the service worker after the page has finished loading, so it never
+// competes with the initial render for the network/main thread. Guarded by
+// feature detection — unsupported browsers (or non-secure contexts other than
+// localhost) simply run without offline support, no error surfaced to the user.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
