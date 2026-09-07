@@ -48,7 +48,7 @@
   .counter-view,
   .editor-view {
     --desktop-inset: 1.5rem;
-    /* padding-left: var(--desktop-inset); */
+    padding-left: var(--desktop-inset);
     padding-right: var(--desktop-inset);
   }
 
@@ -56,15 +56,16 @@
      scrolling out to the true edges of .main-stage's content box on both sides —
      the track's own padding-left compensates so the first card's resting position
      still lines up with the title/text above it, exactly the way the right side
-     already works when scrolled to its end. Sidebar width (310px) and .home-view/
-     .counter-view's shared 980px cap are fixed constants (.main-stage itself
-     carries no horizontal padding), so the "wasted" width past that cap can be
-     computed with plain calc() — one formula for both containers, since Home and
-     a recipe page share the same cap by design (see .home-view above). If that
-     cap, --desktop-inset, or .main-stage's own padding changes, this needs to
-     change with them — that's the one sharp edge of this approach. */
+     already works when scrolled to its end. --sidebar-width (base.css) and
+     .home-view/.counter-view's shared 980px cap are fixed constants (.main-stage
+     itself carries no horizontal padding), so the "wasted" width past that cap
+     can be computed with plain calc() — one formula for both containers, since
+     Home and a recipe page share the same cap by design (see .home-view above).
+     Sidebar width now comes from the shared token specifically so widening the
+     sidebar can't silently desync this formula from it again — that mismatch is
+     exactly what made shelves collide with the sidebar the last time it changed. */
   .similar-cocktails-shelf {
-    --shelf-bleed: max(0px, (100vw - 310px - 980px) / 2);
+    --shelf-bleed: max(0px, (100vw - var(--sidebar-width) - 980px) / 2);
     width: auto;
     max-width: none;
     margin-left: calc(-1 * (var(--desktop-inset) + var(--shelf-bleed)));

@@ -47,6 +47,12 @@
 
   --transition-fast: 150ms ease;
   --transition-normal: 240ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Single source of truth for the desktop sidebar's width — .app-main's grid
+     track (recipe-list.css) and the --shelf-bleed calc() (responsive.css) both
+     have to agree with .sidebar's actual width, or shelf rows either collide
+     with the sidebar or leave a gap. Change it here, not in either of those. */
+  --sidebar-width: 350px;
 }
 
 *, *::before, *::after {
