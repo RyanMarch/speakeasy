@@ -3657,15 +3657,32 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
   /* Document-Level Scrolling Mobile Layout
      Allow the window/document to scroll so Mobile Safari collapses its address bar
-     and bottom toolbar chrome when scrolling. */
-  html,
-  body {
+     and bottom toolbar chrome when scrolling. Overflow goes on `html` ONLY — giving
+     both html and body their own `overflow-y: auto` makes BOTH into CSS scroll
+     containers. body's content never actually exceeds body's own box (it grows via
+     height:auto to match its content), so body's scrollport never moves, but it's
+     still the *nearer* scroll-container ancestor for everything inside it. Every
+     `position: sticky` element (the mobile recipe-name header, the sidebar's
+     All/Ready + Home footer) was computing "stuck" against that motionless body
+     scrollport instead of the real, scrolling one (html) — so nothing ever stuck,
+     it just scrolled away with the page. */
+  html {
     height: auto;
     min-height: 100%;
     min-height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    height: auto;
+    min-height: 100%;
+    min-height: 100dvh;
+    /* base.css sets `overflow: hidden` for the desktop fixed-viewport layout — any
+       non-"visible" overflow (hidden included) still makes body its own (motionless)
+       scroll container and breaks sticky descendants the same way auto did above. */
+    overflow: visible;
   }
 
   #app {

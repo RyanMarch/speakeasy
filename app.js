@@ -1269,7 +1269,12 @@ function selectRecipe(id, updateHistory = true) {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
-  window.scrollTo({ top: 0 });
+  // This is a single-page app — there's no real navigation, just a document that's
+  // always scrolled somewhere. Landing on exactly scrollY 0 is what tells iOS Safari
+  // "back at the top of the page," which re-expands its collapsed toolbar even
+  // though nothing actually navigated. Landing 1px short of that keeps whatever
+  // toolbar state (collapsed or not) the user already had.
+  window.scrollTo({ top: 1 });
 }
 
 /**
@@ -1353,7 +1358,7 @@ function goHome() {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
-  window.scrollTo({ top: 0 });
+  window.scrollTo({ top: 1 }); // see selectRecipe() above — avoids re-expanding Safari's chrome
 }
 
 /**
@@ -2323,7 +2328,7 @@ function renderCounterView() {
   document.getElementById('btn-mobile-back')?.addEventListener('click', () => {
     elements.sidebar.classList.remove('mobile-hidden');
     elements.mainStage.classList.add('mobile-hidden');
-    window.scrollTo({ top: 0 });
+    window.scrollTo({ top: 1 }); // see selectRecipe() above — avoids re-expanding Safari's chrome
     if (window.location.hash) {
       history.pushState(null, '', window.location.pathname + window.location.search);
     }
@@ -2629,7 +2634,7 @@ function openEditor(recipe = null) {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
-  window.scrollTo({ top: 0 });
+  window.scrollTo({ top: 1 }); // see selectRecipe() above — avoids re-expanding Safari's chrome
 }
 
 /**
