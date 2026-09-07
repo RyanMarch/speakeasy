@@ -28,6 +28,11 @@ import {
   saveSortPreference,
   getRecentlyViewed,
   recordRecentlyViewed,
+  getHiddenRecipeIds,
+  hideRecipe,
+  unhideRecipe,
+  unhideAllRecipes,
+  isRecipeHidden,
 } from './js/modules/storage.js';
 
 const SEED_RECIPE_IDS = new Set(SEED_RECIPES.map(r => r.id));
@@ -81,6 +86,26 @@ const state = {
   backbarCategoryFilter: 'all', // 'all' | categoryKey | 'fridge'
 };
 
+// analyzeRecipeInventory() is a relatively expensive per-recipe scan (it resolves every spec
+// through the ingredient taxonomy), but its result only depends on the recipe and the current
+// backbar inventory — never on the search query. renderRecipeList() re-analyzes every recipe on
+// every keystroke, so without caching, typing recomputes the exact same inventory result for
+// every recipe on every character. Cache by recipe object (getRecipes() returns fresh objects
+// whenever the recipe list reloads, so the cache self-invalidates then) and bump
+// inventoryVersion any time state.inventory itself is mutated in place.
+const inventoryAnalysisCache = new WeakMap();
+let inventoryVersion = 0;
+
+function getCachedInventoryAnalysis(recipe) {
+  const cached = inventoryAnalysisCache.get(recipe);
+  if (cached && cached.version === inventoryVersion) {
+    return cached.result;
+  }
+  const result = analyzeRecipeInventory(recipe, state.inventory);
+  inventoryAnalysisCache.set(recipe, { version: inventoryVersion, result });
+  return result;
+}
+
 // DOM References
 const elements = {
   sidebar: document.getElementById('sidebar'),
@@ -107,6 +132,9 @@ const elements = {
   editorViewContainer: document.getElementById('editor-view-container'),
   homeViewContainer: document.getElementById('home-view-container'),
   btnGoHome: document.getElementById('btn-go-home'),
+  btnFooterHome: document.getElementById('btn-footer-home'),
+  desktopStickyTitle: document.getElementById('desktop-sticky-title'),
+  desktopStickyName: document.getElementById('desktop-sticky-name'),
   toastContainer: document.getElementById('toast-container'),
   btnMyBar: document.getElementById('btn-my-bar'),
   myBarBadge: document.getElementById('my-bar-badge'),
@@ -125,6 +153,13 @@ const elements = {
   btnClearBar: document.getElementById('btn-clear-bar'),
   btnCloseBackbar: document.getElementById('btn-close-backbar'),
   btnDoneBackbar: document.getElementById('btn-done-backbar'),
+  btnManageHidden: document.getElementById('btn-manage-hidden'),
+  vaultHiddenSub: document.getElementById('vault-hidden-sub'),
+  hiddenRecipesModal: document.getElementById('hidden-recipes-modal'),
+  hiddenRecipesContainer: document.getElementById('hidden-recipes-container'),
+  btnCloseHiddenModal: document.getElementById('btn-close-hidden-modal'),
+  btnDoneHiddenModal: document.getElementById('btn-done-hidden-modal'),
+  btnUnhideAll: document.getElementById('btn-unhide-all'),
 };
 
 /**
@@ -176,6 +211,7 @@ function init() {
 
   setupGlobalEventListeners();
   setupBackbarEventListeners();
+  setupHiddenModalEventListeners();
   updateMyBarBadge();
   renderRecipeList();
   renderCurrentView();
@@ -219,8 +255,23 @@ function setupGlobalEventListeners() {
     renderRecipeList();
   });
 
-  // Header Actions
+  // Delegated click handler for the recipe list: renderRecipeList() rebuilds its
+  // innerHTML on every keystroke (search filters live), so attaching a listener per
+  // <button> there meant re-binding up to one per recipe on every render. One
+  // listener on the stable container, matched via closest(), costs nothing per render.
+  elements.recipeList.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="select"]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-id');
+    selectRecipe(id);
+  });
+
+  // Header & Footer Home Actions
   elements.btnGoHome?.addEventListener('click', () => {
+    goHome();
+  });
+
+  elements.btnFooterHome?.addEventListener('click', () => {
     goHome();
   });
 
@@ -309,7 +360,7 @@ function setupGlobalEventListeners() {
   window.addEventListener('hashchange', () => {
     const rawHash = window.location.hash.replace(/^#+/, '').trim();
     if (!rawHash) {
-      // User navigated back past the last recipe (or cleared the hash manually): land on Home
+      // User navigated back to clean root / home: land on Home view
       if (state.viewMode !== 'home') {
         state.viewMode = 'home';
         renderRecipeList();
@@ -319,8 +370,10 @@ function setupGlobalEventListeners() {
       elements.mainStage.classList.remove('mobile-hidden');
       return;
     }
-    if (rawHash !== state.activeRecipeId && state.recipes.some(r => r.id === rawHash)) {
-      selectRecipe(rawHash, false);
+    if (state.recipes.some(r => r.id === rawHash)) {
+      if (state.viewMode !== 'counter' || rawHash !== state.activeRecipeId) {
+        selectRecipe(rawHash, false);
+      }
     }
   });
 
@@ -382,6 +435,13 @@ const BACKBAR_CATEGORIES = [
  * Update vault stats line in Settings popover
  */
 function updateVaultStats() {
+  const hiddenCount = getHiddenRecipeIds().length;
+  if (elements.btnManageHidden) {
+    elements.btnManageHidden.style.display = hiddenCount > 0 ? '' : 'none';
+  }
+  if (elements.vaultHiddenSub) {
+    elements.vaultHiddenSub.textContent = hiddenCount === 1 ? '1 drink hidden' : `${hiddenCount} drinks hidden`;
+  }
   if (!elements.vaultStatsLine) return;
   const customCount = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
   const cocktailText = customCount === 1 ? '1 custom cocktail' : `${customCount} custom cocktails`;
@@ -433,7 +493,7 @@ function setGlassViewMode(mode) {
     btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
   });
 
-  showToast(`Glass view switched to ${mode === 'blended' ? 'Mixed Color' : 'Layered Specs'}`);
+  // showToast(`Glass view switched to ${mode === 'blended' ? 'Mixed Color' : 'Layered Specs'}`);
 }
 
 /**
@@ -532,6 +592,7 @@ function setupBackbarEventListeners() {
     if (hasAllStarter) return;
     DEFAULT_STARTER_BAR.forEach(id => state.inventory.add(id));
     saveInventory(Array.from(state.inventory));
+    inventoryVersion++;
     updateMyBarBadge();
     renderRecipeList();
     if (state.viewMode === 'counter') {
@@ -548,6 +609,7 @@ function setupBackbarEventListeners() {
     if (confirm('Clear all bottles from your backbar?')) {
       state.inventory.clear();
       saveInventory([]);
+      inventoryVersion++;
       updateMyBarBadge();
       renderRecipeList();
       if (state.viewMode === 'counter') {
@@ -607,6 +669,140 @@ function setupBackbarEventListeners() {
 }
 
 /**
+ * Hidden Cocktails Modal Event Listeners & Management
+ */
+function setupHiddenModalEventListeners() {
+  elements.btnManageHidden?.addEventListener('click', () => {
+    if (elements.vaultPopover?.hidePopover) {
+      try {
+        elements.vaultPopover.hidePopover();
+      } catch (err) {
+        // Ignore if already closed
+      }
+    }
+    openHiddenModal();
+  });
+
+  elements.btnCloseHiddenModal?.addEventListener('click', closeHiddenModal);
+  elements.btnDoneHiddenModal?.addEventListener('click', closeHiddenModal);
+
+  elements.btnUnhideAll?.addEventListener('click', () => {
+    const hiddenCount = getHiddenRecipeIds().length;
+    if (hiddenCount === 0) return;
+
+    unhideAllRecipes();
+    state.recipes = getRecipes();
+    renderRecipeList();
+    if (state.viewMode === 'counter') {
+      renderCounterView();
+    } else if (state.viewMode === 'home') {
+      renderHomeView();
+    }
+    updateVaultStats();
+    renderHiddenRecipesModal();
+    showToast(`Restored all ${hiddenCount} hidden cocktails`);
+  });
+
+  // Light dismiss fallback for browsers without closedby="any"
+  if (elements.hiddenRecipesModal && !('closedBy' in HTMLDialogElement.prototype)) {
+    elements.hiddenRecipesModal.addEventListener('click', (event) => {
+      if (event.target !== elements.hiddenRecipesModal) return;
+      const rect = elements.hiddenRecipesModal.getBoundingClientRect();
+      const isDialogContent = (
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width
+      );
+      if (!isDialogContent) {
+        closeHiddenModal();
+      }
+    });
+  }
+}
+
+/**
+ * Open Hidden Cocktails Modal
+ */
+function openHiddenModal() {
+  renderHiddenRecipesModal();
+  if (typeof elements.hiddenRecipesModal?.showModal === 'function') {
+    elements.hiddenRecipesModal.showModal();
+  }
+}
+
+/**
+ * Close Hidden Cocktails Modal
+ */
+function closeHiddenModal() {
+  if (typeof elements.hiddenRecipesModal?.close === 'function') {
+    elements.hiddenRecipesModal.close();
+  }
+}
+
+/**
+ * Render contents of the Hidden Cocktails Modal
+ */
+function renderHiddenRecipesModal() {
+  if (!elements.hiddenRecipesContainer) return;
+
+  const hiddenIds = getHiddenRecipeIds();
+  if (elements.btnUnhideAll) {
+    elements.btnUnhideAll.style.display = hiddenIds.length > 0 ? '' : 'none';
+  }
+
+  if (hiddenIds.length === 0) {
+    elements.hiddenRecipesContainer.innerHTML = /*html*/`
+      <div class="hidden-empty-state">
+        <span class="hidden-empty-title">No hidden cocktails</span>
+        <p>Default recipes you hide from your library will appear here so you can restore them anytime.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Resolve hidden seed recipe objects
+  const hiddenDrinks = hiddenIds.map(id => {
+    return SEED_RECIPES.find(s => s.id === id) || { id, name: id, glassware: '', method: '' };
+  });
+
+  elements.hiddenRecipesContainer.innerHTML = /*html*/hiddenDrinks.map(drink => {
+    const subParts = [drink.glassware, drink.method].filter(Boolean).join(' · ');
+    return /*html*/`
+      <div class="hidden-recipe-row" data-id="${escapeHtml(drink.id)}">
+        <div class="hidden-recipe-meta">
+          <span class="hidden-recipe-name">${escapeHtml(drink.name)}</span>
+          ${subParts ? `<span class="hidden-recipe-sub">${escapeHtml(subParts)}</span>` : ''}
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm btn-action-unhide" data-id="${escapeHtml(drink.id)}" aria-label="Unhide ${escapeHtml(drink.name)}">
+          Unhide
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  // Wire up individual Unhide action buttons
+  elements.hiddenRecipesContainer.querySelectorAll('.btn-action-unhide').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const drinkId = btn.getAttribute('data-id');
+      if (!drinkId) return;
+      const drinkObj = SEED_RECIPES.find(s => s.id === drinkId) || { id: drinkId, name: drinkId };
+      unhideRecipe(drinkId);
+      state.recipes = getRecipes();
+      renderRecipeList();
+      if (state.viewMode === 'counter') {
+        renderCounterView();
+      } else if (state.viewMode === 'home') {
+        renderHomeView();
+      }
+      updateVaultStats();
+      renderHiddenRecipesModal();
+      showToast(`Restored "${drinkObj.name}" to library`);
+    });
+  });
+}
+
+/**
  * Open personal backbar modal
  */
 function openBackbarModal() {
@@ -646,6 +842,7 @@ function toggleInventoryBottle(bottleId) {
     state.inventory.add(bottleId);
   }
   saveInventory(Array.from(state.inventory));
+  inventoryVersion++;
   updateMyBarBadge();
   renderRecipeList();
   if (state.viewMode === 'counter') {
@@ -776,7 +973,7 @@ function renderRecipeList() {
   const queryMatched = state.recipes.map(recipe => {
     const matchesSearch = !state.searchQuery || recipeMatchesQuery(recipe, state.searchQuery);
     const matchesPack = state.packFilter === 'all' || (Array.isArray(recipe.tags) && recipe.tags.includes(state.packFilter));
-    const invAnalysis = analyzeRecipeInventory(recipe, state.inventory);
+    const invAnalysis = getCachedInventoryAnalysis(recipe);
     return { recipe, matchesSearch, matchesPack, invAnalysis };
   });
 
@@ -831,7 +1028,9 @@ function renderRecipeList() {
     });
   }
 
-  elements.recipeCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Cocktail' : 'Cocktails'}`;
+  if (elements.recipeCountBadge) {
+    elements.recipeCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Cocktail' : 'Cocktails'}`;
+  }
 
   if (filtered.length === 0) {
     const rawSearch = (state.searchQuery || '').trim();
@@ -902,14 +1101,6 @@ function renderRecipeList() {
       </li>
     `;
   }).join('');
-
-  // Wire selection
-  elements.recipeList.querySelectorAll('[data-action="select"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.getAttribute('data-id');
-      selectRecipe(id);
-    });
-  });
 }
 
 /**
@@ -1050,12 +1241,27 @@ function selectRecipe(id, updateHistory = true) {
     history.pushState(null, '', `#${id}`);
   }
 
+  // renderRecipeList() replaces the list's innerHTML, which resets scrollTop to 0 —
+  // capture/restore it so a re-render never masquerades as "the user scrolled to
+  // the top", which would make the visibility check below think the (possibly
+  // still-visible) active item needs to be scrolled into view.
+  const preservedScrollTop = elements.recipeList?.scrollTop || 0;
   renderRecipeList();
+  if (elements.recipeList) {
+    elements.recipeList.scrollTop = preservedScrollTop;
+  }
   renderCurrentView();
 
-  // Scroll active item into view in sidebar
+  // Keep active item visible in sidebar without jarring jumps when clicked directly
   const activeEl = elements.recipeList.querySelector('.recipe-list-item.active');
-  activeEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (activeEl && elements.recipeList) {
+    const listRect = elements.recipeList.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+    // Only scroll if the item is outside the visible bounds of the list
+    if (itemRect.top < listRect.top || itemRect.bottom > listRect.bottom) {
+      activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
 
   // Mobile navigation adjustment
   elements.sidebar.classList.add('mobile-hidden');
@@ -1063,29 +1269,70 @@ function selectRecipe(id, updateHistory = true) {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
+  window.scrollTo({ top: 0 });
 }
 
 /**
  * Render active view based on state.viewMode
+ *
+ * Wrapped in the View Transitions API (when available) so switching between Home,
+ * a recipe, and the editor cross-fades smoothly instead of hard-cutting — this
+ * covers every entry point uniformly (card clicks, the Home button, and browser
+ * back/forward, which includes a trackpad's swipe-to-go-back gesture, since that
+ * just triggers our existing hashchange handler like any other history change).
  */
 function renderCurrentView() {
-  if (state.viewMode === 'edit') {
-    elements.homeViewContainer.style.display = 'none';
-    elements.counterViewContainer.style.display = 'none';
-    elements.editorViewContainer.style.display = 'block';
-    elements.btnNewDrink.style.display = 'none';
-  } else if (state.viewMode === 'home') {
-    elements.editorViewContainer.style.display = 'none';
-    elements.counterViewContainer.style.display = 'none';
-    elements.homeViewContainer.style.display = 'block';
-    elements.btnNewDrink.style.display = '';
-    renderHomeView();
+  const applyView = () => {
+    if (state.viewMode === 'edit') {
+      if (window._counterScrollObserver) {
+        window._counterScrollObserver.disconnect();
+      }
+      elements.homeViewContainer.style.display = 'none';
+      elements.counterViewContainer.style.display = 'none';
+      elements.editorViewContainer.style.display = 'block';
+      elements.btnNewDrink.style.display = 'none';
+      elements.desktopStickyTitle?.classList.remove('visible');
+      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
+    } else if (state.viewMode === 'home') {
+      if (window._counterScrollObserver) {
+        window._counterScrollObserver.disconnect();
+      }
+      elements.editorViewContainer.style.display = 'none';
+      elements.counterViewContainer.style.display = 'none';
+      elements.homeViewContainer.style.display = 'block';
+      elements.btnNewDrink.style.display = '';
+      elements.desktopStickyTitle?.classList.remove('visible');
+      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
+      renderHomeView();
+    } else {
+      elements.homeViewContainer.style.display = 'none';
+      elements.editorViewContainer.style.display = 'none';
+      elements.counterViewContainer.style.display = 'block';
+      elements.btnNewDrink.style.display = '';
+      renderCounterView();
+    }
+  };
+
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (!reducedMotion && document.startViewTransition) {
+    // Starting a transition while a previous one is still finishing throws
+    // InvalidStateError; cleanly skip the old one first rather than let that
+    // happen (applyView() itself always runs regardless of transition state).
+    window._activeViewTransition?.skipTransition?.();
+    const transition = document.startViewTransition(applyView);
+    window._activeViewTransition = transition;
+    // skipTransition() (above, on the *previous* transition) and a transition
+    // simply losing a race with a newer one both reject .ready/.finished by
+    // design — swallow both on every transition so neither surfaces as an
+    // unhandled rejection.
+    transition.ready.catch(() => {});
+    transition.finished.catch(() => {}).finally(() => {
+      if (window._activeViewTransition === transition) {
+        window._activeViewTransition = null;
+      }
+    });
   } else {
-    elements.homeViewContainer.style.display = 'none';
-    elements.editorViewContainer.style.display = 'none';
-    elements.counterViewContainer.style.display = 'block';
-    elements.btnNewDrink.style.display = '';
-    renderCounterView();
+    applyView();
   }
 }
 
@@ -1106,6 +1353,7 @@ function goHome() {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
+  window.scrollTo({ top: 0 });
 }
 
 /**
@@ -1249,7 +1497,7 @@ function renderHomeShelf(col, idx) {
 }
 
 function renderHomeCard(recipe, collectionKey, idx) {
-  const invAnalysis = analyzeRecipeInventory(recipe, state.inventory);
+  const invAnalysis = getCachedInventoryAnalysis(recipe);
   const specNames = (recipe.specs || []).map(s => s.name).filter(Boolean);
   return  /*html*/`
     <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(recipe.id)}" role="button" tabindex="0">
@@ -1257,7 +1505,7 @@ function renderHomeCard(recipe, collectionKey, idx) {
         ${renderGlassSvg(recipe, `home-glass-${collectionKey}-${recipe.id}-${idx}`)}
       </div>
       <div class="similar-card-body">
-        ${invAnalysis.canMake ? `<span class="similar-relation-badge badge-ready">Ready</span>` : ''}
+        <span class="similar-relation-badge badge-ready${invAnalysis.canMake ? '' : ' badge-hidden'}">Ready</span>
         <h4 class="similar-card-name" title="${escapeHtml(recipe.name)}">${escapeHtml(recipe.name)}</h4>
         <div class="similar-card-meta">
           <span>${escapeHtml(recipe.glassware || 'Glass')}</span>
@@ -1360,7 +1608,8 @@ function setupHomeViewEvents(pinnableTags) {
  * Render Counter View (optimized for high-contrast viewing on bar counter)
  */
 function renderCounterView() {
-  const recipe = state.recipes.find(r => r.id === state.activeRecipeId);
+  const recipe = state.recipes.find(r => r.id === state.activeRecipeId)
+    || SEED_RECIPES.find(r => r.id === state.activeRecipeId);
   if (!recipe) {
     elements.counterViewContainer.innerHTML =  /*html*/`
       <div class="empty-state">
@@ -1404,6 +1653,9 @@ function renderCounterView() {
 
   const layers = calculateFluidLayers(effectiveSpecs);
   const baseTotalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
+  const isSeed = SEED_RECIPE_IDS.has(recipe.id);
+  const isCurrentlyHidden = isRecipeHidden(recipe.id);
+
   const currentServings = state.servings || 1;
   const scaledTotalOz = baseTotalOz * currentServings;
   const totalDisplay = state.unitSystem === 'ml'
@@ -1520,8 +1772,8 @@ function renderCounterView() {
     </div>
   ` : '';
 
+  elements.counterViewContainer.classList.toggle('riff-mode-active', state.riffModeActive);
   elements.counterViewContainer.innerHTML =  /*html*/`
-    <div class="counter-view ${state.riffModeActive ? 'riff-mode-active' : ''}">
     <!-- Mobile Back Navigation (hidden on desktop) -->
     <div class="counter-mobile-bar" id="counter-mobile-bar">
       <button id="btn-mobile-back" class="btn btn-secondary btn-sm mobile-back-btn" aria-label="Back to drinks list">
@@ -1579,16 +1831,40 @@ function renderCounterView() {
             <span class="action-btn-text">Duplicate</span>
           </button>
 
-          <button id="btn-delete-drink" class="action-icon-btn action-icon-btn-danger" title="Delete recipe" aria-label="Delete recipe">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            <span class="action-btn-text">Delete</span>
-          </button>
+          ${isSeed ? `
+            <button id="btn-hide-drink" class="action-icon-btn ${isCurrentlyHidden ? 'action-icon-btn-hidden' : ''}" title="${isCurrentlyHidden ? 'Hidden from your library (click to unhide)' : 'Hide from library'}" aria-label="${isCurrentlyHidden ? 'Unhide recipe' : 'Hide recipe'}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+              <span class="action-btn-text">${isCurrentlyHidden ? 'Hidden' : 'Hide'}</span>
+            </button>
+          ` : `
+            <button id="btn-delete-drink" class="action-icon-btn action-icon-btn-danger" title="Delete recipe" aria-label="Delete recipe">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <span class="action-btn-text">Delete</span>
+            </button>
+          `}
         </div>
       </div>
 
       <!-- Story / Description directly under title -->
       ${recipe.description ? `
         <p class="drink-description-prose">${escapeHtml(recipe.description)}</p>
+      ` : ''}
+
+      <!-- Prominent in-place status banner when recipe is currently hidden -->
+      ${isCurrentlyHidden ? `
+        <div class="drink-hidden-banner" role="status">
+          <span class="drink-hidden-banner-text">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+            This cocktail is currently <strong>Hidden</strong> from your library list.
+          </span>
+          <button type="button" class="btn-banner-unhide" id="btn-banner-unhide">Unhide Cocktail ↵</button>
+        </div>
       ` : ''}
 
       <!-- Contextual substitution notice when applicable -->
@@ -1811,7 +2087,6 @@ function renderCounterView() {
         </div>
       </div>
     ` : ''}
-  </div> <!-- end .counter-view -->
   `;
 
   // Render vector SVG glass
@@ -1874,6 +2149,7 @@ function renderCounterView() {
       if (bottleId) {
         state.inventory.add(bottleId);
         saveInventory(Array.from(state.inventory));
+        inventoryVersion++;
         updateMyBarBadge();
         renderRecipeList();
         renderCounterView();
@@ -2032,6 +2308,14 @@ function renderCounterView() {
     duplicateRecipe(recipe);
   });
 
+  document.getElementById('btn-hide-drink')?.addEventListener('click', () => {
+    toggleHideRecipe(recipe);
+  });
+
+  document.getElementById('btn-banner-unhide')?.addEventListener('click', () => {
+    toggleHideRecipe(recipe);
+  });
+
   document.getElementById('btn-delete-drink')?.addEventListener('click', () => {
     confirmDeleteRecipe(recipe);
   });
@@ -2039,6 +2323,7 @@ function renderCounterView() {
   document.getElementById('btn-mobile-back')?.addEventListener('click', () => {
     elements.sidebar.classList.remove('mobile-hidden');
     elements.mainStage.classList.add('mobile-hidden');
+    window.scrollTo({ top: 0 });
     if (window.location.hash) {
       history.pushState(null, '', window.location.pathname + window.location.search);
     }
@@ -2106,31 +2391,43 @@ function renderCounterView() {
     });
   });
 
-  // Mobile Sticky Header Title Observer:
-  // Shows the drink name inline next to "< Drinks" once the main drink name scrolls out of view.
+  // Sticky Header Title Observer (Mobile and Desktop):
+  // Shows the drink name inline next to "< Drinks" (mobile) or in the top app header (desktop)
+  // once the main drink name scrolls out of view.
   const mobileStickyTitle = document.getElementById('mobile-sticky-title');
+  const desktopStickyTitle = elements.desktopStickyTitle;
+  if (elements.desktopStickyName) {
+    elements.desktopStickyName.textContent = recipe.name;
+  }
   const drinkHeading = elements.counterViewContainer.querySelector('.drink-name');
-  if (mobileStickyTitle && drinkHeading && elements.mainStage) {
+  if (drinkHeading && elements.mainStage) {
     if (window._counterScrollObserver) {
       window._counterScrollObserver.disconnect();
     }
     const stickyBar = document.getElementById('counter-mobile-bar');
-    const stickyBarHeight = stickyBar ? stickyBar.offsetHeight : 44;
+    const stickyBarHeight = stickyBar && stickyBar.offsetHeight > 0 ? stickyBar.offsetHeight : 0;
+
+    const isMobile = window.innerWidth <= 768;
+    const headerHeight = isMobile ? 52 : 0;
+    const topOffset = headerHeight + stickyBarHeight;
 
     window._counterScrollObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        // When the drink name header is intersecting (visible), hide the sticky inline title.
-        // When it scrolls up above the sticky bar (not intersecting and boundingClientRect is top), show it.
-        const isPast = !entry.isIntersecting && entry.boundingClientRect.top < (stickyBarHeight + 20);
-        if (isPast) {
-          mobileStickyTitle.classList.add('visible');
+        // When the drink name header is visible, hide the sticky title.
+        // When it has scrolled up past the top of the scroll container / header offset, show it.
+        const rootTop = entry.rootBounds ? entry.rootBounds.top : topOffset;
+        const isPast = !entry.isIntersecting && entry.boundingClientRect.bottom <= (rootTop + 20);
+        if (isPast && state.viewMode === 'counter') {
+          mobileStickyTitle?.classList.add('visible');
+          desktopStickyTitle?.classList.add('visible');
         } else {
-          mobileStickyTitle.classList.remove('visible');
+          mobileStickyTitle?.classList.remove('visible');
+          desktopStickyTitle?.classList.remove('visible');
         }
       });
     }, {
-      root: elements.mainStage,
-      rootMargin: `-${stickyBarHeight}px 0px 0px 0px`,
+      root: isMobile ? null : elements.mainStage,
+      rootMargin: `-${topOffset}px 0px 0px 0px`,
       threshold: 0,
     });
 
@@ -2332,6 +2629,7 @@ function openEditor(recipe = null) {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
+  window.scrollTo({ top: 0 });
 }
 
 /**
@@ -2689,26 +2987,74 @@ function duplicateRecipe(recipe) {
 }
 
 /**
+ * Toggle hide/unhide status for a seed recipe.
+ * Keeps user directly on the recipe view and provides clear, immediate in-place feedback.
+ */
+function toggleHideRecipe(recipe) {
+  if (!recipe || !recipe.id) return;
+  const currentlyHidden = isRecipeHidden(recipe.id);
+
+  const listItemEl = elements.recipeList?.querySelector(`.recipe-list-item[data-id="${recipe.id}"]`);
+
+  const executeHideStateUpdate = () => {
+    state.recipes = getRecipes();
+    renderRecipeList();
+    if (state.viewMode === 'counter') {
+      renderCounterView();
+    } else if (state.viewMode === 'home') {
+      renderHomeView();
+    }
+    updateVaultStats();
+  };
+
+  if (!currentlyHidden) {
+    hideRecipe(recipe.id);
+    showToast(`Hidden "${recipe.name}" from library`);
+    if (listItemEl) {
+      listItemEl.classList.add('is-exiting');
+      setTimeout(executeHideStateUpdate, 240);
+      return;
+    }
+  } else {
+    unhideRecipe(recipe.id);
+    showToast(`Restored "${recipe.name}" to library`);
+  }
+
+  executeHideStateUpdate();
+}
+
+/**
  * Confirm and delete a recipe
  */
 function confirmDeleteRecipe(recipe) {
-  if (confirm(`Delete "${recipe.name}" from your vault? This cannot be undone.`)) {
-    const updated = deleteRecipe(recipe.id);
-    state.recipes = updated;
-    if (state.recipes.length > 0) {
-      selectRecipe(state.recipes[0].id);
-    } else {
-      state.activeRecipeId = null;
-      history.replaceState(null, '', window.location.pathname);
-      try {
-        localStorage.removeItem('speakeasy_last_active_recipe');
-      } catch {
-        // Ignore
+  if (confirm(`Delete "${recipe.name}" from your library? This cannot be undone.`)) {
+    const listItemEl = elements.recipeList?.querySelector(`.recipe-list-item[data-id="${recipe.id}"]`);
+
+    const executeDelete = () => {
+      const updated = deleteRecipe(recipe.id);
+      state.recipes = updated;
+      if (state.recipes.length > 0) {
+        selectRecipe(state.recipes[0].id);
+      } else {
+        state.activeRecipeId = null;
+        history.replaceState(null, '', window.location.pathname);
+        try {
+          localStorage.removeItem('speakeasy_last_active_recipe');
+        } catch {
+          // Ignore
+        }
+        renderRecipeList();
+        renderCurrentView();
       }
-      renderRecipeList();
-      renderCurrentView();
+      showToast(`Deleted "${recipe.name}"`);
+    };
+
+    if (listItemEl) {
+      listItemEl.classList.add('is-exiting');
+      setTimeout(executeDelete, 240);
+    } else {
+      executeDelete();
     }
-    showToast(`Deleted "${recipe.name}"`);
   }
 }
 
