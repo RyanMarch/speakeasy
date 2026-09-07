@@ -462,7 +462,7 @@ function setGlassViewMode(mode) {
     btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
   });
 
-  showToast(`Glass view switched to ${mode === 'blended' ? 'Mixed Color' : 'Layered Specs'}`);
+  // showToast(`Glass view switched to ${mode === 'blended' ? 'Mixed Color' : 'Layered Specs'}`);
 }
 
 /**
@@ -1479,7 +1479,7 @@ function renderHomeCard(recipe, collectionKey, idx) {
         ${renderGlassSvg(recipe, `home-glass-${collectionKey}-${recipe.id}-${idx}`)}
       </div>
       <div class="similar-card-body">
-        ${invAnalysis.canMake ? `<span class="similar-relation-badge badge-ready">Ready</span>` : ''}
+        <span class="similar-relation-badge badge-ready${invAnalysis.canMake ? '' : ' badge-hidden'}">Ready</span>
         <h4 class="similar-card-name" title="${escapeHtml(recipe.name)}">${escapeHtml(recipe.name)}</h4>
         <div class="similar-card-meta">
           <span>${escapeHtml(recipe.glassware || 'Glass')}</span>

@@ -1443,8 +1443,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   border-radius: var(--radius-sm);
   color: var(--color-text);
   font-size: 0.76rem;
-  padding: 0.18rem 0.5rem;
-  width: 85px;
+  padding: 0.11rem 0.5rem;
+  width: 110px;
   transition: all 0.2s ease;
 }
 
@@ -1650,8 +1650,8 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 0.75rem;
-  margin-bottom: 0.25rem;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .glass-view-toggle {
@@ -2928,6 +2928,10 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   background: rgba(77, 131, 99, 0.12);
   border-color: rgba(77, 131, 99, 0.3);
   color: var(--color-success);
+}
+
+.similar-relation-badge.badge-hidden {
+  visibility: hidden;
 }
 
 .similar-card-name {
