@@ -30,6 +30,11 @@ export function resolveGarnishTypes(garnishString = '') {
     garnishes.push('olive');
   }
 
+  // Cocktail Onion
+  if (text.includes('onion') || text.includes('gibson onion') || text.includes('cocktail onion') || text.includes('pearl onion')) {
+    garnishes.push('cocktailOnion');
+  }
+
   // Cherry
   if (text.includes('cherry') || text.includes('cherries') || text.includes('maraschino')) {
     garnishes.push('cherry');
@@ -373,6 +378,59 @@ function renderOliveOnPick(rimX, rimY, isLeft = false) {
 }
 
 /**
+ * Render cocktail onion (pearl onion) on pick collinear with rim contact
+ */
+function renderCocktailOnionOnPick(rimX, rimY, isLeft = false) {
+  const sx = isLeft ? 1 : -1;
+  const contactX = rimX + (2 * sx);
+  const contactY = rimY;
+
+  const knobX = contactX - (16 * sx);
+  const knobY = contactY - 10;
+  const onionX = contactX + (28 * sx);
+  const oliveY = contactY + 17.5;
+  const tipX = contactX + (56 * sx);
+  const tipY = contactY + 35;
+  const onionRot = 32 * sx;
+
+  return `
+    <g class="garnish garnish-cocktail-onion" pointer-events="none">
+      <!-- Cocktail pick shaft resting across rim -->
+      <line
+        x1="${knobX.toFixed(1)}"
+        y1="${knobY.toFixed(1)}"
+        x2="${tipX.toFixed(1)}"
+        y2="${tipY.toFixed(1)}"
+        stroke="#cfd8dc"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+      <!-- Pick top knob handle -->
+      <circle cx="${knobX.toFixed(1)}" cy="${knobY.toFixed(1)}" r="3.2" fill="#90a4ae" stroke="#607d8b" stroke-width="0.8" />
+
+      <!-- Pearl cocktail onion nestled on pick -->
+      <g transform="translate(${onionX.toFixed(1)}, ${oliveY.toFixed(1)}) rotate(${onionRot})">
+        <!-- Soft shadow -->
+        <circle cx="0" cy="0" r="13" fill="#37474f" opacity="0.35" />
+        <!-- Pearlescent translucent outer body -->
+        <circle cx="-0.5" cy="0" r="12" fill="#f8fafc" />
+        <ellipse cx="0" cy="0" rx="10" ry="11.5" fill="#f1f5f9" />
+        <!-- Concentric onion rings / layers -->
+        <ellipse cx="-0.5" cy="0" rx="7.5" ry="9" fill="none" stroke="#e2e8f0" stroke-width="1.2" opacity="0.9" />
+        <ellipse cx="-0.5" cy="0" rx="4.5" ry="6" fill="none" stroke="#cbd5e1" stroke-width="1" opacity="0.85" />
+        <ellipse cx="-0.5" cy="0" rx="2" ry="3.2" fill="#94a3b8" opacity="0.7" />
+        <!-- Subtle root tip indentation -->
+        <path d="M -2 11.5 Q 0 13.5 2 11.5" stroke="#94a3b8" stroke-width="1.2" fill="none" stroke-linecap="round" />
+        <!-- Specular glossy sheen -->
+        <path d="M -6 -5 C -7 -1, -5 4, -2 6" stroke="rgba(255, 255, 255, 0.85)" stroke-width="1.8" stroke-linecap="round" fill="none" />
+        <circle cx="3" cy="-5" r="1.2" fill="#ffffff" opacity="0.9" />
+      </g>
+    </g>
+  `;
+}
+
+
+/**
  * Render fresh mint sprig with generous bouquet
  */
 function renderMintSprig(x, y, angle = -12) {
@@ -520,6 +578,9 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
         break;
       case 'olive':
         rendered.push(renderOliveOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
+        break;
+      case 'cocktailOnion':
+        rendered.push(renderCocktailOnionOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
         break;
       case 'mintSprig':
         rendered.push(renderMintSprig(isSlotLeft ? rim.leftX + 4 : rim.rightX - 4, posY + 2, isSlotLeft ? 14 : -14));

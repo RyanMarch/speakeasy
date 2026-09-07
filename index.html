@@ -17,10 +17,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/base.css?v=15">
-  <link rel="stylesheet" href="css/index.css?v=21">
+  <link rel="stylesheet" href="css/index.css?v=42">
   <!-- Preload the ES module graph so the browser fetches it in parallel instead of
        discovering each import one-by-one as app.js's static imports are parsed. -->
-  <link rel="modulepreload" href="app.js?v=13">
+  <link rel="modulepreload" href="app.js?v=24">
   <link rel="modulepreload" href="js/modules/storage.js">
   <link rel="modulepreload" href="js/modules/parser.js">
   <link rel="modulepreload" href="js/modules/colors.js">
@@ -48,6 +48,11 @@
           <div class="brand-subtitle">Cocktail Recipe Library</div>
         </div>
       </button>
+
+      <!-- Desktop Sticky Scrolled Title -->
+      <div class="desktop-sticky-title" id="desktop-sticky-title" aria-hidden="true">
+        <span class="desktop-sticky-name" id="desktop-sticky-name"></span>
+      </div>
 
       <div class="header-actions">
         <button id="btn-my-bar" class="btn btn-secondary btn-sm my-bar-btn"
@@ -154,6 +159,20 @@
               </div>
             </button>
 
+            <button type="button" id="btn-manage-hidden" class="vault-action-item" title="View and restore hidden cocktails">
+              <div class="vault-action-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </div>
+              <div class="vault-action-meta">
+                <span class="vault-action-label">Hidden Cocktails</span>
+                <span class="vault-action-sub" id="vault-hidden-sub">0 drinks hidden</span>
+              </div>
+            </button>
+
             <button type="button" id="btn-export-json" class="vault-action-item" title="Download recipes backup">
               <div class="vault-action-icon">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -225,6 +244,14 @@
               aria-label="Search recipes">
             <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
           </div>
+          <!-- <div class="sidebar-sort-select-wrap">
+            <select id="sidebar-sort-select" class="sidebar-sort-select" aria-label="Sort cocktail list">
+              <option value="curated">Curated</option>
+              <option value="ready">Ready</option>
+              <option value="specs-asc">Simple</option>
+              <option value="name-asc">A–Z</option>
+            </select>
+          </div> -->
         </div>
 
         <!-- Themed Pack Filter Pills -->
@@ -243,44 +270,31 @@
             aria-selected="false">Nightcaps</button>
         </div>
 
-        <!-- Inventory Filter Tabs -->
-        <div class="sidebar-inventory-filter" id="sidebar-inventory-filter" role="tablist"
-          aria-label="Inventory filter">
-          <button class="inventory-filter-btn active" data-filter="all" role="tab" aria-selected="true">
-            All <span class="filter-count" id="count-all">0</span>
-          </button>
-          <button class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
-            Ready <span class="filter-count" id="count-can-make">0</span>
-          </button>
-        </div>
-
-        <!-- Sidebar Sort Controls Bar -->
-        <div class="sidebar-sort-bar">
-          <label for="sidebar-sort-select" class="sidebar-sort-label">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="4" y1="6" x2="20" y2="6"></line>
-              <line x1="4" y1="12" x2="14" y2="12"></line>
-              <line x1="4" y1="18" x2="8" y2="18"></line>
-            </svg>
-            <span>Sort</span>
-          </label>
-          <div class="sidebar-sort-select-wrap">
-            <select id="sidebar-sort-select" class="sidebar-sort-select" aria-label="Sort cocktail list">
-              <option value="curated">Curated</option>
-              <option value="ready">Ready to Make</option>
-              <option value="specs-asc">Fewest Ingredients</option>
-              <option value="name-asc">Alphabetical (A–Z)</option>
-            </select>
-          </div>
-        </div>
-
         <ul class="recipe-list" id="recipe-list" role="listbox" aria-label="Recipe List">
           <!-- Dynamically populated recipe cards -->
         </ul>
 
         <div class="sidebar-footer">
-          <span id="recipe-count-badge">0 Cocktails</span>
+          <button type="button" id="btn-footer-home" class="footer-nav-btn" aria-label="Go to Home"
+            title="Home showcase">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+          </button>
+
+          <!-- Bottom Inventory Filter Toggle Switch -->
+          <div class="sidebar-inventory-filter footer-inventory-toggle" id="sidebar-inventory-filter" role="tablist"
+            aria-label="Filter drinks by bar inventory">
+            <button type="button" class="inventory-filter-btn active" data-filter="all" role="tab" aria-selected="true">
+              All <span class="filter-count" id="count-all">0</span>
+            </button>
+            <button type="button" class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
+              Ready <span class="filter-count" id="count-can-make">0</span>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -368,11 +382,33 @@
       </div>
     </dialog>
 
+    <!-- Hidden Recipes Management Modal Dialog -->
+    <dialog id="hidden-recipes-modal" class="backbar-dialog hidden-recipes-dialog" aria-labelledby="hidden-modal-title">
+      <div class="backbar-dialog-container">
+        <div class="backbar-dialog-header">
+          <div class="backbar-header-info">
+            <h2 class="backbar-dialog-title" id="hidden-modal-title">Hidden Cocktails</h2>
+            <p class="backbar-dialog-subtitle">Manage default recipes you've hidden from your library. Unhide anytime to restore.</p>
+          </div>
+          <button id="btn-close-hidden-modal" class="btn btn-ghost btn-modal-close" aria-label="Close dialog">✕</button>
+        </div>
+
+        <div class="hidden-recipes-body" id="hidden-recipes-container">
+          <!-- Dynamically populated hidden recipe list -->
+        </div>
+
+        <div class="backbar-dialog-footer">
+          <button id="btn-unhide-all" class="btn btn-secondary btn-sm">Unhide All</button>
+          <button id="btn-done-hidden-modal" class="btn btn-primary btn-sm">Done</button>
+        </div>
+      </div>
+    </dialog>
+
     <!-- Toast Notifications Area -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=13"></script>
+  <script type="module" src="app.js?v=24"></script>
 </body>
 
 </html>
