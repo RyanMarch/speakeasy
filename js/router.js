@@ -21,6 +21,8 @@ export function selectRecipe(id, updateHistory = true) {
 
   if (state.activeRecipeId !== id) {
     state.activeRiffs = {};
+    state.riffAmountOverrides = {};
+    state.riffExtraSpecs = [];
     state.riffModeActive = false;
     state.servings = 1;
   }

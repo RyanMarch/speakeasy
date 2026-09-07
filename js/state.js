@@ -38,6 +38,8 @@ export const state = {
   recipes: [],
   activeRecipeId: null,
   activeRiffs: {}, // { [specIndex]: substituteTaxonomyId }
+  riffAmountOverrides: {}, // { [specIndex]: newAmount } — amount edits to existing specs while riffing
+  riffExtraSpecs: [], // [{ amount, unit, name }] — new ingredients added while riffing
   riffModeActive: false,
   searchQuery: '',
   viewMode: 'counter', // 'home' | 'counter' | 'edit'
