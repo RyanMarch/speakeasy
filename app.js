@@ -1050,12 +1050,27 @@ function selectRecipe(id, updateHistory = true) {
     history.pushState(null, '', `#${id}`);
   }
 
+  // renderRecipeList() replaces the list's innerHTML, which resets scrollTop to 0 —
+  // capture/restore it so a re-render never masquerades as "the user scrolled to
+  // the top", which would make the visibility check below think the (possibly
+  // still-visible) active item needs to be scrolled into view.
+  const preservedScrollTop = elements.recipeList?.scrollTop || 0;
   renderRecipeList();
+  if (elements.recipeList) {
+    elements.recipeList.scrollTop = preservedScrollTop;
+  }
   renderCurrentView();
 
-  // Scroll active item into view in sidebar
+  // Keep active item visible in sidebar without jarring jumps when clicked directly
   const activeEl = elements.recipeList.querySelector('.recipe-list-item.active');
-  activeEl?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if (activeEl && elements.recipeList) {
+    const listRect = elements.recipeList.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+    // Only scroll if the item is outside the visible bounds of the list
+    if (itemRect.top < listRect.top || itemRect.bottom > listRect.bottom) {
+      activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
 
   // Mobile navigation adjustment
   elements.sidebar.classList.add('mobile-hidden');
