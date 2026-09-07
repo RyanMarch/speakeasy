@@ -103,7 +103,7 @@ function init() {
   }
 
   // Connect callbacks across components
-  setRecipeListCallbacks({ openEditor, updateVaultStats });
+  setRecipeListCallbacks({ openEditor, updateVaultStats, showDrinksListMobile });
   setHomeViewCallbacks({ selectRecipe, showDrinksListMobile });
   setCounterViewCallbacks({
     selectRecipe,
