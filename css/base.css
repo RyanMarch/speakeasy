@@ -55,7 +55,9 @@
   --sidebar-width: 350px;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -85,7 +87,11 @@ body {
   touch-action: manipulation;
 }
 
-button, input, select, textarea, a {
+button,
+input,
+select,
+textarea,
+a {
   font-family: inherit;
   font-size: inherit;
   color: inherit;

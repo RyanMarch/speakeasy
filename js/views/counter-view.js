@@ -363,14 +363,15 @@ export function renderCounterView() {
       riffControlHtml = `
         <div class="spec-riff-wrapper" title="Riff on ${escapeHtml(spec.originalName)}">
           <select class="spec-riff-select ${isRiff ? 'active-riff' : ''}" data-spec-index="${index}" aria-label="Riff on ${escapeHtml(spec.originalName)}">
-            <option value="" ${!isRiff ? 'selected' : ''}>Riff ▾</option>
-            ${isRiff ? `<option value="__orig__">↺ ${escapeHtml(spec.originalName)} (Original)</option>` : ''}
+            <option value="" disabled ${!isRiff ? 'selected' : ''}>Riff ▾</option>
+            ${isRiff ? `<option value="__orig__">↺ Revert to ${escapeHtml(spec.originalName)}</option>` : ''}
             ${substitutes.map(sub => `
               <option value="${sub.id}" ${spec.riffId === sub.id ? 'selected' : ''}>
-                ${escapeHtml(sub.name)}
+                ${spec.riffId === sub.id ? `✓ ${escapeHtml(sub.name)}` : escapeHtml(sub.name)}
               </option>
             `).join('')}
           </select>
+          ${isRiff ? `<span class="spec-riff-active-label" aria-hidden="true">Swap ▾</span>` : ''}
         </div>
       `;
     }
