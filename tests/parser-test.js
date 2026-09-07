@@ -758,5 +758,69 @@ if (getRecipes().length !== baseRecipesCount) {
 }
 console.log('Hidden recipe storage and toggle tests passed.');
 
+console.log('--- Testing Flavor Balance Engine ---');
+const { calculateBalanceProfile, getDominantAxes, FLAVOR_AXES } = await import('../js/modules/balance.js');
+
+// Every axis should always be a 0-100 integer, for any recipe's specs.
+const negroniSeed = SEED_RECIPES.find(r => r.id === 'negroni');
+const daiquiriSeed = SEED_RECIPES.find(r => r.id === 'daiquiri');
+if (!negroniSeed || !daiquiriSeed) {
+  throw new Error('Expected seed recipes "negroni" and "daiquiri" to exist for balance tests');
+}
+
+const negroniProfile = calculateBalanceProfile(negroniSeed.specs);
+const daiquiriProfile = calculateBalanceProfile(daiquiriSeed.specs);
+
+for (const profile of [negroniProfile, daiquiriProfile]) {
+  for (const axis of FLAVOR_AXES) {
+    const value = profile[axis.key];
+    if (typeof value !== 'number' || Number.isNaN(value) || value < 0 || value > 100) {
+      throw new Error(`Expected ${axis.key} to be a 0-100 number, got ${value}`);
+    }
+  }
+}
+
+// Negroni (equal parts gin, Campari, sweet vermouth): a bitter, boozy, sweet aperitif —
+// and essentially no sourness, since none of its three ingredients bring any acid.
+if (!(negroniProfile.bitter > negroniProfile.sour)) {
+  throw new Error(`Expected Negroni bitter (${negroniProfile.bitter}) > sour (${negroniProfile.sour})`);
+}
+if (!(negroniProfile.bitter >= 30)) {
+  throw new Error(`Expected Negroni bitter to be prominently high, got ${negroniProfile.bitter}`);
+}
+if (!(negroniProfile.sweet >= 15 && negroniProfile.boozy >= 15)) {
+  throw new Error(`Expected Negroni sweet (${negroniProfile.sweet}) and boozy (${negroniProfile.boozy}) to both be meaningfully present`);
+}
+if (negroniProfile.sour > 10) {
+  throw new Error(`Expected Negroni sour to be near-zero, got ${negroniProfile.sour}`);
+}
+const negroniDominant = getDominantAxes(negroniProfile);
+if (!negroniDominant.includes('Bitter')) {
+  throw new Error(`Expected Bitter among Negroni's dominant axes, got [${negroniDominant.join(', ')}]`);
+}
+
+// Daiquiri (rum, fresh lime juice, sugar syrup): a sweet-sour sour with no bitterness
+// or herbal character at all, since none of its ingredients carry either.
+if (!(daiquiriProfile.sweet >= 15 && daiquiriProfile.sour >= 10 && daiquiriProfile.boozy >= 15)) {
+  throw new Error(`Expected Daiquiri sweet (${daiquiriProfile.sweet}), sour (${daiquiriProfile.sour}), and boozy (${daiquiriProfile.boozy}) to all be meaningfully present`);
+}
+if (daiquiriProfile.bitter > 5 || daiquiriProfile.herbal > 5) {
+  throw new Error(`Expected Daiquiri bitter (${daiquiriProfile.bitter}) and herbal (${daiquiriProfile.herbal}) to be near-zero`);
+}
+const daiquiriDominant = getDominantAxes(daiquiriProfile);
+if (!daiquiriDominant.includes('Sweet') || !daiquiriDominant.includes('Sour')) {
+  throw new Error(`Expected Sweet and Sour among Daiquiri's dominant axes, got [${daiquiriDominant.join(', ')}]`);
+}
+
+// Empty/garnish-only specs shouldn't throw or produce NaN — everything stays at 0.
+const emptyProfile = calculateBalanceProfile([]);
+for (const axis of FLAVOR_AXES) {
+  if (emptyProfile[axis.key] !== 0) {
+    throw new Error(`Expected empty specs to produce an all-zero profile, got ${axis.key}=${emptyProfile[axis.key]}`);
+  }
+}
+
+console.log('Flavor balance engine tests passed.');
+
 console.log('All tests completed successfully!');
 
