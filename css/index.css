@@ -12,6 +12,7 @@
 
 /* Header */
 .app-header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -64,6 +65,46 @@
   color: var(--color-accent);
   font-weight: 600;
   margin-top: 2px;
+}
+
+/* Scrolled Recipe Title in Top Header (Desktop) */
+.desktop-sticky-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, calc(-50% + 4px));
+  max-width: min(520px, calc(100vw - 640px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+}
+
+.desktop-sticky-title.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.desktop-sticky-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-optical-sizing: auto;
+  font-feature-settings: "kern" 1, "liga" 1, "dlig" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .header-actions {
@@ -3499,6 +3540,10 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   /* Hide top-level New Drink button on mobile (now accessible in Vault menu) */
   #btn-new-drink {
     display: none;
+  }
+
+  .desktop-sticky-title {
+    display: none !important;
   }
 
   .vault-menu-btn {
