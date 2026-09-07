@@ -112,6 +112,9 @@ const elements = {
   editorViewContainer: document.getElementById('editor-view-container'),
   homeViewContainer: document.getElementById('home-view-container'),
   btnGoHome: document.getElementById('btn-go-home'),
+  btnFooterHome: document.getElementById('btn-footer-home'),
+  desktopStickyTitle: document.getElementById('desktop-sticky-title'),
+  desktopStickyName: document.getElementById('desktop-sticky-name'),
   toastContainer: document.getElementById('toast-container'),
   btnMyBar: document.getElementById('btn-my-bar'),
   myBarBadge: document.getElementById('my-bar-badge'),
@@ -232,8 +235,12 @@ function setupGlobalEventListeners() {
     renderRecipeList();
   });
 
-  // Header Actions
+  // Header & Footer Home Actions
   elements.btnGoHome?.addEventListener('click', () => {
+    goHome();
+  });
+
+  elements.btnFooterHome?.addEventListener('click', () => {
     goHome();
   });
 
@@ -985,7 +992,9 @@ function renderRecipeList() {
     });
   }
 
-  elements.recipeCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Cocktail' : 'Cocktails'}`;
+  if (elements.recipeCountBadge) {
+    elements.recipeCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Cocktail' : 'Cocktails'}`;
+  }
 
   if (filtered.length === 0) {
     const rawSearch = (state.searchQuery || '').trim();
