@@ -1,0 +1,1043 @@
+/* Responsive Media Queries */
+@media (min-width: 769px) and (max-width: 960px) {
+  .counter-grid {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  /* .glass-column holds 4 children (.glass-wrapper, the layered/mixed toggle, the
+     ABV meta card, and the riff button) — row layout only ever worked for 2, and
+     packed all 4 into the fixed 260px width, so .glass-wrapper (the largest flex
+     basis) got squeezed to 0 and the glass image disappeared entirely. Stack them
+     in a column instead, same as the sub-769px mobile layout already does. */
+  .glass-column {
+    position: static;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 auto;
+  }
+
+  .glass-meta-card {
+    margin-top: 0;
+    max-width: 220px;
+  }
+
+  .editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) {
+  .sidebar.mobile-hidden {
+    display: flex !important;
+  }
+
+  .main-stage.mobile-hidden {
+    display: block !important;
+  }
+
+  /* Between the mobile breakpoint and roughly ~1300px (.counter-view's 980px cap +
+     sidebar), .counter-view/.home-view aren't yet narrower than their own max-width,
+     so margin:auto centering contributes nothing — with no padding of their own,
+     content would sit flush against the sidebar and the window edge (the "tablet
+     looks broken" bug). --desktop-inset gives every desktop width a real minimum
+     gutter; --shelf-bleed (added on top) is ONLY the *extra* space reclaimed once
+     the cap-vs-.main-stage gap actually opens up past that gutter. */
+  .home-view,
+  .counter-view,
+  .editor-view {
+    --desktop-inset: 1.5rem;
+    /* padding-left: var(--desktop-inset); */
+    padding-right: var(--desktop-inset);
+  }
+
+  /* Card shelves reclaim BOTH that gutter and any further cap-vs-.main-stage gap,
+     scrolling out to the true edges of .main-stage's content box on both sides —
+     the track's own padding-left compensates so the first card's resting position
+     still lines up with the title/text above it, exactly the way the right side
+     already works when scrolled to its end. Sidebar width (310px) and .home-view/
+     .counter-view's shared 980px cap are fixed constants (.main-stage itself
+     carries no horizontal padding), so the "wasted" width past that cap can be
+     computed with plain calc() — one formula for both containers, since Home and
+     a recipe page share the same cap by design (see .home-view above). If that
+     cap, --desktop-inset, or .main-stage's own padding changes, this needs to
+     change with them — that's the one sharp edge of this approach. */
+  .similar-cocktails-shelf {
+    --shelf-bleed: max(0px, (100vw - 310px - 980px) / 2);
+    width: auto;
+    max-width: none;
+    margin-left: calc(-1 * (var(--desktop-inset) + var(--shelf-bleed)));
+    margin-right: calc(-1 * (var(--desktop-inset) + var(--shelf-bleed)));
+  }
+
+  .similar-cocktails-track {
+    padding-left: calc(0.25rem + var(--desktop-inset) + var(--shelf-bleed));
+    /* Same scroll-snap issue as mobile: without scroll-padding to match, the snap
+       algorithm ignores the padding above and yanks scrollLeft off of 0 at rest. */
+    scroll-padding-left: calc(0.25rem + var(--desktop-inset) + var(--shelf-bleed));
+  }
+
+  /* The shelf now bleeds out to .main-stage's true edges on both sides, so the
+     header (title + prev/next arrows) and the scrollbar need their own inset to
+     line back up with the page's actual content column — otherwise they sit
+     flush against the sidebar/window edge instead of matching everything else.
+     This has to track --desktop-inset + --shelf-bleed (not a flat rem value): the
+     bleed amount changes with viewport width, so only the matching variables keep
+     these aligned with the title/text above them at every width. */
+  .shelf-header {
+    padding-left: calc(var(--desktop-inset) + var(--shelf-bleed));
+    padding-right: calc(var(--desktop-inset) + var(--shelf-bleed));
+  }
+
+  .similar-cocktails-track::-webkit-scrollbar-track {
+    margin: 0 calc(var(--desktop-inset) + var(--shelf-bleed));
+  }
+}
+
+@media (max-width: 768px) {
+
+  /* Prevent iOS automatic zoom on focus by ensuring minimum 16px font-size */
+  input,
+  select,
+  textarea,
+  .form-input,
+  .form-select,
+  .form-textarea,
+  .search-input,
+  .vault-bar-name-input,
+  .quick-paste-textarea,
+  .editor-tag-input-field,
+  .tag-input-inline {
+    font-size: 16px !important;
+  }
+
+  /* Header Mobile Compact: Fixed & Sticky at top */
+  .app-header {
+    height: 52px;
+    padding: 0 0.85rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-shrink: 0;
+    background: rgba(18, 17, 16, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .brand-group {
+    gap: 0.5rem;
+  }
+
+  .brand-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .brand-title {
+    font-size: 1.15rem;
+    letter-spacing: 0.1em;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .header-actions {
+    gap: 0.5rem;
+  }
+
+  /* Hide top-level New Drink button on mobile (now accessible in Vault menu) */
+  #btn-new-drink {
+    display: none;
+  }
+
+  .desktop-sticky-title {
+    display: none !important;
+  }
+
+  .vault-menu-btn {
+    min-height: 38px;
+    min-width: 38px;
+    padding: 0 0.4rem;
+    font-size: 0.78rem;
+    justify-content: center;
+  }
+
+  .vault-menu-btn .btn-text {
+    display: none;
+  }
+
+  .vault-popover {
+    right: 0.75rem;
+    top: 54px;
+    width: calc(100vw - 1.5rem);
+    max-width: 310px;
+  }
+
+  .my-bar-btn {
+    min-height: 38px;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  /* Document-Level Scrolling Mobile Layout
+     Allow the window/document to scroll so Mobile Safari collapses its address bar
+     and bottom toolbar chrome when scrolling. Overflow goes on `html` ONLY — giving
+     both html and body their own `overflow-y: auto` makes BOTH into CSS scroll
+     containers. body's content never actually exceeds body's own box (it grows via
+     height:auto to match its content), so body's scrollport never moves, but it's
+     still the *nearer* scroll-container ancestor for everything inside it. Every
+     `position: sticky` element (the mobile recipe-name header, the sidebar's
+     All/Ready + Home footer) was computing "stuck" against that motionless body
+     scrollport instead of the real, scrolling one (html) — so nothing ever stuck,
+     it just scrolled away with the page. */
+  html {
+    height: auto;
+    min-height: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    height: auto;
+    min-height: 100%;
+    min-height: 100dvh;
+    /* base.css sets `overflow: hidden` for the desktop fixed-viewport layout — any
+       non-"visible" overflow (hidden included) still makes body its own (motionless)
+       scroll container and breaks sticky descendants the same way auto did above. */
+    overflow: visible;
+  }
+
+  #app {
+    height: auto;
+    min-height: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+    width: 100%;
+    position: relative;
+  }
+
+  /* Sidebar (Drink Library List): Sticky Search & Filters, Document Scroll, Sticky Bottom Info Bar */
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    min-height: calc(100vh - 52px);
+    min-height: calc(100dvh - 52px);
+    display: flex;
+    flex-direction: column;
+    position: static;
+    border-right: none;
+    border-bottom: none;
+    overflow: visible;
+    animation: slideInFromLeft 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .sidebar.mobile-hidden {
+    display: none !important;
+  }
+
+  .sidebar-search-box {
+    flex-shrink: 0;
+    padding: 0.55rem 0.85rem 0.4rem;
+    gap: 0.5rem;
+  }
+
+  .sidebar-sort-select {
+    height: 36px;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-pack-filter {
+    flex-shrink: 0;
+    padding: 0.4rem 0.85rem 0.45rem;
+  }
+
+  .recipe-list {
+    flex: 1 0 auto;
+    min-height: 0;
+    overflow: visible;
+    padding: 0.25rem 0.85rem 1rem;
+  }
+
+  .sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.85rem max(0.55rem, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--color-border-subtle);
+    background: rgba(18, 17, 16, 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    z-index: 10;
+  }
+
+  /* Main Stage (Recipe & Editor): Clean Side Margins, Document Scrolling
+     No horizontal padding here — it lives on the view containers below instead,
+     so horizontally-scrolling shelves (.similar-cocktails-track) can bleed to the
+     true screen edges while everything else keeps the same 1.25rem inset. */
+  .main-stage {
+    display: block;
+    flex: 1;
+    min-height: calc(100vh - 52px);
+    min-height: calc(100dvh - 52px);
+    height: auto;
+    overflow: visible;
+    padding: 0 0 max(3.5rem, calc(2rem + env(safe-area-inset-bottom, 0px))) !important;
+    animation: slideInFromRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Shared side inset for the whole mobile layout. The view containers
+     themselves carry NO padding (so the card row's default 100% width already
+     reaches the true screen edges, no bleed hack needed) — instead every
+     direct-child section that isn't the card row gets its own inset. Bump
+     this one value to change "how narrow does mobile feel" everywhere. */
+  .main-stage {
+    --mobile-inset: 1rem;
+  }
+
+  .home-view,
+  .counter-view,
+  .editor-view {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .counter-view>.counter-mobile-bar,
+  .counter-view>.drink-title-section,
+  .counter-view>.counter-grid,
+  .home-view>.home-stats-card,
+  .home-view>.home-pin-row,
+  .home-view>.home-empty-state,
+  .editor-view>.editor-header,
+  .editor-view>.editor-grid {
+    padding-left: var(--mobile-inset);
+    padding-right: var(--mobile-inset);
+  }
+
+  /* The card row itself is excluded from the rule above — its track manages
+     its own inset (below) so cards can scroll past it to the true edge. */
+  .shelf-header {
+    padding-left: var(--mobile-inset);
+    padding-right: var(--mobile-inset);
+  }
+
+  .similar-cocktails-track {
+    padding-left: var(--mobile-inset);
+    padding-right: var(--mobile-inset);
+    /* scroll-snap-type (base rule) snaps card edges flush with the scrollport,
+       which ignores plain padding and yanks scrollLeft to 20px at rest — undoing
+       the inset above. scroll-padding tells the snap algorithm to treat this
+       much space as part of the scrollport, so it settles at scrollLeft: 0. */
+    scroll-padding-left: var(--mobile-inset);
+    scroll-padding-right: var(--mobile-inset);
+  }
+
+  .similar-cocktails-track::-webkit-scrollbar-track {
+    margin: 0 var(--mobile-inset);
+  }
+
+  .main-stage.mobile-hidden {
+    display: none !important;
+  }
+
+  @keyframes slideInFromRight {
+    from {
+      opacity: 0.75;
+      transform: translateX(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes slideInFromLeft {
+    from {
+      opacity: 0.75;
+      transform: translateX(-16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Counter View: Sticky Back Button Header */
+  .counter-mobile-bar {
+    position: sticky;
+    top: 52px;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.15rem;
+    padding: 0.65rem 0;
+    background: rgba(18, 17, 16, 0.98);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--color-border-subtle);
+    transform: translateZ(0);
+  }
+
+  .mobile-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  /* Inline scrolled drink title to the right of < Drinks */
+  .mobile-sticky-title {
+    flex: 1;
+    min-width: 0;
+    opacity: 0;
+    transform: translateY(4px);
+    pointer-events: none;
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-sticky-title.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .mobile-sticky-name {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.01em;
+  }
+
+  /* Recipe Title & Metadata: Harmonious Sizing & Spacing */
+  .drink-title-section {
+    margin-bottom: 0;
+  }
+
+  .drink-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .drink-title-header-left {
+    min-width: 0;
+    flex: 1 1 180px;
+  }
+
+  .drink-name {
+    font-size: clamp(1.75rem, 6.5vw, 2.3rem);
+    line-height: 1.18;
+    margin-bottom: 0.25rem;
+    min-width: 0;
+    word-break: break-word;
+  }
+
+  .drink-actions-cluster {
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    max-width: 100%;
+  }
+
+  .action-icon-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  .action-icon-btn .action-btn-text {
+    display: none;
+  }
+
+  .drink-meta-row {
+    font-size: 0.88rem;
+    gap: 0.45rem;
+    margin-top: 0.45rem;
+    color: var(--color-text-muted);
+    flex-wrap: wrap;
+  }
+
+  .drink-description-prose {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    margin-top: 0.75rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .drink-sub-banner {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .drink-tags-bar {
+    margin-top: 0.75rem;
+    gap: 0.4rem;
+  }
+
+  /* Stage Split: Prominent Centered Glass & Enlarged Specs */
+  .counter-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .glass-column {
+    order: 1;
+    width: 100%;
+    align-items: center;
+    position: static;
+    top: auto;
+    flex-direction: column !important;
+    gap: 0.3rem;
+    margin: 0.25rem 0 0.5rem;
+  }
+
+  .glass-wrapper {
+    width: 100%;
+    max-width: 290px;
+    height: 330px;
+    margin: 0 auto;
+    padding-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Flavor radar swaps places on mobile: hide the desktop copy (glass column) and
+     show the one placed above the tag cloud further down the page instead. */
+  .flavor-radar-desktop {
+    display: none;
+  }
+
+  .flavor-radar-mobile {
+    display: block;
+  }
+
+  .glass-meta-card {
+    width: 100%;
+    max-width: 290px;
+    margin: 0.25rem auto 0;
+    text-align: center;
+  }
+
+  .glass-meta-card .glass-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 1.02rem;
+  }
+
+  .glass-meta-card .glass-total-volume,
+  .glass-meta-card .glass-abv {
+    font-size: 1.02rem;
+    color: var(--color-text-muted);
+  }
+
+  .glass-meta-card .glass-total-volume strong,
+  .glass-meta-card .glass-abv strong {
+    font-size: 1.16rem;
+    font-weight: 600;
+    color: var(--color-accent-light);
+  }
+
+  .glass-meta-card .glass-stats-divider {
+    font-size: 0.95rem;
+    opacity: 0.6;
+  }
+
+  .glass-meta-card .glass-source,
+  .glass-meta-card .glass-interaction-tip {
+    display: none;
+  }
+
+  .riff-toggle-btn {
+    width: 100%;
+    max-width: 320px;
+    margin: 0.65rem auto 0;
+    padding: 0.65rem 1rem;
+    justify-content: center;
+    font-size: 0.88rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .specs-column {
+    order: 2;
+    width: 100%;
+    gap: 1.25rem;
+  }
+
+  /* Card Sizing & Ingredients Table on Mobile */
+  .counter-card {
+    padding: 1.25rem 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .counter-card-header {
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .specs-card-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .specs-header-controls {
+    gap: 0.5rem;
+  }
+
+  .servings-label {
+    display: none;
+  }
+
+  .servings-stepper-box {
+    padding: 3px 4px;
+    gap: 4px;
+  }
+
+  .servings-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  .servings-value {
+    min-width: 2.5rem;
+    font-size: 0.85rem;
+  }
+
+  .unit-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .specs-list {
+    gap: 0.45rem;
+  }
+
+  .spec-row {
+    grid-template-columns: 60px 1fr auto;
+    gap: 0.55rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .counter-view.riff-mode-active .spec-row {
+    grid-template-columns: 55px 1fr auto auto;
+    gap: 0.4rem;
+  }
+
+  .spec-riff-select {
+    font-size: 0.7rem;
+    padding: 0.2rem 1.1rem 0.2rem 0.4rem;
+    max-width: 105px;
+  }
+
+  .spec-amount {
+    font-size: 1.08rem;
+  }
+
+  .spec-unit {
+    font-size: 0.75rem;
+    margin-left: 0.15rem;
+  }
+
+  .spec-ingredient {
+    min-width: 0;
+    gap: 0.15rem;
+  }
+
+  .spec-ingredient-name-row {
+    font-size: 0.92rem;
+    gap: 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .spec-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .spec-actions {
+    gap: 0.45rem;
+  }
+
+  .btn-stock-toggle,
+  .spec-staple-tag {
+    width: 50px;
+    font-size: 0.62rem;
+    padding: 0.18rem 0;
+  }
+
+  .spec-ratio {
+    width: 32px;
+    font-size: 0.72rem;
+  }
+
+  .btn-sub-chip {
+    font-size: 0.66rem;
+    padding: 0.12rem 0.35rem;
+    max-width: 135px;
+    white-space: nowrap;
+  }
+
+  .btn-sub-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sub-more-badge {
+    font-size: 0.62rem;
+    white-space: nowrap;
+  }
+
+  .editor-spec-row {
+    grid-template-columns: 65px 80px 1fr 65px 32px;
+    gap: 0.35rem;
+  }
+
+  /* Garnish Row on Mobile */
+  .spec-garnish-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.75rem 0.75rem 0.95rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.75rem;
+    border-top: 1px solid var(--color-border-subtle);
+    border-bottom: none;
+    border-radius: var(--radius-sm);
+  }
+
+  .spec-garnish-row .spec-amount {
+    width: auto;
+    min-width: 54px;
+    flex-shrink: 0;
+  }
+
+  .spec-garnish-row .spec-amount .spec-unit {
+    font-size: 0.86rem;
+    font-family: var(--font-display);
+    color: var(--color-accent-light);
+    margin-left: 0;
+  }
+
+  .spec-garnish-row .spec-ingredient {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .spec-garnish-row .spec-ingredient-name-row {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: 100%;
+  }
+
+  .spec-garnish-row .spec-garnish-name {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    white-space: normal;
+    word-break: normal;
+  }
+
+  .spec-garnish-row .spec-actions {
+    display: none;
+  }
+
+  /* Editorial Sections on Mobile */
+  .recipe-editorial-section {
+    margin-bottom: 1.75rem;
+  }
+
+  .editorial-section-title {
+    font-size: 1.15rem;
+    color: var(--color-accent-light);
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .card-instructions {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* Similar Cocktails Shelf on Mobile */
+  .similar-cocktails-shelf {
+    margin-top: 2.25rem;
+    padding-top: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .shelf-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .shelf-title {
+    font-size: 0.78rem;
+  }
+
+  .similar-cocktail-card {
+    flex: 0 0 160px;
+    width: 160px;
+    padding: 0.85rem 0.75rem;
+  }
+
+  .similar-card-glass {
+    height: 150px;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Home Landing Page on Mobile */
+  .home-stats-card {
+    /* No top padding — matches .drink-title-section (margin-bottom:0 above),
+       so "Speakeasy Vault" and a recipe's name start at the same height here too. */
+    padding: 0 0 1.15rem;
+  }
+
+  .home-stats-name {
+    /* Identical to .drink-name's mobile treatment, same reasoning as desktop. */
+    font-size: clamp(1.75rem, 6.5vw, 2.3rem);
+    line-height: 1.18;
+    margin: 1.5rem 0 0.25rem;
+  }
+
+  .home-browse-all-btn {
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.25rem;
+  }
+
+  .home-pin-row {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
+  /* Backbar Modal on Mobile */
+  .backbar-dialog {
+    width: 96vw;
+    height: 92vh;
+    max-height: 92vh;
+    min-height: 0;
+  }
+
+  .backbar-dialog-header,
+  .backbar-toolbar,
+  .backbar-dialog-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .backbar-nav-tabs {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .backbar-categories-container {
+    padding: 1rem;
+    gap: 1.25rem;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .backbar-pill {
+    padding: 0.38rem 0.68rem;
+    font-size: 0.78rem;
+  }
+
+  /* Recipe Editor Mobile Optimization */
+  .editor-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 0.85rem;
+    margin-bottom: 1.15rem;
+  }
+
+  .editor-title {
+    font-size: clamp(1.4rem, 5.5vw, 1.85rem);
+    line-height: 1.2;
+    word-break: break-word;
+    min-width: 0;
+  }
+
+  .editor-header .counter-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .editor-header .counter-actions .btn {
+    min-height: 38px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.84rem;
+  }
+
+  .editor-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1.5rem;
+  }
+
+  .editor-form-col {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .editor-preview-col {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .editor-preview-col .glass-wrapper {
+    width: 100%;
+    max-width: 280px;
+    height: 300px;
+    margin: 0 auto;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .editor-specs-section {
+    margin-top: 1.25rem;
+  }
+
+  .editor-specs-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .editor-spec-row {
+    display: grid;
+    grid-template-columns: 60px 80px 1fr 58px 34px;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+  }
+
+  .editor-spec-row .form-input,
+  .editor-spec-row .form-select {
+    padding: 0.55rem 0.45rem;
+    min-height: 38px;
+  }
+
+  .editor-spec-row .form-select {
+    padding-right: 1.4rem;
+    background-size: 12px 12px;
+    background-position: right 0.35rem center;
+  }
+
+  .editor-spec-row .spec-input-amount {
+    text-align: center;
+  }
+
+  .editor-spec-row .spec-input-abv {
+    padding: 0.55rem 0.25rem;
+    text-align: center;
+  }
+
+  .editor-spec-row .btn-remove-row {
+    min-width: 34px;
+    min-height: 38px;
+    width: 34px;
+    height: 38px;
+    padding: 0;
+  }
+
+  .editor-tag-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .editor-tag-input-field {
+    min-width: 180px;
+    flex: 1 1 180px;
+    min-height: 38px;
+  }
+
+  .editor-tag-input-row .btn {
+    min-height: 38px;
+    padding: 0.45rem 0.85rem;
+  }
+
+  .quick-paste-box {
+    padding: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .quick-paste-textarea {
+    font-size: 0.85rem;
+    height: 85px;
+  }
+}
+
+@media (max-width: 340px) {
+  .recipe-item-glass {
+    display: none;
+  }
+}
