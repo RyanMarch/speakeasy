@@ -55,6 +55,7 @@ export const state = {
   packFilter: 'all', // 'all' | 'classic' | 'modern-craft' | 'tropical-tiki' | 'prohibition-era' | 'aperitivo-amaro' | 'nightcaps'
   backbarSearchQuery: '',
   backbarCategoryFilter: 'all', // 'all' | categoryKey | 'fridge'
+  backbarTab: 'inventory', // 'inventory' | 'shopping'
 };
 
 const inventoryAnalysisCache = new WeakMap();
@@ -130,6 +131,11 @@ export function initElements() {
   elements.btnCloseHiddenModal = document.getElementById('btn-close-hidden-modal');
   elements.btnDoneHiddenModal = document.getElementById('btn-done-hidden-modal');
   elements.btnUnhideAll = document.getElementById('btn-unhide-all');
+  elements.backbarViewSwitcher = document.getElementById('backbar-view-switcher');
+  elements.backbarShoppingContainer = document.getElementById('backbar-shopping-container');
+  elements.backbarDialogSubtitle = document.getElementById('backbar-dialog-subtitle');
+  elements.backbarInventoryToolbar = document.getElementById('backbar-inventory-toolbar');
+  elements.timerModal = document.getElementById('timer-modal');
 }
 
 // Automatically populate elements if document is defined

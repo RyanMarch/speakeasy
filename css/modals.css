@@ -349,3 +349,413 @@
   font-weight: 600;
   color: var(--color-text-bright);
 }
+
+/* Backbar View Switcher */
+.backbar-view-switcher {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.75rem 1.75rem 0.35rem;
+  background: rgba(255, 255, 255, 0.015);
+  border-bottom: 1px solid var(--color-border-subtle);
+  flex-shrink: 0;
+}
+
+.backbar-view-tab {
+  padding: 0.45rem 1.15rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.backbar-view-tab:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.backbar-view-tab.active {
+  background: rgba(212, 163, 89, 0.15);
+  border-color: rgba(212, 163, 89, 0.4);
+  color: var(--color-accent-light);
+}
+
+/* Shopping List View */
+.backbar-shopping-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.25rem 1.75rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shopping-list-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.shopping-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.1rem;
+  transition: all var(--transition-fast);
+}
+
+.shopping-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.shopping-card.is-expanded {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(212, 163, 89, 0.35);
+}
+
+.shopping-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.shopping-card-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.shopping-pill-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.shopping-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.shopping-card-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.shopping-card-name {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--color-text-bright);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.shopping-unlock-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.12rem 0.5rem;
+  border-radius: 12px;
+  background: rgba(212, 163, 89, 0.18);
+  border: 1px solid rgba(212, 163, 89, 0.45);
+  color: var(--color-accent-light);
+  white-space: nowrap;
+}
+
+.shopping-card-family {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.shopping-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-quick-add-shopping {
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.75rem;
+  white-space: nowrap;
+  background: rgba(212, 163, 89, 0.15);
+  border-color: rgba(212, 163, 89, 0.4);
+  color: var(--color-accent-light);
+}
+
+.btn-quick-add-shopping:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent-light);
+  color: #111;
+}
+
+.btn-toggle-shopping-details {
+  padding: 0.35rem 0.5rem;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.shopping-card.is-expanded .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.shopping-card-details {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.shopping-details-title {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.shopping-drinks-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.shopping-drink-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.shopping-drink-pill:hover {
+  background: rgba(212, 163, 89, 0.12);
+  border-color: rgba(212, 163, 89, 0.4);
+  transform: translateY(-1px);
+}
+
+.shopping-drink-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-bright);
+}
+
+.shopping-drink-meta {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.shopping-empty-state {
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+}
+
+/* Smart Counter Timer Toast (Non-modal floating widget) */
+.timer-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1050;
+  max-width: 340px;
+  min-width: 260px;
+  pointer-events: auto;
+  animation: timerToastSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes timerToastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.timer-toast-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.95rem;
+  background: rgba(14, 19, 29, 0.96);
+  border: 1px solid rgba(212, 163, 89, 0.4);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 12px rgba(212, 163, 89, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--color-text, #fff);
+  transition: all var(--transition-fast);
+}
+
+.timer-flash-active {
+  animation: timerDoneFlash 0.6s ease-in-out;
+}
+
+@keyframes timerDoneFlash {
+  0% {
+    border-color: rgba(212, 163, 89, 0.4);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+  }
+  35% {
+    border-color: var(--color-accent-light, #e09f3e);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 20px rgba(212, 163, 89, 0.5);
+  }
+  100% {
+    border-color: rgba(212, 163, 89, 0.4);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+  }
+}
+
+.timer-toast-ring-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-toast-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-toast-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 3.5;
+}
+
+.timer-toast-progress {
+  fill: none;
+  stroke: var(--color-accent, #c67828);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.12s linear;
+}
+
+.timer-toast-progress.is-complete {
+  stroke: var(--color-success, #4d8363);
+}
+
+.timer-toast-ring-num {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-bright, #fff);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.timer-toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.timer-toast-title {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-bright, #fff);
+  line-height: 1.2;
+}
+
+.timer-toast-sub {
+  font-size: 0.72rem;
+  color: var(--color-text-muted, rgba(255, 255, 255, 0.6));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timer-toast-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.timer-toast-btn-stop {
+  padding: 0.3rem 0.65rem;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-accent-light, #e09f3e);
+  background: rgba(212, 163, 89, 0.15);
+  border: 1px solid rgba(212, 163, 89, 0.35);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.timer-toast-btn-stop:hover {
+  background: var(--color-accent, #c67828);
+  border-color: var(--color-accent-light, #e09f3e);
+  color: #111;
+}
+
+.timer-toast-btn-dismiss {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted, rgba(255, 255, 255, 0.6));
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.timer-toast-btn-dismiss:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .timer-toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}

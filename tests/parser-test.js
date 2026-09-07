@@ -822,5 +822,221 @@ for (const axis of FLAVOR_AXES) {
 
 console.log('Flavor balance engine tests passed.');
 
+console.log('--- Testing Smart Counter Timer Instruction Parser ---');
+const { detectTimers, renderInstructionTimers } = await import('../js/modules/parser.js');
+
+// Test single durations
+const timer30 = detectTimers('Stir thoroughly for 30 seconds until well-chilled.');
+if (timer30.length !== 1 || timer30[0].seconds !== 30 || timer30[0].text !== '30 seconds') {
+  throw new Error(`Expected '30 seconds' (30s), got ${JSON.stringify(timer30)}`);
+}
+
+// Test ranges (hyphen, en-dash, em-dash)
+const timerRange1 = detectTimers('Shake vigorously for 10-12 seconds until frosty.');
+if (timerRange1.length !== 1 || timerRange1[0].seconds !== 12 || timerRange1[0].text !== '10-12 seconds') {
+  throw new Error(`Expected '10-12 seconds' (12s), got ${JSON.stringify(timerRange1)}`);
+}
+
+const timerRange2 = detectTimers('Stir for 25–30 secs until cold.');
+if (timerRange2.length !== 1 || timerRange2[0].seconds !== 30 || timerRange2[0].text !== '25–30 secs') {
+  throw new Error(`Expected '25–30 secs' (30s), got ${JSON.stringify(timerRange2)}`);
+}
+
+const timerRange3 = detectTimers('Blend on high speed for 20—25 seconds.');
+if (timerRange3.length !== 1 || timerRange3[0].seconds !== 25) {
+  throw new Error(`Expected em-dash range to detect 25s, got ${JSON.stringify(timerRange3)}`);
+}
+
+// Test abbreviations and singular forms
+const timerSingular = detectTimers('Rest for 1 second, then serve.');
+if (timerSingular.length !== 1 || timerSingular[0].seconds !== 1 || timerSingular[0].text !== '1 second') {
+  throw new Error(`Expected '1 second' (1s), got ${JSON.stringify(timerSingular)}`);
+}
+
+const timerSec = detectTimers('Shake hard for 15 sec.');
+if (timerSec.length !== 1 || timerSec[0].seconds !== 15) {
+  throw new Error(`Expected '15 sec' (15s), got ${JSON.stringify(timerSec)}`);
+}
+
+// Test multiple durations in one text
+const multiTimers = detectTimers('Dry shake for 10 seconds to emulsify, then add ice and shake for 15 seconds.');
+if (multiTimers.length !== 2 || multiTimers[0].seconds !== 10 || multiTimers[1].seconds !== 15) {
+  throw new Error(`Expected 2 timers (10s and 15s), got ${JSON.stringify(multiTimers)}`);
+}
+
+// Test negative / empty cases
+if (detectTimers('Build over fresh ice and stir gently.').length !== 0) {
+  throw new Error('Expected 0 timers for text without seconds');
+}
+if (detectTimers('').length !== 0 || detectTimers(null).length !== 0) {
+  throw new Error('Expected empty array for empty/null text');
+}
+
+// Test renderInstructionTimers token HTML generation
+const renderedTokenHtml = renderInstructionTimers('Shake for 12 seconds until cold.', (s) => s);
+if (!renderedTokenHtml.includes('<button type="button" class="timer-token" data-seconds="12"') || !renderedTokenHtml.includes('12 seconds</button>')) {
+  throw new Error(`Expected rendered token button in HTML, got: ${renderedTokenHtml}`);
+}
+console.log('Smart Counter Timer instruction parser tests passed.');
+
+console.log('--- Testing Palate Distance & Similarity Calculation ---');
+const { calculatePalateSimilarity } = await import('../js/modules/balance.js');
+
+// 1. Identical recipes must yield 100% similarity
+const negroniPalateMatchSelf = calculatePalateSimilarity(negroniSeed, negroniSeed);
+if (negroniPalateMatchSelf !== 100) {
+  throw new Error(`Expected self-palate match to be 100%, got ${negroniPalateMatchSelf}%`);
+}
+
+// 2. Max Euclidean distance between fully opposite profiles must be 0%
+const maxOppositeA = { balance: { sweet: 100, sour: 100, bitter: 100, boozy: 100, herbal: 100 } };
+const maxOppositeB = { balance: { sweet: 0, sour: 0, bitter: 0, boozy: 0, herbal: 0 } };
+const oppositeMatch = calculatePalateSimilarity(maxOppositeA, maxOppositeB);
+if (oppositeMatch !== 0) {
+  throw new Error(`Expected opposite profiles to yield 0% similarity, got ${oppositeMatch}%`);
+}
+
+// 3. Negroni vs Boulevardier (closely related flavor profiles) vs Negroni vs Daiquiri
+const boulevardierSeed = SEED_RECIPES.find(r => r.id === 'boulevardier');
+if (!boulevardierSeed) throw new Error('Boulevardier seed recipe missing');
+
+const negroniBoulevardierMatch = calculatePalateSimilarity(negroniSeed, boulevardierSeed);
+const negroniDaiquiriMatch = calculatePalateSimilarity(negroniSeed, daiquiriSeed);
+console.log(`Negroni <-> Boulevardier Palate Match: ${negroniBoulevardierMatch}%`);
+console.log(`Negroni <-> Daiquiri Palate Match: ${negroniDaiquiriMatch}%`);
+
+if (negroniBoulevardierMatch < 75) {
+  throw new Error(`Expected Negroni-Boulevardier similarity to be high (>=75%), got ${negroniBoulevardierMatch}%`);
+}
+if (negroniBoulevardierMatch <= negroniDaiquiriMatch) {
+  throw new Error(`Expected Negroni-Boulevardier (${negroniBoulevardierMatch}%) > Negroni-Daiquiri (${negroniDaiquiriMatch}%)`);
+}
+
+// 4. Raw flavor balance objects and boundary tolerance
+const directBalA = { sweet: 50, sour: 20, bitter: 30, boozy: 40, herbal: 10 };
+const directBalB = { sweet: 55, sour: 18, bitter: 28, boozy: 42, herbal: 12 };
+const directMatch = calculatePalateSimilarity(directBalA, directBalB);
+if (typeof directMatch !== 'number' || directMatch < 90 || directMatch > 100) {
+  throw new Error(`Expected close balance similarity to be 90-100%, got ${directMatch}%`);
+}
+
+if (calculatePalateSimilarity(null, negroniSeed) !== 0 || calculatePalateSimilarity(undefined, null) !== 0) {
+  throw new Error('Expected 0 for null/undefined inputs');
+}
+
+// 5. Plain English palate match descriptor tests
+const { formatPalateMatchLabel } = await import('../js/views/counter-view.js');
+const highTier = formatPalateMatchLabel(97);
+if (!highTier || highTier.label !== 'Close Match' || highTier.tierClass !== 'match-high') {
+  throw new Error(`Expected Close Match / match-high for 97%, got ${JSON.stringify(highTier)}`);
+}
+const midTier = formatPalateMatchLabel(82);
+if (!midTier || midTier.label !== 'Similar Vibe' || midTier.tierClass !== 'match-mid') {
+  throw new Error(`Expected Similar Vibe / match-mid for 82%, got ${JSON.stringify(midTier)}`);
+}
+const below80Tier = formatPalateMatchLabel(79);
+if (below80Tier !== null) {
+  throw new Error(`Expected null for 79%, got ${JSON.stringify(below80Tier)}`);
+}
+const boundary91 = formatPalateMatchLabel(91);
+if (!boundary91 || boundary91.label !== 'Close Match') {
+  throw new Error(`Expected Close Match for 91%, got ${JSON.stringify(boundary91)}`);
+}
+const boundary90 = formatPalateMatchLabel(90);
+if (!boundary90 || boundary90.label !== 'Similar Vibe') {
+  throw new Error(`Expected Similar Vibe for 90%, got ${JSON.stringify(boundary90)}`);
+}
+const boundary80 = formatPalateMatchLabel(80);
+if (!boundary80 || boundary80.label !== 'Similar Vibe') {
+  throw new Error(`Expected Similar Vibe for 80%, got ${JSON.stringify(boundary80)}`);
+}
+
+console.log('Palate distance and similarity tests passed.');
+
+console.log('--- Testing Ranked Bar Unlock Shopping List Engine ---');
+const { getRankedShoppingList } = await import('../js/modules/taxonomy.js');
+
+// 1. Controlled mock catalog test
+const mockRecipes = [
+  // Cocktail 1: Needs only Sweet Vermouth (1-bottle unlock)
+  { id: 'mock-1', name: 'Mock Boulevardier', specs: [{ name: 'Bourbon' }, { name: 'Campari' }, { name: 'Sweet Vermouth' }] },
+  // Cocktail 2: Needs only Sweet Vermouth (1-bottle unlock)
+  { id: 'mock-2', name: 'Mock Negroni', specs: [{ name: 'Gin' }, { name: 'Campari' }, { name: 'Sweet Vermouth' }] },
+  // Cocktail 3: Needs only Dry Vermouth (1-bottle unlock)
+  { id: 'mock-3', name: 'Mock Martini', specs: [{ name: 'Gin' }, { name: 'Dry Vermouth' }] },
+  // Cocktail 4: Needs Scotch and Amaretto (2-bottle unlock for each)
+  { id: 'mock-4', name: 'Mock Godfather', specs: [{ name: 'Scotch' }, { name: 'Amaretto' }] },
+  // Cocktail 5: Needs Scotch and Drambuie (2-bottle unlock for each)
+  { id: 'mock-5', name: 'Mock Rusty Nail', specs: [{ name: 'Scotch' }, { name: 'Drambuie' }] },
+  // Cocktail 6: Needs 3 bottles (neither 1-bottle nor 2-bottle unlock)
+  { id: 'mock-6', name: 'Mock Complex', specs: [{ name: 'Tequila' }, { name: 'Mezcal' }, { name: 'Chartreuse' }] },
+];
+
+const mockInventory = new Set(['bourbon', 'campari', 'gin']);
+const mockRanked = getRankedShoppingList(mockRecipes, mockInventory);
+
+// Sweet Vermouth should be #1 with 2 direct unlocks
+const topItem = mockRanked[0];
+if (!topItem || topItem.id !== 'sweet_vermouth' || topItem.unlockCount !== 2) {
+  throw new Error(`Expected Sweet Vermouth ranked #1 with 2 unlocks, got ${JSON.stringify(topItem)}`);
+}
+if (topItem.unlockedCocktails.length !== 2) {
+  throw new Error(`Expected 2 unlocked cocktails for Sweet Vermouth, got ${topItem.unlockedCocktails.length}`);
+}
+
+// Dry Vermouth should be #2 with 1 direct unlock
+const secondItem = mockRanked[1];
+if (!secondItem || secondItem.id !== 'dry_vermouth' || secondItem.unlockCount !== 1) {
+  throw new Error(`Expected Dry Vermouth ranked #2 with 1 unlock, got ${JSON.stringify(secondItem)}`);
+}
+
+// Scotch has 0 direct unlocks, but secondaryCount = 2 (unlocks Mock Godfather and Mock Rusty Nail to 1-away)
+const scotchItem = mockRanked.find(i => i.id === 'scotch');
+const amarettoItem = mockRanked.find(i => i.id === 'nut_liqueur');
+if (!scotchItem || scotchItem.unlockCount !== 0 || scotchItem.secondaryCount !== 2) {
+  throw new Error(`Expected Scotch secondaryCount = 2, got ${JSON.stringify(scotchItem)}`);
+}
+if (!amarettoItem || amarettoItem.unlockCount !== 0 || amarettoItem.secondaryCount !== 1) {
+  throw new Error(`Expected Amaretto secondaryCount = 1, got ${JSON.stringify(amarettoItem)}`);
+}
+
+// Scotch must be ranked before Amaretto due to secondary tie-breaker
+const scotchIndex = mockRanked.findIndex(i => i.id === 'scotch');
+const amarettoIndex = mockRanked.findIndex(i => i.id === 'nut_liqueur');
+if (scotchIndex >= amarettoIndex) {
+  throw new Error(`Expected Scotch (secondary: 2) to rank ahead of Amaretto (secondary: 1)`);
+}
+
+// 2. Canonical Seed Recipes + DEFAULT_STARTER_BAR Test
+const starterBarInventory = new Set(DEFAULT_STARTER_BAR);
+const canonicalShoppingList = getRankedShoppingList(SEED_RECIPES, starterBarInventory);
+
+if (canonicalShoppingList.length === 0) {
+  throw new Error('Expected canonical shopping list to have recommendations for Starter Bar');
+}
+
+// Verify strict descending sort
+for (let i = 0; i < canonicalShoppingList.length - 1; i++) {
+  const curr = canonicalShoppingList[i];
+  const next = canonicalShoppingList[i + 1];
+  if (curr.unlockCount < next.unlockCount) {
+    throw new Error(`Ranking order violation: ${curr.name} (${curr.unlockCount}) < ${next.name} (${next.unlockCount})`);
+  }
+  if (curr.unlockCount === next.unlockCount && curr.secondaryCount < next.secondaryCount) {
+    throw new Error(`Tie-breaker violation: ${curr.name} (${curr.secondaryCount}) < ${next.name} (${next.secondaryCount})`);
+  }
+}
+
+// Total 1-bottle unlocks across the shopping list must equal the 52 bottle-next drinks from Starter Bar
+const totalStarterUnlocks = canonicalShoppingList.reduce((sum, item) => sum + item.unlockCount, 0);
+console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 52)`);
+if (totalStarterUnlocks !== 52) {
+  throw new Error(`Expected exactly 52 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
+}
+
+console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingList[0].name} (+${canonicalShoppingList[0].unlockCount} cocktails)`);
+console.log('Ranked Bar Unlock Shopping List tests passed.');
+
 console.log('All tests completed successfully!');
+
 
