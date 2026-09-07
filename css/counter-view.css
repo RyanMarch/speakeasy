@@ -1229,7 +1229,7 @@
   background: rgba(124, 184, 148, 0.05);
 }
 
-.btn-remove-extra-spec {
+.btn-remove-spec-row {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1243,7 +1243,7 @@
   flex-shrink: 0;
 }
 
-.btn-remove-extra-spec:hover {
+.btn-remove-spec-row:hover {
   color: var(--color-crimson);
   background: rgba(199, 98, 94, 0.1);
   border-color: rgba(199, 98, 94, 0.3);

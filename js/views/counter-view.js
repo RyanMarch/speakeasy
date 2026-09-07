@@ -290,32 +290,37 @@ export function renderCounterView() {
 
   const hasActiveRiffs = Object.keys(state.activeRiffs).length > 0
     || Object.keys(state.riffAmountOverrides).length > 0
-    || state.riffExtraSpecs.length > 0;
+    || state.riffExtraSpecs.length > 0
+    || state.riffRemovedSpecs.size > 0;
 
-  const baseEffectiveSpecs = (recipe.specs || []).map((spec, index) => {
-    const riffId = state.activeRiffs[index];
-    const amountOverride = state.riffAmountOverrides[index];
-    const amount = amountOverride !== undefined ? amountOverride : spec.amount;
-    const amountChanged = amountOverride !== undefined && amountOverride !== spec.amount;
-    if (riffId && TAXONOMY[riffId]) {
+  const baseEffectiveSpecs = (recipe.specs || [])
+    .map((spec, index) => {
+      const riffId = state.activeRiffs[index];
+      const amountOverride = state.riffAmountOverrides[index];
+      const amount = amountOverride !== undefined ? amountOverride : spec.amount;
+      const amountChanged = amountOverride !== undefined && amountOverride !== spec.amount;
+      if (riffId && TAXONOMY[riffId]) {
+        return {
+          ...spec,
+          amount,
+          amountChanged,
+          name: TAXONOMY[riffId].name,
+          originalName: spec.name,
+          isRiff: true,
+          riffId,
+        };
+      }
       return {
         ...spec,
         amount,
         amountChanged,
-        name: TAXONOMY[riffId].name,
         originalName: spec.name,
-        isRiff: true,
-        riffId,
+        isRiff: false,
       };
-    }
-    return {
-      ...spec,
-      amount,
-      amountChanged,
-      originalName: spec.name,
-      isRiff: false,
-    };
-  });
+    })
+    // Index is captured above (before filtering), so amount overrides / riffs keyed
+    // by the *original* recipe.specs position still line up correctly.
+    .filter((_, index) => !state.riffRemovedSpecs.has(index));
 
   // Extra ingredients added while riffing. A row with an empty name is an
   // in-progress draft the user hasn't finished typing yet — keep it out of the
@@ -458,8 +463,13 @@ export function renderCounterView() {
         ${isRiff ? `<span class="spec-riff-badge" title="Substituted for ${escapeHtml(spec.originalName)}">sub</span>` : ''}
       `;
 
-    const removeExtraBtnHtml = (state.riffModeActive && spec.isExtra)
-      ? /*html*/`<button type="button" class="btn-remove-extra-spec" data-extra-index="${spec.extraIndex}" aria-label="Remove ${escapeHtml(spec.name || 'ingredient')}" title="Remove ingredient"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`
+    // Remove: available on every row in riff mode, not just ones the user added —
+    // dropping an original ingredient entirely is as valid a riff as substituting
+    // or resizing it. Replaces the "In Bar" toggle (rather than sitting next to
+    // it) so the actions cell stays a single compact icon while riffing instead
+    // of stacking two buttons into that already-narrow mobile column.
+    const removeSpecBtnHtml = state.riffModeActive
+      ? /*html*/`<button type="button" class="btn-remove-spec-row" data-spec-index="${index}" data-is-extra="${spec.isExtra ? '1' : '0'}" data-extra-index="${spec.extraIndex ?? ''}" aria-label="Remove ${escapeHtml(spec.name || 'ingredient')}" title="Remove ingredient"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`
       : '';
 
     return `
@@ -476,8 +486,7 @@ export function renderCounterView() {
         </div>
         ${riffControlHtml}
         <div class="spec-actions">
-          ${removeExtraBtnHtml}
-          ${spec.isExtra ? '' : stockControlHtml}
+          ${state.riffModeActive ? removeSpecBtnHtml : stockControlHtml}
         </div>
       </div>
     `;
@@ -975,11 +984,18 @@ export function renderCounterView() {
     });
   });
 
-  // Riff Mode: remove an added ingredient
-  elements.counterViewContainer.querySelectorAll('.btn-remove-extra-spec').forEach(btn => {
+  // Riff Mode: remove an ingredient — either one the user added (splice out of
+  // riffExtraSpecs) or an original recipe spec (mark its index removed; "Reset
+  // Riff" is what brings it back, same as every other riff-mode edit).
+  elements.counterViewContainer.querySelectorAll('.btn-remove-spec-row').forEach(btn => {
     btn.addEventListener('click', () => {
-      const extraIndex = parseInt(btn.getAttribute('data-extra-index'), 10);
-      state.riffExtraSpecs.splice(extraIndex, 1);
+      if (btn.getAttribute('data-is-extra') === '1') {
+        const extraIndex = parseInt(btn.getAttribute('data-extra-index'), 10);
+        state.riffExtraSpecs.splice(extraIndex, 1);
+      } else {
+        const idx = parseInt(btn.getAttribute('data-spec-index'), 10);
+        state.riffRemovedSpecs.add(idx);
+      }
       renderCounterView();
     });
   });
@@ -998,6 +1014,7 @@ export function renderCounterView() {
     state.activeRiffs = {};
     state.riffAmountOverrides = {};
     state.riffExtraSpecs = [];
+    state.riffRemovedSpecs = new Set();
     renderCounterView();
     showToast('Reverted to original recipe specs');
   });
@@ -1009,21 +1026,28 @@ export function renderCounterView() {
     const swapped = savableSpecs.filter(s => s.isRiff);
     const amountTweaked = savableSpecs.filter(s => !s.isRiff && !s.isExtra && s.amountChanged);
     const added = savableSpecs.filter(s => s.isExtra);
+    // Removed specs never make it into effectiveSpecs at all — read them back
+    // off the original recipe using the indices tracked in riffRemovedSpecs.
+    const removed = (recipe.specs || []).filter((_, idx) => state.riffRemovedSpecs.has(idx));
 
     const changeDescriptions = [
       ...swapped.map(s => `substituted ${s.originalName} with ${s.name}`),
       ...amountTweaked.map(s => `adjusted ${s.name} to ${formatFraction(s.amount)} ${s.unit || 'oz'}`),
       ...added.map(s => `added ${s.name}`),
+      ...removed.map(s => `removed ${s.name}`),
     ];
 
     // Prefer naming the riff after substitutions (the most "this is a different
-    // drink" kind of change); fall back to what was added, then a generic label
-    // for amount-only tweaks, which don't really give the riff a new identity.
+    // drink" kind of change); fall back to additions, then removals, then a
+    // generic label for amount-only tweaks, which don't really give the riff a
+    // new identity.
     const nameSuffix = swapped.length > 0
       ? swapped.map(s => s.name).join(' / ')
       : added.length > 0
         ? added.map(s => s.name).join(' / ')
-        : 'Custom';
+        : removed.length > 0
+          ? `No ${removed.map(s => s.name).join(' / ')}`
+          : 'Custom';
     const newName = `${recipe.name} (${nameSuffix} Riff)`;
     const changeSummary = changeDescriptions.length > 0
       ? `Riff on ${recipe.name}: ${changeDescriptions.join(', ')}.`
@@ -1051,6 +1075,7 @@ export function renderCounterView() {
     state.activeRiffs = {};
     state.riffAmountOverrides = {};
     state.riffExtraSpecs = [];
+    state.riffRemovedSpecs = new Set();
     if (_selectRecipeFn) _selectRecipeFn(saved.id);
     showToast(`Saved new riff: ${newName}`);
   });
