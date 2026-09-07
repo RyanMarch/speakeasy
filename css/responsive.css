@@ -908,11 +908,16 @@
     margin: 1.5rem 0 0.25rem;
   }
 
-  .home-browse-all-btn {
-    display: inline-flex;
-    width: 100%;
-    justify-content: center;
+  .home-browse-actions {
+    display: flex;
+    gap: 0.6rem;
     margin-top: 0.25rem;
+  }
+
+  .home-browse-all-btn,
+  .home-search-btn {
+    flex: 1;
+    width: 100%;
   }
 
   .home-pin-row {
@@ -938,6 +943,33 @@
   .backbar-nav-tabs {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+
+  /* Shopping List cards: .shopping-card-left (dot + name + badge + family) and
+     .shopping-card-actions (Add button + expand chevron) sit in one flex row with
+     no wrap fallback, so on a narrow screen they were forced into the same space
+     and visibly overlapped. Stack them instead: left content gets the full row,
+     actions drop to their own row underneath, right-aligned. */
+  .backbar-shopping-container {
+    padding: 1rem;
+  }
+
+  .shopping-card {
+    padding: 0.75rem 0.9rem;
+  }
+
+  .shopping-card-header {
+    flex-wrap: wrap;
+  }
+
+  .shopping-card-left {
+    flex-basis: 100%;
+  }
+
+  .shopping-card-actions {
+    flex-basis: 100%;
+    justify-content: flex-end;
+    margin-top: 0.6rem;
   }
 
   .backbar-categories-container {
