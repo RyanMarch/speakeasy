@@ -86,6 +86,26 @@ const state = {
   backbarCategoryFilter: 'all', // 'all' | categoryKey | 'fridge'
 };
 
+// analyzeRecipeInventory() is a relatively expensive per-recipe scan (it resolves every spec
+// through the ingredient taxonomy), but its result only depends on the recipe and the current
+// backbar inventory — never on the search query. renderRecipeList() re-analyzes every recipe on
+// every keystroke, so without caching, typing recomputes the exact same inventory result for
+// every recipe on every character. Cache by recipe object (getRecipes() returns fresh objects
+// whenever the recipe list reloads, so the cache self-invalidates then) and bump
+// inventoryVersion any time state.inventory itself is mutated in place.
+const inventoryAnalysisCache = new WeakMap();
+let inventoryVersion = 0;
+
+function getCachedInventoryAnalysis(recipe) {
+  const cached = inventoryAnalysisCache.get(recipe);
+  if (cached && cached.version === inventoryVersion) {
+    return cached.result;
+  }
+  const result = analyzeRecipeInventory(recipe, state.inventory);
+  inventoryAnalysisCache.set(recipe, { version: inventoryVersion, result });
+  return result;
+}
+
 // DOM References
 const elements = {
   sidebar: document.getElementById('sidebar'),
@@ -233,6 +253,17 @@ function setupGlobalEventListeners() {
     state.searchQuery = '';
     elements.searchClearBtn.classList.remove('visible');
     renderRecipeList();
+  });
+
+  // Delegated click handler for the recipe list: renderRecipeList() rebuilds its
+  // innerHTML on every keystroke (search filters live), so attaching a listener per
+  // <button> there meant re-binding up to one per recipe on every render. One
+  // listener on the stable container, matched via closest(), costs nothing per render.
+  elements.recipeList.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="select"]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-id');
+    selectRecipe(id);
   });
 
   // Header & Footer Home Actions
@@ -561,6 +592,7 @@ function setupBackbarEventListeners() {
     if (hasAllStarter) return;
     DEFAULT_STARTER_BAR.forEach(id => state.inventory.add(id));
     saveInventory(Array.from(state.inventory));
+    inventoryVersion++;
     updateMyBarBadge();
     renderRecipeList();
     if (state.viewMode === 'counter') {
@@ -577,6 +609,7 @@ function setupBackbarEventListeners() {
     if (confirm('Clear all bottles from your backbar?')) {
       state.inventory.clear();
       saveInventory([]);
+      inventoryVersion++;
       updateMyBarBadge();
       renderRecipeList();
       if (state.viewMode === 'counter') {
@@ -809,6 +842,7 @@ function toggleInventoryBottle(bottleId) {
     state.inventory.add(bottleId);
   }
   saveInventory(Array.from(state.inventory));
+  inventoryVersion++;
   updateMyBarBadge();
   renderRecipeList();
   if (state.viewMode === 'counter') {
@@ -939,7 +973,7 @@ function renderRecipeList() {
   const queryMatched = state.recipes.map(recipe => {
     const matchesSearch = !state.searchQuery || recipeMatchesQuery(recipe, state.searchQuery);
     const matchesPack = state.packFilter === 'all' || (Array.isArray(recipe.tags) && recipe.tags.includes(state.packFilter));
-    const invAnalysis = analyzeRecipeInventory(recipe, state.inventory);
+    const invAnalysis = getCachedInventoryAnalysis(recipe);
     return { recipe, matchesSearch, matchesPack, invAnalysis };
   });
 
@@ -1067,14 +1101,6 @@ function renderRecipeList() {
       </li>
     `;
   }).join('');
-
-  // Wire selection
-  elements.recipeList.querySelectorAll('[data-action="select"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.getAttribute('data-id');
-      selectRecipe(id);
-    });
-  });
 }
 
 /**
@@ -1471,7 +1497,7 @@ function renderHomeShelf(col, idx) {
 }
 
 function renderHomeCard(recipe, collectionKey, idx) {
-  const invAnalysis = analyzeRecipeInventory(recipe, state.inventory);
+  const invAnalysis = getCachedInventoryAnalysis(recipe);
   const specNames = (recipe.specs || []).map(s => s.name).filter(Boolean);
   return  /*html*/`
     <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(recipe.id)}" role="button" tabindex="0">
@@ -2123,6 +2149,7 @@ function renderCounterView() {
       if (bottleId) {
         state.inventory.add(bottleId);
         saveInventory(Array.from(state.inventory));
+        inventoryVersion++;
         updateMyBarBadge();
         renderRecipeList();
         renderCounterView();
