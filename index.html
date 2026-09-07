@@ -13,14 +13,26 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Speakeasy">
-  <meta name="theme-color" content="#121110">
+  <meta name="theme-color" content="#243144">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/base.css?v=15">
-  <link rel="stylesheet" href="css/index.css?v=45">
+  <link rel="stylesheet" href="css/index.css?v=50">
+  <link rel="stylesheet" href="css/theme-deco.css?v=9">
   <!-- Preload the ES module graph so the browser fetches it in parallel instead of
        discovering each import one-by-one as app.js's static imports are parsed. -->
-  <link rel="modulepreload" href="app.js?v=29">
+  <link rel="modulepreload" href="app.js?v=31">
+  <link rel="modulepreload" href="js/state.js">
+  <link rel="modulepreload" href="js/router.js">
+  <link rel="modulepreload" href="js/data/seed-recipes.js">
+  <link rel="modulepreload" href="js/views/recipe-list-view.js">
+  <link rel="modulepreload" href="js/views/home-view.js">
+  <link rel="modulepreload" href="js/views/counter-view.js">
+  <link rel="modulepreload" href="js/components/top-bar.js">
+  <link rel="modulepreload" href="js/components/backbar-modal.js">
+  <link rel="modulepreload" href="js/components/hidden-modal.js">
+  <link rel="modulepreload" href="js/components/editor-modal.js">
+  <link rel="modulepreload" href="js/components/timer-modal.js">
+  <link rel="modulepreload" href="js/components/toast.js">
   <link rel="modulepreload" href="js/modules/storage.js">
   <link rel="modulepreload" href="js/modules/parser.js">
   <link rel="modulepreload" href="js/modules/colors.js">
@@ -160,11 +172,14 @@
               </div>
             </button>
 
-            <button type="button" id="btn-manage-hidden" class="vault-action-item" title="View and restore hidden cocktails">
+            <button type="button" id="btn-manage-hidden" class="vault-action-item"
+              title="View and restore hidden cocktails">
               <div class="vault-action-icon">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                  </path>
                   <line x1="1" y1="1" x2="23" y2="23"></line>
                 </svg>
               </div>
@@ -236,12 +251,12 @@
       <aside class="sidebar" id="sidebar" aria-label="Cocktail library sidebar">
         <div class="sidebar-search-box">
           <div class="search-input-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="search" id="search-input" class="search-input" placeholder="Search drinks, spirits..."
+            <input type="search" id="search-input" class="search-input" placeholder="Search drinks, spirits, flavors..."
               aria-label="Search recipes">
             <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
           </div>
@@ -324,13 +339,19 @@
         <div class="backbar-dialog-header">
           <div>
             <h2 id="backbar-modal-title" class="backbar-dialog-title">Personal Backbar</h2>
-            <p class="backbar-dialog-subtitle">Select the bottles and bar staples you keep in stock.</p>
+            <p class="backbar-dialog-subtitle" id="backbar-dialog-subtitle">Select the bottles and bar staples you keep in stock.</p>
           </div>
           <button id="btn-close-backbar" class="btn btn-ghost btn-sm close-modal-btn"
             aria-label="Close modal">✕</button>
         </div>
 
-        <div class="backbar-toolbar">
+        <!-- Backbar View Switcher: My Bar vs Shopping List -->
+        <div class="backbar-view-switcher" id="backbar-view-switcher" role="tablist" aria-label="Backbar views">
+          <button type="button" class="backbar-view-tab active" id="tab-backbar-my-bar" data-view="inventory" role="tab" aria-selected="true">My Bar</button>
+          <button type="button" class="backbar-view-tab" id="tab-backbar-shopping-list" data-view="shopping" role="tab" aria-selected="false">Shopping List</button>
+        </div>
+
+        <div class="backbar-toolbar" id="backbar-inventory-toolbar">
           <div class="search-input-wrapper backbar-search-wrapper">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -376,6 +397,10 @@
           <!-- Dynamically populated taxonomy categories and bottle pills -->
         </div>
 
+        <div class="backbar-shopping-container" id="backbar-shopping-container" style="display: none;">
+          <!-- Dynamically populated ranked unlock shopping list -->
+        </div>
+
         <div class="backbar-dialog-footer">
           <span class="backbar-summary-text" id="backbar-summary-text">0 bottles in your backbar</span>
           <button id="btn-done-backbar" class="btn btn-primary btn-sm">Done</button>
@@ -389,7 +414,8 @@
         <div class="backbar-dialog-header">
           <div class="backbar-header-info">
             <h2 class="backbar-dialog-title" id="hidden-modal-title">Hidden Cocktails</h2>
-            <p class="backbar-dialog-subtitle">Manage default recipes you've hidden from your library. Unhide anytime to restore.</p>
+            <p class="backbar-dialog-subtitle">Manage default recipes you've hidden from your library. Unhide anytime to
+              restore.</p>
           </div>
           <button id="btn-close-hidden-modal" class="btn btn-ghost btn-modal-close" aria-label="Close dialog">✕</button>
         </div>
@@ -405,11 +431,14 @@
       </div>
     </dialog>
 
+    <!-- Smart Counter Timer Toast (Non-modal floating widget) -->
+    <div id="timer-modal" class="timer-toast" role="status" aria-live="polite" style="display: none;"></div>
+
     <!-- Toast Notifications Area -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=29"></script>
+  <script type="module" src="app.js?v=31"></script>
 </body>
 
 </html>

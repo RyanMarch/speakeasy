@@ -4,7 +4,7 @@
  * No build step, no Workbox — just the Cache Storage and Fetch APIs.
  */
 
-const CACHE_NAME = 'speakeasy-v1';
+const CACHE_NAME = 'speakeasy-v2';
 
 // Core shell files precached at install time, so the app has *something* to serve
 // on a cold offline open even before the fetch handler below has had a chance to

@@ -93,6 +93,33 @@ export function getDominantAxes(profile, count = 3) {
     .map(axis => axis.label);
 }
 
+/**
+ * Calculates the palate similarity percentage (0-100) between two recipes
+ * based on the normalized Euclidean distance across their 5-axis flavor profiles
+ * (sweet, sour, bitter, boozy, herbal).
+ *
+ * @param {Object} recipeA - First recipe object (or flavor balance profile object)
+ * @param {Object} recipeB - Second recipe object (or flavor balance profile object)
+ * @returns {number} Integer similarity match percentage (0 to 100)
+ */
+export function calculatePalateSimilarity(recipeA, recipeB) {
+  if (!recipeA || !recipeB) return 0;
+
+  const balA = recipeA.balance || (recipeA.specs ? calculateBalanceProfile(recipeA.specs) : recipeA) || {};
+  const balB = recipeB.balance || (recipeB.specs ? calculateBalanceProfile(recipeB.specs) : recipeB) || {};
+
+  const axes = ['sweet', 'sour', 'bitter', 'boozy', 'herbal'];
+  const sumSquares = axes.reduce((sum, axis) => {
+    const diff = (balA[axis] || 0) - (balB[axis] || 0);
+    return sum + diff * diff;
+  }, 0);
+
+  const distance = Math.sqrt(sumSquares); // Max possible distance approx sqrt(5 * 100^2) ≈ 223.6
+  const matchPercentage = Math.max(0, Math.min(100, Math.round(100 - (distance / 2.236))));
+  return matchPercentage;
+}
+
+
 function escapeXml(str) {
   if (!str) return '';
   return String(str)
