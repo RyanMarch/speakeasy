@@ -48,7 +48,7 @@
   .counter-view,
   .editor-view {
     --desktop-inset: 1.5rem;
-    padding-left: var(--desktop-inset);
+    /* padding-left: var(--desktop-inset); */
     padding-right: var(--desktop-inset);
   }
 
@@ -668,14 +668,33 @@
   }
 
   .counter-view.riff-mode-active .spec-row {
-    grid-template-columns: 55px 1fr auto auto;
-    gap: 0.4rem;
+    grid-template-columns: 52px 1fr auto auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .spec-riff-wrapper {
+    flex-shrink: 0;
   }
 
   .spec-riff-select {
-    font-size: 0.7rem;
-    padding: 0.2rem 1.1rem 0.2rem 0.4rem;
-    max-width: 105px;
+    font-size: 0.72rem;
+    padding: 0.24rem 1.15rem 0.24rem 0.55rem;
+    width: 68px;
+    min-width: 68px;
+    max-width: 72px;
+    text-align: left;
+  }
+
+  .spec-riff-select.active-riff {
+    width: 72px;
+    min-width: 72px;
+  }
+
+  .spec-riff-active-label {
+    left: 0.5rem;
+    right: 1.1rem;
+    font-size: 0.72rem;
   }
 
   .spec-amount {
