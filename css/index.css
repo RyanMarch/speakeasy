@@ -2734,6 +2734,27 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   }
 }
 
+/* Whole-page cross-fade for Home <-> recipe <-> editor switches (see the View
+   Transitions API wrapper around renderCurrentView() in app.js). Left as a plain
+   cross-fade of the whole page rather than per-element morphing — Home's
+   multi-row layout and a recipe's two-column layout don't share element shapes,
+   so a simple fade is what stays glitch-free between such different layouts.
+   This is also what covers browser back/forward, including a trackpad's
+   swipe-to-go-back gesture, since that's still just our hashchange handler under
+   the hood — no separate handling needed for it. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 /* Similar Cocktails Shelf & Horizontal Scroll Carousel */
 .similar-cocktails-shelf {
   margin-top: 3.5rem;

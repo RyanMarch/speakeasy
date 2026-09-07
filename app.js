@@ -329,7 +329,7 @@ function setupGlobalEventListeners() {
   window.addEventListener('hashchange', () => {
     const rawHash = window.location.hash.replace(/^#+/, '').trim();
     if (!rawHash) {
-      // User navigated back past the last recipe (or cleared the hash manually): land on Home
+      // User navigated back to clean root / home: land on Home view
       if (state.viewMode !== 'home') {
         state.viewMode = 'home';
         renderRecipeList();
@@ -339,8 +339,10 @@ function setupGlobalEventListeners() {
       elements.mainStage.classList.remove('mobile-hidden');
       return;
     }
-    if (rawHash !== state.activeRecipeId && state.recipes.some(r => r.id === rawHash)) {
-      selectRecipe(rawHash, false);
+    if (state.recipes.some(r => r.id === rawHash)) {
+      if (state.viewMode !== 'counter' || rawHash !== state.activeRecipeId) {
+        selectRecipe(rawHash, false);
+      }
     }
   });
 
@@ -1241,29 +1243,70 @@ function selectRecipe(id, updateHistory = true) {
   if (elements.mainStage) {
     elements.mainStage.scrollTop = 0;
   }
+  window.scrollTo({ top: 0 });
 }
 
 /**
  * Render active view based on state.viewMode
+ *
+ * Wrapped in the View Transitions API (when available) so switching between Home,
+ * a recipe, and the editor cross-fades smoothly instead of hard-cutting — this
+ * covers every entry point uniformly (card clicks, the Home button, and browser
+ * back/forward, which includes a trackpad's swipe-to-go-back gesture, since that
+ * just triggers our existing hashchange handler like any other history change).
  */
 function renderCurrentView() {
-  if (state.viewMode === 'edit') {
-    elements.homeViewContainer.style.display = 'none';
-    elements.counterViewContainer.style.display = 'none';
-    elements.editorViewContainer.style.display = 'block';
-    elements.btnNewDrink.style.display = 'none';
-  } else if (state.viewMode === 'home') {
-    elements.editorViewContainer.style.display = 'none';
-    elements.counterViewContainer.style.display = 'none';
-    elements.homeViewContainer.style.display = 'block';
-    elements.btnNewDrink.style.display = '';
-    renderHomeView();
+  const applyView = () => {
+    if (state.viewMode === 'edit') {
+      if (window._counterScrollObserver) {
+        window._counterScrollObserver.disconnect();
+      }
+      elements.homeViewContainer.style.display = 'none';
+      elements.counterViewContainer.style.display = 'none';
+      elements.editorViewContainer.style.display = 'block';
+      elements.btnNewDrink.style.display = 'none';
+      elements.desktopStickyTitle?.classList.remove('visible');
+      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
+    } else if (state.viewMode === 'home') {
+      if (window._counterScrollObserver) {
+        window._counterScrollObserver.disconnect();
+      }
+      elements.editorViewContainer.style.display = 'none';
+      elements.counterViewContainer.style.display = 'none';
+      elements.homeViewContainer.style.display = 'block';
+      elements.btnNewDrink.style.display = '';
+      elements.desktopStickyTitle?.classList.remove('visible');
+      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
+      renderHomeView();
+    } else {
+      elements.homeViewContainer.style.display = 'none';
+      elements.editorViewContainer.style.display = 'none';
+      elements.counterViewContainer.style.display = 'block';
+      elements.btnNewDrink.style.display = '';
+      renderCounterView();
+    }
+  };
+
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (!reducedMotion && document.startViewTransition) {
+    // Starting a transition while a previous one is still finishing throws
+    // InvalidStateError; cleanly skip the old one first rather than let that
+    // happen (applyView() itself always runs regardless of transition state).
+    window._activeViewTransition?.skipTransition?.();
+    const transition = document.startViewTransition(applyView);
+    window._activeViewTransition = transition;
+    // skipTransition() (above, on the *previous* transition) and a transition
+    // simply losing a race with a newer one both reject .ready/.finished by
+    // design — swallow both on every transition so neither surfaces as an
+    // unhandled rejection.
+    transition.ready.catch(() => {});
+    transition.finished.catch(() => {}).finally(() => {
+      if (window._activeViewTransition === transition) {
+        window._activeViewTransition = null;
+      }
+    });
   } else {
-    elements.homeViewContainer.style.display = 'none';
-    elements.editorViewContainer.style.display = 'none';
-    elements.counterViewContainer.style.display = 'block';
-    elements.btnNewDrink.style.display = '';
-    renderCounterView();
+    applyView();
   }
 }
 
