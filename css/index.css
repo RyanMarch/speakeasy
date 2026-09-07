@@ -3477,11 +3477,17 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
     gap: 1.75rem;
   }
 
+  /* .glass-column holds 4 children (.glass-wrapper, the layered/mixed toggle, the
+     ABV meta card, and the riff button) — row layout only ever worked for 2, and
+     packed all 4 into the fixed 260px width, so .glass-wrapper (the largest flex
+     basis) got squeezed to 0 and the glass image disappeared entirely. Stack them
+     in a column instead, same as the sub-769px mobile layout already does. */
   .glass-column {
     position: static;
-    flex-direction: row;
-    justify-content: center;
-    gap: 1.5rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 auto;
   }
 
   .glass-meta-card {
