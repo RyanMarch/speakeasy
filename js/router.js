@@ -162,14 +162,15 @@ export function showDrinksListMobile({ focusSearch = false, query } = {}) {
   }
 
   if (focusSearch && elements.searchInput) {
-    // A layout/view-transition may still be settling; without a tick's delay the
-    // focus can land before the input is actually visible/interactive on iOS.
-    setTimeout(() => {
-      elements.searchInput.focus();
-      if (typeof query === 'string') {
-        const len = elements.searchInput.value.length;
-        elements.searchInput.setSelectionRange(len, len);
-      }
-    }, 50);
+    // Must be synchronous, not deferred via setTimeout/rAF: iOS Safari only
+    // raises the virtual keyboard for a .focus() called directly within the
+    // click handler's own call stack. A deferred focus still sets
+    // document.activeElement, but the keyboard never appears — which is exactly
+    // what made this look like "nothing happened" when tapping Search.
+    elements.searchInput.focus();
+    if (typeof query === 'string') {
+      const len = elements.searchInput.value.length;
+      elements.searchInput.setSelectionRange(len, len);
+    }
   }
 }
