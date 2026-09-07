@@ -1016,7 +1016,7 @@ export const TAXONOMY = {
     light: '#562516',
     dark: '#1f0904',
     defaultAbv: 39,
-    aliases: ['fernet-branca', 'fernet branca', 'branca menta', 'braulio', 'amaro sibilla', 'fernet'],
+    aliases: ['fernet-branca', 'fernet branca', 'branca menta', 'braulio', 'amaro braulio', 'amaro sibilla', 'fernet'],
   },
   gentian: {
     id: 'gentian',
@@ -1789,7 +1789,7 @@ export const TAXONOMY = {
     light: '#eeb64a',
     dark: '#9a6b16',
     defaultAbv: 5,
-    aliases: ['beer', 'lager', 'stout', 'pilsner', 'ipa', 'pale ale', 'guinness'],
+    aliases: ['beer', 'mexican lager', 'mexican beer', 'lager', 'stout', 'pilsner', 'ipa', 'pale ale', 'guinness'],
   },
   cider: {
     id: 'cider',
@@ -1876,8 +1876,12 @@ export const REFRIGERATED_INGREDIENT_IDS = new Set([
   'espresso',
 ]);
 
-// Pre-build a fast alias lookup table sorted by length descending so longer phrases match first
+// Pre-build a fast alias lookup table sorted by length descending so longer phrases match first.
+// normAlias/regex are precomputed once here (rather than inside findIngredient's hot loop) since
+// this list is static for the life of the page — recomputing the same ~700 normalizations and
+// RegExp objects on every findIngredient() call was the single biggest cost in recipe search.
 const ALIAS_LOOKUP = [];
+const EXACT_ALIAS_MAP = new Map();
 for (const key of Object.keys(TAXONOMY)) {
   const item = TAXONOMY[key];
   const allNames = new Set([
@@ -1887,11 +1891,18 @@ for (const key of Object.keys(TAXONOMY)) {
     ...(item.brands || []).map(b => b.toLowerCase()),
   ]);
   for (const alias of allNames) {
+    const normAlias = normalizeText(alias);
     ALIAS_LOOKUP.push({
       alias,
+      normAlias,
       length: alias.length,
       item,
+      wordBoundaryRegex: normAlias.length >= 3 ? new RegExp(`(^|\\s)${normAlias}(\\s|$)`, 'i') : null,
     });
+    // First entry wins on collision, matching the linear scan's original behavior.
+    if (!EXACT_ALIAS_MAP.has(normAlias)) {
+      EXACT_ALIAS_MAP.set(normAlias, item);
+    }
   }
 }
 ALIAS_LOOKUP.sort((a, b) => b.length - a.length);
@@ -1909,36 +1920,44 @@ export function normalizeText(text = '') {
     .trim();
 }
 
+// Same taxonomy, same input strings recur constantly (every recipe's specs are drawn from a
+// small shared ingredient vocabulary), so a plain result cache turns most calls into an O(1)
+// Map lookup instead of re-running the resolution below.
+const FIND_INGREDIENT_CACHE = new Map();
+
 /**
  * Resolves a raw ingredient string to a canonical taxonomy entry
  */
 export function findIngredient(rawText = '') {
   if (!rawText) return null;
+
+  const cached = FIND_INGREDIENT_CACHE.get(rawText);
+  if (cached !== undefined) return cached;
+
+  const result = resolveIngredient(rawText);
+  FIND_INGREDIENT_CACHE.set(rawText, result);
+  return result;
+}
+
+function resolveIngredient(rawText) {
   const normalized = normalizeText(rawText);
   if (!normalized) return null;
 
-  // 1. Direct exact alias match
-  for (const entry of ALIAS_LOOKUP) {
-    const normAlias = normalizeText(entry.alias);
-    if (normalized === normAlias) {
-      return entry.item;
-    }
-  }
+  // 1. Direct exact alias match — O(1) instead of scanning the whole alias list
+  const exact = EXACT_ALIAS_MAP.get(normalized);
+  if (exact) return exact;
 
   // 2. Word boundary substring match (longer phrases prioritized)
   for (const entry of ALIAS_LOOKUP) {
-    const normAlias = normalizeText(entry.alias);
-    if (normAlias.length < 3) continue;
-    const pattern = new RegExp(`(^|\\s)${normAlias}(\\s|$)`, 'i');
-    if (pattern.test(normalized)) {
+    if (!entry.wordBoundaryRegex) continue;
+    if (entry.wordBoundaryRegex.test(normalized)) {
       return entry.item;
     }
   }
 
   // 3. Fallback partial inclusion for long phrases
   for (const entry of ALIAS_LOOKUP) {
-    const normAlias = normalizeText(entry.alias);
-    if (normAlias.length >= 4 && normalized.includes(normAlias)) {
+    if (entry.normAlias.length >= 4 && normalized.includes(entry.normAlias)) {
       return entry.item;
     }
   }
@@ -2081,9 +2100,16 @@ export function recipeMatchesQuery(recipe, query = '') {
  * Resolves logical ingredient substitutes from the taxonomy based on family or parent grouping.
  * Used by the Smart Ingredient Swapper ("Riff Mode").
  */
+// Result depends only on the resolved ingredient's id, and TAXONOMY is static — cache by id so
+// repeat callers (every missing-ingredient check in analyzeRecipeInventory) skip the full scan.
+const SUBSTITUTES_CACHE = new Map();
+
 export function getIngredientSubstitutes(rawIngredientName = '') {
   const current = findIngredient(rawIngredientName);
   if (!current) return [];
+
+  const cached = SUBSTITUTES_CACHE.get(current.id);
+  if (cached) return cached;
 
   const candidates = [];
   const seenIds = new Set([current.id]);
@@ -2139,6 +2165,7 @@ export function getIngredientSubstitutes(rawIngredientName = '') {
 
   // Sort alphabetically by canonical name
   candidates.sort((a, b) => a.name.localeCompare(b.name));
+  SUBSTITUTES_CACHE.set(current.id, candidates);
   return candidates;
 }
 

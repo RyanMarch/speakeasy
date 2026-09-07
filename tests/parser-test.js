@@ -610,7 +610,7 @@ SEED_RECIPES.forEach(recipe => {
     throw new Error(`Cocktail ${recipe.name} calculated invalid ABV: ${JSON.stringify(abvResult)}`);
   }
 });
-console.log(`All 150 canonical recipes verified: proper metadata, valid fluid layers, and realistic ABV calculations.`);
+console.log(`All ${SEED_RECIPES.length} canonical recipes verified: proper metadata, valid fluid layers, and realistic ABV calculations.`);
 
 console.log('--- Testing Method Content Parser (Ordered, Unordered, Prose) ---');
 const orderedTest = `1. Add bourbon, demerara syrup, and bitters to a mixing glass.
@@ -703,6 +703,60 @@ if (!blueHawaiiSvg.includes('blended-fluid-body') || !blueHawaiiSvg.includes('da
   throw new Error('Expected rendered SVG to contain blended-fluid-body and data-mode="blended"');
 }
 console.log('Blended cocktail color calculation and SVG generation tests passed.');
+
+console.log('--- Testing Hidden Recipe Storage & Toggles ---');
+const {
+  getHiddenRecipeIds,
+  saveHiddenRecipeIds,
+  isRecipeHidden,
+  hideRecipe,
+  unhideRecipe,
+  unhideAllRecipes,
+} = await import('../js/modules/storage.js');
+
+// Mock localStorage if in node environment
+if (typeof globalThis.localStorage === 'undefined') {
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (key) => store.get(key) || null,
+    setItem: (key, val) => store.set(key, String(val)),
+    removeItem: (key) => store.delete(key),
+    clear: () => store.clear(),
+  };
+}
+
+unhideAllRecipes();
+if (getHiddenRecipeIds().length !== 0) throw new Error('Expected hidden recipes list to be empty initially');
+
+hideRecipe('negroni');
+if (!isRecipeHidden('negroni')) throw new Error('Expected negroni to be hidden');
+if (getHiddenRecipeIds().length !== 1) throw new Error('Expected 1 hidden recipe');
+
+hideRecipe('old-fashioned');
+if (getHiddenRecipeIds().length !== 2) throw new Error('Expected 2 hidden recipes');
+
+unhideRecipe('negroni');
+if (isRecipeHidden('negroni')) throw new Error('Expected negroni to no longer be hidden');
+if (getHiddenRecipeIds().length !== 1) throw new Error('Expected 1 hidden recipe remaining');
+
+unhideAllRecipes();
+if (getHiddenRecipeIds().length !== 0) throw new Error('Expected 0 hidden recipes after unhideAll');
+
+const { getRecipes } = await import('../js/modules/storage.js');
+const baseRecipesCount = getRecipes().length;
+hideRecipe('negroni');
+const recipesAfterHide = getRecipes();
+if (recipesAfterHide.length !== baseRecipesCount - 1) {
+  throw new Error(`Expected recipe count ${baseRecipesCount - 1}, but got ${recipesAfterHide.length}`);
+}
+if (recipesAfterHide.some(r => r.id === 'negroni')) {
+  throw new Error('Expected negroni to be excluded from getRecipes()');
+}
+unhideAllRecipes();
+if (getRecipes().length !== baseRecipesCount) {
+  throw new Error('Expected full recipe count after unhideAll');
+}
+console.log('Hidden recipe storage and toggle tests passed.');
 
 console.log('All tests completed successfully!');
 
