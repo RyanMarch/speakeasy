@@ -1027,11 +1027,15 @@ for (let i = 0; i < canonicalShoppingList.length - 1; i++) {
   }
 }
 
-// Total 1-bottle unlocks across the shopping list must equal the 52 bottle-next drinks from Starter Bar
+// Total 1-bottle unlocks across the shopping list must equal the 50 bottle-next drinks from Starter Bar.
+// (Was 52 before Peychaud's Bitters got its own taxonomy id split out of aromatic_bitters —
+// Sazerac, Vieux Carré, Metropole, Monte Carlo, and À La Louisienne all call for it by name, and
+// were incorrectly counted as "ready to make" off owning Angostura alone. Splitting them fixed the
+// glass color for those recipes but correctly cost 2 bottle-next unlocks off the Starter Bar's count.)
 const totalStarterUnlocks = canonicalShoppingList.reduce((sum, item) => sum + item.unlockCount, 0);
-console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 52)`);
-if (totalStarterUnlocks !== 52) {
-  throw new Error(`Expected exactly 52 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
+console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 50)`);
+if (totalStarterUnlocks !== 50) {
+  throw new Error(`Expected exactly 50 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
 }
 
 console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingList[0].name} (+${canonicalShoppingList[0].unlockCount} cocktails)`);
