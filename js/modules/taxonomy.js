@@ -1016,7 +1016,7 @@ export const TAXONOMY = {
     light: '#562516',
     dark: '#1f0904',
     defaultAbv: 39,
-    aliases: ['fernet-branca', 'fernet branca', 'branca menta', 'braulio', 'amaro sibilla', 'fernet'],
+    aliases: ['fernet-branca', 'fernet branca', 'branca menta', 'braulio', 'amaro braulio', 'amaro sibilla', 'fernet'],
   },
   gentian: {
     id: 'gentian',
@@ -1789,7 +1789,7 @@ export const TAXONOMY = {
     light: '#eeb64a',
     dark: '#9a6b16',
     defaultAbv: 5,
-    aliases: ['beer', 'lager', 'stout', 'pilsner', 'ipa', 'pale ale', 'guinness'],
+    aliases: ['beer', 'mexican lager', 'mexican beer', 'lager', 'stout', 'pilsner', 'ipa', 'pale ale', 'guinness'],
   },
   cider: {
     id: 'cider',
