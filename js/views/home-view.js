@@ -97,9 +97,26 @@ export function renderHomeView() {
           <span>${ingredientCount === 1 ? 'Ingredient' : 'Ingredients'} in Bar</span>
         </div>
       </div>
-      <button type="button" id="btn-home-browse-all" class="btn btn-secondary btn-sm home-browse-all-btn">
-        Browse All Drinks
-      </button>
+      <div class="home-browse-actions">
+        <button type="button" id="btn-home-browse-all" class="btn btn-secondary btn-sm home-browse-all-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          Browse Cocktails
+        </button>
+        <button type="button" id="btn-home-search" class="btn btn-secondary btn-sm home-search-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          Search Cocktails
+        </button>
+      </div>
     </div>
 
     <div class="home-pin-row">
@@ -181,6 +198,10 @@ export function setupHomeViewEvents(pinnableTags) {
 
   document.getElementById('btn-home-browse-all')?.addEventListener('click', () => {
     if (_showDrinksListMobileFn) _showDrinksListMobileFn();
+  });
+
+  document.getElementById('btn-home-search')?.addEventListener('click', () => {
+    if (_showDrinksListMobileFn) _showDrinksListMobileFn({ focusSearch: true });
   });
 
   container.querySelectorAll('.home-shelf').forEach(shelf => {

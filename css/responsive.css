@@ -98,6 +98,16 @@
 
 @media (max-width: 768px) {
 
+  /* Mobile header's true on-screen height, including whatever the iOS status
+     bar/notch (env(safe-area-inset-top)) adds on top of its normal 52px — every
+     element sized or positioned relative to "below the header" (.sidebar,
+     .main-stage, .counter-mobile-bar's sticky offset...) needs to account for
+     that inset too, or they end up too tall / offset short by exactly that much.
+     One token so they can't drift out of sync with the header's own height. */
+  :root {
+    --mobile-header-height: calc(52px + env(safe-area-inset-top, 0px));
+  }
+
   /* Prevent iOS automatic zoom on focus by ensuring minimum 16px font-size */
   input,
   select,
@@ -113,10 +123,17 @@
     font-size: 16px !important;
   }
 
-  /* Header Mobile Compact: Fixed & Sticky at top */
+  /* Header Mobile Compact: Fixed & Sticky at top
+     viewport-fit=cover (index.html) lets the page paint under the iOS status bar/
+     notch instead of the OS just reserving blank space there — but that also means
+     our own content can now render under it unless we account for the inset
+     ourselves. padding-top: env(safe-area-inset-top) pushes the header's actual
+     content (title, buttons) down clear of the notch while letting its background
+     extend up through the padding into that region, so the notch/status-bar strip
+     reads as a continuation of the header instead of a bare, uncolored gap above it. */
   .app-header {
-    height: 52px;
-    padding: 0 0.85rem;
+    height: var(--mobile-header-height);
+    padding: env(safe-area-inset-top, 0px) 0.85rem 0;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -241,8 +258,8 @@
     min-width: 0;
     max-width: 100%;
     height: auto;
-    min-height: calc(100vh - 52px);
-    min-height: calc(100dvh - 52px);
+    min-height: calc(100vh - var(--mobile-header-height));
+    min-height: calc(100dvh - var(--mobile-header-height));
     display: flex;
     flex-direction: column;
     position: static;
@@ -304,8 +321,8 @@
   .main-stage {
     display: block;
     flex: 1;
-    min-height: calc(100vh - 52px);
-    min-height: calc(100dvh - 52px);
+    min-height: calc(100vh - var(--mobile-header-height));
+    min-height: calc(100dvh - var(--mobile-header-height));
     height: auto;
     overflow: visible;
     padding: 0 0 max(3.5rem, calc(2rem + env(safe-area-inset-bottom, 0px))) !important;
@@ -393,7 +410,7 @@
   /* Counter View: Sticky Back Button Header */
   .counter-mobile-bar {
     position: sticky;
-    top: 52px;
+    top: var(--mobile-header-height);
     z-index: 90;
     display: flex;
     align-items: center;
@@ -701,6 +718,25 @@
     font-size: 1.08rem;
   }
 
+  /* Riff mode's amount column is only 52px wide on mobile — the number input
+     and its "oz" label both have to fit that, so both shrink further than
+     their desktop sizing. */
+  .spec-amount-input {
+    width: 2.3rem;
+    font-size: 0.85rem;
+    padding: 0.2rem 0.25rem;
+  }
+
+  .counter-view.riff-mode-active .spec-amount .spec-unit {
+    font-size: 0.68rem;
+    margin-left: 0.15rem;
+  }
+
+  .btn-remove-spec-row {
+    width: 24px;
+    height: 24px;
+  }
+
   .spec-unit {
     font-size: 0.75rem;
     margin-left: 0.15rem;
@@ -872,11 +908,16 @@
     margin: 1.5rem 0 0.25rem;
   }
 
-  .home-browse-all-btn {
-    display: inline-flex;
-    width: 100%;
-    justify-content: center;
+  .home-browse-actions {
+    display: flex;
+    gap: 0.6rem;
     margin-top: 0.25rem;
+  }
+
+  .home-browse-all-btn,
+  .home-search-btn {
+    flex: 1;
+    width: 100%;
   }
 
   .home-pin-row {
@@ -902,6 +943,33 @@
   .backbar-nav-tabs {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+
+  /* Shopping List cards: .shopping-card-left (dot + name + badge + family) and
+     .shopping-card-actions (Add button + expand chevron) sit in one flex row with
+     no wrap fallback, so on a narrow screen they were forced into the same space
+     and visibly overlapped. Stack them instead: left content gets the full row,
+     actions drop to their own row underneath, right-aligned. */
+  .backbar-shopping-container {
+    padding: 1rem;
+  }
+
+  .shopping-card {
+    padding: 0.75rem 0.9rem;
+  }
+
+  .shopping-card-header {
+    flex-wrap: wrap;
+  }
+
+  .shopping-card-left {
+    flex-basis: 100%;
+  }
+
+  .shopping-card-actions {
+    flex-basis: 100%;
+    justify-content: flex-end;
+    margin-top: 0.6rem;
   }
 
   .backbar-categories-container {

@@ -61,8 +61,16 @@
   background: var(--color-border);
 }
 
-.home-browse-all-btn {
+.home-browse-actions {
   display: none;
+}
+
+.home-browse-all-btn,
+.home-search-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
 }
 
 /* Pin-a-Tag Row */

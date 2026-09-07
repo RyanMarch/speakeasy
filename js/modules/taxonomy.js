@@ -1592,7 +1592,23 @@ export const TAXONOMY = {
     light: '#9b2933',
     dark: '#520b12',
     defaultAbv: 44.7,
-    aliases: ['angostura', 'angostura bitters', 'peychaud’s', "peychaud's", 'peychauds', "boker’s", "boker's", 'bokers', 'jerry thomas own decanter', 'aromatic bitters', 'bitters'],
+    aliases: ['angostura', 'angostura bitters', "boker’s", "boker's", 'bokers', 'jerry thomas own decanter', 'aromatic bitters', 'bitters'],
+  },
+  peychauds_bitters: {
+    id: 'peychauds_bitters',
+    name: "Peychaud's Bitters",
+    family: 'bitters',
+    parent: 'bitters',
+    // Peychaud's distinctive vivid ruby-pink — visibly different from Angostura's
+    // dark brown-red, and the whole reason a Sazerac's rinse tints the glass pink.
+    // It was previously just an alias of aromatic_bitters, so every recipe calling
+    // for it by name (Sazerac, Vieux Carré, Metropole...) rendered Angostura's
+    // color instead.
+    color: '#c81d3f',
+    light: '#e8395f',
+    dark: '#8f0f28',
+    defaultAbv: 35,
+    aliases: ['peychaud’s', "peychaud's", 'peychauds', "peychaud's bitters", 'peychauds bitters'],
   },
   citrus_bitters: {
     id: 'citrus_bitters',
@@ -2597,6 +2613,7 @@ const ID_FLAVOR_OVERRIDES = {
   sweet_vermouth: { sweet: 0.55, sour: 0.05, bitter: 0.25, herbal: 0.3 },
   dry_vermouth: { sweet: 0.1, sour: 0.15, bitter: 0.2, herbal: 0.35 },
   blanc_vermouth: { sweet: 0.4, sour: 0.1, bitter: 0.1, herbal: 0.35 },
+  peychauds_bitters: { sweet: 0, sour: 0, bitter: 0.75, herbal: 0.55 },   // more anise/gentian-forward than the generic bitters family default
 };
 
 const NEUTRAL_FLAVOR_PROFILE = { sweet: 0, sour: 0, bitter: 0, herbal: 0 };
