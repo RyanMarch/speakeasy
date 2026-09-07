@@ -1133,7 +1133,11 @@ export function renderCounterView() {
     const stickyBarHeight = stickyBar && stickyBar.offsetHeight > 0 ? stickyBar.offsetHeight : 0;
 
     const isMobile = window.innerWidth <= 768;
-    const headerHeight = isMobile ? 52 : 0;
+    // Measured, not hardcoded: the header's real height includes
+    // env(safe-area-inset-top) on notched devices (see --mobile-header-height in
+    // responsive.css), which varies by device and isn't knowable as a constant here.
+    const headerEl = document.querySelector('.app-header');
+    const headerHeight = isMobile ? (headerEl?.getBoundingClientRect().height || 52) : 0;
     const topOffset = headerHeight + stickyBarHeight;
 
     window._counterScrollObserver = new IntersectionObserver((entries) => {
