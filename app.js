@@ -58,6 +58,8 @@ import {
   setEditorModalCallbacks,
 } from './js/components/editor-modal.js';
 
+import { setupTimerModalEventListeners } from './js/components/timer-modal.js';
+
 /**
  * Initialize application
  */
@@ -129,6 +131,7 @@ function init() {
     renderRecipeList,
     renderCounterView,
     renderHomeView,
+    selectRecipe,
   });
   setHiddenModalCallbacks({
     updateVaultStats,
@@ -145,6 +148,7 @@ function init() {
   setupTopBarEventListeners();
   setupBackbarEventListeners();
   setupHiddenModalEventListeners();
+  setupTimerModalEventListeners();
   updateMyBarBadge();
   renderRecipeList();
   renderCurrentView();

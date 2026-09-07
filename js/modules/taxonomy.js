@@ -4,6 +4,8 @@
  * color mapping, and category-aware search engine.
  */
 
+import { SEED_RECIPES } from '../data/seed-recipes.js';
+
 export const TAXONOMY = {
   // ==========================================
   // 1. BASE SPIRITS (spirits)
@@ -2614,5 +2616,111 @@ export function getFlavorProfile(rawIngredientName = '') {
   if (familyDefault) return { ...familyDefault };
   return { ...NEUTRAL_FLAVOR_PROFILE };
 }
+
+/**
+ * Computes a ranked shopping list of missing ingredients across recipes against current inventory.
+ * Ranks items descending by direct 1-bottle unlocks, tie-broken by secondary 2-bottle unlocks,
+ * then alphabetical by ingredient display name.
+ *
+ * @param {Array<Object>} [recipes] - Recipes to inspect (defaults to user recipes or canonical seed recipes)
+ * @param {Set<string>|Array<string>} [inventorySet] - Current owned inventory (defaults to speakeasy_inventory in localStorage)
+ * @param {Object} [options]
+ * @returns {Array<{id: string, name: string, family: string, color: string, unlockCount: number, secondaryCount: number, unlockedCocktails: Array<Object>, secondaryCocktails: Array<Object>, item: Object|null}>}
+ */
+export function getRankedShoppingList(recipes = null, inventorySet = null, options = {}) {
+  // 1. Resolve inventory set
+  let inv = inventorySet;
+  if (!inv) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const raw = localStorage.getItem('speakeasy_inventory');
+        inv = new Set(raw ? JSON.parse(raw) : []);
+      } else {
+        inv = new Set();
+      }
+    } catch {
+      inv = new Set();
+    }
+  } else if (Array.isArray(inv)) {
+    inv = new Set(inv);
+  }
+
+  // 2. Resolve recipes
+  let recs = recipes;
+  if (!recs) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const raw = localStorage.getItem('speakeasy_recipes');
+        recs = raw ? JSON.parse(raw) : SEED_RECIPES;
+      } else {
+        recs = SEED_RECIPES;
+      }
+    } catch {
+      recs = SEED_RECIPES;
+    }
+  }
+  if (!Array.isArray(recs)) recs = [];
+
+  const missingMap = new Map();
+
+  const getOrCreateEntry = (stockStatus) => {
+    const key = stockStatus.id || stockStatus.name.toLowerCase();
+    if (!missingMap.has(key)) {
+      missingMap.set(key, {
+        id: stockStatus.id || key,
+        name: stockStatus.name || (stockStatus.item ? stockStatus.item.name : key),
+        family: stockStatus.family || (stockStatus.item ? stockStatus.item.family : 'other'),
+        color: stockStatus.color || (stockStatus.item ? stockStatus.item.color : '#c67828'),
+        unlockCount: 0,
+        secondaryCount: 0,
+        unlockedCocktails: [],
+        secondaryCocktails: [],
+        item: stockStatus.item || null,
+      });
+    }
+    return missingMap.get(key);
+  };
+
+  for (const recipe of recs) {
+    if (!recipe || !Array.isArray(recipe.specs)) continue;
+    const analysis = analyzeRecipeInventory(recipe, inv);
+
+    // Register all missing items
+    for (const m of analysis.missingItems) {
+      getOrCreateEntry(m);
+    }
+
+    if (analysis.missingCount === 1) {
+      // Direct 1-bottle unlock
+      const missingBottle = analysis.missingItems[0];
+      const entry = getOrCreateEntry(missingBottle);
+      entry.unlockCount++;
+      entry.unlockedCocktails.push(recipe);
+    } else if (analysis.missingCount === 2) {
+      // Secondary 2-bottle unlock (brings to 1 bottle away)
+      for (const missingBottle of analysis.missingItems) {
+        const entry = getOrCreateEntry(missingBottle);
+        entry.secondaryCount++;
+        entry.secondaryCocktails.push(recipe);
+      }
+    }
+  }
+
+  const results = Array.from(missingMap.values());
+
+  // Sort descending by 1-bottle unlocks, tie-broken by secondary unlocks, then alphabetical
+  results.sort((a, b) => {
+    if (b.unlockCount !== a.unlockCount) {
+      return b.unlockCount - a.unlockCount;
+    }
+    if (b.secondaryCount !== a.secondaryCount) {
+      return b.secondaryCount - a.secondaryCount;
+    }
+    return a.name.localeCompare(b.name);
+  });
+
+  return results;
+}
+
 
 
