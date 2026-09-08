@@ -684,7 +684,7 @@
   align-items: center;
   justify-content: center;
   margin-top: 0;
-  margin-bottom: 0;
+  margin-bottom: 1.5rem;
 }
 
 .glass-view-toggle {
@@ -734,8 +734,7 @@
 .glass-meta-card {
   width: 100%;
   max-width: 260px;
-  margin-top: 0.35rem;
-  padding: 0.35rem 0.25rem;
+  margin-top: -0.65rem;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -1190,7 +1189,12 @@
   font-variant-numeric: tabular-nums;
   padding: 0.25rem 0.35rem;
   transition: all var(--transition-fast);
+  /* Safari draws its native number-input spin-button chrome unless
+     -webkit-appearance is set on the input itself — see the same fix on
+     .spec-input-abv in editor.css. */
+  -webkit-appearance: textfield;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* The native up/down spinner ate most of this already-narrow field, leaving

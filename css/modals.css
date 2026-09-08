@@ -267,7 +267,10 @@
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
-  font-weight: 900;
+  /* Every loaded sans stack (Inter, DM Sans, Josefin Sans) tops out at a real
+     700 weight — 900 had no genuine cut to match, so the browser was faking
+     an extra-bold synthetically on top of 700 instead of just using it. */
+  font-weight: 700;
   line-height: 1;
   text-shadow: 0 0 1px currentColor;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
