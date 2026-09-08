@@ -87,6 +87,27 @@
   pointer-events: auto;
 }
 
+/* Editing a recipe: widen to fit the Save button alongside the live-typed name */
+.desktop-sticky-title.editor-mode {
+  max-width: min(620px, calc(100vw - 560px));
+  gap: 0.85rem;
+}
+
+.desktop-sticky-save {
+  flex-shrink: 0;
+}
+
+/* Higher specificity than plain `.btn` (defined later in this file with the
+   same display:inline-flex-granting specificity) is required here, or that
+   rule silently wins the cascade and the button never actually hides. */
+.desktop-sticky-title:not(.editor-mode) .desktop-sticky-save {
+  display: none;
+}
+
+.desktop-sticky-title.editor-mode .desktop-sticky-save {
+  display: inline-flex;
+}
+
 .desktop-sticky-name {
   font-family: var(--font-sans);
   font-size: 1.35rem;
