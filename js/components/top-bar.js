@@ -2,14 +2,18 @@
  * Speakeasy Top Bar & Vault Settings Popover Component
  */
 
-import { state, elements, SEED_RECIPE_IDS } from '../state.js';
+import { state, elements, SEED_RECIPE_IDS, invalidateInventoryCache } from '../state.js';
 import {
   saveUnitPreference,
   saveGlassViewPreference,
   saveBarName,
   getHiddenRecipeIds,
-  exportRecipesJSON,
-  importRecipesJSON,
+  getInventory,
+  getUnitPreference,
+  getSortPreference,
+  getGlassViewPreference,
+  exportData,
+  importData,
   resetToDefaults,
 } from '../modules/storage.js';
 
@@ -148,18 +152,40 @@ export function handleFileImport(e) {
   reader.onload = (event) => {
     try {
       const content = event.target.result;
-      const updated = importRecipesJSON(content, 'merge');
-      state.recipes = updated;
+      const { recipes, importedRecipeCount, inventoryAddedCount } = importData(content);
+
+      state.recipes = recipes;
       if (!state.recipes.find(r => r.id === state.activeRecipeId)) {
         state.activeRecipeId = state.recipes[0]?.id || null;
       }
+      state.inventory = new Set(getInventory());
+      state.unitSystem = getUnitPreference();
+      state.sortPreference = getSortPreference();
+      state.glassViewMode = getGlassViewPreference();
+      invalidateInventoryCache();
+
+      if (elements.popoverUnitOz && elements.popoverUnitMl) {
+        elements.popoverUnitOz.classList.toggle('active', state.unitSystem === 'oz');
+        elements.popoverUnitMl.classList.toggle('active', state.unitSystem === 'ml');
+      }
+      if (elements.popoverGlassLayered && elements.popoverGlassBlended) {
+        elements.popoverGlassLayered.classList.toggle('active', state.glassViewMode === 'layered');
+        elements.popoverGlassBlended.classList.toggle('active', state.glassViewMode === 'blended');
+      }
+      if (elements.sidebarSortSelect) {
+        elements.sidebarSortSelect.value = state.sortPreference;
+      }
+
       if (_renderRecipeListFn) _renderRecipeListFn();
       if (_renderCounterViewFn && state.viewMode === 'counter') {
         _renderCounterViewFn();
       } else if (_renderHomeViewFn && state.viewMode === 'home') {
         _renderHomeViewFn();
       }
-      showToast(`Successfully imported ${state.recipes.length} recipes`);
+      updateMyBarBadge();
+      updateVaultStats();
+
+      showToast(`Imported ${importedRecipeCount} custom recipe${importedRecipeCount === 1 ? '' : 's'}, ${inventoryAddedCount} inventory item${inventoryAddedCount === 1 ? '' : 's'}`);
     } catch (err) {
       alert(`Import failed: ${err.message}`);
     } finally {
@@ -197,8 +223,8 @@ export function setupTopBarEventListeners() {
   });
 
   elements.btnExportJson?.addEventListener('click', () => {
-    exportRecipesJSON();
-    showToast('Exported recipes to JSON');
+    exportData();
+    showToast('Exported bar backup to JSON');
   });
 
   elements.btnImportTrigger?.addEventListener('click', () => {

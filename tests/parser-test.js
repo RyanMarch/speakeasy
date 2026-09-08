@@ -1041,6 +1041,130 @@ if (totalStarterUnlocks !== 50) {
 console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingList[0].name} (+${canonicalShoppingList[0].unlockCount} cocktails)`);
 console.log('Ranked Bar Unlock Shopping List tests passed.');
 
+console.log('--- Testing Backup Export/Import (v1 Schema) ---');
+const { buildBackupPayload, importData, saveRecipes, saveInventory, getInventory, getUnitPreference } = await import('../js/modules/storage.js');
+
+const customRiff = {
+  id: 'test-custom-riff',
+  name: 'Test Custom Riff',
+  glassware: 'Coupe',
+  method: 'Stirred',
+  garnish: '',
+  description: '',
+  instructions: '',
+  source: '',
+  sourceUrl: '',
+  notes: '',
+  riffOfId: 'dry-martini',
+  riffOfName: 'Dry Martini',
+  tags: [],
+  specs: [{ amount: 2, unit: 'oz', name: 'Gin', abv: 40 }],
+};
+const modifiedNegroni = { ...SEED_RECIPES.find(r => r.id === 'negroni'), notes: 'Stirred extra long' };
+const untouchedSeeds = SEED_RECIPES.filter(r => r.id !== 'negroni');
+
+saveRecipes([...untouchedSeeds, modifiedNegroni, customRiff]);
+saveInventory(['gin', 'dry_vermouth']);
+saveHiddenRecipeIds(['blue-hawaii']);
+
+// 1. Export payload shape and unmodified-seed exclusion
+const backup = buildBackupPayload();
+if (backup.version !== 1) throw new Error('Expected backup version to be 1');
+if (typeof backup.exportedAt !== 'string') throw new Error('Expected backup exportedAt to be a timestamp string');
+if (!Array.isArray(backup.inventory) || !backup.inventory.includes('gin')) {
+  throw new Error(`Expected backup inventory to include "gin", got ${JSON.stringify(backup.inventory)}`);
+}
+if (!Array.isArray(backup.hiddenRecipes) || !backup.hiddenRecipes.includes('blue-hawaii')) {
+  throw new Error(`Expected backup hiddenRecipes to include "blue-hawaii", got ${JSON.stringify(backup.hiddenRecipes)}`);
+}
+if (!backup.settings || typeof backup.settings.unitPref !== 'string' || typeof backup.settings.sortPref !== 'string' || typeof backup.settings.glassViewPref !== 'string') {
+  throw new Error(`Expected backup settings to include unitPref/sortPref/glassViewPref, got ${JSON.stringify(backup.settings)}`);
+}
+const backupIds = backup.customRecipes.map(r => r.id);
+if (!backupIds.includes('test-custom-riff')) {
+  throw new Error('Expected backup customRecipes to include the custom riff');
+}
+if (!backupIds.includes('negroni')) {
+  throw new Error('Expected backup customRecipes to include the hand-modified Negroni');
+}
+if (untouchedSeeds.some(seed => backupIds.includes(seed.id))) {
+  throw new Error('Expected backup customRecipes to exclude unmodified canonical seed recipes');
+}
+console.log('Export payload schema test passed.');
+
+// Regression: getRecipes() normalizes tags on every load (retired variants like
+// "aperitivo" get dropped, renamed variants like "tiki" get canonicalized), so a
+// stored recipe's tags can differ cosmetically from SEED_RECIPES' raw tags without
+// the user having touched the recipe. That drift must not make it look "modified"
+// and leak into the backup. Simulate a stale raw tag on a seed (as seed-recipes.js
+// itself briefly had for Ferrari/Bitter Giuseppe/La Rosita/Old Pal until it was
+// cleaned up) by temporarily mutating one seed's tags, then restore it.
+const tagDriftSeed = SEED_RECIPES.find(r => r.id === 'negroni');
+const originalNegroniTags = tagDriftSeed.tags;
+try {
+  tagDriftSeed.tags = [...originalNegroniTags, 'aperitivo'];
+  const storedNegroniAfterNormalization = { ...tagDriftSeed, tags: originalNegroniTags };
+  saveRecipes([
+    ...SEED_RECIPES.filter(r => r.id !== 'negroni'),
+    storedNegroniAfterNormalization,
+  ]);
+  const driftBackup = buildBackupPayload();
+  if (driftBackup.customRecipes.some(r => r.id === 'negroni')) {
+    throw new Error('Expected a seed recipe whose stored tags are already normalized to be excluded from the backup, even when the raw seed still carries a stale/retired tag');
+  }
+} finally {
+  tagDriftSeed.tags = originalNegroniTags;
+}
+console.log('Retired/renamed-tag normalization does not cause false-positive backup inclusion.');
+
+unhideAllRecipes();
+
+// 2. Only the v1 unified schema is accepted; anything else is rejected outright
+let rejectedFlatArray = false;
+try {
+  importData(JSON.stringify([customRiff]));
+} catch (err) {
+  rejectedFlatArray = true;
+}
+if (!rejectedFlatArray) {
+  throw new Error('Expected importData to reject a bare array (unsupported legacy format)');
+}
+console.log('Non-v1 import format is rejected as expected.');
+
+// 3. Unified v1 backup import merges (never overwrites) inventory/hidden recipes
+saveRecipes(SEED_RECIPES);
+saveInventory(['gin']);
+saveHiddenRecipeIds([]);
+
+const v1Result = importData(JSON.stringify({
+  version: 1,
+  exportedAt: new Date().toISOString(),
+  inventory: ['campari', 'sweet_vermouth'],
+  hiddenRecipes: ['negroni'],
+  settings: { unitPref: 'ml' },
+  customRecipes: [customRiff],
+}));
+
+if (v1Result.importedRecipeCount !== 1) {
+  throw new Error(`Expected v1 import to add 1 custom recipe, got ${v1Result.importedRecipeCount}`);
+}
+const mergedInventory = getInventory();
+if (!mergedInventory.includes('gin') || !mergedInventory.includes('campari')) {
+  throw new Error(`Expected merged inventory to retain "gin" and add "campari", got ${JSON.stringify(mergedInventory)}`);
+}
+if (!getHiddenRecipeIds().includes('negroni')) {
+  throw new Error('Expected v1 import to merge in the "negroni" hidden recipe');
+}
+if (getUnitPreference() !== 'ml') {
+  throw new Error('Expected v1 import to restore the unitPref setting');
+}
+console.log('Unified v1 backup import test passed.');
+
+unhideAllRecipes();
+saveRecipes(SEED_RECIPES);
+saveInventory([]);
+console.log('Backup export/import tests passed.');
+
 console.log('All tests completed successfully!');
 
 
