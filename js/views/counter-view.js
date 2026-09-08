@@ -35,10 +35,10 @@ import {
   analyzeRecipeInventory,
 } from '../modules/taxonomy.js';
 
-import { calculateCocktailAbv } from '../modules/abv.js';
+import { calculateCocktailAbv, calculateCocktailCalories } from '../modules/abv.js';
 import { calculateBalanceProfile, renderFlavorRadarSvg, calculatePalateSimilarity } from '../modules/balance.js';
 import { calculateFluidLayers, getIngredientColor } from '../modules/colors.js';
-import { formatFraction, parseMethodContent, renderInstructionTimers } from '../modules/parser.js';
+import { formatFraction, parseMethodContent, renderInstructionTimers, formatIngredientName } from '../modules/parser.js';
 import { GlassView, renderGlassSvg } from '../modules/glass-view.js';
 import { setupTagAutocomplete, filterByTag } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
@@ -392,6 +392,10 @@ export function renderCounterView() {
   const roundedAbv = Math.round(abvInfo.estimatedAbv);
   const abvDisplay = roundedAbv > 0 ? `${roundedAbv}% ABV` : 'Non-Alcoholic';
 
+  // Calorie estimate always reflects a single serving, regardless of the servings stepper
+  const calorieInfo = calculateCocktailCalories(effectiveSpecs);
+  const calorieDisplay = calorieInfo.totalKcal > 0 ? `~${calorieInfo.totalKcal} kcal` : null;
+
   const flavorProfile = calculateBalanceProfile(effectiveSpecs);
   const flavorRadarSvg = renderFlavorRadarSvg(flavorProfile);
 
@@ -483,7 +487,7 @@ export function renderCounterView() {
     const nameCellHtml = (state.riffModeActive && spec.isExtra)
       ? /*html*/`<input type="text" class="spec-name-input" data-extra-index="${spec.extraIndex}" value="${escapeHtml(spec.name)}" placeholder="Ingredient name" aria-label="Ingredient name">`
       : /*html*/`
-        <span class="spec-name">${escapeHtml(spec.name)}</span>
+        <span class="spec-name">${escapeHtml(formatIngredientName(spec.name))}</span>
         ${isFridgeItem ? `<span class="spec-fridge-tag" title="Keep refrigerated once opened">❄</span>` : ''}
         ${isRiff ? `<span class="spec-riff-badge" title="Substituted for ${escapeHtml(spec.originalName)}">sub</span>` : ''}
       `;
@@ -556,22 +560,30 @@ export function renderCounterView() {
       <div class="drink-title-row">
         <div class="drink-title-header-left">
           <h2 class="drink-name">${escapeHtml(recipe.name)}</h2>
-          <!-- Editorial metadata line -->
+          <!-- Stats meta row: glass, method, ABV, calories (always fits one line) -->
           <div class="drink-meta-row">
             <span class="drink-meta-item">${escapeHtml(recipe.glassware || 'Glass')}</span>
             <span class="meta-dot-divider">·</span>
             <span class="drink-meta-item">${escapeHtml(recipe.method || 'Standard')}</span>
             <span class="meta-dot-divider">·</span>
             <span class="drink-meta-item" title="Dilution-adjusted estimated alcohol by volume">${escapeHtml(abvDisplay)}</span>
-            ${lineage ? `
+            ${calorieDisplay ? `
               <span class="meta-dot-divider">·</span>
-              <span class="drink-meta-item drink-meta-riff">Riff on <em>${escapeHtml(lineage.parentName)}</em></span>
-            ` : ''}
-            ${invAnalysis.canMake ? `
-              <span class="meta-dot-divider">·</span>
-              <span class="meta-status-ready">Ready to Make</span>
+              <span class="drink-meta-item drink-meta-calories">
+                ${escapeHtml(calorieDisplay)}
+                <button type="button" id="btn-calorie-info" class="btn-calorie-info" aria-label="Calorie estimate info">ⓘ</button>
+                <span class="calorie-popover" id="calorie-popover" role="tooltip" aria-hidden="true">~${calorieInfo.alcoholKcal} kcal alcohol &nbsp;·&nbsp; ~${calorieInfo.sugarKcal} kcal sugar &nbsp;·&nbsp; estimates vary by brand</span>
+              </span>
             ` : ''}
           </div>
+          <!-- Secondary row: lineage, canMake (own line, no dots needed) -->
+          ${(lineage || invAnalysis.canMake) ? `
+            <div class="drink-meta-secondary">
+              ${lineage ? `<span class="drink-meta-riff">Riff on <em>${escapeHtml(lineage.parentName)}</em></span>` : ''}
+              ${(lineage && invAnalysis.canMake) ? `<span class="meta-dot-divider">·</span>` : ''}
+              ${invAnalysis.canMake ? `<span class="meta-status-ready">Ready to Make</span>` : ''}
+            </div>
+          ` : ''}
         </div>
 
         <!-- Action Toolbar -->
@@ -886,8 +898,8 @@ export function renderCounterView() {
                   <span class="meta-dot">•</span>
                   <span>${escapeHtml(item.recipe.method || 'Build')}</span>
                 </div>
-                <div class="similar-card-specs" title="${(item.recipe.specs || []).map(s => s.name).join(', ')}">
-                  ${(item.recipe.specs || []).map(s => escapeHtml(s.name)).filter(Boolean).slice(0, 3).join(', ')}
+                <div class="similar-card-specs" title="${escapeHtml((item.recipe.specs || []).map(s => formatIngredientName(s.name)).join(', '))}">
+                  ${(item.recipe.specs || []).map(s => escapeHtml(formatIngredientName(s.name))).filter(Boolean).slice(0, 3).join(', ')}
                 </div>
               </div>
             </div>
@@ -1216,6 +1228,18 @@ export function renderCounterView() {
     }
   });
   updateWakeLockIndicator();
+
+  document.getElementById('btn-calorie-info')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const popover = document.getElementById('calorie-popover');
+    if (!popover) return;
+    const isOpen = popover.classList.toggle('is-open');
+    popover.setAttribute('aria-hidden', String(!isOpen));
+  });
+
+  // Close calorie popover on any outside click
+  const closeCaloriePopover = () => document.getElementById('calorie-popover')?.classList.remove('is-open');
+  document.addEventListener('click', closeCaloriePopover, { once: true });
 
   document.getElementById('btn-edit-drink')?.addEventListener('click', () => {
     if (!_openEditorFn) return;
