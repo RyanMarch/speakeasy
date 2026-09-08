@@ -1938,6 +1938,23 @@ export function normalizeText(text = '') {
     .trim();
 }
 
+/**
+ * Like normalizeText, but also collapses "&", the "'n" contraction (as in
+ * "Dark 'n Stormy"), and a bare standalone "n" down to the same "and" token
+ * before normalizing — so a search for "dark n stormy", "dark and stormy", or
+ * "dark & stormy" all match a recipe actually named with an apostrophe-n.
+ * Recipe/tag search should use this; ingredient-taxonomy lookups (which don't
+ * have this "'n" pattern in their vocabulary) can stick with normalizeText.
+ */
+export function normalizeSearchText(text = '') {
+  return normalizeText(
+    String(text)
+      .replace(/&/g, ' and ')
+      .replace(/'n\b/gi, ' and ')
+      .replace(/\bn\b/gi, ' and ')
+  );
+}
+
 // Same taxonomy, same input strings recur constantly (every recipe's specs are drawn from a
 // small shared ingredient vocabulary), so a plain result cache turns most calls into an O(1)
 // Map lookup instead of re-running the resolution below.
@@ -2141,13 +2158,19 @@ export function recipeMatchesQuery(recipe, query = '') {
     return Array.isArray(recipe.tags) && recipe.tags.some(t => (t || '').toLowerCase().includes(tagTerm));
   }
 
-  // Metadata checks
-  if ((recipe.name || '').toLowerCase().includes(q)) return true;
-  if ((recipe.glassware || '').toLowerCase().includes(q)) return true;
-  if ((recipe.method || '').toLowerCase().includes(q)) return true;
-  if ((recipe.description || '').toLowerCase().includes(q)) return true;
-  if ((recipe.source || '').toLowerCase().includes(q)) return true;
-  if ((recipe.instructions || '').toLowerCase().includes(q)) return true;
+  // Metadata checks — normalized on both sides so punctuation differences
+  // (apostrophes, "&" vs "and" vs a bare "n") between the query and the
+  // stored text don't cause a false negative, e.g. searching "dark n stormy"
+  // or "dark & stormy" for a recipe actually named "Dark 'n Stormy".
+  const nq = normalizeSearchText(q);
+  if (nq) {
+    if (normalizeSearchText(recipe.name || '').includes(nq)) return true;
+    if (normalizeSearchText(recipe.glassware || '').includes(nq)) return true;
+    if (normalizeSearchText(recipe.method || '').includes(nq)) return true;
+    if (normalizeSearchText(recipe.description || '').includes(nq)) return true;
+    if (normalizeSearchText(recipe.source || '').includes(nq)) return true;
+    if (normalizeSearchText(recipe.instructions || '').includes(nq)) return true;
+  }
 
   // Check tags if present
   if (Array.isArray(recipe.tags) && recipe.tags.some(t => (t || '').toLowerCase().includes(q))) {
@@ -2198,9 +2221,16 @@ export function getIngredientSubstitutes(rawIngredientName = '') {
       (candidate.family === 'tequila' || candidate.family === 'agave_spirits')) {
       isMatch = true;
     }
-    // 3. Cane spirits cross-family (rum <-> rhum_agricole / cachaca)
-    else if ((current.family === 'rum' || current.family === 'cane_spirits') &&
-      (candidate.family === 'rum' || candidate.family === 'cane_spirits')) {
+    // 3. Cane spirits cross-family — but only for light/unaged rum, which is
+    // genuinely close to cachaça/rhum agricole's fresh, grassy character.
+    // Deliberately excludes the darker rum styles (blackstrap, aged, Jamaican,
+    // overproof): swapping cachaça into a Dark 'n Stormy or a Painkiller would
+    // lose exactly the rich molasses character those recipes are built around.
+    // Those still substitute freely with each other via the same-family rule above.
+    else if (
+      (current.family === 'cane_spirits' && candidate.id === 'light_rum') ||
+      (current.id === 'light_rum' && candidate.family === 'cane_spirits')
+    ) {
       isMatch = true;
     }
     // 4. Fortified wine / vermouth cross-family (vermouth <-> quinquina <-> sherry <-> port <-> oxidized_wine)

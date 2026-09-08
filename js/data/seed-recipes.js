@@ -408,6 +408,7 @@ export const SEED_RECIPES = [
     notes: "",
     tags: ["classic", "whiskey-forward", "summer", "slow-sipper"],
     specs: [
+      { amount: 8, unit: "leaves", name: "Fresh Mint" },
       { amount: 2.5, unit: "oz", name: "Bourbon" },
       { amount: 0.5, unit: "oz", name: "Demerara Syrup" },
     ],
@@ -425,6 +426,7 @@ export const SEED_RECIPES = [
     notes: "",
     tags: ["classic", "highball", "rum-forward", "summer", "refreshing"],
     specs: [
+      { amount: 10, unit: "leaves", name: "Fresh Mint" },
       { amount: 2, unit: "oz", name: "White Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
       { amount: 0.75, unit: "oz", name: "Simple Syrup" },
