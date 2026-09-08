@@ -22,6 +22,21 @@ export function normalizeFractions(str) {
     .replace(/\s+/g, ' ');
 }
 
+/**
+ * Capitalizes the first letter of each word in an ingredient name for
+ * display, without touching the rest of the word — so "amaro averna" reads
+ * as "Amaro Averna" and "Lillet Blanc" (already correctly cased) is left
+ * alone. Recipes typed or pasted in from all kinds of sources end up with
+ * inconsistent casing stored (some all-lowercase, some already Title Case);
+ * this is a display-time normalization, not a rewrite of the stored data —
+ * callers showing an editable ingredient name (the editor's spec rows)
+ * should keep showing the raw stored value as-is.
+ */
+export function formatIngredientName(name) {
+  if (!name) return '';
+  return name.replace(/\S+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
+}
+
 // Spelled-out/pluralized/two-word unit variants the regex below recognizes but
 // that don't match the app's canonical unit vocabulary (the editor's unit
 // dropdown, and UNIT_CONVERSIONS_TO_OZ) verbatim — collapsed to the form those
@@ -98,7 +113,11 @@ export function parseIngredientLine(line) {
 
   const rawUnit = (match[2] || '').toLowerCase();
   const parsedUnit = UNIT_ALIASES[rawUnit] || rawUnit;
-  const name = match[3]?.trim() || '';
+  // "2 oz of lemon juice" — the amount/unit regex above has no notion of
+  // this connective "of", so it fell straight into the name capture group.
+  // Strip it only when it leads the name (not e.g. "Zest of lemon", where
+  // "of" is mid-name and meaningful).
+  const name = (match[3]?.trim() || '').replace(/^of\s+/i, '');
 
   return {
     raw: trimmed,

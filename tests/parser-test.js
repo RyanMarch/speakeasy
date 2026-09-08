@@ -1,7 +1,7 @@
 import { parseIngredientLine, parseSpecsBlock, formatFraction, parseMethodContent } from '../js/modules/parser.js';
 import { calculateFluidLayers, normalizeVolumeToOz } from '../js/modules/colors.js';
 import { resolveGlassware } from '../js/modules/glassware.js';
-import { calculateCocktailAbv, estimateIngredientAbv } from '../js/modules/abv.js';
+import { calculateCocktailAbv, estimateIngredientAbv, calculateCocktailCalories } from '../js/modules/abv.js';
 
 console.log('--- Testing Parser ---');
 const testCases = [
@@ -64,6 +64,21 @@ const negroniSpecs = [
 ];
 const negroniAbv = calculateCocktailAbv(negroniSpecs, 'Stirred');
 console.log('Negroni ABV (Stirred):', negroniAbv.estimatedAbv, '% (Raw:', negroniAbv.rawAbv, '%)');
+
+console.log('--- Testing Calorie Module ---');
+const negroniCalories = calculateCocktailCalories(negroniSpecs);
+console.log('Negroni calories:', negroniCalories.totalKcal, 'kcal (alcohol:', negroniCalories.alcoholKcal, ', sugar:', negroniCalories.sugarKcal, ')');
+if (negroniCalories.totalKcal <= 0) throw new Error('Negroni calorie estimate should be > 0');
+if (negroniCalories.totalKcal < 150 || negroniCalories.totalKcal > 350) console.warn('Negroni calorie estimate out of expected range (150-350):', negroniCalories.totalKcal);
+
+const zeroCalSpecs = [
+  { amount: 4, unit: 'oz', name: 'Club Soda' },
+  { amount: 0.5, unit: 'oz', name: 'Lime Juice' },
+];
+const zeroCalResult = calculateCocktailCalories(zeroCalSpecs);
+console.log('Soda + lime calories:', zeroCalResult.totalKcal, 'kcal (expected: small positive or 0)');
+if (zeroCalResult.totalKcal > 15) console.warn('Soda + lime calorie estimate unexpectedly high:', zeroCalResult.totalKcal);
+
 
 const daiquiriSpecs = [
   { amount: 2, unit: 'oz', name: 'White Rum' },

@@ -112,6 +112,13 @@ export function openEditor(recipe = null) {
     </div>
 
     <div class="editor-grid">
+
+      <!-- Recipe Core Fields -->
+      <div class="editor-section editor-field-name form-group">
+        <label class="form-label" for="edit-name">Cocktail Name</label>
+        <input type="text" id="edit-name" class="form-input" value="${escapeHtml(currentData.name)}" placeholder="Golden Hour Fizz" autocomplete="off" required>
+      </div>
+
       <!-- Quick Paste Box -->
       <div class="editor-section quick-paste-box">
         <div class="quick-paste-header">
@@ -131,12 +138,6 @@ export function openEditor(recipe = null) {
           <button type="button" id="btn-clear-paste" class="btn btn-ghost btn-sm">Clear Box</button>
           <button type="button" id="btn-apply-paste" class="btn btn-secondary btn-sm">Apply Pasted Specs</button>
         </div>
-      </div>
-
-      <!-- Recipe Core Fields -->
-      <div class="editor-section editor-field-name form-group">
-        <label class="form-label" for="edit-name">Cocktail Name</label>
-        <input type="text" id="edit-name" class="form-input" value="${escapeHtml(currentData.name)}" placeholder="Golden Hour Fizz" autocomplete="off" required>
       </div>
 
       <!-- Editable Spec Rows -->
@@ -682,9 +683,16 @@ export function setupEditorEvents(recipeId) {
       }
     }
 
-    if (state.editorGarnishAutoFilled && garnishInput && !garnishInput.value.trim()) {
+    if (state.editorGarnishAutoFilled && garnishInput) {
+      // Same pattern as method/glassware above: keep re-syncing on every
+      // keystroke as long as the field is still ours to overwrite (nothing
+      // requires the field to be *currently empty* — that used to mean a
+      // premature partial match, like the regex grabbing just "a" out of
+      // "garnish with a" before the rest of "an orange peel" was even typed,
+      // would permanently freeze the field: non-empty forever after, so the
+      // empty-check guard blocked every later, better detection too).
       const detected = detectGarnishFromText(text);
-      if (detected) {
+      if (detected && garnishInput.value !== detected) {
         garnishInput.value = detected;
         setDetectedBadge(garnishBadge, true);
         updateEditorGlassPreview();
