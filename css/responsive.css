@@ -26,6 +26,14 @@
   .editor-grid {
     grid-template-columns: 1fr;
   }
+
+  /* Only one column exists at this width — collapse the preview column back
+     into it instead of letting its explicit grid-column:2 spawn a squeezed
+     implicit second column. */
+  .editor-preview-col {
+    grid-column: 1;
+    grid-row: auto;
+  }
 }
 
 @media (min-width: 769px) {
@@ -82,6 +90,11 @@
     /* Same scroll-snap issue as mobile: without scroll-padding to match, the snap
        algorithm ignores the padding above and yanks scrollLeft off of 0 at rest. */
     scroll-padding-left: calc(0.25rem + var(--desktop-inset) + var(--shelf-bleed));
+    /* Mirror of the left side — without it, scrolling to the end stops as soon as
+       the last card's right edge hits the true edge of .main-stage, flush against
+       the window/sidebar instead of lining up with the arrows/title's own inset. */
+    padding-right: calc(0.25rem + var(--desktop-inset) + var(--shelf-bleed));
+    scroll-padding-right: calc(0.25rem + var(--desktop-inset) + var(--shelf-bleed));
   }
 
   /* The shelf now bleeds out to .main-stage's true edges on both sides, so the
@@ -366,6 +379,7 @@
   .home-view>.home-stats-card,
   .home-view>.home-pin-row,
   .home-view>.home-empty-state,
+  .editor-view>.editor-mobile-bar,
   .editor-view>.editor-header,
   .editor-view>.editor-grid {
     padding-left: var(--mobile-inset);
@@ -422,8 +436,10 @@
     }
   }
 
-  /* Counter View: Sticky Back Button Header */
-  .counter-mobile-bar {
+  /* Counter View: Sticky Back Button Header (also reused, with a trailing Save
+     button, as the Editor's sticky title/save bar while filling out a long form) */
+  .counter-mobile-bar,
+  .editor-mobile-bar {
     position: sticky;
     top: var(--mobile-header-height);
     z-index: 90;
@@ -438,6 +454,13 @@
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--color-border-subtle);
     transform: translateZ(0);
+  }
+
+  .editor-mobile-bar .btn-primary {
+    flex-shrink: 0;
+    min-height: 38px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.84rem;
   }
 
   .mobile-back-btn {
@@ -493,7 +516,11 @@
 
   .drink-title-header-left {
     min-width: 0;
-    flex: 1 1 180px;
+    /* Basis of 100% forces this onto its own row rather than shrinking down
+       to fit alongside the (flex-shrink:0) actions cluster — which is what
+       was making long names like "Cosmopolitan" break mid-word instead of
+       just wrapping the buttons to their own line below. */
+    flex: 1 1 100%;
   }
 
   .drink-name {
@@ -1032,13 +1059,31 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    gap: 1.5rem;
+    /* Sections already carry their own margins (same ones used on desktop) —
+       an additional flex gap here would double up the spacing between them. */
+    gap: 0;
   }
 
-  .editor-form-col {
+  .editor-section {
     width: 100%;
     min-width: 0;
   }
+
+  /* Reordered for mobile only (desktop keeps the two-column layout/order as
+     authored): raw input first — name, ingredients, directions — then the
+     live preview, then the fields directions can auto-fill (glassware,
+     technique, garnish, tags), then the supplementary writeup fields. */
+  .quick-paste-box { order: 1; }
+  .editor-field-name { order: 2; }
+  .editor-specs-section { order: 3; }
+  .editor-field-instructions { order: 4; }
+  .editor-preview-col { order: 5; }
+  .editor-field-glass-method { order: 6; }
+  .editor-field-garnish { order: 7; }
+  .editor-field-tags { order: 8; }
+  .editor-field-description { order: 9; }
+  .editor-field-source { order: 10; }
+  .editor-field-notes { order: 11; }
 
   .editor-preview-col {
     width: 100%;
@@ -1076,7 +1121,7 @@
 
   .editor-spec-row {
     display: grid;
-    grid-template-columns: 60px 80px 1fr 58px 34px;
+    grid-template-columns: 46px 92px 1fr 50px 34px;
     gap: 0.35rem;
     margin-bottom: 0.5rem;
     align-items: center;
@@ -1084,22 +1129,26 @@
 
   .editor-spec-row .form-input,
   .editor-spec-row .form-select {
-    padding: 0.55rem 0.45rem;
+    padding: 0.55rem 0.4rem;
     min-height: 38px;
   }
 
   .editor-spec-row .form-select {
-    padding-right: 1.4rem;
-    background-size: 12px 12px;
-    background-position: right 0.35rem center;
+    padding-right: 1.3rem;
+    padding-left: 0.35rem;
+    font-size: 0.74rem;
+    background-size: 11px 11px;
+    background-position: right 0.3rem center;
   }
 
   .editor-spec-row .spec-input-amount {
     text-align: center;
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
   }
 
   .editor-spec-row .spec-input-abv {
-    padding: 0.55rem 0.25rem;
+    padding: 0.55rem 0.2rem;
     text-align: center;
   }
 
@@ -1115,6 +1164,23 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
+  }
+
+  /* Bigger tap target for removing a tag chip — 24px (desktop) is below the
+     ~40px comfortable minimum and was easy to miss-tap on a phone. */
+  .editor-tags-list {
+    gap: 0.55rem;
+  }
+
+  .editor-tag-chip {
+    padding: 0.3rem 0.55rem;
+  }
+
+  .editor-tag-chip .btn-remove-tag {
+    min-width: 34px;
+    min-height: 34px;
+    margin: -8px -8px -8px 0.05rem;
+    font-size: 1rem;
   }
 
   .editor-tag-input-field {

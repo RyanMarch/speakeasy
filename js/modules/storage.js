@@ -15,6 +15,7 @@ const TAG_RENAMES = {
   'nightcap': 'nightcaps',
   'tiki': 'tropical-tiki',
   'tropical': 'tropical-tiki',
+  'effervescent': 'sparkling',
 };
 
 // Tags dropped outright because they're redundant with another tag/pack and add
