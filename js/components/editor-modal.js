@@ -155,7 +155,7 @@ export function openEditor(recipe = null) {
         <label class="form-label" for="edit-instructions">Preparation Directions</label>
         <textarea id="edit-instructions" class="form-textarea" rows="4" placeholder="Step-by-step preparation directions...">${escapeHtml(currentData.instructions || currentData.notes || '')}</textarea>
         <div class="field-hint" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
-          Mention a technique, glass, or garnish here ("garnish with a cherry") and we'll suggest it below — no need to enter it twice.
+          Mention a technique, glass, or garnish here ("garnish with a cherry") and we'll suggest it below.
         </div>
       </div>
 
@@ -278,13 +278,13 @@ export function renderEditorSpecRows() {
   const container = document.getElementById('editor-specs-rows');
   if (!container) return;
 
-  const units = ['oz', 'ml', 'dash', 'dashes', 'barspoon', 'tsp', 'tbsp', 'drops', 'rinse', 'part'];
+  const units = ['oz', 'ml', 'dash', 'dashes', 'barspoon', 'tsp', 'tbsp', 'drops', 'rinse', 'part', 'leaves'];
 
-  container.innerHTML =  /*html*/state.editorSpecs.map((spec, i) => {
+  container.innerHTML = state.editorSpecs.map((spec, i) => {
     const defaultAbv = estimateIngredientAbv(spec.name || '');
     const currentAbv = spec.abv !== undefined && spec.abv !== null ? spec.abv : (defaultAbv > 0 ? defaultAbv : '');
 
-    return `
+    return /*html*/`
       <div class="editor-spec-row" data-index="${i}">
         <input
           type="text"
