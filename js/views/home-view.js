@@ -21,6 +21,7 @@ import {
 import { renderGlassSvg } from '../modules/glass-view.js';
 import { setupTagAutocomplete } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
+import { formatIngredientName } from '../modules/parser.js';
 
 let _selectRecipeFn = null;
 let _showDrinksListMobileFn = null;
@@ -166,7 +167,7 @@ export function renderHomeShelf(col, idx) {
 
 export function renderHomeCard(recipe, collectionKey, idx) {
   const invAnalysis = getCachedInventoryAnalysis(recipe);
-  const specNames = (recipe.specs || []).map(s => s.name).filter(Boolean);
+  const specNames = (recipe.specs || []).map(s => formatIngredientName(s.name)).filter(Boolean);
   return  /*html*/`
     <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(recipe.id)}" role="button" tabindex="0">
       <div class="similar-card-glass">
