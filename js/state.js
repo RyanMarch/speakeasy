@@ -50,6 +50,15 @@ export const state = {
   servings: 1, // Serving multiplier (default 1, increments by 0.5)
   editorSpecs: [],
   editorTags: [],
+  editorRiffOfId: null,
+  editorRiffOfName: '',
+  editorInstructionsAutoFilled: false,
+  editorMethodAutoFilled: false,
+  editorGlasswareAutoFilled: false,
+  editorGarnishAutoFilled: false,
+  editorTagsAutoDetectEnabled: false,
+  editorAutoRemovedTags: [],
+  editorAutoAddedTagNames: [],
   glassViewMain: null,
   glassViewEditor: null,
   inventory: new Set(getInventory()),
@@ -109,6 +118,7 @@ export function initElements() {
   elements.btnFooterHome = document.getElementById('btn-footer-home');
   elements.desktopStickyTitle = document.getElementById('desktop-sticky-title');
   elements.desktopStickyName = document.getElementById('desktop-sticky-name');
+  elements.desktopStickySave = document.getElementById('desktop-sticky-save');
   elements.toastContainer = document.getElementById('toast-container');
   elements.btnMyBar = document.getElementById('btn-my-bar');
   elements.myBarBadge = document.getElementById('my-bar-badge');

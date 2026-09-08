@@ -1496,7 +1496,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "negroni",
     riffOfName: "Negroni",
-    tags: ["aperitivo-amaro", "bittersweet", "sparkling", "effervescent"],
+    tags: ["aperitivo-amaro", "bittersweet", "sparkling"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
@@ -2056,7 +2056,7 @@ export const SEED_RECIPES = [
     source: "Modern Bartender Handshake",
     sourceUrl: "",
     notes: "The ultimate 50/50 amaro combination beloved in craft cocktail bars.",
-    tags: ["modern-craft", "bittersweet", "aperitivo", "digestif", "spirit-forward"],
+    tags: ["modern-craft", "bittersweet", "digestif", "spirit-forward"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 1.5, unit: "oz", name: "Fernet-Branca" },
@@ -2266,7 +2266,7 @@ export const SEED_RECIPES = [
     notes: "Mojito meets French 75 using aged rum and Champagne.",
     riffOfId: "mojito",
     riffOfName: "Mojito",
-    tags: ["modern-craft", "rum-forward", "sparkling", "refreshing", "effervescent"],
+    tags: ["modern-craft", "rum-forward", "sparkling", "refreshing"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Aged Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -2353,7 +2353,7 @@ export const SEED_RECIPES = [
     source: "Stephen Cole, The Violet Hour Chicago (c. 2008)",
     sourceUrl: "",
     notes: "A pioneer of the low-proof amaro movement showcasing Cynar.",
-    tags: ["modern-craft", "low-abv", "bittersweet", "amaro-forward", "aperitivo"],
+    tags: ["modern-craft", "low-abv", "bittersweet", "amaro-forward"],
     specs: [
       { amount: 2, unit: "oz", name: "Cynar" },
       { amount: 1, unit: "oz", name: "Sweet Vermouth" },
@@ -2663,7 +2663,7 @@ export const SEED_RECIPES = [
     notes: "An elegant agave aperitivo utilizing both sweet and dry vermouths.",
     riffOfId: "negroni",
     riffOfName: "Negroni",
-    tags: ["classic", "tequila-forward", "bittersweet", "aperitivo", "riff"],
+    tags: ["classic", "tequila-forward", "bittersweet", "riff"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Reposado Tequila" },
       { amount: 0.5, unit: "oz", name: "Campari" },
@@ -2771,7 +2771,7 @@ export const SEED_RECIPES = [
     notes: "Created for William 'Sparrow' Robertson, sports editor of the New York Herald in Paris.",
     riffOfId: "boulevardier",
     riffOfName: "Boulevardier",
-    tags: ["classic", "whiskey-forward", "bittersweet", "aperitivo", "riff"],
+    tags: ["classic", "whiskey-forward", "bittersweet", "riff"],
     specs: [
       { amount: 1, unit: "oz", name: "Rye Whiskey" },
       { amount: 1, unit: "oz", name: "Dry Vermouth" },
@@ -2959,7 +2959,7 @@ export const SEED_RECIPES = [
     source: "Jerry Thomas, The Bartender's Guide (1876)",
     sourceUrl: "",
     notes: "The foundational American fizz template that spawned the Ramos Fizz.",
-    tags: ["pre-prohibition", "gin-forward", "highball", "refreshing", "effervescent"],
+    tags: ["pre-prohibition", "gin-forward", "highball", "refreshing", "sparkling"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 1, unit: "oz", name: "Fresh Lemon Juice" },
@@ -3526,7 +3526,7 @@ export const SEED_RECIPES = [
     source: "W.C. Whitfield, Here's How (1941)",
     sourceUrl: "",
     notes: "Commemorates the inauguration of international airmail postal service in the Caribbean.",
-    tags: ["classic", "rum-forward", "sour", "refreshing", "effervescent"],
+    tags: ["classic", "rum-forward", "sour", "refreshing", "sparkling"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Aged Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },

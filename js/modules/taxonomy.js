@@ -1984,6 +1984,57 @@ function resolveIngredient(rawText) {
 }
 
 /**
+ * Suggests canonical ingredient names matching a partial, in-progress query —
+ * for autocomplete while typing a spec's ingredient name. Requires at least 3
+ * characters (anything shorter matches too much of the taxonomy to be useful).
+ *
+ * Ranked in four tiers, each sorted alphabetically: the canonical name matching
+ * at a word boundary (typing "gin" finds "London Dry Gin"), then the name
+ * matching anywhere, then an alias/brand matching at a word boundary, then an
+ * alias/brand matching anywhere. Without this tiering, a query like "gin" could
+ * rank a broad, barely-related category ahead of the obvious ingredient just
+ * because it happened to have a matching alias buried in it.
+ */
+export function getIngredientSuggestions(query, limit = 8) {
+  const q = normalizeText(query || '');
+  if (q.length < 3) return [];
+  const wordBoundary = new RegExp(`\\b${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+
+  const tiers = [[], [], [], []];
+  const seen = new Set();
+
+  for (const key of Object.keys(TAXONOMY)) {
+    const item = TAXONOMY[key];
+    if (seen.has(item.name)) continue;
+    const nameNorm = normalizeText(item.name);
+
+    if (wordBoundary.test(nameNorm)) {
+      tiers[0].push(item.name);
+      seen.add(item.name);
+      continue;
+    }
+    if (nameNorm.includes(q)) {
+      tiers[1].push(item.name);
+      seen.add(item.name);
+      continue;
+    }
+
+    const aliasCandidates = [...(item.aliases || []), ...(item.brands || [])].map(normalizeText);
+    if (aliasCandidates.some(c => wordBoundary.test(c))) {
+      tiers[2].push(item.name);
+      seen.add(item.name);
+    } else if (aliasCandidates.some(c => c.includes(q))) {
+      tiers[3].push(item.name);
+      seen.add(item.name);
+    }
+  }
+
+  return tiers
+    .flatMap(tier => tier.sort((a, b) => a.localeCompare(b)))
+    .slice(0, limit);
+}
+
+/**
  * Returns color, ABV, and category metadata for an ingredient
  */
 export function getIngredientMetadata(rawText = '') {

@@ -92,7 +92,7 @@ export function renderCurrentView() {
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
       if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'block';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = '';
-      elements.desktopStickyTitle?.classList.remove('visible');
+      elements.desktopStickyTitle?.classList.remove('visible', 'editor-mode');
       document.getElementById('mobile-sticky-title')?.classList.remove('visible');
       renderHomeView();
       releaseWakeLock();
@@ -101,6 +101,11 @@ export function renderCurrentView() {
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'block';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = '';
+      // Leaving the editor any way other than Cancel/Save (e.g. jumping straight
+      // to another recipe from the sidebar) skips editor-modal.js's own cleanup,
+      // which is what was leaving a ghost "Save Recipe" button stuck in the
+      // shared sticky header on recipe pages that were never being edited.
+      elements.desktopStickyTitle?.classList.remove('editor-mode');
       renderCounterView();
       requestWakeLock();
     }
