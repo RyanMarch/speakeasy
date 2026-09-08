@@ -56,6 +56,8 @@ const UNIT_CONVERSIONS_TO_OZ = {
   parts: 1.0,
   splash: 0.2,
   rinse: 0.05,
+  leaf: 0.02,
+  leaves: 0.02,
 };
 
 export function getIngredientColor(name = '') {
