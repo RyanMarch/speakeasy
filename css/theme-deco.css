@@ -72,7 +72,8 @@
   --transition-fast: 150ms ease;
   --transition-normal: 240ms cubic-bezier(0.16, 1, 0.3, 1);
 
-  --sidebar-width: 350px;
+  /* Fluid — see the matching declaration/comment in base.css. */
+  --sidebar-width: clamp(295px, calc(295px + (100vw - 860px) * 0.125), 350px);
 }
 
 *,
