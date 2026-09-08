@@ -1,10 +1,11 @@
 /**
  * Speakeasy Service Worker
- * Vanilla cache-first-with-network-update strategy for true offline support.
- * No build step, no Workbox — just the Cache Storage and Fetch APIs.
+ * Vanilla network-first-with-cache-fallback strategy: fresh whenever online,
+ * offline-capable when not. No build step, no Workbox — just the Cache
+ * Storage and Fetch APIs.
  */
 
-const CACHE_NAME = 'speakeasy-v2';
+const CACHE_NAME = 'speakeasy-v3';
 
 // Core shell files precached at install time, so the app has *something* to serve
 // on a cold offline open even before the fetch handler below has had a chance to
@@ -80,60 +81,33 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
-  // Page navigations are network-first: a cold launch should show what's
-  // actually deployed, not whatever HTML happened to be cached from before.
-  // Cache-first-with-background-update (below) means a PWA can otherwise sit
-  // one full launch behind every deploy — the stale cached index.html keeps
-  // requesting its own stale-versioned ?v= asset URLs, which are themselves
-  // still cached, so the update never surfaces until a *second* cold launch.
-  // Falling back to the cache only when the network is unreachable still
-  // gives true offline support; it just stops preferring stale over fresh.
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response && response.ok) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
-          }
-          return response;
-        })
-        .catch(async () => {
-          const cache = await caches.open(CACHE_NAME);
-          const shell = (await cache.match(request)) || (await cache.match('index.html'));
-          return shell || new Response('Offline and not cached.', { status: 503, statusText: 'Offline' });
-        })
-    );
-    return;
-  }
-
+  // Network-first for everything same-origin: whatever's actually being served
+  // right now wins whenever the network is reachable, with the cache only used
+  // as an offline fallback. This used to be cache-first-with-background-update
+  // for CSS/JS (navigations were already network-first, below) — that meant
+  // every asset was always one load behind whatever was just deployed (or, in
+  // local dev, whatever was just edited): the stale cached copy served
+  // immediately every time, with the fetch that would've updated it landing
+  // in the background for a load nobody ever saw. Offline support still works
+  // exactly the same, since the cache fallback is unchanged; this just stops
+  // preferring stale over fresh when a network response is actually available.
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      const cached = await cache.match(request);
-
-      // Always kick off a network fetch to refresh the cache for next time —
-      // cache-first means "serve the cached copy immediately if we have one,"
-      // not "never check for an update."
-      const networkFetch = fetch(request)
-        .then((response) => {
-          if (response && response.ok) {
-            cache.put(request, response.clone());
-          }
-          return response;
-        })
-        .catch(() => null);
-
-      if (cached) {
-        // Don't await it — this is a background update, the response the user
-        // gets right now is the cached one.
-        return cached;
-      }
-
-      const fresh = await networkFetch;
-      if (fresh) return fresh;
-
-      // Offline and this exact URL was never cached. Not a navigation (those
-      // are handled above), so there's nothing sensible left to fall back to.
-      return new Response('Offline and not cached.', { status: 503, statusText: 'Offline' });
-    })
+    fetch(request)
+      .then((response) => {
+        if (response && response.ok) {
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+        }
+        return response;
+      })
+      .catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        if (request.mode === 'navigate') {
+          const shell = await cache.match('index.html');
+          if (shell) return shell;
+        }
+        return new Response('Offline and not cached.', { status: 503, statusText: 'Offline' });
+      })
   );
 });

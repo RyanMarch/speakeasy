@@ -28,6 +28,13 @@
 .editor-grid {
   display: grid;
   grid-template-columns: 1fr 300px;
+  /* Explicit (generously-padded) row tracks so `grid-row: 1 / -1` below has a
+     real last line to resolve against — with no grid-template-rows at all,
+     the explicit grid has zero rows, so `-1` collapses to the same line as
+     `1` and the preview card only ever spans row 1. Left-column sections
+     auto-place into these tracks in DOM order; any unused trailing tracks
+     (nothing placed in them) size to 0, so padding the count costs nothing. */
+  grid-template-rows: repeat(20, auto);
   column-gap: 2rem;
   row-gap: 0;
   align-items: start;
@@ -44,13 +51,48 @@
 .editor-preview-col {
   grid-column: 2;
   grid-row: 1 / -1;
+  /* Stretch (not align-self:start) so this card's own box — border and
+     background included — fills the *entire* height Grid reserves for it
+     (which spans the whole left column, however long that runs). That's what
+     was causing the "giant unexplained gap": align-items:start left the card
+     short, but the grid cell was still that tall, so everything below the
+     card's own border was bare, unbounded background with nothing visibly
+     accounting for it. Now the border runs the full height, so there's one
+     continuous, obviously-intentional panel instead of a card floating above
+     a mystery void. */
+  align-self: stretch;
+  /* background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md); */
+  padding: 1.25rem 1rem;
+}
+
+/* The actual preview content sticks to the top *within* that tall card as you
+   scroll the form beside it — same sticky treatment the single-recipe page's
+   glass column uses, just moved to an inner wrapper now that the outer card
+   stretches for visual boundary purposes instead of tracking scroll itself. */
+.editor-preview-sticky-inner {
+  position: sticky;
+  top: 1rem;
 }
 
 /* The glass artwork below is horizontally centered, but .form-label is
    left-aligned everywhere else in the form — left it here too and the
    centered glass reads as off-balance under it. Center just this one. */
-.editor-preview-col > .form-label {
+.editor-preview-col>.form-label {
   text-align: center;
+}
+
+/* .glass-wrapper's own width:100% (counter-view.css) is capped at 260px via
+   max-width, but a capped block box with no auto margins still sits at the
+   left edge of whatever contains it — invisible in the narrow ~280px-wide
+   sidebar this card usually is, but glaring once the column goes full-width
+   (the sub-1300px "shrink, don't stack" range in responsive.css, or any
+   other case where this card ends up wider than 260px). Centering it here
+   unconditionally costs nothing in the narrow case and fixes the wide one. */
+.editor-preview-sticky-inner .glass-wrapper {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .form-group {
@@ -99,6 +141,11 @@
   font-size: 0.92rem;
   outline: none;
   transition: border-color var(--transition-fast);
+}
+
+.editor-specs-section .form-input,
+.editor-specs-section .form-select {
+  padding: 0.4rem 0.5rem;
 }
 
 .form-select {
@@ -263,28 +310,75 @@
   margin-bottom: 0.75rem;
 }
 
+/* Flexbox, not Grid: a fixed-track Grid column's width is only a *hint* to
+   the browser, not a hard cap — a child's intrinsic content width (the unit
+   <select>'s widest option, "barspoon") can still force its track wider than
+   declared unless every browser correctly applies `min-width: 0` to override
+   that automatic minimum size. That override is inconsistent across engines
+   in practice, which is what was actually causing the name field to collapse
+   to a sliver — `min-width: 0` on the grid items alone didn't reliably fix it
+   everywhere. Flex children shrinking below their content size via
+   `min-width: 0` is a much older, much more uniformly-implemented pattern,
+   so the fixed-width fields get explicit flex-basis + flex-shrink: 0 and the
+   name field is the one flexible (flex: 1) column that actually absorbs
+   whatever space is left. */
 .editor-spec-row {
-  display: grid;
-  grid-template-columns: 70px 112px 1fr 70px 36px;
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
-  align-items: center;
+}
+
+.editor-spec-row>* {
+  min-width: 0;
+}
+
+.spec-input-amount {
+  flex: 0 0 clamp(44px, 7vw, 64px);
+  width: clamp(44px, 7vw, 64px);
+  min-width: 0;
+}
+
+.spec-input-unit {
+  flex: 0 0 clamp(72px, 11vw, 100px);
+  width: clamp(72px, 11vw, 100px);
+  min-width: 0;
+}
+
+.spec-input-abv {
+  flex: 0 0 clamp(50px, 7vw, 68px);
+  width: clamp(50px, 7vw, 68px);
+  min-width: 0;
+}
+
+.btn-remove-row {
+  flex: 0 0 32px;
+  width: 32px;
 }
 
 .editor-spec-row .form-select {
-  padding-right: 1.6rem;
+  padding-right: 1.35rem;
   font-size: 0.85rem;
+  background-position: right 0.4rem center;
+  background-size: 14px 14px;
 }
 
 .spec-name-wrapper {
   position: relative;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .spec-input-abv {
   text-align: right;
   font-size: 0.82rem;
+  /* Safari draws its native number-input spin-button chrome (a boxed
+     up/down control) unless -webkit-appearance is set on the input itself —
+     the ::-webkit-inner/outer-spin-button rule below only hides Chrome's
+     version, since Chrome already treats the base appearance correctly. */
+  -webkit-appearance: textfield;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* Hide the native up/down spinner — it crowds the "ABV%" placeholder in an
