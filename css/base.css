@@ -51,8 +51,14 @@
   /* Single source of truth for the desktop sidebar's width — .app-main's grid
      track (recipe-list.css) and the --shelf-bleed calc() (responsive.css) both
      have to agree with .sidebar's actual width, or shelf rows either collide
-     with the sidebar or leave a gap. Change it here, not in either of those. */
-  --sidebar-width: 350px;
+     with the sidebar or leave a gap. Change it here, not in either of those.
+     Fluid between the mobile cutover (768px) and 1300px (the same ceiling the
+     editor's own medium-width tuning uses): full 350px at 1300px+, narrowing
+     linearly down to a 295px floor at 860px — 295px is where a recipe card's
+     glassware-type badge ("ROCKS", "COUPE") starts getting cut off, so that's
+     as narrow as this is allowed to get before the list becomes unreadable.
+     Below 860px the mobile breakpoint takes over and this stops applying. */
+  --sidebar-width: clamp(295px, calc(295px + (100vw - 860px) * 0.125), 350px);
 }
 
 *,

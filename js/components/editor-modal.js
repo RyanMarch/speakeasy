@@ -11,7 +11,7 @@ import {
   normalizeTagName,
 } from '../modules/storage.js';
 
-import { parseSpecsBlock } from '../modules/parser.js';
+import { parseSpecsBlock, extractGarnishLine } from '../modules/parser.js';
 import { GlassView } from '../modules/glass-view.js';
 import { calculateCocktailAbv, estimateIngredientAbv } from '../modules/abv.js';
 import { getIngredientSuggestions } from '../modules/taxonomy.js';
@@ -125,6 +125,7 @@ export function openEditor(recipe = null) {
           id="quick-paste-input"
           class="quick-paste-textarea"
           placeholder="Paste ingredient lines, such as:&#10;1.5 oz Scotch&#10;0.5 oz Mezcal&#10;0.75 oz Lime Juice&#10;0.75 oz Orgeat&#10;2 dashes Celery Bitters&#10;&#10;Add preparation steps and writeup in the sections below."
+          autocomplete="off"
         ></textarea>
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
           <button type="button" id="btn-clear-paste" class="btn btn-ghost btn-sm">Clear Box</button>
@@ -135,7 +136,7 @@ export function openEditor(recipe = null) {
       <!-- Recipe Core Fields -->
       <div class="editor-section editor-field-name form-group">
         <label class="form-label" for="edit-name">Cocktail Name</label>
-        <input type="text" id="edit-name" class="form-input" value="${escapeHtml(currentData.name)}" placeholder="Golden Hour Fizz" required>
+        <input type="text" id="edit-name" class="form-input" value="${escapeHtml(currentData.name)}" placeholder="Golden Hour Fizz" autocomplete="off" required>
       </div>
 
       <!-- Editable Spec Rows -->
@@ -153,7 +154,7 @@ export function openEditor(recipe = null) {
       <!-- Preparation Directions -->
       <div class="editor-section editor-field-instructions form-group" style="margin-top: 1.5rem;">
         <label class="form-label" for="edit-instructions">Preparation Directions</label>
-        <textarea id="edit-instructions" class="form-textarea" rows="4" placeholder="Step-by-step preparation directions...">${escapeHtml(currentData.instructions || currentData.notes || '')}</textarea>
+        <textarea id="edit-instructions" class="form-textarea" rows="4" placeholder="Step-by-step preparation directions..." autocomplete="off">${escapeHtml(currentData.instructions || currentData.notes || '')}</textarea>
         <div class="field-hint" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
           Mention a technique, glass, or garnish here ("garnish with a cherry") and we'll suggest it below.
         </div>
@@ -187,7 +188,7 @@ export function openEditor(recipe = null) {
 
       <div class="editor-section editor-field-garnish form-group">
         <label class="form-label" for="edit-garnish">Garnish <span class="field-detected-badge" id="garnish-detected-badge" hidden>detected</span></label>
-        <input type="text" id="edit-garnish" class="form-input" value="${escapeHtml(currentData.garnish)}" placeholder="Lime wheel, orange twist, etc.">
+        <input type="text" id="edit-garnish" class="form-input" value="${escapeHtml(currentData.garnish)}" placeholder="Lime wheel, orange twist, etc." autocomplete="off">
       </div>
 
       <!-- Tags & Custom Lists -->
@@ -217,39 +218,41 @@ export function openEditor(recipe = null) {
       <!-- Description & Story -->
       <div class="editor-section editor-field-description form-group">
         <label class="form-label" for="edit-description">Description & Story</label>
-        <textarea id="edit-description" class="form-textarea" rows="3" placeholder="Background, flavor profile, or creator writeup...">${escapeHtml(currentData.description || '')}</textarea>
+        <textarea id="edit-description" class="form-textarea" rows="3" placeholder="Background, flavor profile, or creator writeup..." autocomplete="off">${escapeHtml(currentData.description || '')}</textarea>
       </div>
 
       <!-- Source & Attribution -->
       <div class="editor-section editor-field-source form-row">
         <div class="form-group">
           <label class="form-label" for="edit-source">Source / Creator</label>
-          <input type="text" id="edit-source" class="form-input" value="${escapeHtml(currentData.source || '')}" placeholder="Your name, bar, or book">
+          <input type="text" id="edit-source" class="form-input" value="${escapeHtml(currentData.source || '')}" placeholder="Your name, bar, or book" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label" for="edit-source-url">Source Link / URL</label>
-          <input type="url" id="edit-source-url" class="form-input" value="${escapeHtml(currentData.sourceUrl || '')}" placeholder="https://example.com/my-recipe">
+          <input type="url" id="edit-source-url" class="form-input" value="${escapeHtml(currentData.sourceUrl || '')}" placeholder="https://example.com/my-recipe" autocomplete="off">
         </div>
       </div>
 
       <!-- Additional Notes -->
       <div class="editor-section editor-field-notes form-group">
         <label class="form-label" for="edit-notes">Additional Notes & Tips (Optional)</label>
-        <textarea id="edit-notes" class="form-textarea" rows="2" placeholder="Ice, dilution details, or variations...">${escapeHtml(currentData.notes || '')}</textarea>
+        <textarea id="edit-notes" class="form-textarea" rows="2" placeholder="Ice, dilution details, or variations..." autocomplete="off">${escapeHtml(currentData.notes || '')}</textarea>
       </div>
 
       <!-- Live Vector Fluid Glass Preview -->
       <div class="editor-preview-col">
-        <label class="form-label">Live Ratio Preview</label>
-        <div class="glass-wrapper" id="editor-glass-wrapper" style="height: 340px;">
-          <!-- Live GlassView -->
-        </div>
-        <div class="glass-meta-card" style="max-width: 100%;">
-          <div id="editor-abv-badge" style="font-size: 0.85rem; font-weight: 600; color: var(--color-accent-light); margin-bottom: 0.25rem;">
-            Estimated Strength: ~0% ABV
+        <div class="editor-preview-sticky-inner">
+          <label class="form-label">Live Ratio Preview</label>
+          <div class="glass-wrapper" id="editor-glass-wrapper" style="height: 340px;">
+            <!-- Live GlassView -->
           </div>
-          <div class="glass-interaction-tip">
-            Layers and ABV recalculate in real-time as amounts are entered
+          <div class="glass-meta-card" style="max-width: 100%;">
+            <div id="editor-abv-badge" style="font-size: 0.85rem; font-weight: 600; color: var(--color-accent-light); margin-bottom: 0.25rem;">
+              Estimated Strength: ~0% ABV
+            </div>
+            <div class="glass-interaction-tip">
+              Layers and ABV recalculate in real-time as amounts are entered
+            </div>
           </div>
         </div>
       </div>
@@ -278,7 +281,7 @@ export function renderEditorSpecRows() {
   const container = document.getElementById('editor-specs-rows');
   if (!container) return;
 
-  const units = ['oz', 'ml', 'dash', 'dashes', 'barspoon', 'tsp', 'tbsp', 'drops', 'rinse', 'part', 'leaves'];
+  const units = ['oz', 'ml', 'dash', 'dashes', 'barspoon', 'tsp', 'tbsp', 'drops', 'splash', 'rinse', 'part', 'leaves', 'pinch', 'cup', 'shot'];
 
   container.innerHTML = state.editorSpecs.map((spec, i) => {
     const defaultAbv = estimateIngredientAbv(spec.name || '');
@@ -292,6 +295,7 @@ export function renderEditorSpecRows() {
           value="${spec.amount !== null && spec.amount !== undefined ? spec.amount : ''}"
           placeholder="Amt"
           aria-label="Amount"
+          autocomplete="off"
         >
         <select class="form-select spec-input-unit" aria-label="Unit">
           <option value="" ${!spec.unit ? 'selected' : ''}>none</option>
@@ -321,6 +325,7 @@ export function renderEditorSpecRows() {
           placeholder="ABV%"
           title="Alcohol By Volume percentage"
           aria-label="ABV percentage"
+          autocomplete="off"
         >
         <button type="button" class="btn-remove-row" data-action="remove-row" data-index="${i}" title="Remove ingredient">✕</button>
       </div>
@@ -564,15 +569,32 @@ export function setupEditorEvents(recipeId) {
     const text = quickPasteInput.value.trim();
     if (!text) return;
     const parsed = parseSpecsBlock(text);
-    if (parsed.length > 0) {
-      state.editorSpecs = parsed.map(p => ({
-        amount: p.amount,
-        unit: p.unit,
-        name: p.name,
-      }));
-      renderEditorSpecRows();
+
+    // A pasted "Garnish: lime wheel" line is excluded from the specs above
+    // (it's not an ingredient) — route it into the Garnish field instead of
+    // just losing it, but only if that field is still empty, so this never
+    // clobbers something the user already typed themselves.
+    const garnishInput = document.getElementById('edit-garnish');
+    const pastedGarnish = extractGarnishLine(text);
+    let filledGarnish = false;
+    if (pastedGarnish && garnishInput && !garnishInput.value.trim()) {
+      garnishInput.value = pastedGarnish;
+      filledGarnish = true;
+    }
+
+    if (parsed.length > 0 || filledGarnish) {
+      if (parsed.length > 0) {
+        state.editorSpecs = parsed.map(p => ({
+          amount: p.amount,
+          unit: p.unit,
+          name: p.name,
+        }));
+        renderEditorSpecRows();
+      }
       updateEditorGlassPreview();
-      showToast(`Parsed ${parsed.length} ingredients into specs below`);
+      const specsMsg = parsed.length > 0 ? `Parsed ${parsed.length} ingredients` : '';
+      const garnishMsg = filledGarnish ? 'set garnish' : '';
+      showToast([specsMsg, garnishMsg].filter(Boolean).join(' and ') || 'Applied pasted specs');
     } else {
       showToast('No ingredient lines recognized in paste box');
     }

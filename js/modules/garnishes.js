@@ -787,9 +787,9 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
 
   const rendered = [];
 
-  // Celery (and the swizzle stick, added separately below) stand centered in
-  // the drink rather than perched on a rim corner, so they're excluded from
-  // the left/right rim-slot rotation the rest of these garnishes share.
+  // Celery (and the swizzle stick, added separately below) stands planted in
+  // the drink rather than perched on a rim corner, so it's excluded from the
+  // left/right rim-slot rotation the rest of these garnishes share.
   const slotTypes = types.filter(t => t !== 'celeryStalk' && !t.includes('Rim') && t !== 'coffeeBeans');
 
   const glassBottomY = glassware.fluidBounds?.bottomY ?? 300;

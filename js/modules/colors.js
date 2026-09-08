@@ -58,6 +58,12 @@ const UNIT_CONVERSIONS_TO_OZ = {
   rinse: 0.05,
   leaf: 0.02,
   leaves: 0.02,
+  pinch: 0.02,
+  pinches: 0.02,
+  cup: 8.0,
+  cups: 8.0,
+  shot: 1.5,
+  shots: 1.5,
 };
 
 export function getIngredientColor(name = '') {

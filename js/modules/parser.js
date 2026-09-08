@@ -22,6 +22,42 @@ export function normalizeFractions(str) {
     .replace(/\s+/g, ' ');
 }
 
+// Spelled-out/pluralized/two-word unit variants the regex below recognizes but
+// that don't match the app's canonical unit vocabulary (the editor's unit
+// dropdown, and UNIT_CONVERSIONS_TO_OZ) verbatim — collapsed to the form those
+// expect. Left out on purpose: "dash"/"dashes" and "drops" alone, which are
+// already valid, distinct dropdown options and don't need collapsing to one
+// spelling.
+const UNIT_ALIASES = {
+  ounce: 'oz',
+  ounces: 'oz',
+  'fl oz': 'oz',
+  'fl. oz': 'oz',
+  'fl.oz': 'oz',
+  'fluid ounce': 'oz',
+  'fluid ounces': 'oz',
+  milliliter: 'ml',
+  milliliters: 'ml',
+  millilitre: 'ml',
+  millilitres: 'ml',
+  cc: 'ml',
+  'bar spoon': 'barspoon',
+  'bar spoons': 'barspoon',
+  barspoons: 'barspoon',
+  teaspoon: 'tsp',
+  teaspoons: 'tsp',
+  tsps: 'tsp',
+  tablespoon: 'tbsp',
+  tablespoons: 'tbsp',
+  drop: 'drops',
+  splashes: 'splash',
+  parts: 'part',
+  leaf: 'leaves',
+  pinches: 'pinch',
+  cups: 'cup',
+  shots: 'shot',
+};
+
 export function parseIngredientLine(line) {
   if (!line) {
     return null;
@@ -31,8 +67,12 @@ export function parseIngredientLine(line) {
     return null;
   }
 
-  // Matches "0.75 oz Bourbon", "1 1/2 oz Gin", "2 dashes Angostura", "Rinse Absinthe"
-  const regex = /^([\d\s\/\.]+)?\s*(dashes|dash|barspoons?|barspoon|tbsp|tsps?|tsp|drops?|drop|oz|ml|cl|splash|parts?|part|rinse)?\s*(.+)$/i;
+  // Matches "0.75 oz Bourbon", "1 1/2 oz Gin", "2 dashes Angostura", "Rinse Absinthe" —
+  // also spelled-out/pluralized/two-word words ("2 ounces Scotch", "1 fl oz Gin",
+  // "1 bar spoon Demerara", "1 teaspoon syrup"), normalized to their canonical
+  // short form below via UNIT_ALIASES. "bar\s?spoon" (space optional) covers both
+  // "barspoon" and "bar spoon" with one pattern rather than four separate ones.
+  const regex = /^([\d\s\/\.]+)?\s*(dashes|dash|bar\s?spoons?|tbsp|tablespoons?|tsps?|tsp|teaspoons?|drops?|drop|fl\.?\s?oz\.?|fluid\s?ounces?|ounces?|oz|milliliters?|millilitres?|ml|cc|cl|splashes?|parts?|part|leaves|leaf|pinche?s?|cups?|shots?|rinse)?\s*(.+)$/i;
   const match = trimmed.match(regex);
 
   if (!match) {
@@ -56,7 +96,8 @@ export function parseIngredientLine(line) {
     }
   }
 
-  const parsedUnit = (match[2] || '').toLowerCase();
+  const rawUnit = (match[2] || '').toLowerCase();
+  const parsedUnit = UNIT_ALIASES[rawUnit] || rawUnit;
   const name = match[3]?.trim() || '';
 
   return {
@@ -67,6 +108,52 @@ export function parseIngredientLine(line) {
   };
 }
 
+// Bare section-header words that sometimes come along for the ride when
+// pasting a recipe straight from a book/blog/PDF — e.g. an "Ingredients"
+// label above the list, with no amount or unit of its own to distinguish it
+// from a real line. Matched as a whole line (after trimming trailing
+// punctuation like a colon), not a substring, so it can't eat a real
+// ingredient that merely contains one of these words.
+const SECTION_HEADER_LINES = new Set([
+  'ingredients', 'ingredient', 'instructions', 'instruction',
+  'directions', 'direction', 'method', 'recipe', 'specs', 'specifications',
+  'you will need', "you'll need", 'preparation',
+]);
+
+/**
+ * True for a pasted line that isn't really an ingredient at all — a bare
+ * section header ("Ingredients") or a garnish line ("Garnish: lime wheel").
+ * Garnish lines are deliberately excluded from specs here rather than kept
+ * as a junk row; callers that want that content (see editor-modal.js's Quick
+ * Paste handler) should pull it out of the raw text before/independently of
+ * calling parseSpecsBlock.
+ */
+function isNonIngredientLine(line) {
+  const bare = line.replace(/:\s*$/, '').trim().toLowerCase();
+  if (SECTION_HEADER_LINES.has(bare)) return true;
+  if (/^garnish(ed with)?:?\s*/i.test(line)) return true;
+  return false;
+}
+
+/**
+ * Pulls the content of a pasted "Garnish: lime wheel" line back out, so a
+ * Quick Paste can route it into the Garnish field instead of just dropping it
+ * (parseSpecsBlock excludes these lines from the ingredient specs entirely —
+ * see isNonIngredientLine). Returns the trimmed garnish text, or null if no
+ * such line is present.
+ */
+export function extractGarnishLine(text) {
+  if (!text || typeof text !== 'string') return null;
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    const match = line.match(/^garnish(?:ed with)?:?\s*(.+)$/i);
+    if (match && match[1].trim()) {
+      return match[1].trim();
+    }
+  }
+  return null;
+}
+
 export function parseSpecsBlock(text) {
   if (!text || typeof text !== 'string') {
     return [];
@@ -75,7 +162,7 @@ export function parseSpecsBlock(text) {
   return text
     .split(/\r?\n/)
     .map(line => line.trim())
-    .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'))
+    .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('//') && !isNonIngredientLine(line))
     .map(parseIngredientLine)
     .filter(item => item !== null && item.name.length > 0);
 }
