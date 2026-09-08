@@ -80,6 +80,32 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
+  // Page navigations are network-first: a cold launch should show what's
+  // actually deployed, not whatever HTML happened to be cached from before.
+  // Cache-first-with-background-update (below) means a PWA can otherwise sit
+  // one full launch behind every deploy — the stale cached index.html keeps
+  // requesting its own stale-versioned ?v= asset URLs, which are themselves
+  // still cached, so the update never surfaces until a *second* cold launch.
+  // Falling back to the cache only when the network is unreachable still
+  // gives true offline support; it just stops preferring stale over fresh.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.ok) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cache = await caches.open(CACHE_NAME);
+          const shell = (await cache.match(request)) || (await cache.match('index.html'));
+          return shell || new Response('Offline and not cached.', { status: 503, statusText: 'Offline' });
+        })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       const cached = await cache.match(request);
@@ -105,13 +131,8 @@ self.addEventListener('fetch', (event) => {
       const fresh = await networkFetch;
       if (fresh) return fresh;
 
-      // Offline and this exact URL was never cached. For a page navigation, fall
-      // back to the cached app shell so the SPA still boots — its own router
-      // reads state from localStorage and the URL hash, not from the network.
-      if (request.mode === 'navigate') {
-        const shell = await cache.match('index.html');
-        if (shell) return shell;
-      }
+      // Offline and this exact URL was never cached. Not a navigation (those
+      // are handled above), so there's nothing sensible left to fall back to.
       return new Response('Offline and not cached.', { status: 503, statusText: 'Offline' });
     })
   );

@@ -13,6 +13,11 @@ export function resolveGarnishTypes(garnishString = '') {
 
   const garnishes = [];
 
+  // Celery stands in the glass on its own, not perched on a rim slot, so it
+  // doesn't compete with (or get squeezed out by) the rim-slot cap below —
+  // it's the whole point of a Bloody Mary, not an afterthought.
+  const hasCelery = text.includes('celery');
+
   // Salt or sugar rim
   if (text.includes('salt rim') || text.includes('salt') && text.includes('rim')) {
     garnishes.push('saltRim');
@@ -23,6 +28,13 @@ export function resolveGarnishTypes(garnishString = '') {
   // Coffee beans
   if (text.includes('coffee')) {
     garnishes.push('coffeeBeans');
+  }
+
+  // Pickle spear is checked early (ahead of olive/onion/etc.) so it wins the
+  // 2-garnish cap below on drinks that list several — it's the whole point
+  // of a Pickletini, not an afterthought.
+  if (text.includes('pickle')) {
+    garnishes.push('pickleSpear');
   }
 
   // Olive
@@ -48,6 +60,16 @@ export function resolveGarnishTypes(garnishString = '') {
   // Pineapple
   if (text.includes('pineapple')) {
     garnishes.push('pineappleWedge');
+  }
+
+  // Apple ("\b" word boundaries so this doesn't false-match inside "pineapple")
+  if (/\bapple\b/.test(text)) {
+    garnishes.push('appleSlice');
+  }
+
+  // Cucumber
+  if (text.includes('cucumber')) {
+    garnishes.push('cucumberSlice');
   }
 
   // Wheels and Slices
@@ -91,8 +113,10 @@ export function resolveGarnishTypes(garnishString = '') {
     else if (text.includes('orange')) garnishes.push('orangeTwist');
   }
 
-  // Cap at 2 distinct garnishes to preserve visual balance
-  return Array.from(new Set(garnishes)).slice(0, 2);
+  // Cap at 2 distinct rim-slot garnishes to preserve visual balance. Celery
+  // isn't part of that cap (see above) — it's always included when present.
+  const capped = Array.from(new Set(garnishes)).slice(0, 2);
+  return hasCelery ? ['celeryStalk', ...capped] : capped;
 }
 
 /**
@@ -429,13 +453,76 @@ function renderCocktailOnionOnPick(rimX, rimY, isLeft = false) {
   `;
 }
 
+/**
+ * Render pickle spear on pick collinear with rim contact, mirroring the
+ * olive/onion pick geometry but with an elongated spear body
+ */
+function renderPickleOnPick(rimX, rimY, isLeft = false) {
+  const sx = isLeft ? 1 : -1;
+  const contactX = rimX + (2 * sx);
+  const contactY = rimY;
+
+  const knobX = contactX - (18 * sx);
+  const knobY = contactY - 11;
+  const pickleX = contactX + (36 * sx);
+  const pickleY = contactY + 22;
+  const tipX = contactX + (70 * sx);
+  const tipY = contactY + 42;
+  const pickleRot = 32 * sx;
+
+  return `
+    <g class="garnish garnish-pickle" pointer-events="none">
+      <!-- Cocktail pick shaft resting across rim -->
+      <line
+        x1="${knobX.toFixed(1)}"
+        y1="${knobY.toFixed(1)}"
+        x2="${tipX.toFixed(1)}"
+        y2="${tipY.toFixed(1)}"
+        stroke="#cfd8dc"
+        stroke-width="2.2"
+        stroke-linecap="round"
+      />
+      <!-- Pick top knob handle -->
+      <circle cx="${knobX.toFixed(1)}" cy="${knobY.toFixed(1)}" r="3.6" fill="#90a4ae" stroke="#607d8b" stroke-width="0.8" />
+
+      <!-- Pickle spear submerged inside glass bowl -->
+      <g transform="translate(${pickleX.toFixed(1)}, ${pickleY.toFixed(1)}) rotate(${pickleRot})">
+        <!-- Cast shadow -->
+        <ellipse cx="0" cy="3" rx="11" ry="28" fill="#2e4215" opacity="0.5" />
+        <!-- Spear body -->
+        <rect x="-9.5" y="-25" width="19" height="50" rx="9.5" fill="#4c7a1f" />
+        <rect x="-9.5" y="-25" width="19" height="50" rx="9.5" fill="none" stroke="#33500f" stroke-width="1" />
+        <!-- Bumpy skin texture -->
+        <circle cx="-4.5" cy="-15" r="1.5" fill="#33500f" opacity="0.55" />
+        <circle cx="5" cy="-6" r="1.5" fill="#33500f" opacity="0.55" />
+        <circle cx="-5" cy="4" r="1.5" fill="#33500f" opacity="0.55" />
+        <circle cx="4.5" cy="14" r="1.5" fill="#33500f" opacity="0.55" />
+        <circle cx="-3" cy="20" r="1.3" fill="#33500f" opacity="0.55" />
+        <!-- Seed-flecked cut end -->
+        <ellipse cx="0" cy="-24" rx="8.5" ry="3.4" fill="#8bc34a" />
+        <ellipse cx="0" cy="-24" rx="5.2" ry="2" fill="#c5e1a5" opacity="0.85" />
+        <!-- Glossy sheen -->
+        <path d="M -5.5 -16 C -7.5 -5, -7 8, -5 19" stroke="rgba(255, 255, 255, 0.4)" stroke-width="2" stroke-linecap="round" fill="none" />
+      </g>
+    </g>
+  `;
+}
+
 
 /**
  * Render fresh mint sprig with generous bouquet
  */
 function renderMintSprig(x, y, angle = -12) {
+  // The tallest leaf reaches 66 above the anchor; on a short-rimmed glass (a
+  // highball's rim sits only ~52 above the SVG's own top edge) that overshoots
+  // the canvas and gets clipped. Scale down (never below 0.55, so it doesn't
+  // vanish) whenever the anchor doesn't have that much headroom above it —
+  // full-size on roomier glasses, shorter but intact on tight ones.
+  const maxReach = 66;
+  const margin = 6;
+  const scale = Math.max(0.55, Math.min(1, (y - margin) / maxReach));
   return `
-    <g class="garnish garnish-mint" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle})" pointer-events="none">
+    <g class="garnish garnish-mint" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle}) scale(${scale.toFixed(2)})" pointer-events="none">
       <!-- Mint stem extending down into the glass interior & curving over rim -->
       <path d="M 0 -10 Q -2 14, -7 38" stroke="#256029" stroke-width="3.6" stroke-linecap="round" fill="none" />
       <path d="M -0.5 -10 Q -2.5 14, -7.5 38" stroke="#388e3c" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.6" />
@@ -469,6 +556,59 @@ function renderMintSprig(x, y, angle = -12) {
       <!-- Front budding tender leaf -->
       <path d="M 0 1 C -8 -6, -6 -20, 0 -24 C 6 -20, 8 -6, 0 1 Z" fill="#66bb6a" opacity="0.98" />
       <path d="M 0 1 L 0 -22" stroke="#e8f5e9" stroke-width="0.9" fill="none" opacity="0.85" />
+    </g>
+  `;
+}
+
+/**
+ * Render a Bloody Mary-style celery stalk standing tall out of the drink
+ */
+let celeryInstanceCounter = 0;
+
+function renderCeleryStalk(x, y, angle = -4, glassBottomY = null) {
+  // Stalk spans from the actual bottom of the glass (so it reads as planted
+  // the full depth of the drink, not just dipped below the surface) up to a
+  // fixed distance above the rim. glassBottomY is in the same absolute SVG
+  // coordinate space as y (the anchor); everything else here is relative to
+  // that anchor, so it's converted once up front.
+  const bottom = glassBottomY !== null ? (glassBottomY - y) : 16;
+  const top = -190;
+  // Original design was authored for a bottom/top of 16/-118 (range 134); this
+  // interpolates every other control point proportionally so the same taper
+  // and leaf shape hold at any length.
+  const at = (origY) => (bottom + (origY - 16) * ((top - bottom) / -134)).toFixed(1);
+  const stalkPathD = `M -8 ${bottom.toFixed(1)} C -9 ${at(-30)}, -8 ${at(-82)}, -3 ${top} L 9 ${top} C 6 ${at(-82)}, 8 ${at(-30)}, 8 ${bottom.toFixed(1)} Z`;
+  // Local y 0 is the anchor, which callers set to the liquid surface — so
+  // everything from 0 down to `bottom` is the submerged portion.
+  const clipId = `celery-clip-${celeryInstanceCounter++}`;
+
+  return `
+    <g class="garnish garnish-celery" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle})" pointer-events="none">
+      <defs>
+        <clipPath id="${clipId}">
+          <path d="${stalkPathD}" />
+        </clipPath>
+      </defs>
+
+      <!-- Cast shadow where the stalk plunges into the drink -->
+      <ellipse cx="0" cy="${(bottom - 6).toFixed(1)}" rx="9" ry="3.5" fill="rgba(0, 0, 0, 0.3)" />
+
+      <!-- Ribbed stalk body, planted at the bottom of the glass and standing tall above the rim -->
+      <path d="${stalkPathD}" fill="#aed581" stroke="#7cb342" stroke-width="1" />
+      <!-- Concave channel highlight running the length of the stalk -->
+      <path d="M -1.5 ${(bottom - 4).toFixed(1)} C -3 ${at(-30)}, -1.5 ${at(-78)}, 1.5 ${(top + 4)}" stroke="#dcedc8" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.85" />
+      <!-- Fiber ridge lines -->
+      <line x1="-4.5" y1="${(bottom - 8).toFixed(1)}" x2="-3" y2="${(top + 12)}" stroke="#8bc34a" stroke-width="0.9" opacity="0.7" />
+      <line x1="4.5" y1="${(bottom - 8).toFixed(1)}" x2="5.5" y2="${(top + 12)}" stroke="#8bc34a" stroke-width="0.9" opacity="0.7" />
+
+      <!-- Submerged tint: darken/mute the portion below the liquid surface so it
+           reads as seen through the drink rather than floating on top of it. -->
+      <rect x="-10" y="0" width="20" height="${bottom.toFixed(1)}" fill="rgba(15, 20, 10, 0.45)" clip-path="url(#${clipId})" />
+
+      <!-- Leafy top fronds (above the surface, unaffected by the tint) -->
+      <path d="M -1.5 ${top + 4} C -15 ${top - 11}, -21 ${top - 29}, -12 ${top - 44} C -4 ${top - 29}, -1.5 ${top - 11}, 0 ${top + 4} Z" fill="#689f38" />
+      <path d="M 1.5 ${top + 1} C 12 ${top - 17}, 21 ${top - 32}, 33 ${top - 38} C 27 ${top - 20}, 12 ${top - 5}, 3 ${top + 4} Z" fill="#7cb342" />
+      <path d="M 0 ${top + 1} C -3 ${top - 20}, 0 ${top - 38}, 6 ${top - 53} C 10.5 ${top - 35}, 9 ${top - 14}, 4.5 ${top + 4} Z" fill="#558b2f" />
     </g>
   `;
 }
@@ -516,23 +656,153 @@ function renderPineappleWedge(x, y, angle = 16) {
 }
 
 /**
+ * Render an apple wedge straddling the rim, structured like renderCitrusWedge
+ * but reskinned: pale cream flesh, a red skin arc, and a couple of pips.
+ */
+function renderAppleSlice(x, y, isLeft = false) {
+  const sx = isLeft ? -1 : 1;
+  const rot = isLeft ? -6 : 6;
+
+  return `
+    <g class="garnish garnish-apple" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${rot}) scale(${sx}, 1)" pointer-events="none">
+      <!-- Outer red skin arc -->
+      <path
+        d="M -19 5 C -19 -14, -10 -22, 0 -22 C 10 -22, 19 -14, 19 5 L 16 6 C 16 -11, 8 -19, 0 -19 C -8 -19, -16 -11, -16 6 Z"
+        fill="#c62828"
+      />
+      <!-- Pale flesh underlayer -->
+      <path
+        d="M -16 6 C -16 -11, -8 -19, 0 -19 C 8 -19, 16 -11, 16 6 L 14 6.5 C 14 -8.5, 7 -16.5, 0 -16.5 C -7 -16.5, -14 -8.5, -14 6.5 Z"
+        fill="#f5f0dc"
+      />
+      <!-- Flesh body -->
+      <path
+        d="M -14 6.5 C -14 -8.5, -7 -16.5, 0 -16.5 C 7 -16.5, 14 -8.5, 14 6.5 L 1 5.5 L 0 -6 L -1 5.5 Z"
+        fill="#faf6e6"
+      />
+      <!-- Core line and seeds -->
+      <line x1="0" y1="-6" x2="0" y2="5" stroke="#c9b98a" stroke-width="0.8" opacity="0.7" />
+      <ellipse cx="-2.4" cy="1" rx="1.6" ry="2.6" fill="#4e342e" transform="rotate(-18 -2.4 1)" />
+      <ellipse cx="2.4" cy="1" rx="1.6" ry="2.6" fill="#4e342e" transform="rotate(18 2.4 1)" />
+      <!-- Rim notch shadow -->
+      <line x1="0" y1="6.5" x2="0" y2="-6" stroke="rgba(0,0,0,0.4)" stroke-width="1.4" />
+    </g>
+  `;
+}
+
+/**
+ * Render a cucumber wheel, structured like renderCitrusWheel but reskinned:
+ * dark rind, pale seedless-cucumber flesh, and scattered soft seeds instead
+ * of radial citrus segments.
+ */
+function renderCucumberSlice(x, y, angle = 1) {
+  const seeds = [
+    { dx: -6, dy: -3 }, { dx: -2, dy: 5 }, { dx: 4, dy: -5 },
+    { dx: 6, dy: 3 }, { dx: 0, dy: -1 }, { dx: -5, dy: 6 },
+  ];
+  return `
+    <g class="garnish garnish-cucumber" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle})" pointer-events="none">
+      <circle cx="0" cy="0" r="21" fill="#33691e" />
+      <circle cx="0" cy="0" r="18.5" fill="#dcedc8" />
+      <circle cx="0" cy="0" r="15.5" fill="#c5e8a8" />
+      ${seeds.map(s => `<ellipse cx="${s.dx}" cy="${s.dy}" rx="1.6" ry="0.9" fill="#f1f8e9" opacity="0.9" />`).join('')}
+      <circle cx="0" cy="0" r="3" fill="#eef7e0" opacity="0.85" />
+      <!-- Rim notch illusion -->
+      <line x1="0" y1="2" x2="0" y2="21" stroke="rgba(0,0,0,0.3)" stroke-width="1.2" />
+    </g>
+  `;
+}
+
+/**
+ * Render a swizzle stick planted into the drink — a thin wooden shaft topped
+ * with the classic radiating-spoke pinwheel, standing tall out of crushed ice
+ * for tiki/swizzle-method drinks (Queen's Park Swizzle, Chartreuse Swizzle, etc.)
+ */
+let swizzleInstanceCounter = 0;
+
+function renderSwizzleStick(x, y, angle = 6, glassBottomY = null) {
+  // Same headroom guard as renderMintSprig: the spoke tip reaches 132 above
+  // the anchor, which is taller than a lot of glasses have room for above
+  // the liquid surface. Scale down rather than clip.
+  const spokeLen = 24;
+  const maxReach = 108 + spokeLen;
+  const margin = 8;
+  const scale = Math.max(0.5, Math.min(1, (y - margin) / maxReach));
+
+  // A swizzle stick is actually inserted down through the crushed ice to the
+  // bottom of the glass (that's the technique — insert, then spin), not just
+  // rested on the surface, so it's planted the same way renderCeleryStalk is.
+  const bottom = glassBottomY !== null ? (glassBottomY - y) : 14;
+  const clipId = `swizzle-clip-${swizzleInstanceCounter++}`;
+  const shaftPathD = `M -1.7 ${bottom.toFixed(1)} L 1.7 ${bottom.toFixed(1)} L 0 -108 Z`;
+
+  const spokes = [-70, -45, -20, 5, 30, 55].map(a => {
+    const rad = (a * Math.PI) / 180;
+    return `<line x1="0" y1="-108" x2="${(Math.sin(rad) * spokeLen).toFixed(1)}" y2="${(-108 - Math.cos(rad) * spokeLen).toFixed(1)}" stroke="#8d6e63" stroke-width="2.4" stroke-linecap="round" />`;
+  }).join('');
+
+  return `
+    <g class="garnish garnish-swizzle-stick" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle}) scale(${scale.toFixed(2)})" pointer-events="none">
+      <defs>
+        <clipPath id="${clipId}">
+          <path d="${shaftPathD}" />
+        </clipPath>
+      </defs>
+
+      <!-- Cast shadow where the stick plunges into the crushed ice -->
+      <ellipse cx="0" cy="${(bottom - 4).toFixed(1)}" rx="6" ry="2.5" fill="rgba(0, 0, 0, 0.3)" />
+      <!-- Wooden shaft, planted at the bottom of the glass -->
+      <line x1="0" y1="${bottom.toFixed(1)}" x2="0" y2="-108" stroke="#a1887f" stroke-width="3.4" stroke-linecap="round" />
+      <line x1="-0.6" y1="${(bottom - 4).toFixed(1)}" x2="-0.6" y2="-104" stroke="#d7ccc8" stroke-width="1" stroke-linecap="round" opacity="0.6" />
+      <!-- Submerged tint: darken/mute the portion below the liquid surface so it
+           reads as seen through the drink rather than floating on top of it. -->
+      <rect x="-3" y="0" width="6" height="${bottom.toFixed(1)}" fill="rgba(15, 20, 10, 0.4)" clip-path="url(#${clipId})" />
+      <!-- Radiating pinwheel spokes (sun-ray head) at the top -->
+      ${spokes}
+      <circle cx="0" cy="-108" r="3.6" fill="#795548" />
+    </g>
+  `;
+}
+
+/**
  * Main entry point: Renders garnish SVG elements for a cocktail recipe and glassware
  */
 export function renderGarnishesSvg(recipe, glassware, surfaceY) {
   const garnishStr = recipe?.garnish;
-  if (!garnishStr || !glassware) return '';
+  if (!glassware) return '';
 
   const types = resolveGarnishTypes(garnishStr);
-  if (types.length === 0) return '';
+
+  // Swizzle sticks come from the technique, not the garnish text — none of
+  // this app's swizzle recipes actually list "swizzle stick" as a garnish,
+  // they describe it as part of the method/instructions instead.
+  const swizzleSignal = `${recipe?.method || ''} ${recipe?.instructions || ''}`.toLowerCase();
+  const hasSwizzleStick = recipe?.method === 'Swizzled' || swizzleSignal.includes('swizzle stick');
+
+  if (types.length === 0 && !hasSwizzleStick) return '';
 
   const rim = glassware.rim || { leftX: 46, rightX: 194, y: 96 };
   const floatY = surfaceY !== null && surfaceY !== undefined ? parseFloat(surfaceY) : rim.y + 12;
+  const centerX = (rim.leftX + rim.rightX) / 2;
 
   const rendered = [];
 
-  types.forEach((type, index) => {
+  // Celery (and the swizzle stick, added separately below) stand centered in
+  // the drink rather than perched on a rim corner, so they're excluded from
+  // the left/right rim-slot rotation the rest of these garnishes share.
+  const slotTypes = types.filter(t => t !== 'celeryStalk' && !t.includes('Rim') && t !== 'coffeeBeans');
+
+  const glassBottomY = glassware.fluidBounds?.bottomY ?? 300;
+
+  types.forEach((type) => {
+    if (type === 'celeryStalk') {
+      rendered.push(renderCeleryStalk(centerX, floatY, -4, glassBottomY));
+      return;
+    }
+
+    const slotIndex = slotTypes.indexOf(type);
     // Positioning slot: if two garnishes, place first on left, second on right
-    const isSlotLeft = types.length > 1 && index === 0 && !type.includes('Rim') && type !== 'coffeeBeans';
+    const isSlotLeft = slotTypes.length > 1 && slotIndex === 0;
     const posX = isSlotLeft ? rim.leftX + 2 : rim.rightX - 2;
     const posY = rim.y;
 
@@ -582,14 +852,27 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
       case 'cocktailOnion':
         rendered.push(renderCocktailOnionOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
         break;
+      case 'pickleSpear':
+        rendered.push(renderPickleOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
+        break;
       case 'mintSprig':
         rendered.push(renderMintSprig(isSlotLeft ? rim.leftX + 4 : rim.rightX - 4, posY + 2, isSlotLeft ? 14 : -14));
         break;
       case 'pineappleWedge':
         rendered.push(renderPineappleWedge(posX, posY - 4, isSlotLeft ? -16 : 16));
         break;
+      case 'appleSlice':
+        rendered.push(renderAppleSlice(posX, posY, isSlotLeft));
+        break;
+      case 'cucumberSlice':
+        rendered.push(renderCucumberSlice(posX, posY - 6, isSlotLeft ? -14 : 14));
+        break;
     }
   });
+
+  if (hasSwizzleStick) {
+    rendered.push(renderSwizzleStick(centerX, floatY, 5, glassBottomY));
+  }
 
   return rendered.join('\n');
 }
