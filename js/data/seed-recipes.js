@@ -2056,7 +2056,7 @@ export const SEED_RECIPES = [
     source: "Modern Bartender Handshake",
     sourceUrl: "",
     notes: "The ultimate 50/50 amaro combination beloved in craft cocktail bars.",
-    tags: ["modern-craft", "bittersweet", "aperitivo", "digestif", "spirit-forward"],
+    tags: ["modern-craft", "bittersweet", "digestif", "spirit-forward"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 1.5, unit: "oz", name: "Fernet-Branca" },
@@ -2353,7 +2353,7 @@ export const SEED_RECIPES = [
     source: "Stephen Cole, The Violet Hour Chicago (c. 2008)",
     sourceUrl: "",
     notes: "A pioneer of the low-proof amaro movement showcasing Cynar.",
-    tags: ["modern-craft", "low-abv", "bittersweet", "amaro-forward", "aperitivo"],
+    tags: ["modern-craft", "low-abv", "bittersweet", "amaro-forward"],
     specs: [
       { amount: 2, unit: "oz", name: "Cynar" },
       { amount: 1, unit: "oz", name: "Sweet Vermouth" },
@@ -2663,7 +2663,7 @@ export const SEED_RECIPES = [
     notes: "An elegant agave aperitivo utilizing both sweet and dry vermouths.",
     riffOfId: "negroni",
     riffOfName: "Negroni",
-    tags: ["classic", "tequila-forward", "bittersweet", "aperitivo", "riff"],
+    tags: ["classic", "tequila-forward", "bittersweet", "riff"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Reposado Tequila" },
       { amount: 0.5, unit: "oz", name: "Campari" },
@@ -2771,7 +2771,7 @@ export const SEED_RECIPES = [
     notes: "Created for William 'Sparrow' Robertson, sports editor of the New York Herald in Paris.",
     riffOfId: "boulevardier",
     riffOfName: "Boulevardier",
-    tags: ["classic", "whiskey-forward", "bittersweet", "aperitivo", "riff"],
+    tags: ["classic", "whiskey-forward", "bittersweet", "riff"],
     specs: [
       { amount: 1, unit: "oz", name: "Rye Whiskey" },
       { amount: 1, unit: "oz", name: "Dry Vermouth" },

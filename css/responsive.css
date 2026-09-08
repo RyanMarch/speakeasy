@@ -45,10 +45,15 @@
      gutter; --shelf-bleed (added on top) is ONLY the *extra* space reclaimed once
      the cap-vs-.main-stage gap actually opens up past that gutter. */
   .home-view,
-  .counter-view,
-  .editor-view {
+  .counter-view {
     --desktop-inset: 1.5rem;
     /* padding-left: var(--desktop-inset); */
+    padding-right: var(--desktop-inset);
+  }
+
+  .editor-view {
+    --desktop-inset: 1.5rem;
+    padding-left: var(--desktop-inset);
     padding-right: var(--desktop-inset);
   }
 
@@ -93,6 +98,16 @@
 
   .similar-cocktails-track::-webkit-scrollbar-track {
     margin: 0 calc(var(--desktop-inset) + var(--shelf-bleed));
+  }
+}
+
+@media (max-width: 1375px) {
+
+  .home-view,
+  .counter-view {
+    --desktop-inset: 1.5rem;
+    padding-left: var(--desktop-inset);
+    padding-right: var(--desktop-inset);
   }
 }
 

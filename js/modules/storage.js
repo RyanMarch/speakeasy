@@ -289,31 +289,95 @@ export function deleteRecipe(id) {
   return filtered;
 }
 
-export function exportRecipesJSON() {
-  const recipes = getRecipes();
-  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(recipes, null, 2));
+const BACKUP_SCHEMA_VERSION = 1;
+
+// Fields compared to decide whether a stored recipe still matches its canonical
+// seed spec (unmodified seeds are excluded from backups since they're already
+// available at import time via SEED_RECIPES).
+const SEED_COMPARISON_FIELDS = [
+  'name', 'glassware', 'method', 'garnish', 'description',
+  'instructions', 'source', 'sourceUrl', 'notes', 'tags', 'specs',
+];
+
+// getRecipes() normalizes tags on every load (renaming/dropping retired variants
+// per TAG_RENAMES/TAG_REMOVALS), so a stored seed recipe's tags can legitimately
+// differ from the raw SEED_RECIPES tags without the user having changed anything.
+// Canonicalize both sides the same way before comparing.
+function canonicalizeTagsForComparison(tags) {
+  if (!Array.isArray(tags)) return [];
+  const seen = new Set();
+  tags.forEach(rawTag => {
+    const canonical = normalizeTagName(rawTag);
+    if (canonical) seen.add(canonical);
+  });
+  return Array.from(seen).sort();
+}
+
+function recipeDiffersFromSeed(recipe, seed) {
+  return SEED_COMPARISON_FIELDS.some(key => {
+    if (key === 'tags') {
+      return JSON.stringify(canonicalizeTagsForComparison(recipe.tags)) !== JSON.stringify(canonicalizeTagsForComparison(seed.tags));
+    }
+    return JSON.stringify(recipe[key] ?? null) !== JSON.stringify(seed[key] ?? null);
+  });
+}
+
+function readRawStoredRecipes() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [...SEED_RECIPES];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [...SEED_RECIPES];
+  } catch (err) {
+    console.error('Failed to read recipes from localStorage:', err);
+    return [...SEED_RECIPES];
+  }
+}
+
+/**
+ * Recipes worth including in a backup: anything with no canonical seed
+ * counterpart, or a seed recipe the user has modified in place.
+ */
+export function getCustomRecipesForBackup() {
+  const seedById = new Map(SEED_RECIPES.map(s => [s.id, s]));
+  return readRawStoredRecipes().filter(r => {
+    const seed = seedById.get(r.id);
+    return !seed || recipeDiffersFromSeed(r, seed);
+  });
+}
+
+/**
+ * Build the full v1 backup payload (recipes, inventory, hidden recipes, settings)
+ * without touching the DOM, so it can be used for both export and testing.
+ */
+export function buildBackupPayload() {
+  return {
+    version: BACKUP_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    inventory: getInventory(),
+    hiddenRecipes: getHiddenRecipeIds(),
+    settings: {
+      unitPref: getUnitPreference(),
+      sortPref: getSortPreference(),
+      glassViewPref: getGlassViewPreference(),
+    },
+    customRecipes: getCustomRecipesForBackup(),
+  };
+}
+
+export function exportData() {
+  const payload = buildBackupPayload();
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute('href', dataStr);
-  downloadAnchor.setAttribute('download', `speakeasy_recipes_${new Date().toISOString().slice(0, 10)}.json`);
+  downloadAnchor.setAttribute('download', `speakeasy_backup_${new Date().toISOString().slice(0, 10)}.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
 }
 
-export function importRecipesJSON(jsonString, mode = 'merge') {
-  let imported;
-  try {
-    imported = JSON.parse(jsonString);
-  } catch (err) {
-    throw new Error('Invalid JSON format');
-  }
-
-  if (!Array.isArray(imported)) {
-    throw new Error('Imported JSON must be an array of recipe objects');
-  }
-
-  // Sanitize and validate recipes
-  const validRecipes = imported.filter(item => {
+function sanitizeImportedRecipes(items) {
+  return (items || []).filter(item => {
     return item && typeof item === 'object' && typeof item.name === 'string' && item.name.trim().length > 0;
   }).map(item => ({
     id: item.id || slugifyRecipeName(item.name),
@@ -338,24 +402,68 @@ export function importRecipesJSON(jsonString, mode = 'merge') {
       abv: s.abv !== null && s.abv !== undefined && !isNaN(Number(s.abv)) ? Number(s.abv) : undefined,
     })) : [],
   }));
+}
 
-  if (validRecipes.length === 0) {
-    throw new Error('No valid recipes found in imported file');
+/**
+ * Drop entries that are just identical copies of a canonical seed recipe
+ * (nothing new to import for those; SEED_RECIPES already supplies them).
+ */
+function excludeUnmodifiedSeeds(recipes) {
+  const seedById = new Map(SEED_RECIPES.map(s => [s.id, s]));
+  return recipes.filter(r => {
+    const seed = seedById.get(r.id);
+    return !seed || recipeDiffersFromSeed(r, seed);
+  });
+}
+
+/**
+ * Import a v1 unified backup ({ version, inventory, hiddenRecipes, settings, customRecipes }).
+ * Recipes are merged by id; inventory and hidden recipes are merged (union),
+ * never overwritten, so the user never loses bottles/recipes they already had.
+ * Returns a summary usable for a confirmation toast.
+ */
+export function importData(jsonString) {
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonString);
+  } catch (err) {
+    throw new Error('Invalid JSON format');
   }
 
-  const existing = getRecipes();
-  let merged;
-  if (mode === 'replace') {
-    merged = validRecipes;
-  } else {
-    // Merge: update existing by ID or add new
-    const map = new Map(existing.map(r => [r.id, r]));
-    validRecipes.forEach(r => map.set(r.id, r));
-    merged = Array.from(map.values());
+  if (!parsed || typeof parsed !== 'object' || parsed.version !== BACKUP_SCHEMA_VERSION || !Array.isArray(parsed.customRecipes)) {
+    throw new Error('Unrecognized backup format');
   }
 
-  saveRecipes(merged);
-  return merged;
+  const validRecipes = excludeUnmodifiedSeeds(sanitizeImportedRecipes(parsed.customRecipes));
+  const inventoryRaw = Array.isArray(parsed.inventory) ? parsed.inventory : [];
+  const hiddenRaw = Array.isArray(parsed.hiddenRecipes) ? parsed.hiddenRecipes : [];
+  const settingsRaw = (parsed.settings && typeof parsed.settings === 'object') ? parsed.settings : {};
+
+  const existingRecipes = getRecipes();
+  const recipeMap = new Map(existingRecipes.map(r => [r.id, r]));
+  validRecipes.forEach(r => recipeMap.set(r.id, r));
+  const mergedRecipes = Array.from(recipeMap.values());
+  saveRecipes(mergedRecipes);
+
+  const mergedInventory = new Set(getInventory());
+  const inventoryBefore = mergedInventory.size;
+  inventoryRaw.forEach(id => { if (typeof id === 'string') mergedInventory.add(id); });
+  const inventoryAddedCount = mergedInventory.size - inventoryBefore;
+  saveInventory(Array.from(mergedInventory));
+
+  const mergedHidden = new Set(getHiddenRecipeIds());
+  hiddenRaw.forEach(id => { if (typeof id === 'string') mergedHidden.add(id); });
+  saveHiddenRecipeIds(Array.from(mergedHidden));
+
+  if (settingsRaw.unitPref) saveUnitPreference(settingsRaw.unitPref);
+  if (settingsRaw.sortPref) saveSortPreference(settingsRaw.sortPref);
+  if (settingsRaw.glassViewPref) saveGlassViewPreference(settingsRaw.glassViewPref);
+
+  return {
+    recipes: mergedRecipes,
+    importedRecipeCount: validRecipes.length,
+    inventoryAddedCount,
+  };
 }
 
 export function getAllUniqueTags(recipes = []) {
