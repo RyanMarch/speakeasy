@@ -278,7 +278,7 @@ export function renderEditorSpecRows() {
   const container = document.getElementById('editor-specs-rows');
   if (!container) return;
 
-  const units = ['oz', 'ml', 'dash', 'dashes', 'barspoon', 'tsp', 'tbsp', 'drops', 'rinse', 'part'];
+  const units = ['oz', 'ml', 'dash', 'dashes', 'barspoon', 'tsp', 'tbsp', 'drops', 'rinse', 'part', 'leaves'];
 
   container.innerHTML = state.editorSpecs.map((spec, i) => {
     const defaultAbv = estimateIngredientAbv(spec.name || '');
