@@ -5,6 +5,7 @@
 import { state, elements, getCachedInventoryAnalysis } from '../state.js';
 import { recipeMatchesQuery } from '../modules/taxonomy.js';
 import { escapeHtml, showToast } from '../components/toast.js';
+import { formatIngredientName } from '../modules/parser.js';
 
 let _openEditorFn = null;
 let _updateVaultStatsFn = null;
@@ -123,7 +124,7 @@ export function renderRecipeList() {
 
   elements.recipeList.innerHTML =  /*html*/filtered.map(({ recipe, invAnalysis }) => {
     const isActive = state.viewMode === 'counter' && recipe.id === state.activeRecipeId;
-    const specsPreview = (recipe.specs || []).map(s => s.name).slice(0, 3).join(', ');
+    const specsPreview = (recipe.specs || []).map(s => formatIngredientName(s.name)).slice(0, 3).join(', ');
 
     let inventoryStatusHtml = '';
     if (invAnalysis.canMake) {
