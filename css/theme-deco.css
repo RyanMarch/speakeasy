@@ -101,10 +101,18 @@ body {
 }
 
 @media (min-width: 769px) {
+
   html,
   body {
     height: 100%;
     overflow: hidden;
+  }
+}
+
+@media (max-width: 768px) {
+  body .sidebar {
+    border-right: none !important;
+    box-shadow: none !important;
   }
 }
 
