@@ -3,6 +3,12 @@
   animation: fadeIn 200ms ease;
 }
 
+.editor-mobile-bar {
+  display: none;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .editor-header {
   display: flex;
   align-items: center;
@@ -22,8 +28,29 @@
 .editor-grid {
   display: grid;
   grid-template-columns: 1fr 300px;
-  gap: 2rem;
+  column-gap: 2rem;
+  row-gap: 0;
   align-items: start;
+}
+
+/* Left-column form sections are direct grid children (not wrapped in a shared
+   container) so their visual order can be changed per-breakpoint with `order`
+   — desktop keeps this fixed column, mobile reflows via responsive.css. */
+.editor-section {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.editor-preview-col {
+  grid-column: 2;
+  grid-row: 1 / -1;
+}
+
+/* The glass artwork below is horizontally centered, but .form-label is
+   left-aligned everywhere else in the form — left it here too and the
+   centered glass reads as off-balance under it. Center just this one. */
+.editor-preview-col > .form-label {
+  text-align: center;
 }
 
 .form-group {
@@ -38,6 +65,26 @@
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
   margin-bottom: 0.4rem;
+}
+
+/* Shown next to a field label when its value was auto-detected from typed
+   directions (see auto-detect.js) — a quiet cue that it's a guess, not a
+   locked-in choice, and can be freely overwritten. */
+.field-detected-badge {
+  display: inline-block;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.68rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--color-accent-light);
+  margin-left: 0.35rem;
+}
+
+/* Without this, the rule above (an author style) overrides the browser's
+   default `[hidden] { display: none }` UA rule, and the badge never hides. */
+.field-detected-badge[hidden] {
+  display: none;
 }
 
 .form-input,
@@ -163,6 +210,15 @@
   padding: 0.18rem 0.55rem;
 }
 
+/* Suggested from ingredients/directions rather than typed by hand — a quiet
+   dashed-border cue, same "it's a guess, override freely" spirit as the
+   field-detected-badge used on Glassware/Technique/Garnish. */
+.editor-tag-chip.is-detected {
+  border-style: dashed;
+  border-color: rgba(212, 163, 89, 0.4);
+  color: var(--color-accent-light);
+}
+
 .editor-tag-chip .btn-remove-tag {
   background: none;
   border: none;
@@ -209,15 +265,34 @@
 
 .editor-spec-row {
   display: grid;
-  grid-template-columns: 80px 100px 1fr 75px 36px;
+  grid-template-columns: 70px 112px 1fr 70px 36px;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
   align-items: center;
 }
 
+.editor-spec-row .form-select {
+  padding-right: 1.6rem;
+  font-size: 0.85rem;
+}
+
+.spec-name-wrapper {
+  position: relative;
+  min-width: 0;
+}
+
 .spec-input-abv {
   text-align: right;
   font-size: 0.82rem;
+  -moz-appearance: textfield;
+}
+
+/* Hide the native up/down spinner — it crowds the "ABV%" placeholder in an
+   already-narrow column and adds nothing a keyboard/touch user needs. */
+.spec-input-abv::-webkit-inner-spin-button,
+.spec-input-abv::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .meta-pill-accent {

@@ -1496,7 +1496,7 @@ export const SEED_RECIPES = [
     notes: "",
     riffOfId: "negroni",
     riffOfName: "Negroni",
-    tags: ["aperitivo-amaro", "bittersweet", "sparkling", "effervescent"],
+    tags: ["aperitivo-amaro", "bittersweet", "sparkling"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Campari" },
       { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
@@ -2266,7 +2266,7 @@ export const SEED_RECIPES = [
     notes: "Mojito meets French 75 using aged rum and Champagne.",
     riffOfId: "mojito",
     riffOfName: "Mojito",
-    tags: ["modern-craft", "rum-forward", "sparkling", "refreshing", "effervescent"],
+    tags: ["modern-craft", "rum-forward", "sparkling", "refreshing"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Aged Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
@@ -2959,7 +2959,7 @@ export const SEED_RECIPES = [
     source: "Jerry Thomas, The Bartender's Guide (1876)",
     sourceUrl: "",
     notes: "The foundational American fizz template that spawned the Ramos Fizz.",
-    tags: ["pre-prohibition", "gin-forward", "highball", "refreshing", "effervescent"],
+    tags: ["pre-prohibition", "gin-forward", "highball", "refreshing", "sparkling"],
     specs: [
       { amount: 2, unit: "oz", name: "London Dry Gin" },
       { amount: 1, unit: "oz", name: "Fresh Lemon Juice" },
@@ -3526,7 +3526,7 @@ export const SEED_RECIPES = [
     source: "W.C. Whitfield, Here's How (1941)",
     sourceUrl: "",
     notes: "Commemorates the inauguration of international airmail postal service in the Caribbean.",
-    tags: ["classic", "rum-forward", "sour", "refreshing", "effervescent"],
+    tags: ["classic", "rum-forward", "sour", "refreshing", "sparkling"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Aged Rum" },
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },

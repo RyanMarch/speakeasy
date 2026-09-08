@@ -107,6 +107,31 @@ export function updateWakeLockIndicator() {
 }
 
 /**
+ * Build a draft riff recipe pre-populated from a canonical seed cocktail's specs,
+ * for handing to the editor. Seed cocktails are never edited in place (see
+ * `SEED_RECIPE_IDS`); this is how a user turns one into a starting point instead.
+ */
+export function buildRiffDraft(seedRecipe) {
+  const tags = Array.isArray(seedRecipe.tags) ? seedRecipe.tags.filter(t => t !== 'riff') : [];
+  return {
+    id: null,
+    name: `My ${seedRecipe.name}`,
+    glassware: seedRecipe.glassware,
+    method: seedRecipe.method,
+    garnish: seedRecipe.garnish || '',
+    description: '',
+    instructions: seedRecipe.instructions || '',
+    source: '',
+    sourceUrl: '',
+    notes: '',
+    riffOfId: seedRecipe.id,
+    riffOfName: seedRecipe.name,
+    tags: [...tags, 'riff'],
+    specs: (seedRecipe.specs || []).map(s => ({ ...s })),
+  };
+}
+
+/**
  * Duplicate a recipe
  */
 export function duplicateRecipe(recipe) {
@@ -578,10 +603,17 @@ export function renderCounterView() {
             </button>
           ` : ''}
 
-          <button id="btn-edit-drink" class="action-icon-btn" title="Edit recipe specs" aria-label="Edit recipe">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            <span class="action-btn-text">Edit</span>
-          </button>
+          ${isSeed ? `
+            <button id="btn-edit-drink" class="action-icon-btn" title="Create your own riff based on this recipe" aria-label="Make a riff">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+              <span class="action-btn-text">Make a Riff</span>
+            </button>
+          ` : `
+            <button id="btn-edit-drink" class="action-icon-btn" title="Edit recipe specs" aria-label="Edit recipe">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              <span class="action-btn-text">Edit</span>
+            </button>
+          `}
 
           <button id="btn-duplicate-drink" class="action-icon-btn" title="Duplicate recipe" aria-label="Duplicate recipe">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -1186,7 +1218,8 @@ export function renderCounterView() {
   updateWakeLockIndicator();
 
   document.getElementById('btn-edit-drink')?.addEventListener('click', () => {
-    if (_openEditorFn) _openEditorFn(recipe);
+    if (!_openEditorFn) return;
+    _openEditorFn(isSeed ? buildRiffDraft(recipe) : recipe);
   });
 
   document.getElementById('btn-duplicate-drink')?.addEventListener('click', () => {
