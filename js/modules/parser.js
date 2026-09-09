@@ -73,6 +73,71 @@ const UNIT_ALIASES = {
   shots: 'shot',
 };
 
+// Parses a numeric token that may be a plain number or a (mixed) fraction —
+// "2", "0.75", "1 1/2", "3/4" — shared by the amount group below and by the
+// redundant-conversion check's own number, so the two don't drift apart.
+function parseAmountToken(raw) {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (trimmed.includes('/')) {
+    const parts = trimmed.split(/\s+/).filter(Boolean);
+    if (parts.length === 2) {
+      const [num, den] = parts[1].split('/');
+      return parseFloat(parts[0]) + parseFloat(num) / parseFloat(den);
+    }
+    if (parts.length === 1) {
+      const [num, den] = parts[0].split('/');
+      return parseFloat(num) / parseFloat(den);
+    }
+    return null;
+  }
+  return parseFloat(trimmed);
+}
+
+// Oz-equivalents for the handful of volume units a "(30 ml)" metric-conversion
+// aside actually uses. Deliberately narrow — no dashes/barspoons/etc. — since
+// this only backs the redundant-conversion check below, not general unit math.
+const VOLUME_TO_OZ = {
+  oz: 1, ounce: 1, ounces: 1,
+  ml: 1 / 30, milliliter: 1 / 30, milliliters: 1 / 30, millilitre: 1 / 30, millilitres: 1 / 30,
+  cl: 1 / 3,
+};
+
+/**
+ * Strips a "(30 ml)"-style parenthetical from an ingredient name — leading
+ * ("(30 ml) Gin", from "1 oz (30 ml) Gin" once the amount/unit are already
+ * consumed) or trailing ("Gin (30 ml)") — but ONLY when its number is the
+ * same measurement (within rounding slack) as the amount/unit already parsed
+ * for this line, i.e. it's genuinely just the metric conversion recipe sites
+ * often print next to an oz amount, not a real note like "(averna works
+ * great)". A note's parenthetical doesn't even start with a number, so it
+ * never reaches the equivalence check at all; a conversion with a materially
+ * different number (a typo, or an intentional "(a splash)" aside) is left
+ * alone rather than risk deleting real content.
+ */
+function stripRedundantConversion(name, amount, unit) {
+  if (!name || amount === null || amount === undefined) return name;
+
+  const parenRegex = /\(([\d.\/\s]+)\s*(ounces?|oz|milliliters?|millilitres?|ml|cl)\)/i;
+  const leading = name.match(new RegExp(`^\\s*${parenRegex.source}\\s*`, 'i'));
+  const trailing = name.match(new RegExp(`\\s*${parenRegex.source}\\s*$`, 'i'));
+  const match = leading || trailing;
+  if (!match) return name;
+
+  const parenAmount = parseAmountToken(match[1]);
+  if (parenAmount === null || isNaN(parenAmount)) return name;
+
+  const ourFactor = VOLUME_TO_OZ[(unit || '').toLowerCase()];
+  const parenFactor = VOLUME_TO_OZ[match[2].toLowerCase()];
+  if (ourFactor === undefined || parenFactor === undefined) return name;
+
+  const ourOz = amount * ourFactor;
+  const parenOz = parenAmount * parenFactor;
+  if (ourOz <= 0 || Math.abs(ourOz - parenOz) / ourOz > 0.08) return name;
+
+  return (leading ? name.slice(match[0].length) : name.slice(0, match.index)).trim();
+}
+
 export function parseIngredientLine(line) {
   if (!line) {
     return null;
@@ -94,22 +159,7 @@ export function parseIngredientLine(line) {
     return { raw: trimmed, amount: null, unit: 'oz', name: trimmed };
   }
 
-  let amount = null;
-  if (match[1]) {
-    const rawAmt = match[1].trim();
-    if (rawAmt.includes('/')) {
-      const parts = rawAmt.split(/\s+/).filter(Boolean);
-      if (parts.length === 2) {
-        const [num, den] = parts[1].split('/');
-        amount = parseFloat(parts[0]) + parseFloat(num) / parseFloat(den);
-      } else if (parts.length === 1) {
-        const [num, den] = parts[0].split('/');
-        amount = parseFloat(num) / parseFloat(den);
-      }
-    } else {
-      amount = parseFloat(rawAmt);
-    }
-  }
+  const amount = match[1] ? parseAmountToken(match[1]) : null;
 
   const rawUnit = (match[2] || '').toLowerCase();
   const parsedUnit = UNIT_ALIASES[rawUnit] || rawUnit;
@@ -117,7 +167,8 @@ export function parseIngredientLine(line) {
   // this connective "of", so it fell straight into the name capture group.
   // Strip it only when it leads the name (not e.g. "Zest of lemon", where
   // "of" is mid-name and meaningful).
-  const name = (match[3]?.trim() || '').replace(/^of\s+/i, '');
+  let name = (match[3]?.trim() || '').replace(/^of\s+/i, '');
+  name = stripRedundantConversion(name, amount, parsedUnit);
 
   return {
     raw: trimmed,
