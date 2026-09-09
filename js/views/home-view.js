@@ -39,6 +39,12 @@ export function formatTagTitle(tag) {
 // setupHomeViewEvents() to lazily fill in each shelf's cards.
 let homeCollectionsCache = [];
 
+// Cap how many cards a shelf hydrates up front. Home is a landing page, not a
+// full library browse — anything beyond this defers to "See all" so we're not
+// paying render/DOM cost (or presenting a wall of cards) for shelves that can
+// match dozens of recipes.
+const HOME_SHELF_CARD_LIMIT = 12;
+
 /**
  * Render the Home landing page: bar stats + horizontally-scrolling collection shelves.
  * Shelf cards (which each render a full inline SVG glass) are lazy-hydrated on scroll
@@ -120,6 +126,12 @@ export function renderHomeView() {
       </div>
     </div>
 
+    ${allCollections.length > 0 ? allCollections.map(renderHomeShelf).join('') : /*html*/`
+      <div class="home-empty-state">
+        <p>No collections yet — tag a few drinks and they'll show up here as browsable rows.</p>
+      </div>
+    `}
+
     <div class="home-pin-row">
       <span class="home-pin-label">Pin a tag as a collection</span>
       <div class="tag-input-inline-wrapper home-pin-input-wrapper">
@@ -128,12 +140,6 @@ export function renderHomeView() {
         <ul class="tag-suggest-list" id="home-pin-suggest-list" role="listbox" hidden></ul>
       </div>
     </div>
-
-    ${allCollections.length > 0 ? allCollections.map(renderHomeShelf).join('') : /*html*/`
-      <div class="home-empty-state">
-        <p>No collections yet — tag a few drinks and they'll show up here as browsable rows.</p>
-      </div>
-    `}
   `;
 
   setupHomeViewEvents(pinnableTags);
@@ -162,6 +168,15 @@ export function renderHomeShelf(col, idx) {
       <!-- Cards are hydrated lazily by an IntersectionObserver in setupHomeViewEvents() -->
       <div class="similar-cocktails-track home-track" data-shelf-idx="${idx}"></div>
     </div>
+  `;
+}
+
+export function renderHomeSeeAllCard(col) {
+  return  /*html*/`
+    <button type="button" class="similar-cocktail-card home-see-all-card" data-action="see-all" data-tag="${escapeHtml(col.key)}">
+      <span class="home-see-all-count">+${col.recipes.length - HOME_SHELF_CARD_LIMIT}</span>
+      <span class="home-see-all-label">See all<br>${escapeHtml(col.title)}</span>
+    </button>
   `;
 }
 
@@ -221,9 +236,19 @@ export function setupHomeViewEvents(pinnableTags) {
     const col = homeCollectionsCache[idx];
     if (!col) return;
 
-    track.innerHTML =  /*html*/col.recipes.map((recipe, i) => renderHomeCard(recipe, col.key, i)).join('');
+    // "Recently Viewed" isn't a real tag, so it has nowhere for a "See all" link
+    // to go — it's already capped at storage-write time (RECENTLY_VIEWED_MAX),
+    // so render it in full. Tag-backed shelves (pinned + default collections)
+    // can match dozens of recipes and get a hard cap plus a "See all" tile that
+    // hands off to the same tag filter the sidebar's tag chips already use.
+    const isTaggable = col.key !== '__recently-viewed__';
+    const overflowing = isTaggable && col.recipes.length > HOME_SHELF_CARD_LIMIT;
+    const visibleRecipes = overflowing ? col.recipes.slice(0, HOME_SHELF_CARD_LIMIT) : col.recipes;
 
-    track.querySelectorAll('.similar-cocktail-card').forEach(el => {
+    track.innerHTML =  /*html*/visibleRecipes.map((recipe, i) => renderHomeCard(recipe, col.key, i)).join('')
+      + (overflowing ? renderHomeSeeAllCard(col) : '');
+
+    track.querySelectorAll('.similar-cocktail-card[data-recipe-id]').forEach(el => {
       const targetId = el.getAttribute('data-recipe-id');
       el.addEventListener('click', () => {
         if (targetId && _selectRecipeFn) _selectRecipeFn(targetId);
@@ -234,6 +259,11 @@ export function setupHomeViewEvents(pinnableTags) {
           if (_selectRecipeFn) _selectRecipeFn(targetId);
         }
       });
+    });
+
+    track.querySelector('.home-see-all-card')?.addEventListener('click', (e) => {
+      const tag = e.currentTarget.getAttribute('data-tag');
+      if (tag && _showDrinksListMobileFn) _showDrinksListMobileFn({ query: `#${tag}` });
     });
   };
 
