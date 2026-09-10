@@ -18,8 +18,8 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env || !env.DB) {
-    return jsonResponse({ error: 'Database binding (DB) is unavailable.' }, 500);
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
   let body;
@@ -40,7 +40,7 @@ export async function onRequestPost(context) {
   }
 
   // Ensure otp_codes table exists
-  await env.DB.prepare(
+  await env.speakeasy_db.prepare(
     `CREATE TABLE IF NOT EXISTS otp_codes (
       email TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -57,12 +57,12 @@ export async function onRequestPost(context) {
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
   // Delete previous codes for this email and insert new code
-  const deleteStmt = env.DB.prepare(`DELETE FROM otp_codes WHERE email = ?`).bind(email);
-  const insertStmt = env.DB.prepare(
+  const deleteStmt = env.speakeasy_db.prepare(`DELETE FROM otp_codes WHERE email = ?`).bind(email);
+  const insertStmt = env.speakeasy_db.prepare(
     `INSERT INTO otp_codes (email, code, expires_at) VALUES (?, ?, ?)`
   ).bind(email, code, expiresAt);
 
-  await env.DB.batch([deleteStmt, insertStmt]);
+  await env.speakeasy_db.batch([deleteStmt, insertStmt]);
 
   // If Cloudflare Worker email relay URL is configured
   if (env.EMAIL_RELAY_URL) {
