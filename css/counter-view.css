@@ -157,6 +157,14 @@
   font-size: 0.92rem;
   color: var(--color-text-muted);
   margin-top: 0.45rem;
+  /* Positioning context for .calorie-popover (below) — deliberately the whole
+     row, not just the little calorie-icon span, so the popover's right edge
+     anchors to the row's own right edge (always safely inside the page's
+     padding) rather than to wherever in the row the icon happens to land.
+     A fixed-width popover anchored to that tiny span could still overflow
+     the left edge of a narrow phone screen if the icon sat far enough
+     right — anchoring to the full row is what actually bounds that. */
+  position: relative;
 }
 
 /* Secondary meta row for lineage and canMake status */
@@ -189,23 +197,44 @@
 }
 
 .drink-meta-calories {
-  position: relative;
   gap: 0.3rem;
 }
 
 .calorie-popover {
   display: none;
   position: absolute;
-  bottom: calc(100% + 8px);
-  left: -8px;
+  /* Opens downward (below the icon) instead of upward: this icon sits in the
+     meta row directly under the title, i.e. near the very top of the page,
+     so opening upward — as this used to — ran the now-multi-line popover
+     straight behind the sticky nav bar above it (higher z-index, opaque
+     background), leaving only its last line or two poking out. There's
+     nothing but page content below the meta row, so downward always has
+     room. */
+  top: calc(100% + 8px);
+  /* Right-aligned (grows leftward) instead of left-aligned: the calorie info
+     icon is the last thing in the meta row, so anchoring its left edge and
+     growing right — as this used to — sent the popover straight off the
+     right edge of a narrow phone screen. Growing left from the icon, plus a
+     capped/wrapping width as a safety net, keeps it on-screen regardless of
+     where in the row the icon lands. */
+  right: 0.5rem;
+  left: auto;
+  /* Absolutely-positioned + wrapping text shrinks to fit its content by
+     default (no target width to grow into), which is why this stayed narrow
+     even after raising max-width alone — needs an actual width to fill,
+     with max-width only as the narrow-viewport safety cap. */
+  width: 300px;
+  max-width: calc(100vw - 2.5rem);
   background: var(--color-surface-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.45rem 0.75rem;
-  white-space: nowrap;
+  white-space: normal;
   font-size: 0.8rem;
   color: var(--color-text-muted);
-  z-index: 50;
+  /* Above the sticky mobile nav bar (z-index: 90) as a safety net, in case
+     the meta row is ever close enough to it for the two to overlap. */
+  z-index: 95;
   box-shadow: var(--shadow-md);
   pointer-events: none;
 }
@@ -579,7 +608,11 @@
 .glass-wrapper {
   width: 100%;
   max-width: 260px;
-  height: 340px;
+  /* Height is set per-glass by GlassView (aspect-ratio, from the glassware's
+     own cropped viewBox) so a short glass like a coupe doesn't reserve the
+     same vertical space as a tall one like a highball. This is just a sane
+     fallback before JS sets the real ratio. */
+  aspect-ratio: 240 / 303;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -735,11 +768,14 @@
   animation: cocktailSwirlBackward 750ms cubic-bezier(0.25, 1, 0.3, 1) forwards;
 }
 
-/* Glass View Segmented Switch */
+/* Glass View Segmented Switch (+ the screen-awake toggle, grouped alongside it
+   as another "how I'm viewing this glass" control) */
 .glass-view-toggle-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0;
   margin-bottom: 1.5rem;
 }
@@ -1034,6 +1070,127 @@
   gap: 0.75rem;
 }
 
+/* Inline "Make a Riff" affordance — lives beside the ingredients it edits
+   (rather than as a standalone button elsewhere on the page) so starting a
+   riff and seeing its effect stay in the same glance. Styled as a quiet text
+   link, not a full button, since the editorial layout treats this as an
+   inline edit affordance rather than an app-style call to action. */
+.riff-inline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.riff-inline-link:hover {
+  color: var(--color-accent-light);
+}
+
+/* Riff Status Bar — appears directly above the ingredient rows once a riff
+   is in progress or has unsaved changes, so Save/Reset/Done sit right next
+   to the rows they affect instead of in the page header. */
+.riff-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(212, 163, 89, 0.06);
+  border: 1px solid rgba(212, 163, 89, 0.25);
+  border-radius: var(--radius-md);
+}
+
+.riff-status-text {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.riff-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Recipe Actions: Single "More" Menu
+   Duplicate/Edit/Hide/Delete don't need standing icon-row prominence, so
+   they're tucked behind one entry point instead. Two triggers exist (this
+   one in the title row for desktop/tablet, #btn-counter-more-mobile in the
+   sticky bar for mobile — see responsive.css) sharing one popover, so each
+   needs its OWN anchor-name: if two elements declare the same anchor-name,
+   anchor() can't resolve which one to use and silently falls back to
+   position: auto, which is what made the popover render at 0×0 before this
+   was split out. */
+.counter-more-btn {
+  position: relative;
+  anchor-name: --btn-counter-more;
+}
+
+/* Hidden by default (desktop/tablet keep the trigger in the title row); shown
+   only at the mobile breakpoint, where it moves into the sticky back-button
+   bar instead — see responsive.css. Both buttons share #counter-more-popover,
+   so whichever is actually visible is what the popover anchors to (its own
+   anchor-name, and responsive.css repoints position-anchor at the mobile
+   breakpoint). */
+.mobile-only-more-btn {
+  display: none;
+  position: relative;
+  anchor-name: --btn-counter-more-mobile;
+}
+
+.counter-more-popover {
+  margin: 0;
+  padding: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(28, 26, 23, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--color-text);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  width: 260px;
+  z-index: 1000;
+
+  inset: auto;
+  top: 9rem;
+  right: 7rem;
+
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  transition: opacity var(--transition-fast), transform var(--transition-fast), display var(--transition-fast) allow-discrete, overlay var(--transition-fast) allow-discrete;
+}
+
+.counter-more-popover:popover-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@starting-style {
+  .counter-more-popover:popover-open {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+@supports (position-anchor: --btn-counter-more) {
+  .counter-more-popover {
+    position-anchor: --btn-counter-more;
+    top: anchor(bottom);
+    right: anchor(right);
+    margin-top: 8px;
+  }
+}
+
 /* Servings Stepper */
 .servings-stepper {
   display: inline-flex;
@@ -1206,7 +1363,6 @@
 }
 
 .spec-garnish-row .spec-amount .spec-unit {
-  font-style: italic;
   font-family: var(--font-display);
   font-size: 0.88rem;
   color: var(--color-accent-light);
@@ -1229,7 +1385,6 @@
   font-size: 0.95rem;
   line-height: 1.5;
   color: var(--color-text-muted);
-  font-style: italic;
   white-space: normal;
   word-break: normal;
 }
@@ -1514,19 +1669,9 @@
   flex-shrink: 0;
 }
 
-.riff-toggle-btn {
-  width: 100%;
-  max-width: 260px;
-  margin-top: 0.75rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
 /* Flavor Balance Radar
    Rendered twice by app.js (identical markup, different container) — one copy lands
-   below "Make a Riff" on desktop, the other above the tag cloud on mobile. Only one
+   below the glass stats on desktop, the other above the tag cloud on mobile. Only one
    is ever visible at a time; see the breakpoint rules further down. */
 .flavor-radar-card {
   width: 100%;
@@ -1542,7 +1687,14 @@
 .flavor-radar-mobile {
   display: none;
   max-width: 320px;
-  margin: 1.75rem auto 0;
+  margin: 0 auto 0;
+}
+
+/* The section wrapper (heading + card) — hidden here alongside the card
+   itself so the heading doesn't outlive it on desktop; see responsive.css
+   for where both get shown again at the mobile breakpoint. */
+.flavor-radar-section-mobile {
+  display: none;
 }
 
 .flavor-radar-title {
@@ -1602,6 +1754,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  margin-right: -6px;
 }
 
 .spec-riff-select {
@@ -1999,48 +2152,6 @@
   font-size: 0.86rem;
   color: var(--color-text-muted);
   font-weight: 500;
-}
-
-/* Wake Lock Indicator — mirrors .action-icon-btn-hidden's "active" gold treatment */
-.wake-lock-btn.active {
-  background: rgba(212, 163, 89, 0.14);
-  border-color: rgba(212, 163, 89, 0.45);
-  color: var(--color-accent-light);
-}
-
-.wake-lock-btn.active:hover {
-  background: rgba(212, 163, 89, 0.22);
-  border-color: var(--color-accent-light);
-  color: #fff;
-}
-
-.wake-lock-btn.active svg {
-  animation: wakeLockPulse 2.4s ease-in-out infinite;
-}
-
-@keyframes wakeLockPulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.55;
-  }
-}
-
-/* Hidden Recipe Button States & Alert Banner */
-.action-icon-btn-hidden {
-  background: rgba(212, 163, 89, 0.14) !important;
-  border-color: rgba(212, 163, 89, 0.45) !important;
-  color: var(--color-accent-light) !important;
-}
-
-.action-icon-btn-hidden:hover {
-  background: rgba(212, 163, 89, 0.22) !important;
-  border-color: var(--color-accent-light) !important;
-  color: #fff !important;
 }
 
 .drink-hidden-banner {

@@ -67,7 +67,12 @@ export function setCounterViewCallbacks(cbs) {
 }
 
 /**
- * Screen Wake Lock — keeps display awake while viewing a recipe on the counter.
+ * Screen Wake Lock — keeps display awake while viewing a recipe on the
+ * counter. Ambient: requested automatically whenever the counter view is
+ * shown (see router.js) and released on navigating away, with no manual
+ * toggle — a button here would need to explain what it does and show what
+ * state it's in, and "the screen stays on while you're looking at a drink"
+ * doesn't need either.
  */
 let wakeLockSentinel = null;
 
@@ -77,12 +82,9 @@ export async function requestWakeLock() {
     wakeLockSentinel = await navigator.wakeLock.request('screen');
     wakeLockSentinel.addEventListener('release', () => {
       wakeLockSentinel = null;
-      updateWakeLockIndicator();
     });
-    updateWakeLockIndicator();
   } catch (err) {
     wakeLockSentinel = null;
-    updateWakeLockIndicator();
   }
 }
 
@@ -92,18 +94,6 @@ export function releaseWakeLock() {
   if (sentinel) {
     sentinel.release().catch(() => { });
   }
-  updateWakeLockIndicator();
-}
-
-export function updateWakeLockIndicator() {
-  const btn = document.getElementById('btn-wake-lock');
-  if (!btn) return;
-  const active = !!wakeLockSentinel;
-  btn.classList.toggle('active', active);
-  btn.setAttribute('aria-pressed', String(active));
-  btn.title = active
-    ? 'Screen will stay awake while you view this drink (tap to allow it to sleep)'
-    : 'Screen may turn off automatically (tap to keep it awake)';
 }
 
 /**
@@ -425,15 +415,15 @@ export function renderCounterView() {
       riffControlHtml = `
         <div class="spec-riff-wrapper" title="Riff on ${escapeHtml(spec.originalName)}">
           <select class="spec-riff-select ${isRiff ? 'active-riff' : ''}" data-spec-index="${index}" aria-label="Riff on ${escapeHtml(spec.originalName)}">
-            <option value="" disabled ${!isRiff ? 'selected' : ''}>Riff ▾</option>
-            ${isRiff ? `<option value="__orig__">↺ Revert to ${escapeHtml(spec.originalName)}</option>` : ''}
-            ${substitutes.map(sub => `
-              <option value="${sub.id}" ${spec.riffId === sub.id ? 'selected' : ''}>
-                ${spec.riffId === sub.id ? `✓ ${escapeHtml(sub.name)}` : escapeHtml(sub.name)}
-              </option>
-            `).join('')}
+            <option value="" disabled ${!isRiff ? 'selected' : ''}>Swap</option>
+            ${isRiff ? `<option value="__orig__">↺ Back to ${escapeHtml(spec.originalName)}</option>` : ''}
+            <optgroup label="Substitutes">
+              ${substitutes.map(sub => `
+                <option value="${sub.id}" ${spec.riffId === sub.id ? 'selected' : ''}>${escapeHtml(sub.name)}</option>
+              `).join('')}
+            </optgroup>
           </select>
-          ${isRiff ? `<span class="spec-riff-active-label" aria-hidden="true">Swap ▾</span>` : ''}
+          ${isRiff ? `<span class="spec-riff-active-label" aria-hidden="true">Swap</span>` : ''}
         </div>
       `;
     }
@@ -488,8 +478,8 @@ export function renderCounterView() {
       ? /*html*/`<input type="text" class="spec-name-input" data-extra-index="${spec.extraIndex}" value="${escapeHtml(spec.name)}" placeholder="Ingredient name" aria-label="Ingredient name">`
       : /*html*/`
         <span class="spec-name">${escapeHtml(formatIngredientName(spec.name))}</span>
-        ${isFridgeItem ? `<span class="spec-fridge-tag" title="Keep refrigerated once opened">❄</span>` : ''}
-        ${isRiff ? `<span class="spec-riff-badge" title="Substituted for ${escapeHtml(spec.originalName)}">sub</span>` : ''}
+        ${(isFridgeItem && !state.riffModeActive) ? `<span class="spec-fridge-tag" title="Keep refrigerated once opened">❄</span>` : ''}
+        ${(isRiff && !state.riffModeActive) ? `<span class="spec-riff-badge" title="Substituted for ${escapeHtml(spec.originalName)}">sub</span>` : ''}
       `;
 
     // Remove: available on every row in riff mode, not just ones the user added —
@@ -510,7 +500,7 @@ export function renderCounterView() {
           <div class="spec-ingredient-name-row">
             ${nameCellHtml}
           </div>
-          ${isRiff ? `<div class="spec-riff-orig-note">sub for ${escapeHtml(spec.originalName)}</div>` : ''}
+          ${(isRiff && !state.riffModeActive) ? `<div class="spec-riff-orig-note">sub for ${escapeHtml(spec.originalName)}</div>` : ''}
           ${subSuggestionHtml}
         </div>
         ${riffControlHtml}
@@ -548,11 +538,23 @@ export function renderCounterView() {
     <div class="counter-mobile-bar" id="counter-mobile-bar">
       <button id="btn-mobile-back" class="btn btn-secondary btn-sm mobile-back-btn" aria-label="Back to drinks list">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        Drinks
+        <span class="mobile-back-text">Drinks</span>
       </button>
       <div class="mobile-sticky-title" id="mobile-sticky-title" aria-hidden="true">
         <span class="mobile-sticky-name">${escapeHtml(recipe.name)}</span>
       </div>
+
+      <!-- On mobile, the "More" trigger lives here (beside the back button)
+           instead of under the title — the same popover, just anchored to
+           whichever trigger is visible at the current width, so it never
+           strands the title/meta block with an orphaned button row below it. -->
+      <button type="button" id="btn-counter-more-mobile" class="action-icon-btn mobile-only-more-btn" popovertarget="counter-more-popover" title="More actions" aria-label="More actions" aria-haspopup="menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="5" cy="12" r="1.5"></circle>
+          <circle cx="12" cy="12" r="1.5"></circle>
+          <circle cx="19" cy="12" r="1.5"></circle>
+        </svg>
+      </button>
     </div>
 
     <!-- Drink Title & Meta Header -->
@@ -586,66 +588,74 @@ export function renderCounterView() {
           ` : ''}
         </div>
 
-        <!-- Action Toolbar -->
+        <!-- Action Toolbar: one entry point, everything else tucked into the
+             menu — Hide/Delete in particular don't need standing icon-row
+             prominence on every visit to the drink. -->
         <div class="drink-actions-cluster" role="toolbar" aria-label="Recipe actions">
-          ${'wakeLock' in navigator ? `
-            <button id="btn-wake-lock" class="action-icon-btn wake-lock-btn" title="Keep screen awake while mixing" aria-label="Toggle keep-screen-awake" aria-pressed="false">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="4"></circle>
-                <line x1="12" y1="2" x2="12" y2="4"></line>
-                <line x1="12" y1="20" x2="12" y2="22"></line>
-                <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line>
-                <line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>
-                <line x1="2" y1="12" x2="4" y2="12"></line>
-                <line x1="20" y1="12" x2="22" y2="12"></line>
-                <line x1="4.93" y1="19.07" x2="6.34" y2="17.66"></line>
-                <line x1="17.66" y1="6.34" x2="19.07" y2="4.93"></line>
-              </svg>
-              <span class="action-btn-text">Awake</span>
-            </button>
-          ` : ''}
-          ${hasActiveRiffs ? `
-            <button id="btn-reset-riff" class="btn btn-secondary btn-sm" title="Revert back to original cocktail specs">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-              Reset Riff
-            </button>
-            <button id="btn-save-riff" class="btn btn-primary btn-sm" title="Save this riff variation as a new cocktail">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-              Save Riff
-            </button>
-          ` : ''}
-
-          ${isSeed ? `
-            <button id="btn-edit-drink" class="action-icon-btn" title="Create your own riff based on this recipe" aria-label="Make a riff">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
-              <span class="action-btn-text">Make a Riff</span>
-            </button>
-          ` : `
-            <button id="btn-edit-drink" class="action-icon-btn" title="Edit recipe specs" aria-label="Edit recipe">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-              <span class="action-btn-text">Edit</span>
-            </button>
-          `}
-
-          <button id="btn-duplicate-drink" class="action-icon-btn" title="Duplicate recipe" aria-label="Duplicate recipe">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            <span class="action-btn-text">Duplicate</span>
+          <button type="button" id="btn-counter-more" class="action-icon-btn counter-more-btn" popovertarget="counter-more-popover" title="More actions" aria-label="More actions" aria-haspopup="menu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="5" cy="12" r="1.5"></circle>
+              <circle cx="12" cy="12" r="1.5"></circle>
+              <circle cx="19" cy="12" r="1.5"></circle>
+            </svg>
           </button>
+        </div>
 
-          ${isSeed ? `
-            <button id="btn-hide-drink" class="action-icon-btn ${isCurrentlyHidden ? 'action-icon-btn-hidden' : ''}" title="${isCurrentlyHidden ? 'Hidden from your library (click to unhide)' : 'Hide from library'}" aria-label="${isCurrentlyHidden ? 'Unhide recipe' : 'Hide recipe'}">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
-              <span class="action-btn-text">${isCurrentlyHidden ? 'Hidden' : 'Hide'}</span>
-            </button>
-          ` : `
-            <button id="btn-delete-drink" class="action-icon-btn action-icon-btn-danger" title="Delete recipe" aria-label="Delete recipe">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-              <span class="action-btn-text">Delete</span>
-            </button>
-          `}
+        <!-- Deliberately a sibling of .drink-actions-cluster, not nested
+             inside it: that cluster is display:none on mobile (its trigger
+             moves into the sticky bar instead, see #btn-counter-more-mobile
+             above), and a display:none ancestor kills a popover's top-layer
+             rendering even while :popover-open — it doesn't matter where in
+             the DOM a popover lives since the browser paints it in the top
+             layer regardless. -->
+        <div id="counter-more-popover" popover="auto" class="counter-more-popover" role="menu" aria-label="More recipe actions">
+            <div class="vault-actions-list">
+              ${isSeed ? /*html*/ `
+                <button type="button" id="btn-edit-drink" class="vault-action-item" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">Edit as New Recipe</span>
+                    <span class="vault-action-sub">Create a new drink based on this one.</span>
+                  </span>
+                </button>
+              ` : /*html*/ `
+                <button type="button" id="btn-edit-drink" class="vault-action-item" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">Edit Recipe</span>
+                    <span class="vault-action-sub">Change name, method, instructions</span>
+                  </span>
+                </button>
+              `}
+
+              ${isSeed ? /*html*/ `
+                <button type="button" id="btn-hide-drink" class="vault-action-item" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">${isCurrentlyHidden ? 'Unhide Recipe' : 'Hide from Library'}</span>
+                    ${isCurrentlyHidden ? `<span class="vault-action-sub">Currently hidden from your library</span>` : ''}
+                  </span>
+                </button>
+              ` : /*html*/ `
+                <button type="button" id="btn-delete-drink" class="vault-action-item vault-action-danger" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">Delete Recipe</span>
+                  </span>
+                </button>
+              `}
+            </div>
         </div>
       </div>
 
@@ -714,12 +724,7 @@ export function renderCounterView() {
           </div>
         </div>
 
-        <button id="btn-toggle-riff-mode" class="btn ${state.riffModeActive ? 'btn-primary' : 'btn-secondary'} btn-sm riff-toggle-btn" title="Toggle ingredient substitution menus">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-          ${state.riffModeActive ? 'Done Riffing' : 'Make a Riff'}
-        </button>
-
-        <!-- Flavor Radar: Desktop placement, directly below "Make a Riff" -->
+        <!-- Flavor Radar: Desktop placement, directly below the glass stats -->
         <div class="flavor-radar-card flavor-radar-desktop">
           <span class="flavor-radar-title">Flavor Profile</span>
           ${flavorRadarSvg}
@@ -734,6 +739,14 @@ export function renderCounterView() {
           <div class="editorial-section-header">
             <h3 class="editorial-section-title">Ingredients</h3>
             <div class="specs-header-controls">
+              ${(!state.riffModeActive && !hasActiveRiffs) ? /*html*/ `
+                <button type="button" id="btn-toggle-riff-mode" class="riff-inline-link" title="Swap ingredients based on your backbar, right here in the list">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M16 3h5v5"></path><path d="M4 20L21 3"></path><path d="M21 16v5h-5"></path><path d="M15 15l6 6"></path><path d="M4 4l5 5"></path>
+                  </svg>
+                  Riff It
+                </button>
+              ` : ''}
               <div class="servings-stepper" role="group" aria-label="Servings counter">
                 <span class="servings-label">Serves</span>
                 <div class="servings-stepper-box">
@@ -744,6 +757,30 @@ export function renderCounterView() {
               </div>
             </div>
           </div>
+
+          ${(state.riffModeActive || hasActiveRiffs) ? /*html*/ `
+            <!-- Riff status: co-located with the ingredient rows it affects, instead
+                 of in the page header, so cause (swapping something below) and
+                 effect (Save/Reset here) stay in the same glance. -->
+            <div class="riff-status-bar">
+              <span class="riff-status-text">
+                ${state.riffModeActive
+        ? 'Tap an ingredient to swap it, or add/remove rows below.'
+        : 'You’ve customized this recipe.'}
+              </span>
+              <div class="riff-status-actions">
+                ${state.riffModeActive ? /*html*/ `
+                  <button type="button" id="btn-toggle-riff-mode" class="btn btn-secondary btn-sm" title="Stop editing ingredients">Done Riffing</button>
+                ` : `
+                  <button type="button" id="btn-toggle-riff-mode" class="btn btn-secondary btn-sm" title="Keep swapping ingredients">Continue Riffing</button>
+                `}
+                ${hasActiveRiffs ? `
+                  <button type="button" id="btn-reset-riff" class="btn btn-secondary btn-sm" title="Revert back to original cocktail specs">Reset</button>
+                  <button type="button" id="btn-save-riff" class="btn btn-primary btn-sm" title="Save this riff variation as a new cocktail">Save Riff</button>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
 
           <div class="specs-list" id="counter-specs-list">
             ${specsListHtml}
@@ -812,15 +849,24 @@ export function renderCounterView() {
           `;
     })()}
 
-        <!-- Flavor Radar: Mobile placement, directly above the tag cloud -->
-        <div class="flavor-radar-card flavor-radar-mobile">
-          <span class="flavor-radar-title">Flavor Profile</span>
-          ${flavorRadarSvg}
+        <!-- Flavor Radar: Mobile placement, directly above the tag cloud.
+             Wrapped in .recipe-editorial-section like Method/Notes above, so
+             its heading matches theirs full-width instead of inheriting the
+             centered/narrow-card width — and that section (not just the card
+             inside it) is what's hidden on desktop, so the heading doesn't
+             keep rendering there above nothing once its card is hidden (the
+             desktop radar lives in the sidebar instead, labeled inline on its
+             own card — see flavor-radar-desktop). -->
+        <div class="recipe-editorial-section flavor-radar-section-mobile">
+          <h3 class="editorial-section-title">Flavor Profile</h3>
+          <div class="flavor-radar-card flavor-radar-mobile">
+            ${flavorRadarSvg}
+          </div>
         </div>
 
         <!-- Editorial Footer: Source Citation & Tags -->
         <footer class="recipe-editorial-footer">
-          ${recipe.source ? `
+          ${recipe.source ? /*html*/`
             <div class="editorial-source">
               <span class="editorial-source-label">Source:</span>
               ${recipe.source.startsWith('http') ? `<a href="${escapeHtml(recipe.source)}" target="_blank" rel="noopener">${escapeHtml(recipe.source)}</a>` : `<span>${escapeHtml(recipe.source)}</span>`}
@@ -1220,14 +1266,13 @@ export function renderCounterView() {
     if (_setUnitSystemFn) _setUnitSystemFn('ml');
   });
 
-  document.getElementById('btn-wake-lock')?.addEventListener('click', () => {
-    if (wakeLockSentinel) {
-      releaseWakeLock();
-    } else {
-      requestWakeLock();
-    }
+  // Native popover auto-dismisses on an outside click, but not on a click of
+  // its own menu items — close it manually once an action's been chosen.
+  document.getElementById('counter-more-popover')?.querySelectorAll('.vault-action-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.getElementById('counter-more-popover')?.hidePopover();
+    });
   });
-  updateWakeLockIndicator();
 
   document.getElementById('btn-calorie-info')?.addEventListener('click', (e) => {
     e.stopPropagation();

@@ -8,7 +8,11 @@ export const GLASS_TYPES = {
     id: 'coupe',
     name: 'Coupe',
     aliases: ['coupe', 'cocktail glass', 'saucer'],
-    viewBox: '0 0 240 320',
+    // canvasBottom: this glass's lowest ink (base at y=293) + a 10-unit
+    // margin. Paired with `rim.y` (below), glass-view.js crops the SVG's
+    // viewBox to just this glass's own vertical extent — see the comment on
+    // `highball` for why a shared "0 0 240 320" box doesn't work.
+    canvasBottom: 303,
     fluidBounds: {
       bottomY: 165,
       topY: 88,
@@ -40,7 +44,7 @@ export const GLASS_TYPES = {
     id: 'rocks',
     name: 'Rocks / Old Fashioned (Anchor Hocking Tartan)',
     aliases: ['rocks', 'old fashioned', 'lowball', 'tumbler', 'double old fashioned'],
-    viewBox: '0 0 240 320',
+    canvasBottom: 259,
     fluidBounds: {
       bottomY: 216,
       topY: 104,
@@ -104,7 +108,18 @@ export const GLASS_TYPES = {
     id: 'highball',
     name: 'Highball / Collins',
     aliases: ['highball', 'collins', 'fizz', 'tall'],
-    viewBox: '0 0 240 320',
+    // Every glass shares one drawing scale (240 wide), so a shared "0 0 240 320"
+    // viewBox left short, wide-mouthed glasses (coupe, rocks) with a big dead
+    // zone above the rim regardless of what garnish (if any) the recipe
+    // actually calls for. glass-view.js instead crops each render's viewBox to
+    // rim.y minus however much headroom *that recipe's own garnish* needs
+    // (a cherry needs far less clearance than a mint sprig — see
+    // garnishes.js's getGarnishHeadroom), clamped to 0, down through
+    // canvasBottom at the base. That keeps every garnish on-canvas while
+    // letting the glass-wrapper's rendered height (aspect-ratio, set in
+    // glass-view.js) shrink to fit short glasses/garnishes instead of always
+    // reserving room for the tallest possible combination.
+    canvasBottom: 295,
     fluidBounds: {
       bottomY: 260,
       topY: 52,
@@ -142,7 +157,7 @@ export const GLASS_TYPES = {
     id: 'martini',
     name: 'Martini',
     aliases: ['martini', 'v-shape', 'cocktail'],
-    viewBox: '0 0 240 320',
+    canvasBottom: 303,
     fluidBounds: {
       bottomY: 160,
       topY: 66,
@@ -172,7 +187,7 @@ export const GLASS_TYPES = {
     id: 'nickAndNora',
     name: 'Nick & Nora',
     aliases: ['nick and nora', 'nick & nora', 'bell', 'tulip'],
-    viewBox: '0 0 240 320',
+    canvasBottom: 303,
     fluidBounds: {
       bottomY: 174,
       topY: 76,
@@ -202,7 +217,7 @@ export const GLASS_TYPES = {
     id: 'wine',
     name: 'Wine Glass',
     aliases: ['wine', 'wine glass', 'spritz', 'goblet'],
-    viewBox: '0 0 240 320',
+    canvasBottom: 303,
     fluidBounds: {
       bottomY: 195,
       topY: 60,
@@ -232,7 +247,7 @@ export const GLASS_TYPES = {
     id: 'tikiMug',
     name: 'Tiki Mug',
     aliases: ['tiki', 'tiki mug', 'mug', 'totem'],
-    viewBox: '0 0 240 320',
+    canvasBottom: 295,
     fluidBounds: {
       bottomY: 260,
       topY: 48,
