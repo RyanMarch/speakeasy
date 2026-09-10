@@ -31,8 +31,8 @@ function parseSettings(settingsRaw) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env || !env.DB) {
-    return jsonResponse({ error: 'Database binding (DB) is unavailable.' }, 500);
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
   let body;
@@ -56,7 +56,7 @@ export async function onRequestPost(context) {
   const code = String(rawCode).trim();
 
   // Look up OTP code
-  const otpRow = await env.DB.prepare(
+  const otpRow = await env.speakeasy_db.prepare(
     `SELECT code, expires_at FROM otp_codes WHERE email = ? ORDER BY expires_at DESC LIMIT 1`
   ).bind(email).first();
 
@@ -67,15 +67,15 @@ export async function onRequestPost(context) {
   const expiresTime = new Date(otpRow.expires_at).getTime();
   if (Number.isNaN(expiresTime) || Date.now() > expiresTime) {
     // Delete expired code
-    await env.DB.prepare(`DELETE FROM otp_codes WHERE email = ?`).bind(email).run();
+    await env.speakeasy_db.prepare(`DELETE FROM otp_codes WHERE email = ?`).bind(email).run();
     return jsonResponse({ error: 'Verification code has expired.' }, 400);
   }
 
   // Delete used OTP code
-  await env.DB.prepare(`DELETE FROM otp_codes WHERE email = ?`).bind(email).run();
+  await env.speakeasy_db.prepare(`DELETE FROM otp_codes WHERE email = ?`).bind(email).run();
 
   // Find or create user
-  let user = await env.DB.prepare(
+  let user = await env.speakeasy_db.prepare(
     `SELECT id, email, display_name, settings FROM users WHERE email = ?`
   ).bind(email).first();
 
@@ -84,7 +84,7 @@ export async function onRequestPost(context) {
     const defaultSettings = JSON.stringify({ unitPref: 'oz', sortPref: 'curated', glassViewMode: 'layered' });
     const displayName = email.split('@')[0];
 
-    await env.DB.prepare(
+    await env.speakeasy_db.prepare(
       `INSERT INTO users (id, email, display_name, settings) VALUES (?, ?, ?, ?)`
     ).bind(userId, email, displayName, defaultSettings).run();
 
@@ -101,7 +101,7 @@ export async function onRequestPost(context) {
   // 30-day session expiration
   const sessionExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  await env.DB.prepare(
+  await env.speakeasy_db.prepare(
     `INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)`
   ).bind(token, user.id, sessionExpiresAt).run();
 

@@ -159,7 +159,7 @@ function createMockRequest({ method = 'POST', headers = {}, body = null }) {
 }
 
 const db = new MockD1();
-const env = { DB: db };
+const env = { speakeasy_db: db };
 
 // 1. Test request-otp endpoint
 {
@@ -195,7 +195,7 @@ const env = { DB: db };
   };
 
   const mockRelayEnv = {
-    DB: db,
+    speakeasy_db: db,
     EMAIL_RELAY_URL: 'https://speakeasy-email-relay.example.workers.dev',
     EMAIL_RELAY_SECRET: 'super-secret-relay-token',
   };

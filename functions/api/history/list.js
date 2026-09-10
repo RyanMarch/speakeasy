@@ -16,8 +16,8 @@ function jsonResponse(data, status = 200) {
 export async function onRequestGet(context) {
   const { request, env } = context;
 
-  if (!env || !env.DB) {
-    return jsonResponse({ error: 'Database binding (DB) is unavailable.' }, 500);
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
   // 1. Verify Authorization Bearer token
@@ -34,7 +34,7 @@ export async function onRequestGet(context) {
   }
 
   // Look up active session
-  const sessionRow = await env.DB.prepare(
+  const sessionRow = await env.speakeasy_db.prepare(
     `SELECT user_id, expires_at FROM sessions WHERE token = ?`
   ).bind(token).first();
 
@@ -55,7 +55,7 @@ export async function onRequestGet(context) {
   const limit = Number.isInteger(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 15;
 
   // 3. Query drink history
-  const result = await env.DB.prepare(
+  const result = await env.speakeasy_db.prepare(
     `SELECT id, recipe_id, made_at FROM drink_history WHERE user_id = ? ORDER BY made_at DESC LIMIT ?`
   ).bind(userId, limit).all();
 

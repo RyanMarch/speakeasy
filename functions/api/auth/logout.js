@@ -16,8 +16,8 @@ function jsonResponse(data, status = 200) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env || !env.DB) {
-    return jsonResponse({ error: 'Database binding (DB) is unavailable.' }, 500);
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
   const authHeader = request.headers.get('Authorization') || '';
@@ -29,7 +29,7 @@ export async function onRequestPost(context) {
 
   const token = tokenMatch[1].trim();
   if (token) {
-    await env.DB.prepare(`DELETE FROM sessions WHERE token = ?`).bind(token).run();
+    await env.speakeasy_db.prepare(`DELETE FROM sessions WHERE token = ?`).bind(token).run();
   }
 
   return jsonResponse({ success: true, message: 'Logged out' });
