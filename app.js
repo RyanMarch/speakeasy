@@ -66,6 +66,14 @@ import {
 
 import { setupTimerModalEventListeners } from './js/components/timer-modal.js';
 
+import {
+  setupAuthModalEventListeners,
+  openAuthModal,
+  closeAuthModal,
+} from './js/components/auth-modal.js';
+
+import { checkSession } from './js/modules/auth.js';
+
 /**
  * Initialize application
  */
@@ -137,6 +145,7 @@ function init() {
     renderRecipeList,
     openBackbarModal,
     updateBackbarActionButtons,
+    openAuthModal,
   });
   setBackbarModalCallbacks({
     updateMyBarBadge,
@@ -162,9 +171,15 @@ function init() {
   setupBackbarEventListeners();
   setupHiddenModalEventListeners();
   setupTimerModalEventListeners();
+  setupAuthModalEventListeners();
   updateMyBarBadge();
   renderRecipeList();
   renderCurrentView();
+
+  // Validate stored session token against backend
+  checkSession().catch(err => {
+    console.warn('Initial session check error:', err);
+  });
 
   // Initialize Vault Settings Popover values
   if (elements.popoverUnitOz && elements.popoverUnitMl) {

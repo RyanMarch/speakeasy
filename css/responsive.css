@@ -272,6 +272,28 @@
     max-width: 310px;
   }
 
+  .auth-user-popover {
+    right: 0.75rem;
+    top: 54px;
+    width: calc(100vw - 1.5rem);
+    max-width: 280px;
+  }
+
+  .auth-signin-btn .btn-text {
+    display: none;
+  }
+
+  .auth-signin-btn {
+    min-height: 38px;
+    min-width: 38px;
+    padding: 0 0.4rem;
+    justify-content: center;
+  }
+
+  .auth-user-pill .auth-user-name {
+    display: none;
+  }
+
   .my-bar-btn {
     min-height: 38px;
     padding: 0.4rem 0.65rem;
