@@ -16,8 +16,8 @@ function jsonResponse(data, status = 200) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env || !env.DB) {
-    return jsonResponse({ error: 'Database binding (DB) is unavailable.' }, 500);
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
   // 1. Verify Authorization Bearer token
@@ -34,7 +34,7 @@ export async function onRequestPost(context) {
   }
 
   // Look up active session
-  const sessionRow = await env.DB.prepare(
+  const sessionRow = await env.speakeasy_db.prepare(
     `SELECT user_id, expires_at FROM sessions WHERE token = ?`
   ).bind(token).first();
 
@@ -74,7 +74,7 @@ export async function onRequestPost(context) {
   const id = crypto.randomUUID();
 
   // 3. Insert into drink_history
-  await env.DB.prepare(
+  await env.speakeasy_db.prepare(
     `INSERT INTO drink_history (id, user_id, recipe_id, made_at) VALUES (?, ?, ?, ?)`
   ).bind(id, userId, recipeId, madeAt).run();
 

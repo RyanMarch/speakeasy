@@ -96,7 +96,7 @@ function createMockRequest({ url = 'https://example.com/api/history', method = '
 }
 
 const db = new MockD1();
-const env = { DB: db };
+const env = { speakeasy_db: db };
 
 // Seed test session
 db.tables.users.set('user-1', { id: 'user-1', email: 'ryan@example.com' });

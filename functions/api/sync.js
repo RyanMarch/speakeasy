@@ -16,8 +16,8 @@ function jsonResponse(data, status = 200) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env || !env.DB) {
-    return jsonResponse({ error: 'Database binding (DB) is unavailable.' }, 500);
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
   // 1. Verify Authorization Bearer token
@@ -34,7 +34,7 @@ export async function onRequestPost(context) {
   }
 
   // Query session from D1
-  const sessionRow = await env.DB.prepare(
+  const sessionRow = await env.speakeasy_db.prepare(
     `SELECT user_id, expires_at FROM sessions WHERE token = ?`
   ).bind(token).first();
 
@@ -63,14 +63,14 @@ export async function onRequestPost(context) {
   }
 
   // 2. Ensure user has a default "Home Bar"
-  let defaultBar = await env.DB.prepare(
+  let defaultBar = await env.speakeasy_db.prepare(
     `SELECT id FROM bars WHERE user_id = ? ORDER BY is_default DESC, created_at ASC LIMIT 1`
   ).bind(userId).first();
 
   let barId = defaultBar?.id;
   if (!barId) {
     barId = `bar-${crypto.randomUUID()}`;
-    await env.DB.prepare(
+    await env.speakeasy_db.prepare(
       `INSERT INTO bars (id, user_id, name, is_default) VALUES (?, ?, 'Home Bar', 1)`
     ).bind(barId, userId).run();
   }
@@ -87,7 +87,7 @@ export async function onRequestPost(context) {
 
     for (const ingredientId of uniqueTaxonomyIds) {
       statements.push(
-        env.DB.prepare(
+        env.speakeasy_db.prepare(
           `INSERT INTO bar_inventory (bar_id, ingredient_id, is_low_stock)
            VALUES (?, ?, 0)
            ON CONFLICT(bar_id, ingredient_id) DO NOTHING`
@@ -119,7 +119,7 @@ export async function onRequestPost(context) {
       const isPublic = r.is_public ? 1 : 0;
 
       statements.push(
-        env.DB.prepare(
+        env.speakeasy_db.prepare(
           `INSERT INTO custom_recipes (
              id, user_id, name, glassware, method, specs, instructions,
              description, notes, riff_of_id, riff_of_name, tags, is_public, updated_at
@@ -161,14 +161,14 @@ export async function onRequestPost(context) {
   if (payload.settings && typeof payload.settings === 'object') {
     const settingsJson = JSON.stringify(payload.settings);
     statements.push(
-      env.DB.prepare(
+      env.speakeasy_db.prepare(
         `UPDATE users SET settings = ? WHERE id = ?`
       ).bind(settingsJson, userId)
     );
   }
 
   if (statements.length > 0) {
-    await env.DB.batch(statements);
+    await env.speakeasy_db.batch(statements);
   }
 
   // 6. Return response

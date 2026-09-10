@@ -30,8 +30,8 @@ function parseSettings(settingsRaw) {
 export async function onRequestGet(context) {
   const { request, env } = context;
 
-  if (!env || !env.DB) {
-    return jsonResponse({ authenticated: false, error: 'Database binding (DB) is unavailable.' }, 500);
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ authenticated: false, error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
   const authHeader = request.headers.get('Authorization') || '';
@@ -47,7 +47,7 @@ export async function onRequestGet(context) {
   }
 
   // Look up session
-  const sessionRow = await env.DB.prepare(
+  const sessionRow = await env.speakeasy_db.prepare(
     `SELECT user_id, expires_at FROM sessions WHERE token = ?`
   ).bind(token).first();
 
@@ -58,12 +58,12 @@ export async function onRequestGet(context) {
   const expiresTime = new Date(sessionRow.expires_at).getTime();
   if (!Number.isNaN(expiresTime) && Date.now() > expiresTime) {
     // Delete expired session
-    await env.DB.prepare(`DELETE FROM sessions WHERE token = ?`).bind(token).run();
+    await env.speakeasy_db.prepare(`DELETE FROM sessions WHERE token = ?`).bind(token).run();
     return jsonResponse({ authenticated: false, message: 'Session expired' });
   }
 
   // Look up user
-  const user = await env.DB.prepare(
+  const user = await env.speakeasy_db.prepare(
     `SELECT id, email, display_name, settings FROM users WHERE id = ?`
   ).bind(sessionRow.user_id).first();
 

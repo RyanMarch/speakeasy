@@ -140,6 +140,12 @@ async function runTests() {
   assert(typeof historyMod.getDrinkHistory === 'function', 'history.js exports getDrinkHistory()');
   assert(typeof historyMod.syncLocalHistoryToCloud === 'function', 'history.js exports syncLocalHistoryToCloud()');
 
+  assert(typeof topBarMod.updateAuthIndicator === 'function', 'top-bar.js exports updateAuthIndicator()');
+
+  const authModalMod = await import('../js/components/auth-modal.js');
+  assert(typeof authModalMod.setupAuthModalEventListeners === 'function', 'auth-modal.js exports setupAuthModalEventListeners()');
+  assert(typeof authModalMod.openAuthModal === 'function', 'auth-modal.js exports openAuthModal()');
+  assert(typeof authModalMod.closeAuthModal === 'function', 'auth-modal.js exports closeAuthModal()');
 
   const appMod = await import('../app.js');
   assert(typeof appMod === 'object', 'app.js imports and evaluates successfully');
