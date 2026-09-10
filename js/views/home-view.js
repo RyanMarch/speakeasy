@@ -170,7 +170,11 @@ export function renderHomeShelf(col, idx) {
     <div class="similar-cocktails-shelf home-shelf">
       <div class="counter-card-header shelf-header">
         <div class="shelf-header-left">
-          <span class="counter-card-title">${escapeHtml(col.title)}</span>
+          ${col.key !== '__recently-viewed__' ? `
+            <button type="button" class="counter-card-title shelf-title-link" data-action="filter-shelf" data-tag="${escapeHtml(col.key)}" title="Search #${escapeHtml(col.key)}">${escapeHtml(col.title)}</button>
+          ` : `
+            <span class="counter-card-title">${escapeHtml(col.title)}</span>
+          `}
           ${col.pinned ? `
             <button type="button" class="home-unpin-btn" data-action="unpin-tag" data-tag="${escapeHtml(col.key)}"
               title="Remove this collection from Home" aria-label="Remove ${escapeHtml(col.title)} collection">×</button>
@@ -256,6 +260,16 @@ export function setupHomeViewEvents(pinnableTags) {
     });
     shelf.querySelector('.shelf-nav-next')?.addEventListener('click', () => {
       track?.scrollBy({ left: 600, behavior: 'smooth' });
+    });
+  });
+
+  // Shelf title -> same tag filter the "See all" tile and sidebar tag chips
+  // already use (Recently Viewed has no tag behind it, so it never gets the
+  // clickable treatment — see the template in renderHomeShelf).
+  container.querySelectorAll('[data-action="filter-shelf"]').forEach(titleBtn => {
+    titleBtn.addEventListener('click', () => {
+      const tag = titleBtn.getAttribute('data-tag');
+      if (tag && _showDrinksListMobileFn) _showDrinksListMobileFn({ query: `#${tag}` });
     });
   });
 
