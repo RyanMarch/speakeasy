@@ -5,7 +5,7 @@
 
 import { resolveGlassware } from './glassware.js';
 import { calculateFluidLayers, calculateBlendedColor } from './colors.js';
-import { renderGarnishesSvg } from './garnishes.js';
+import { renderGarnishesSvg, getGarnishHeadroom } from './garnishes.js';
 
 let nextGlassId = 1;
 
@@ -16,6 +16,21 @@ function escapeXml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/**
+ * The SVG viewBox for a given recipe's glass, cropped to just this glass's
+ * own geometry *and* this recipe's own garnish — a coupe pouring a cherry
+ * garnish doesn't need the headroom a mint sprig would, so reserving it
+ * unconditionally just left dead space above the drink. Shared by
+ * renderGlassSvg (the drawing) and GlassView (the container's aspect-ratio)
+ * so both always agree.
+ */
+function computeGlassViewBox(recipe, glassware) {
+  const headroom = getGarnishHeadroom(recipe);
+  const top = Math.max(0, glassware.rim.y - headroom);
+  const bottom = glassware.canvasBottom;
+  return { top, height: bottom - top };
 }
 
 /**
@@ -159,10 +174,12 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
   // Garnishes
   const garnishesSvg = renderGarnishesSvg(recipe, glassware, layers.length > 0 ? surfaceY : null);
 
+  const { top: vbTop, height: vbHeight } = computeGlassViewBox(recipe, glassware);
+
   return `
     <svg
       class="speakeasy-glass-svg"
-      viewBox="${glassware.viewBox}"
+      viewBox="0 ${vbTop} 240 ${vbHeight}"
       preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label="${escapeXml(recipe?.name || 'Cocktail')} visual ratio preview"
@@ -278,6 +295,12 @@ export class GlassView {
     this.layers = calculateFluidLayers(recipe?.specs || []);
     const svg = renderGlassSvg(recipe, this.id, { mode: this.mode });
     this.container.innerHTML =  /*html*/svg;
+    // The viewBox is cropped to this glass+garnish's own height (see
+    // computeGlassViewBox above), so the wrapper's aspect-ratio must follow
+    // suit — otherwise a fixed-height box would just stretch a short glass
+    // (e.g. a coupe pouring a cherry) to fill space sized for a tall one.
+    const { height: vbHeight } = computeGlassViewBox(recipe, resolveGlassware(recipe?.glassware));
+    this.container.style.aspectRatio = `240 / ${vbHeight}`;
     this.wireEvents();
   }
 

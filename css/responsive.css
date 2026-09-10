@@ -523,6 +523,37 @@
     flex-shrink: 0;
   }
 
+  /* Once a drink name is showing beside it, "Drinks" is redundant context and
+     the width it costs is exactly what a long name needs to avoid truncating
+     sooner than it has to (now that the More button also shares this bar). */
+  .counter-mobile-bar:has(.mobile-sticky-title.visible) .mobile-back-text {
+    display: none;
+  }
+
+  /* "More" trigger moves up into this bar on mobile, beside the back button,
+     instead of sitting under the title/meta block where a single icon had
+     nothing to visually anchor to and read as a stray, orphaned button. */
+  .mobile-only-more-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  #btn-counter-more {
+    display: none;
+  }
+
+  /* Anchor positioning (used for the desktop trigger, see counter-view.css)
+     didn't reliably resolve against this button in mobile testing — the
+     mobile trigger's position is fixed and predictable anyway (top-right of
+     the sticky back-button bar), so this just places it directly rather than
+     depending on anchor(). */
+  .counter-more-popover {
+    position-anchor: none;
+    top: calc(var(--mobile-header-height) + 4.4rem);
+    right: 1rem;
+    margin-top: 0;
+  }
+
   /* Inline scrolled drink title to the right of < Drinks */
   .mobile-sticky-title {
     flex: 1;
@@ -537,6 +568,7 @@
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
+    text-align: center;
   }
 
   .mobile-sticky-name {
@@ -581,14 +613,12 @@
     word-break: break-word;
   }
 
+  /* The title row's own actions cluster is desktop/tablet-only content now
+     (its one child, #btn-counter-more, is hidden above) — collapse it so it
+     doesn't reserve an empty row under the title on mobile. The mobile
+     equivalent trigger lives in .counter-mobile-bar instead. */
   .drink-actions-cluster {
-    margin-top: 0.15rem;
-    flex-shrink: 0;
-    display: inline-flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.35rem;
-    max-width: 100%;
+    display: none;
   }
 
   .action-icon-btn {
@@ -648,7 +678,8 @@
   .glass-wrapper {
     width: 100%;
     max-width: 290px;
-    height: 330px;
+    /* Height comes from aspect-ratio (set per-glass in glass-view.js), not a
+       fixed value — see the counter-view.css base rule for why. */
     margin: 0 auto;
     padding-top: 0.5rem;
     display: flex;
@@ -663,6 +694,10 @@
   }
 
   .flavor-radar-mobile {
+    display: block;
+  }
+
+  .flavor-radar-section-mobile {
     display: block;
   }
 
@@ -704,16 +739,6 @@
     display: none;
   }
 
-  .riff-toggle-btn {
-    width: 100%;
-    max-width: 320px;
-    margin: 0.65rem auto 0;
-    padding: 0.65rem 1rem;
-    justify-content: center;
-    font-size: 0.88rem;
-    border-radius: var(--radius-sm);
-  }
-
   .specs-column {
     order: 2;
     width: 100%;
@@ -737,7 +762,7 @@
   }
 
   .specs-header-controls {
-    gap: 0.5rem;
+    gap: 2.25rem;
   }
 
   .servings-label {
@@ -765,63 +790,113 @@
     font-size: 0.75rem;
   }
 
+  /* Ingredient rows bleed to the true screen edges instead of sitting inset
+     inside the page's usual mobile gutter — that gutter was exactly the width
+     riff mode was starving for (amounts clipping, unit labels colliding with
+     names). Each row keeps its own comfortable padding, so text still starts
+     roughly where it always has; only the row's own background/divider now
+     reaches the edges. Same bleed pattern already used for
+     .similar-cocktails-track. */
   .specs-list {
     gap: 0.45rem;
+    margin-left: calc(-1 * var(--mobile-inset));
+    margin-right: calc(-1 * var(--mobile-inset));
   }
 
   .spec-row {
     grid-template-columns: 60px 1fr auto;
     gap: 0.55rem;
-    padding: 0.6rem 0.75rem;
-    border-radius: var(--radius-sm);
+    padding: 0.7rem;
+    border-radius: 0;
   }
 
+  /* The garnish row isn't a regular data row (no amount/actions columns in
+     the same sense), so it doesn't pick up .spec-row's own side padding by
+     default at this specificity — restated here to match now that the list
+     around it bleeds to the edge. */
+  .spec-garnish-row {
+    padding-left: var(--mobile-inset);
+    padding-right: var(--mobile-inset);
+  }
+
+  /* Riff mode: back to one row per ingredient (amount, name, Riff select,
+     remove-×), same shape as plain rows — the SUB badge, fridge icon, and
+     "sub for X" note are all suppressed while actively riffing (see
+     counter-view.js), which is what actually frees up the room this needs;
+     splitting into a second row was overcorrecting for that missing room. */
   .counter-view.riff-mode-active .spec-row {
-    grid-template-columns: 52px 1fr auto auto;
-    gap: 0.5rem;
+    /* Amount column is wide enough for input + unit on one line, even for a
+       longer unit like "dashes" — with the SUB badge/icon/note gone (see
+       counter-view.js), the name column can afford to give that room up. */
+    grid-template-columns: 92px 1fr auto auto;
+    column-gap: 0.5rem;
     align-items: center;
   }
 
-  .spec-riff-wrapper {
-    flex-shrink: 0;
+  .counter-view.riff-mode-active .spec-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    white-space: nowrap;
+    font-size: 1.08rem;
   }
 
-  .spec-riff-select {
+  .counter-view.riff-mode-active .spec-amount-input {
+    width: 3.2rem;
+    max-width: 100%;
+    padding: 0.2rem 0.3rem;
+  }
+
+  .counter-view.riff-mode-active .spec-amount .spec-unit {
+    font-size: 0.75rem;
+    margin-left: 0;
+    white-space: nowrap;
+  }
+
+  .counter-view.riff-mode-active .spec-ingredient {
+    min-width: 0;
+  }
+
+  .counter-view.riff-mode-active .spec-ingredient-name-row {
+    font-size: 0.9rem;
+    gap: 0.4rem;
+    /* Wraps instead of truncating — a name has more room to breathe now that
+       it isn't sharing its cell with a badge/icon/note. */
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .counter-view.riff-mode-active .spec-name {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .counter-view.riff-mode-active .spec-riff-select {
     font-size: 0.72rem;
-    padding: 0.24rem 1.15rem 0.24rem 0.55rem;
-    width: 68px;
-    min-width: 68px;
-    max-width: 72px;
+    padding: 0.24rem 1.15rem 0.24rem 0.5rem;
+    width: 76px;
+    min-width: 76px;
+    max-width: 84px;
     text-align: left;
   }
 
-  .spec-riff-select.active-riff {
-    width: 72px;
-    min-width: 72px;
+  .counter-view.riff-mode-active .spec-riff-select.active-riff {
+    width: 84px;
+    min-width: 84px;
   }
 
-  .spec-riff-active-label {
+  .counter-view.riff-mode-active .spec-riff-active-label {
     left: 0.5rem;
     right: 1.1rem;
     font-size: 0.72rem;
   }
 
+  /* Plain (non-riff) display keeps the original tidy single-line truncation
+     — it's only riff mode's amount cell that needed restructuring above. */
   .spec-amount {
     font-size: 1.08rem;
-  }
-
-  /* Riff mode's amount column is only 52px wide on mobile — the number input
-     and its "oz" label both have to fit that, so both shrink further than
-     their desktop sizing. */
-  .spec-amount-input {
-    width: 2.3rem;
-    font-size: 0.85rem;
-    padding: 0.2rem 0.25rem;
-  }
-
-  .counter-view.riff-mode-active .spec-amount .spec-unit {
-    font-size: 0.68rem;
-    margin-left: 0.15rem;
   }
 
   .btn-remove-spec-row {
@@ -898,9 +973,8 @@
     align-items: baseline;
     gap: 0.75rem;
     padding: 0.75rem 0.75rem 0.95rem;
-    margin-top: 0.5rem;
+    margin-top: 0;
     margin-bottom: 0.75rem;
-    border-top: 1px solid var(--color-border-subtle);
     border-bottom: none;
     border-radius: var(--radius-sm);
   }
@@ -912,7 +986,7 @@
   }
 
   .spec-garnish-row .spec-amount .spec-unit {
-    font-size: 0.86rem;
+    font-size: 0.95rem;
     font-family: var(--font-display);
     color: var(--color-accent-light);
     margin-left: 0;
