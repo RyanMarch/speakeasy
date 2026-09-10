@@ -199,7 +199,27 @@
 .backbar-category-section {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.9rem;
+}
+
+.backbar-family-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.backbar-family-header {
+  display: flex;
+  align-items: center;
+}
+
+.backbar-family-title {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  opacity: 0.75;
 }
 
 .backbar-category-header {
@@ -286,6 +306,77 @@
   margin-left: 0.1rem;
   opacity: 0.85;
 }
+
+/* LOW STOCK FEATURE — delete this block (and .backbar-pill-wrap's effect on
+   layout reverts to none, since .backbar-pills-grid is already flex-wrap) to
+   remove the feature entirely. */
+.backbar-pill-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.backbar-pill-low-stock-btn {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  /* display: inline-flex; */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  line-height: 1;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.9);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-faint);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: all var(--transition-fast);
+}
+
+/* Invisible hit-slop: the visible badge stays small so it doesn't dominate the
+   pill, but the actual tappable area is expanded to a real touch target —
+   this button was reported as too fiddly to hit precisely on mobile. */
+.backbar-pill-low-stock-btn::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+.backbar-pill-low-stock-btn:hover {
+  opacity: 1;
+  border-color: rgba(212, 163, 89, 0.5);
+}
+
+.backbar-pill-low-stock-btn.is-low {
+  opacity: 1;
+  background: rgba(212, 163, 89, 0.9);
+  border-color: rgba(212, 163, 89, 0.9);
+  color: #1a1a1a;
+}
+
+.running-low-section {
+  margin-bottom: 1.25rem;
+}
+
+.running-low-heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.running-low-grid .shopping-unlock-badge {
+  background: rgba(212, 163, 89, 0.18);
+  color: var(--color-accent);
+}
+
+/* END LOW STOCK FEATURE */
 
 /* Hidden Cocktails Modal */
 .hidden-recipes-dialog {
@@ -481,6 +572,18 @@
   white-space: nowrap;
 }
 
+.shopping-unlock-badge.badge-have {
+  background: rgba(90, 160, 105, 0.18);
+  border-color: rgba(90, 160, 105, 0.45);
+  color: #8fd39f;
+}
+
+.shopping-unlock-badge.badge-need {
+  background: rgba(212, 163, 89, 0.18);
+  border-color: rgba(212, 163, 89, 0.45);
+  color: var(--color-accent-light);
+}
+
 .shopping-card-family {
   font-size: 0.76rem;
   color: var(--color-text-muted);
@@ -532,6 +635,12 @@
   font-weight: 600;
   color: var(--color-text-muted);
   margin-bottom: 0.5rem;
+}
+
+.shopping-alt-names {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.65rem;
 }
 
 .shopping-drinks-grid {
@@ -592,6 +701,7 @@
     opacity: 0;
     transform: translateY(16px) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -622,10 +732,12 @@
     border-color: rgba(212, 163, 89, 0.4);
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
   }
+
   35% {
     border-color: var(--color-accent-light, #e09f3e);
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 20px rgba(212, 163, 89, 0.5);
   }
+
   100% {
     border-color: rgba(212, 163, 89, 0.4);
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);

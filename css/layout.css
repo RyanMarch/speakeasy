@@ -637,8 +637,4 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   ::view-transition-new(root) {
     animation: none;
   }
-
-  .wake-lock-btn.active svg {
-    animation: none;
-  }
 }

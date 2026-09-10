@@ -163,7 +163,7 @@ function detectIngredientPresenceTags(specs) {
     for (const [family, tag] of FAMILY_PRESENCE_TAGS) {
       if (item.family === family) found.add(tag);
     }
-    if (item.id === 'dairy') found.add('creamy');
+    if (item.family === 'dairy') found.add('creamy');
   }
   return Array.from(found);
 }

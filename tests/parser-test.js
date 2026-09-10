@@ -207,11 +207,11 @@ if (!nixtaMatch || nixtaMatch.id !== 'corn_liqueur') throw new Error('Nixta matc
 
 const falernumMatch = findIngredient('Velvet Falernum');
 console.log('Velvet Falernum =>', falernumMatch?.name, `(Family: ${falernumMatch?.family})`);
-if (!falernumMatch || falernumMatch.id !== 'spiced_liqueur') throw new Error('Spiced liqueur match failed');
+if (!falernumMatch || falernumMatch.id !== 'falernum') throw new Error('Spiced liqueur match failed');
 
 const stGermainMatch = findIngredient('St-Germain');
 console.log('St-Germain =>', stGermainMatch?.name, `(Family: ${stGermainMatch?.family})`);
-if (!stGermainMatch || stGermainMatch.id !== 'floral_liqueur') throw new Error('Floral liqueur match failed');
+if (!stGermainMatch || stGermainMatch.id !== 'elderflower_liqueur') throw new Error('Floral liqueur match failed');
 
 const maraschinoMatch = findIngredient('Luxardo Maraschino');
 console.log('Luxardo Maraschino =>', maraschinoMatch?.name, `(ID: ${maraschinoMatch?.id})`);
@@ -223,15 +223,15 @@ if (!heeringMatch || heeringMatch.id !== 'cherry_liqueur') throw new Error('Cher
 
 const cassisMatch = findIngredient('Crème de Cassis');
 console.log('Crème de Cassis =>', cassisMatch?.name, `(ID: ${cassisMatch?.id})`);
-if (!cassisMatch || cassisMatch.id !== 'berry_liqueur') throw new Error('Berry liqueur match failed');
+if (!cassisMatch || cassisMatch.id !== 'creme_de_cassis') throw new Error('Berry liqueur match failed');
 
 const apricotMatch = findIngredient('Apricot Liqueur');
 console.log('Apricot Liqueur =>', apricotMatch?.name, `(ID: ${apricotMatch?.id})`);
-if (!apricotMatch || apricotMatch.id !== 'stone_fruit_liqueur') throw new Error('Stone fruit liqueur match failed');
+if (!apricotMatch || apricotMatch.id !== 'apricot_liqueur') throw new Error('Stone fruit liqueur match failed');
 
 const bananaMatch = findIngredient('Crème de Banane');
 console.log('Crème de Banane =>', bananaMatch?.name, `(ID: ${bananaMatch?.id})`);
-if (!bananaMatch || bananaMatch.id !== 'tropical_fruit_liqueur') throw new Error('Tropical/banana liqueur match failed');
+if (!bananaMatch || bananaMatch.id !== 'creme_de_banane') throw new Error('Tropical/banana liqueur match failed');
 
 const blendedScotchMatch = findIngredient('Monkey Shoulder');
 console.log('Monkey Shoulder =>', blendedScotchMatch?.name, `(ID: ${blendedScotchMatch?.id})`);
@@ -472,7 +472,7 @@ console.log('Directionality verified: generic whiskey does not satisfy specific 
 
 // 4. Negroni exact inventory matching & Bottle Next detection
 const negroniRecipe = SEED_RECIPES.find(r => r.id === 'negroni');
-const fullNegroniBar = new Set(['london_dry_gin', 'red_bitter', 'sweet_vermouth']);
+const fullNegroniBar = new Set(['london_dry_gin', 'campari', 'sweet_vermouth']);
 const fullNegroniAnalysis = analyzeRecipeInventory(negroniRecipe, fullNegroniBar);
 if (!fullNegroniAnalysis.canMake || fullNegroniAnalysis.missingCount !== 0) {
   throw new Error('Negroni with full ingredients should have canMake === true');
@@ -486,8 +486,8 @@ if (missingCampariAnalysis.canMake) {
 if (!missingCampariAnalysis.isBottleNext || missingCampariAnalysis.missingCount !== 1) {
   throw new Error('Negroni missing Campari should be flagged as isBottleNext with 1 missing');
 }
-if (missingCampariAnalysis.missingItems[0].id !== 'red_bitter') {
-  throw new Error(`Expected missing item ID 'red_bitter', got ${missingCampariAnalysis.missingItems[0].id}`);
+if (missingCampariAnalysis.missingItems[0].id !== 'campari') {
+  throw new Error(`Expected missing item ID 'campari', got ${missingCampariAnalysis.missingItems[0].id}`);
 }
 console.log('Negroni complete bar and Bottle Next 1-missing detection passed.');
 
@@ -1007,7 +1007,7 @@ if (!secondItem || secondItem.id !== 'dry_vermouth' || secondItem.unlockCount !=
 
 // Scotch has 0 direct unlocks, but secondaryCount = 2 (unlocks Mock Godfather and Mock Rusty Nail to 1-away)
 const scotchItem = mockRanked.find(i => i.id === 'scotch');
-const amarettoItem = mockRanked.find(i => i.id === 'nut_liqueur');
+const amarettoItem = mockRanked.find(i => i.id === 'amaretto');
 if (!scotchItem || scotchItem.unlockCount !== 0 || scotchItem.secondaryCount !== 2) {
   throw new Error(`Expected Scotch secondaryCount = 2, got ${JSON.stringify(scotchItem)}`);
 }
@@ -1017,7 +1017,7 @@ if (!amarettoItem || amarettoItem.unlockCount !== 0 || amarettoItem.secondaryCou
 
 // Scotch must be ranked before Amaretto due to secondary tie-breaker
 const scotchIndex = mockRanked.findIndex(i => i.id === 'scotch');
-const amarettoIndex = mockRanked.findIndex(i => i.id === 'nut_liqueur');
+const amarettoIndex = mockRanked.findIndex(i => i.id === 'amaretto');
 if (scotchIndex >= amarettoIndex) {
   throw new Error(`Expected Scotch (secondary: 2) to rank ahead of Amaretto (secondary: 1)`);
 }
@@ -1042,18 +1042,22 @@ for (let i = 0; i < canonicalShoppingList.length - 1; i++) {
   }
 }
 
-// Total 1-bottle unlocks across the shopping list must equal the 48 bottle-next drinks from Starter Bar.
+// Total 1-bottle unlocks across the shopping list must equal the 46 bottle-next drinks from Starter Bar.
 // (Was 52 before Peychaud's Bitters got its own taxonomy id split out of aromatic_bitters —
 // Sazerac, Vieux Carré, Metropole, Monte Carlo, and À La Louisienne all call for it by name, and
 // were incorrectly counted as "ready to make" off owning Angostura alone. Splitting them fixed the
 // glass color for those recipes but correctly cost 2 bottle-next unlocks off the Starter Bar's count.
 // Was 50 before Mint Julep and Mojito got "Fresh Mint" added to their specs — both recipes'
 // instructions always called for muddling/pressing mint, but it was missing from the ingredient
-// list entirely. Mint isn't in the Starter Bar, so this correctly cost 2 more bottle-next unlocks.)
+// list entirely. Mint isn't in the Starter Bar, so this correctly cost 2 more bottle-next unlocks.
+// Was 48 before the ~28 "family bucket" taxonomy entries (Spiced Liqueurs, Herbal & Botanical
+// Liqueur, Aperitivo / Red Bitter, etc.) got split into individually-ownable specific products —
+// the Starter Bar's 'red_bitter' became 'campari' specifically, so Aperol-specific recipes
+// (Aperol Spritz, Paper Plane) correctly stopped counting as bottle-next off it alone.)
 const totalStarterUnlocks = canonicalShoppingList.reduce((sum, item) => sum + item.unlockCount, 0);
-console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 48)`);
-if (totalStarterUnlocks !== 48) {
-  throw new Error(`Expected exactly 48 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
+console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 46)`);
+if (totalStarterUnlocks !== 46) {
+  throw new Error(`Expected exactly 46 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
 }
 
 console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingList[0].name} (+${canonicalShoppingList[0].unlockCount} cocktails)`);

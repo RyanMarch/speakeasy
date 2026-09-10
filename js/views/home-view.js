@@ -25,10 +25,14 @@ import { formatIngredientName } from '../modules/parser.js';
 
 let _selectRecipeFn = null;
 let _showDrinksListMobileFn = null;
+let _openBackbarModalFn = null;
+let _openMenuBuilderModalFn = null;
 
-export function setHomeViewCallbacks({ selectRecipe, showDrinksListMobile }) {
+export function setHomeViewCallbacks({ selectRecipe, showDrinksListMobile, openBackbarModal, openMenuBuilderModal }) {
   if (selectRecipe) _selectRecipeFn = selectRecipe;
   if (showDrinksListMobile) _showDrinksListMobileFn = showDrinksListMobile;
+  if (openBackbarModal) _openBackbarModalFn = openBackbarModal;
+  if (openMenuBuilderModal) _openMenuBuilderModalFn = openMenuBuilderModal;
 }
 
 export function formatTagTitle(tag) {
@@ -38,6 +42,12 @@ export function formatTagTitle(tag) {
 // Populated by renderHomeView() and read by the IntersectionObserver in
 // setupHomeViewEvents() to lazily fill in each shelf's cards.
 let homeCollectionsCache = [];
+
+// Cap how many cards a shelf hydrates up front. Home is a landing page, not a
+// full library browse — anything beyond this defers to "See all" so we're not
+// paying render/DOM cost (or presenting a wall of cards) for shelves that can
+// match dozens of recipes.
+const HOME_SHELF_CARD_LIMIT = 12;
 
 /**
  * Render the Home landing page: bar stats + horizontally-scrolling collection shelves.
@@ -84,6 +94,11 @@ export function renderHomeView() {
   homeCollectionsCache = allCollections;
   const pinnableTags = getAllUniqueTags(state.recipes).filter(t => !state.pinnedTags.includes(t));
 
+  // "Almost Ready" is a compact banner, not a shelf — a full row of cards here
+  // would reintroduce the home-screen bulk this whole page was just decluttered
+  // of. Uses the same isBottleNext filter as the sidebar's "Ready" toggle.
+  const almostReadyCount = state.recipes.filter(r => getCachedInventoryAnalysis(r).isBottleNext).length;
+
   container.innerHTML =  /*html*/`
     <div class="home-stats-card">
       <div class="home-stats-name">${escapeHtml(barName)}</div>
@@ -97,9 +112,12 @@ export function renderHomeView() {
           <strong>${ingredientCount}</strong>
           <span>${ingredientCount === 1 ? 'Ingredient' : 'Ingredients'} in Bar</span>
         </div>
+        <button type="button" class="btn btn-secondary btn-sm home-menu-builder-btn" data-action="open-menu-builder">
+          <span aria-hidden="true">🍸</span> Build a Menu
+        </button>
       </div>
       <div class="home-browse-actions">
-        <button type="button" id="btn-home-browse-all" class="btn btn-secondary btn-sm home-browse-all-btn">
+        <button type="button" id="btn-home-browse-all" class="btn btn-primary btn-sm home-browse-all-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="8" y1="6" x2="21" y2="6"></line>
             <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -119,6 +137,14 @@ export function renderHomeView() {
         </button>
       </div>
     </div>
+
+    ${almostReadyCount > 0 ? /*html*/`
+      <button type="button" class="home-almost-ready-banner" data-action="open-shopping">
+        <span class="home-almost-ready-count">${almostReadyCount}</span>
+        <span class="home-almost-ready-text">cocktail${almostReadyCount === 1 ? ' is' : 's are'} one bottle away — Shop the list</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    ` : ''}
 
     <div class="home-pin-row">
       <span class="home-pin-label">Pin a tag as a collection</span>
@@ -144,7 +170,11 @@ export function renderHomeShelf(col, idx) {
     <div class="similar-cocktails-shelf home-shelf">
       <div class="counter-card-header shelf-header">
         <div class="shelf-header-left">
-          <span class="counter-card-title">${escapeHtml(col.title)}</span>
+          ${col.key !== '__recently-viewed__' ? `
+            <button type="button" class="counter-card-title shelf-title-link" data-action="filter-shelf" data-tag="${escapeHtml(col.key)}" title="Search #${escapeHtml(col.key)}">${escapeHtml(col.title)}</button>
+          ` : `
+            <span class="counter-card-title">${escapeHtml(col.title)}</span>
+          `}
           ${col.pinned ? `
             <button type="button" class="home-unpin-btn" data-action="unpin-tag" data-tag="${escapeHtml(col.key)}"
               title="Remove this collection from Home" aria-label="Remove ${escapeHtml(col.title)} collection">×</button>
@@ -162,6 +192,15 @@ export function renderHomeShelf(col, idx) {
       <!-- Cards are hydrated lazily by an IntersectionObserver in setupHomeViewEvents() -->
       <div class="similar-cocktails-track home-track" data-shelf-idx="${idx}"></div>
     </div>
+  `;
+}
+
+export function renderHomeSeeAllCard(col) {
+  return  /*html*/`
+    <button type="button" class="similar-cocktail-card home-see-all-card" data-action="see-all" data-tag="${escapeHtml(col.key)}">
+      <span class="home-see-all-count">+${col.recipes.length - HOME_SHELF_CARD_LIMIT}</span>
+      <span class="home-see-all-label">See all<br>${escapeHtml(col.title)}</span>
+    </button>
   `;
 }
 
@@ -205,6 +244,15 @@ export function setupHomeViewEvents(pinnableTags) {
     if (_showDrinksListMobileFn) _showDrinksListMobileFn({ focusSearch: true });
   });
 
+  container.querySelector('[data-action="open-shopping"]')?.addEventListener('click', () => {
+    state.backbarTab = 'shopping';
+    if (_openBackbarModalFn) _openBackbarModalFn();
+  });
+
+  container.querySelector('[data-action="open-menu-builder"]')?.addEventListener('click', () => {
+    if (_openMenuBuilderModalFn) _openMenuBuilderModalFn();
+  });
+
   container.querySelectorAll('.home-shelf').forEach(shelf => {
     const track = shelf.querySelector('.home-track');
     shelf.querySelector('.shelf-nav-prev')?.addEventListener('click', () => {
@@ -215,15 +263,35 @@ export function setupHomeViewEvents(pinnableTags) {
     });
   });
 
+  // Shelf title -> same tag filter the "See all" tile and sidebar tag chips
+  // already use (Recently Viewed has no tag behind it, so it never gets the
+  // clickable treatment — see the template in renderHomeShelf).
+  container.querySelectorAll('[data-action="filter-shelf"]').forEach(titleBtn => {
+    titleBtn.addEventListener('click', () => {
+      const tag = titleBtn.getAttribute('data-tag');
+      if (tag && _showDrinksListMobileFn) _showDrinksListMobileFn({ query: `#${tag}` });
+    });
+  });
+
   // Lazily hydrate each shelf's cards only once it scrolls near viewport
   const hydrateShelf = (track) => {
     const idx = Number(track.dataset.shelfIdx);
     const col = homeCollectionsCache[idx];
     if (!col) return;
 
-    track.innerHTML =  /*html*/col.recipes.map((recipe, i) => renderHomeCard(recipe, col.key, i)).join('');
+    // "Recently Viewed" isn't a real tag, so it has nowhere for a "See all" link
+    // to go — it's already capped at storage-write time (RECENTLY_VIEWED_MAX),
+    // so render it in full. Tag-backed shelves (pinned + default collections)
+    // can match dozens of recipes and get a hard cap plus a "See all" tile that
+    // hands off to the same tag filter the sidebar's tag chips already use.
+    const isTaggable = col.key !== '__recently-viewed__';
+    const overflowing = isTaggable && col.recipes.length > HOME_SHELF_CARD_LIMIT;
+    const visibleRecipes = overflowing ? col.recipes.slice(0, HOME_SHELF_CARD_LIMIT) : col.recipes;
 
-    track.querySelectorAll('.similar-cocktail-card').forEach(el => {
+    track.innerHTML =  /*html*/visibleRecipes.map((recipe, i) => renderHomeCard(recipe, col.key, i)).join('')
+      + (overflowing ? renderHomeSeeAllCard(col) : '');
+
+    track.querySelectorAll('.similar-cocktail-card[data-recipe-id]').forEach(el => {
       const targetId = el.getAttribute('data-recipe-id');
       el.addEventListener('click', () => {
         if (targetId && _selectRecipeFn) _selectRecipeFn(targetId);
@@ -234,6 +302,11 @@ export function setupHomeViewEvents(pinnableTags) {
           if (_selectRecipeFn) _selectRecipeFn(targetId);
         }
       });
+    });
+
+    track.querySelector('.home-see-all-card')?.addEventListener('click', (e) => {
+      const tag = e.currentTarget.getAttribute('data-tag');
+      if (tag && _showDrinksListMobileFn) _showDrinksListMobileFn({ query: `#${tag}` });
     });
   };
 
