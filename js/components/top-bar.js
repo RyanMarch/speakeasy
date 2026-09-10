@@ -17,6 +17,7 @@ import {
   resetToDefaults,
 } from '../modules/storage.js';
 
+import { isAuthenticated, getUser, logout, AUTH_EVENT_NAME } from '../modules/auth.js';
 import { showToast } from './toast.js';
 
 let _goHomeFn = null;
@@ -27,6 +28,7 @@ let _renderHomeViewFn = null;
 let _renderRecipeListFn = null;
 let _openBackbarModalFn = null;
 let _updateBackbarActionButtonsFn = null;
+let _openAuthModalFn = null;
 
 export function setTopBarCallbacks(cbs) {
   if (cbs.goHome) _goHomeFn = cbs.goHome;
@@ -37,6 +39,7 @@ export function setTopBarCallbacks(cbs) {
   if (cbs.renderRecipeList) _renderRecipeListFn = cbs.renderRecipeList;
   if (cbs.openBackbarModal) _openBackbarModalFn = cbs.openBackbarModal;
   if (cbs.updateBackbarActionButtons) _updateBackbarActionButtonsFn = cbs.updateBackbarActionButtons;
+  if (cbs.openAuthModal) _openAuthModalFn = cbs.openAuthModal;
 }
 
 /**
@@ -282,4 +285,61 @@ export function setupTopBarEventListeners() {
   elements.btnMyBar?.addEventListener('click', () => {
     if (_openBackbarModalFn) _openBackbarModalFn();
   });
+
+  elements.btnSignIn?.addEventListener('click', () => {
+    if (_openAuthModalFn) _openAuthModalFn();
+  });
+
+  elements.btnSignOut?.addEventListener('click', async () => {
+    if (elements.userPopover?.hidePopover) {
+      try {
+        elements.userPopover.hidePopover();
+      } catch (err) {
+        // Ignore if already hidden
+      }
+    }
+    await logout();
+    showToast('Signed out');
+  });
+
+  // Listen to speakeasy:auth-changed to update the UI reactively
+  if (typeof window !== 'undefined') {
+    window.addEventListener(AUTH_EVENT_NAME, () => {
+      updateAuthIndicator();
+    });
+  }
+
+  // Initial indicator sync
+  updateAuthIndicator();
+}
+
+/**
+ * Updates the top bar auth button and avatar pill based on current authentication state
+ */
+export function updateAuthIndicator() {
+  const loggedIn = isAuthenticated();
+  const user = getUser();
+
+  if (elements.btnSignIn) {
+    elements.btnSignIn.style.display = loggedIn ? 'none' : 'inline-flex';
+  }
+
+  if (elements.btnUserPill) {
+    elements.btnUserPill.style.display = loggedIn ? 'inline-flex' : 'none';
+  }
+
+  if (loggedIn && user) {
+    const displayName = user.displayName || user.email || 'User';
+    const initial = (displayName.charAt(0) || 'U').toUpperCase();
+
+    if (elements.userPillAvatar) {
+      elements.userPillAvatar.textContent = initial;
+    }
+    if (elements.userPillName) {
+      elements.userPillName.textContent = displayName;
+    }
+    if (elements.userPopoverEmail) {
+      elements.userPopoverEmail.textContent = user.email || displayName;
+    }
+  }
 }

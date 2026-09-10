@@ -34,6 +34,8 @@
   <link rel="modulepreload" href="js/components/editor-modal.js">
   <link rel="modulepreload" href="js/components/timer-modal.js">
   <link rel="modulepreload" href="js/components/toast.js">
+  <link rel="modulepreload" href="js/components/auth-modal.js">
+  <link rel="modulepreload" href="js/modules/auth.js">
   <link rel="modulepreload" href="js/modules/storage.js">
   <link rel="modulepreload" href="js/modules/parser.js">
   <link rel="modulepreload" href="js/modules/colors.js">
@@ -98,6 +100,48 @@
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </button>
+
+        <!-- Auth Status Indicator (Guest / Authenticated) -->
+        <button id="btn-sign-in" class="btn btn-secondary btn-sm auth-signin-btn" title="Sign in to sync your library">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          <span class="btn-text">Sign In</span>
+        </button>
+
+        <button id="btn-user-pill" class="auth-user-pill" popovertarget="user-popover" title="Account & Sync Status" style="display: none;">
+          <span class="auth-avatar-circle" id="user-pill-avatar" aria-hidden="true">?</span>
+          <span class="auth-user-name" id="user-pill-name">User</span>
+          <span class="auth-status-badge" title="Synced with cloud"></span>
+        </button>
+
+        <!-- Authenticated User Popover Menu -->
+        <div id="user-popover" popover="auto" class="auth-user-popover">
+          <div class="auth-popover-content">
+            <div class="auth-popover-header">
+              <span class="auth-popover-email" id="user-popover-email">user@example.com</span>
+              <span class="auth-popover-status">
+                <span class="auth-status-badge"></span>
+                <span>Cloud Synced</span>
+              </span>
+            </div>
+            <div class="auth-popover-actions">
+              <button type="button" id="btn-sign-out" class="auth-signout-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <input type="file" id="import-file-input" accept=".json,application/json" style="display: none;"
           aria-label="Upload JSON recipes file">
       </div>
@@ -444,6 +488,45 @@
 
     <!-- Smart Counter Timer Toast (Non-modal floating widget) -->
     <div id="timer-modal" class="timer-toast" role="status" aria-live="polite" style="display: none;"></div>
+
+    <!-- Passwordless Authentication Modal Dialog -->
+    <dialog id="auth-modal" class="auth-dialog" aria-labelledby="auth-modal-title">
+      <div class="auth-dialog-container">
+        <div class="auth-dialog-header">
+          <h2 class="auth-dialog-title" id="auth-modal-title">Account & Cloud Sync</h2>
+          <button id="btn-close-auth-modal" class="btn btn-ghost btn-sm close-modal-btn" aria-label="Close dialog">✕</button>
+        </div>
+
+        <!-- Step 1: Email Input Form -->
+        <div id="auth-step-email" class="auth-step">
+          <p class="auth-prompt">Enter your email for a passwordless sign-in code.</p>
+          <form id="auth-form-email" class="auth-form" novalidate>
+            <div class="auth-form-field">
+              <input type="email" id="auth-email-input" class="auth-input" required placeholder="bartender@example.com" autocomplete="email" />
+              <div id="auth-email-error" class="auth-error" style="display: none;"></div>
+            </div>
+            <div class="auth-actions">
+              <button type="submit" id="btn-send-code" class="btn btn-primary">Send 6-Digit Code</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 2: OTP Verification Form -->
+        <div id="auth-step-otp" class="auth-step" style="display: none;">
+          <p class="auth-prompt">Check your email (or dev console) for the 6-digit code sent to <strong id="auth-email-display"></strong>.</p>
+          <form id="auth-form-otp" class="auth-form" novalidate>
+            <div class="auth-form-field">
+              <input type="text" id="auth-otp-input" class="auth-input auth-input-otp" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" placeholder="······" />
+              <div id="auth-otp-error" class="auth-error" style="display: none;"></div>
+            </div>
+            <div class="auth-actions">
+              <button type="submit" id="btn-verify-code" class="btn btn-primary">Verify & Sign In</button>
+              <button type="button" id="btn-auth-back" class="auth-btn-back">Change email address</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </dialog>
 
     <!-- Toast Notifications Area -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>

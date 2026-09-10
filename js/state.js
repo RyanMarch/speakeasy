@@ -152,6 +152,15 @@ export function initElements() {
   elements.timerModal = document.getElementById('timer-modal');
 
   elements.menuBuilderViewContainer = document.getElementById('menu-builder-view-container');
+
+  elements.btnSignIn = document.getElementById('btn-sign-in');
+  elements.btnUserPill = document.getElementById('btn-user-pill');
+  elements.userPillAvatar = document.getElementById('user-pill-avatar');
+  elements.userPillName = document.getElementById('user-pill-name');
+  elements.userPopover = document.getElementById('user-popover');
+  elements.userPopoverEmail = document.getElementById('user-popover-email');
+  elements.btnSignOut = document.getElementById('btn-sign-out');
+  elements.authModal = document.getElementById('auth-modal');
 }
 
 // Automatically populate elements if document is defined
