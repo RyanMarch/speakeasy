@@ -976,6 +976,26 @@
   color: var(--color-accent);
 }
 
+/* Built-in/pinned home shelves: heading doubles as a shortcut into the same
+   tag search the "See all" tile and sidebar tag chips already use (Recently
+   Viewed has no tag behind it, so it stays a plain, unclickable span). */
+.shelf-title-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.shelf-title-link:hover,
+.shelf-title-link:focus-visible {
+  color: var(--color-accent-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* Editorial Sections */
 .recipe-editorial-section {
   margin-bottom: 2.25rem;
