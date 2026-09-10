@@ -149,6 +149,21 @@ export function initElements() {
   elements.backbarDialogSubtitle = document.getElementById('backbar-dialog-subtitle');
   elements.backbarInventoryToolbar = document.getElementById('backbar-inventory-toolbar');
   elements.timerModal = document.getElementById('timer-modal');
+
+  elements.menuBuilderModal = document.getElementById('menu-builder-modal');
+  elements.btnCloseMenuBuilder = document.getElementById('btn-close-menu-builder');
+  elements.menuBuilderListPane = document.getElementById('menu-builder-list-pane');
+  elements.menuBuilderBuilderPane = document.getElementById('menu-builder-builder-pane');
+  elements.menuBuilderListContainer = document.getElementById('menu-builder-list-container');
+  elements.btnNewMenu = document.getElementById('btn-new-menu');
+  elements.menuBuilderSearchInput = document.getElementById('menu-builder-search-input');
+  elements.menuBuilderPickerContainer = document.getElementById('menu-builder-picker-container');
+  elements.menuBuilderSelectedContainer = document.getElementById('menu-builder-selected-container');
+  elements.menuBuilderGlasswareContainer = document.getElementById('menu-builder-glassware-container');
+  elements.menuBuilderShoppingContainer = document.getElementById('menu-builder-shopping-container');
+  elements.menuBuilderNameInput = document.getElementById('menu-builder-name-input');
+  elements.btnSaveMenu = document.getElementById('btn-save-menu');
+  elements.btnBackToMenuList = document.getElementById('btn-back-to-menu-list');
 }
 
 // Automatically populate elements if document is defined

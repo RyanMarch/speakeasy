@@ -283,6 +283,38 @@ export const GLASS_TYPES = {
     `,
     sheenD: null,
   },
+
+  champagneFlute: {
+    id: 'champagneFlute',
+    name: 'Champagne Flute',
+    aliases: ['champagne flute', 'champagne', 'flute', 'sparkling'],
+    canvasBottom: 303,
+    fluidBounds: {
+      bottomY: 240,
+      topY: 50,
+      height: 190,
+      leftX: 100,
+      rightX: 140,
+      width: 40,
+    },
+    fluidClipD: `
+      M 100 50
+      L 104 240
+      C 110 242, 130 242, 136 240
+      L 140 50
+      Z
+    `,
+    glassOutlineD: `
+      M 96 46
+      L 102 244
+      C 104 264, 136 264, 138 244
+      L 144 46
+    `,
+    glassRimD: 'M 96 46 C 110 48, 130 48, 144 46',
+    rim: { leftX: 96, rightX: 144, y: 46 },
+    stemD: 'M 120 244 L 120 282',
+    baseD: 'M 108 288 C 115 285, 125 285, 132 288 L 133 291 C 125 293, 115 293, 107 291 Z',
+  },
 };
 
 export function resolveGlassware(glasswareString = '') {

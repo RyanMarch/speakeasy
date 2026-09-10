@@ -53,6 +53,12 @@ import {
 } from './js/components/hidden-modal.js';
 
 import {
+  setupMenuBuilderEventListeners,
+  setMenuBuilderCallbacks,
+  openMenuBuilderModal,
+} from './js/components/menu-builder-modal.js';
+
+import {
   openEditor,
   cancelEditor,
   setEditorModalCallbacks,
@@ -104,7 +110,7 @@ function init() {
 
   // Connect callbacks across components
   setRecipeListCallbacks({ openEditor, updateVaultStats, showDrinksListMobile });
-  setHomeViewCallbacks({ selectRecipe, showDrinksListMobile });
+  setHomeViewCallbacks({ selectRecipe, showDrinksListMobile, openBackbarModal, openMenuBuilderModal });
   setCounterViewCallbacks({
     selectRecipe,
     openEditor,
@@ -139,6 +145,7 @@ function init() {
     renderCounterView,
     renderHomeView,
   });
+  setMenuBuilderCallbacks({ selectRecipe });
   setEditorModalCallbacks({
     selectRecipe,
     renderCurrentView,
@@ -148,6 +155,7 @@ function init() {
   setupTopBarEventListeners();
   setupBackbarEventListeners();
   setupHiddenModalEventListeners();
+  setupMenuBuilderEventListeners();
   setupTimerModalEventListeners();
   updateMyBarBadge();
   renderRecipeList();

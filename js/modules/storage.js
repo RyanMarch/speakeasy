@@ -688,3 +688,113 @@ export function saveSortPreference(sortOption) {
   }
 }
 
+// ==========================================
+// Low-Stock Ingredient Flags
+// ==========================================
+// Taxonomy ids the user has manually flagged as "running low" — independent of
+// ownership itself, so a bottle can be owned-and-low or owned-and-fine. Cleared
+// automatically when a bottle is removed from inventory entirely (see
+// toggleInventoryBottle in backbar-modal.js), since the flag is meaningless once
+// the ingredient isn't owned.
+const LOW_STOCK_STORAGE_KEY = 'speakeasy_low_stock';
+
+export function getLowStockIds() {
+  try {
+    const raw = localStorage.getItem(LOW_STOCK_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(id => typeof id === 'string') : [];
+  } catch (err) {
+    console.error('Failed to read low-stock ids from localStorage:', err);
+    return [];
+  }
+}
+
+export function saveLowStockIds(ids) {
+  try {
+    const clean = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
+    localStorage.setItem(LOW_STOCK_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
+  } catch (err) {
+    console.error('Failed to save low-stock ids to localStorage:', err);
+    return ids;
+  }
+}
+
+export function toggleLowStock(id) {
+  const current = new Set(getLowStockIds());
+  if (current.has(id)) {
+    current.delete(id);
+  } else {
+    current.add(id);
+  }
+  return saveLowStockIds(Array.from(current));
+}
+
+export function clearLowStock(id) {
+  return saveLowStockIds(getLowStockIds().filter(x => x !== id));
+}
+
+// ==========================================
+// Saved Menus (Menu Builder)
+// ==========================================
+// User-curated event menus: a name plus a list of recipe ids. Unlike a pinned
+// tag, a menu isn't a durable property of the recipes themselves — it's a
+// disposable, occasion-scoped grouping (e.g. "Sarah's Birthday") that drives
+// derived views (glassware tally, a shopping list scoped to just that subset)
+// rather than acting as another browsable tag on every recipe in it.
+const MENUS_STORAGE_KEY = 'speakeasy_menus';
+
+export function getMenus() {
+  try {
+    const raw = localStorage.getItem(MENUS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(m => m && typeof m.id === 'string' && typeof m.name === 'string' && Array.isArray(m.recipeIds));
+  } catch (err) {
+    console.error('Failed to read menus from localStorage:', err);
+    return [];
+  }
+}
+
+export function saveMenus(menus) {
+  try {
+    localStorage.setItem(MENUS_STORAGE_KEY, JSON.stringify(menus || []));
+    return menus;
+  } catch (err) {
+    console.error('Failed to save menus to localStorage:', err);
+    return menus;
+  }
+}
+
+export function saveMenu(menu) {
+  const menus = getMenus();
+  const id = menu.id || `menu-${Date.now()}`;
+  const recipeIds = Array.isArray(menu.recipeIds) ? Array.from(new Set(menu.recipeIds)) : [];
+  const updatedMenu = {
+    id,
+    name: String(menu.name || '').trim() || 'Untitled Menu',
+    recipeIds,
+    createdAt: menu.createdAt || Date.now(),
+  };
+
+  const existingIndex = menus.findIndex(m => m.id === id);
+  let updatedList;
+  if (existingIndex >= 0) {
+    updatedList = [...menus];
+    updatedList[existingIndex] = updatedMenu;
+  } else {
+    updatedList = [updatedMenu, ...menus];
+  }
+
+  saveMenus(updatedList);
+  return updatedMenu;
+}
+
+export function deleteMenu(id) {
+  const filtered = getMenus().filter(m => m.id !== id);
+  saveMenus(filtered);
+  return filtered;
+}
+
