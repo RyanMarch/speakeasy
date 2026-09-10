@@ -22,6 +22,7 @@ import { renderGlassSvg } from '../modules/glass-view.js';
 import { setupTagAutocomplete } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
 import { formatIngredientName } from '../modules/parser.js';
+import { getDrinkHistory } from '../modules/history.js';
 
 let _selectRecipeFn = null;
 let _showDrinksListMobileFn = null;
@@ -37,6 +38,23 @@ export function setHomeViewCallbacks({ selectRecipe, showDrinksListMobile, openB
 
 export function formatTagTitle(tag) {
   return tag.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+export function formatRelativeTime(dateInput) {
+  if (!dateInput) return '';
+  const timestamp = typeof dateInput === 'number' ? dateInput : new Date(dateInput).getTime();
+  if (isNaN(timestamp)) return '';
+  const elapsedSec = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+
+  if (elapsedSec < 60) return 'Just now';
+  const minutes = Math.floor(elapsedSec / 60);
+  if (minutes < 60) return `Made ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Made ${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days}d ago`;
+  return new Date(timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 // Populated by renderHomeView() and read by the IntersectionObserver in
@@ -73,6 +91,22 @@ export function renderHomeView() {
     recipes: recentlyViewedRecipes,
   }] : [];
 
+  const historyEntries = getDrinkHistory(10);
+  const recentlyMadeRecipes = historyEntries
+    .map(entry => {
+      const recipe = state.recipes.find(r => r.id === entry.recipeId);
+      if (!recipe) return null;
+      return { ...recipe, madeAt: entry.madeAt };
+    })
+    .filter(Boolean);
+
+  const recentlyMadeCollection = recentlyMadeRecipes.length > 0 ? [{
+    key: '__recently-made__',
+    title: 'Recently Made',
+    pinned: false,
+    recipes: recentlyMadeRecipes,
+  }] : [];
+
   const pinnedCollections = state.pinnedTags
     .map(tag => ({
       key: tag,
@@ -90,7 +124,12 @@ export function renderHomeView() {
     }))
     .filter(c => c.recipes.length > 0);
 
-  const allCollections = [...recentlyViewedCollection, ...pinnedCollections, ...defaultCollections];
+  const allCollections = [
+    ...recentlyViewedCollection,
+    ...recentlyMadeCollection,
+    ...pinnedCollections,
+    ...defaultCollections,
+  ];
   homeCollectionsCache = allCollections;
   const pinnableTags = getAllUniqueTags(state.recipes).filter(t => !state.pinnedTags.includes(t));
 
@@ -166,11 +205,12 @@ export function renderHomeView() {
 }
 
 export function renderHomeShelf(col, idx) {
+  const isNonTaggable = col.key === '__recently-viewed__' || col.key === '__recently-made__';
   return  /*html*/`
     <div class="similar-cocktails-shelf home-shelf">
       <div class="counter-card-header shelf-header">
         <div class="shelf-header-left">
-          ${col.key !== '__recently-viewed__' ? `
+          ${!isNonTaggable ? `
             <button type="button" class="counter-card-title shelf-title-link" data-action="filter-shelf" data-tag="${escapeHtml(col.key)}" title="Search #${escapeHtml(col.key)}">${escapeHtml(col.title)}</button>
           ` : `
             <span class="counter-card-title">${escapeHtml(col.title)}</span>
@@ -207,13 +247,20 @@ export function renderHomeSeeAllCard(col) {
 export function renderHomeCard(recipe, collectionKey, idx) {
   const invAnalysis = getCachedInventoryAnalysis(recipe);
   const specNames = (recipe.specs || []).map(s => formatIngredientName(s.name)).filter(Boolean);
+  const isRecentlyMade = collectionKey === '__recently-made__' && recipe.madeAt;
+  const relativeBadgeText = isRecentlyMade ? formatRelativeTime(recipe.madeAt) : '';
+
   return  /*html*/`
     <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(recipe.id)}" role="button" tabindex="0">
       <div class="similar-card-glass">
         ${renderGlassSvg(recipe, `home-glass-${collectionKey}-${recipe.id}-${idx}`)}
       </div>
       <div class="similar-card-body">
-        <span class="similar-relation-badge badge-ready${invAnalysis.canMake ? '' : ' badge-hidden'}">Ready</span>
+        ${isRecentlyMade ? `
+          <span class="similar-relation-badge badge-made">${escapeHtml(relativeBadgeText)}</span>
+        ` : `
+          <span class="similar-relation-badge badge-ready${invAnalysis.canMake ? '' : ' badge-hidden'}">Ready</span>
+        `}
         <h4 class="similar-card-name" title="${escapeHtml(recipe.name)}">${escapeHtml(recipe.name)}</h4>
         <div class="similar-card-meta">
           <span>${escapeHtml(recipe.glassware || 'Glass')}</span>
@@ -279,12 +326,12 @@ export function setupHomeViewEvents(pinnableTags) {
     const col = homeCollectionsCache[idx];
     if (!col) return;
 
-    // "Recently Viewed" isn't a real tag, so it has nowhere for a "See all" link
-    // to go — it's already capped at storage-write time (RECENTLY_VIEWED_MAX),
-    // so render it in full. Tag-backed shelves (pinned + default collections)
+    // "Recently Viewed" and "Recently Made" are not real tags, so they have nowhere for a "See all" link
+    // to go — they are already capped (storage limit or limit 10),
+    // so render them in full. Tag-backed shelves (pinned + default collections)
     // can match dozens of recipes and get a hard cap plus a "See all" tile that
     // hands off to the same tag filter the sidebar's tag chips already use.
-    const isTaggable = col.key !== '__recently-viewed__';
+    const isTaggable = col.key !== '__recently-viewed__' && col.key !== '__recently-made__';
     const overflowing = isTaggable && col.recipes.length > HOME_SHELF_CARD_LIMIT;
     const visibleRecipes = overflowing ? col.recipes.slice(0, HOME_SHELF_CARD_LIMIT) : col.recipes;
 

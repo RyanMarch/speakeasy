@@ -1094,6 +1094,50 @@
   color: var(--color-accent-light);
 }
 
+/* "I Made This" Action Button (Below Method section) */
+.method-actions-row {
+  margin-top: 1.15rem;
+  display: flex;
+  align-items: center;
+}
+
+.btn-made-this {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.95rem;
+  background: rgba(212, 163, 89, 0.08);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-light, #e2ba78);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-made-this svg {
+  color: var(--color-accent, #d4a359);
+  transition: transform var(--transition-fast);
+}
+
+.btn-made-this:hover {
+  background: rgba(212, 163, 89, 0.16);
+  border-color: rgba(212, 163, 89, 0.55);
+  color: #fff;
+}
+
+.btn-made-this:hover svg {
+  transform: scale(1.15);
+}
+
+.btn-made-this:active {
+  transform: scale(0.97);
+}
+
 /* Riff Status Bar — appears directly above the ingredient rows once a riff
    is in progress or has unsaved changes, so Save/Reset/Done sit right next
    to the rows they affect instead of in the page header. */
@@ -2046,6 +2090,12 @@
 .similar-relation-badge.badge-ready {
   background: rgba(77, 131, 99, 0.15);
   color: var(--color-success);
+}
+
+.similar-relation-badge.badge-made {
+  background: rgba(212, 163, 89, 0.15);
+  color: var(--color-accent-light, #e2ba78);
+  border: 1px solid rgba(212, 163, 89, 0.25);
 }
 
 .similar-relation-badge.badge-hidden {
