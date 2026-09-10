@@ -64,47 +64,26 @@ export async function onRequestPost(context) {
 
   await env.DB.batch([deleteStmt, insertStmt]);
 
-  // If Cloudflare's send_email binding is available (deployed worker environment)
-  if (env.EMAIL && typeof env.EMAIL.send === 'function') {
+  // If Cloudflare Worker email relay URL is configured
+  if (env.EMAIL_RELAY_URL) {
     try {
-      let EmailMessageClass = globalThis.EmailMessage;
-      if (!EmailMessageClass) {
-        try {
-          const emailMod = await import('cloudflare:email');
-          EmailMessageClass = emailMod.EmailMessage;
-        } catch {
-          // In environments without cloudflare:email module support, fallback to global or mock
-          EmailMessageClass = globalThis.EmailMessage;
-        }
-      }
+      const relayRes = await fetch(env.EMAIL_RELAY_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${env.EMAIL_RELAY_SECRET || ''}`,
+        },
+        body: JSON.stringify({ to: email, code }),
+      });
 
-      if (EmailMessageClass) {
-        const fromAddress = 'auth@ryanmarch.me';
-        const mimeMessage = [
-          `From: Speakeasy <${fromAddress}>`,
-          `To: ${email}`,
-          `Subject: Your Speakeasy Sign-In Code`,
-          `MIME-Version: 1.0`,
-          `Content-Type: text/html; charset=UTF-8`,
-          ``,
-          `<div style="background:#0f1117;color:#f3f4f6;padding:32px;font-family:sans-serif;text-align:center;">`,
-          `  <h1 style="color:#e5a93c;">Speakeasy</h1>`,
-          `  <p>Your 6-digit verification code is:</p>`,
-          `  <div style="font-size:36px;font-weight:bold;letter-spacing:6px;padding:12px;background:#171a23;display:inline-block;border-radius:8px;color:#fff;">${code}</div>`,
-          `  <p style="color:#888;font-size:12px;margin-top:20px;">Expires in 10 minutes.</p>`,
-          `</div>`,
-        ].join('\r\n');
-
-        const msg = new EmailMessageClass(fromAddress, email, mimeMessage);
-        await env.EMAIL.send(msg);
-      } else {
-        console.warn('[Cloudflare Email] EmailMessage constructor unavailable in runtime.');
+      if (!relayRes.ok) {
+        console.warn(`[Email Relay] Failed to deliver OTP via relay: HTTP ${relayRes.status}`);
       }
     } catch (err) {
-      console.warn('[Cloudflare Email Error] Failed to send email via send_email binding:', err.message || err);
+      console.warn('[Email Relay Error] Failed to call email relay worker:', err.message || err);
     }
   } else {
-    // Local development fallback
+    // Local development fallback without relay
     console.log(`[DEV AUTH] OTP for ${email}: ${code}`);
   }
 
