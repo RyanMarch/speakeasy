@@ -1,0 +1,520 @@
+/* Menu Builder Page (mirrors .home-view's page-column pattern) */
+.menu-builder-view {
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto 7rem;
+  min-width: 0;
+  animation: fadeIn 200ms ease;
+}
+
+.menu-builder-page-header {
+  padding: 0 0 1.5rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  margin-bottom: 1.5rem;
+}
+
+.menu-builder-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.75rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.menu-builder-back-link:hover,
+.menu-builder-back-link:focus-visible {
+  color: var(--color-accent-light);
+  outline: none;
+}
+
+.menu-builder-page-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-text);
+  line-height: 1.15;
+  margin: 0 0 0.35rem;
+}
+
+.menu-builder-page-subtitle {
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Saved-menus list */
+.menu-builder-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+}
+
+.menu-builder-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  transition: background var(--transition-fast);
+}
+
+.menu-builder-list-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.menu-builder-list-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.menu-builder-list-name {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.menu-builder-list-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.menu-builder-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.menu-builder-empty-state {
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.menu-builder-page-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* View mode: read-first summary of a saved menu */
+.menu-builder-view-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.menu-builder-section {
+  margin-bottom: 2rem;
+}
+
+.menu-builder-cocktail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.6rem;
+}
+
+.menu-builder-cocktail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 0.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.menu-builder-cocktail-row:hover,
+.menu-builder-cocktail-row:focus-visible {
+  background: rgba(212, 163, 89, 0.08);
+  border-color: rgba(212, 163, 89, 0.4);
+  outline: none;
+}
+
+.menu-builder-cocktail-name {
+  font-weight: 600;
+}
+
+.menu-builder-cocktail-meta {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* Builder: toolbar + two-column body + footer */
+.menu-builder-toolbar {
+  padding: 0 0 1.25rem;
+}
+
+.menu-builder-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.menu-builder-picker-container {
+  flex: 1 1 55%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.menu-builder-category-section {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.menu-builder-category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: none;
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-builder-category-header .chevron-icon {
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.menu-builder-category-header .chevron-icon.is-open {
+  transform: rotate(90deg);
+}
+
+.menu-builder-category-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-builder-category-count {
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.menu-builder-category-section .backbar-pills-grid {
+  padding: 0.75rem 0.85rem;
+}
+
+.menu-builder-summary {
+  flex: 1 1 45%;
+  min-width: 0;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.menu-builder-selected-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.menu-builder-empty-hint {
+  font-size: 0.85rem;
+}
+
+.menu-builder-section-heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.menu-builder-shopping-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.menu-builder-shopping-header .menu-builder-section-heading {
+  margin-bottom: 0;
+}
+
+.menu-builder-filter-toggle {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.15rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.menu-builder-filter-btn {
+  height: 26px;
+  padding: 0 0.65rem;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.menu-builder-filter-btn:hover:not(.active) {
+  color: var(--color-text);
+}
+
+.menu-builder-filter-btn.active {
+  background: rgba(212, 163, 89, 0.16);
+  color: var(--color-accent-light);
+}
+
+.menu-builder-ingredient-section {
+  margin-bottom: 1.5rem;
+}
+
+.menu-builder-ingredient-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Mirrors .backbar-category-header/.backbar-category-title exactly (the
+   same grouping role, in My Bar's own inventory pills) instead of inventing
+   a one-off style that reads as a different design system. */
+.menu-builder-ingredient-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.35rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.menu-builder-ingredient-section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.menu-builder-ingredient-section-count {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.menu-builder-glassware-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.menu-builder-glassware-tag {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.menu-builder-page-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.menu-builder-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+
+  /* Reuses .main-stage's own --mobile-inset (set in responsive.css) rather
+     than a new magic number, so this page's edges match every other view's. */
+  .menu-builder-view {
+    padding-left: var(--mobile-inset, 1rem);
+    padding-right: var(--mobile-inset, 1rem);
+    margin-top: 2rem;
+  }
+
+  .menu-builder-body {
+    flex-direction: column;
+  }
+
+  .menu-builder-summary {
+    position: static;
+  }
+
+  .menu-builder-page-footer {
+    flex-wrap: wrap;
+  }
+
+  .menu-builder-name-input {
+    order: -1;
+    flex-basis: 100%;
+  }
+
+  /* Compact the ingredient checklist down to a 1-2 line row per item — the
+     roomy card treatment (built for a handful of My Bar recommendations)
+     doesn't scale to a dozen-plus ingredients from an 11-drink menu. Text
+     sizes here are bumped UP from their desktop equivalents, not shrunk —
+     compact means less padding and a smaller layout, not smaller type that's
+     harder to read one-handed. */
+  #menu-builder-shopping-container .shopping-card {
+    padding: 0.65rem 0.8rem;
+    border-radius: var(--radius-sm);
+  }
+
+  /* responsive.css's general .shopping-card-header/-left/-actions rules stack
+     the name and the action buttons onto two separate rows (built for the
+     old full-text "+ Add to Bar" button in My Bar's own Shopping tab) — that
+     fights this page's compact single-row design, which is exactly the gap
+     seen between a row's text and its icon buttons. Force back to one row. */
+  #menu-builder-shopping-container .shopping-card-header {
+    flex-wrap: nowrap;
+    gap: 0.6rem;
+  }
+
+  #menu-builder-shopping-container .shopping-card-left {
+    flex: 1 1 auto;
+    flex-basis: auto;
+    min-width: 0;
+  }
+
+  #menu-builder-shopping-container .shopping-card-actions {
+    flex-basis: auto;
+    flex-shrink: 0;
+    margin-top: 0;
+  }
+
+  #menu-builder-shopping-container .shopping-card-title-row {
+    row-gap: 0.3rem;
+  }
+
+  #menu-builder-shopping-container .shopping-card-name {
+    font-size: 1.05rem;
+  }
+
+  #menu-builder-shopping-container .shopping-unlock-badge {
+    font-size: 0.78rem;
+    padding: 0.15rem 0.55rem;
+  }
+
+  #menu-builder-shopping-container .shopping-card-actions {
+    gap: 0.4rem;
+  }
+
+  #menu-builder-shopping-container .btn-quick-add-shopping {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #menu-builder-shopping-container .btn-quick-add-label {
+    display: none;
+  }
+
+  #menu-builder-shopping-container .btn-quick-add-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+
+  #menu-builder-shopping-container .btn-toggle-shopping-details {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  #menu-builder-shopping-container .btn-toggle-shopping-details .chevron-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  #menu-builder-shopping-container .shopping-card-details {
+    margin-top: 0.6rem;
+    padding-top: 0.55rem;
+  }
+
+  #menu-builder-shopping-container .shopping-details-title,
+  #menu-builder-shopping-container .shopping-drink-name,
+  #menu-builder-shopping-container .shopping-drink-meta {
+    font-size: 0.85rem;
+  }
+
+  /* Section labels, glassware tags, and the All/Need toggle all read as
+     "fine print" at their desktop sizes — bump them up to match. */
+  .menu-builder-view .menu-builder-section-heading {
+    font-size: 0.8rem;
+  }
+
+  .menu-builder-view .menu-builder-ingredient-section-title {
+    font-size: 0.92rem;
+  }
+
+  .menu-builder-view .menu-builder-ingredient-section-count,
+  .menu-builder-view .menu-builder-category-count {
+    font-size: 0.85rem;
+  }
+
+  .menu-builder-view .menu-builder-glassware-tag {
+    font-size: 0.92rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .menu-builder-view .menu-builder-filter-btn {
+    height: 36px;
+    font-size: 0.85rem;
+    padding: 0 0.85rem;
+  }
+
+  .menu-builder-view .menu-builder-category-header {
+    font-size: 0.95rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .menu-builder-view .menu-builder-cocktail-name {
+    font-size: 1.02rem;
+  }
+
+  .menu-builder-view .menu-builder-cocktail-meta {
+    font-size: 0.85rem;
+  }
+}

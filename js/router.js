@@ -11,6 +11,7 @@ import {
   requestWakeLock,
   releaseWakeLock,
 } from './views/counter-view.js';
+import { renderMenuBuilderView, resetMenuBuilderToList } from './views/menu-builder-view.js';
 
 /**
  * Select a recipe and display counter view
@@ -81,6 +82,7 @@ export function renderCurrentView() {
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'block';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
+      elements.appMain?.classList.remove('hide-sidebar');
       elements.desktopStickyTitle?.classList.remove('visible');
       document.getElementById('mobile-sticky-title')?.classList.remove('visible');
       releaseWakeLock();
@@ -90,17 +92,38 @@ export function renderCurrentView() {
       }
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
+      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
       if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'block';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = '';
+      elements.appMain?.classList.remove('hide-sidebar');
       elements.desktopStickyTitle?.classList.remove('visible', 'editor-mode');
       document.getElementById('mobile-sticky-title')?.classList.remove('visible');
       renderHomeView();
       releaseWakeLock();
+    } else if (state.viewMode === 'menu-builder') {
+      if (window._counterScrollObserver) {
+        window._counterScrollObserver.disconnect();
+      }
+      if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
+      if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
+      if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
+      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'block';
+      if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
+      // The library sidebar navigates away on every interaction (search,
+      // click) — a poor fit next to a focused builder flow that already has
+      // its own recipe picker, so this page claims the full width instead.
+      elements.appMain?.classList.add('hide-sidebar');
+      elements.desktopStickyTitle?.classList.remove('visible', 'editor-mode');
+      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
+      renderMenuBuilderView();
+      releaseWakeLock();
     } else {
       if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
+      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'block';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = '';
+      elements.appMain?.classList.remove('hide-sidebar');
       // Leaving the editor any way other than Cancel/Save (e.g. jumping straight
       // to another recipe from the sidebar) skips editor-modal.js's own cleanup,
       // which is what was leaving a ghost "Save Recipe" button stuck in the
@@ -136,6 +159,25 @@ export function goHome() {
     history.pushState(null, '', window.location.pathname + window.location.search);
   }
   renderRecipeList();
+  renderCurrentView();
+
+  elements.sidebar?.classList.add('mobile-hidden');
+  elements.mainStage?.classList.remove('mobile-hidden');
+  if (elements.mainStage) {
+    elements.mainStage.scrollTop = 0;
+  }
+  window.scrollTo({ top: 1 });
+}
+
+/**
+ * Navigate to the Menu Builder page
+ */
+export function goToMenuBuilder() {
+  state.viewMode = 'menu-builder';
+  resetMenuBuilderToList();
+  if (window.location.hash !== '#menus') {
+    history.pushState(null, '', '#menus');
+  }
   renderCurrentView();
 
   elements.sidebar?.classList.add('mobile-hidden');

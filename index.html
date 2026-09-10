@@ -248,7 +248,7 @@
 
 
     <!-- Two-Pane Application Shell -->
-    <main class="app-main">
+    <main class="app-main" id="app-main">
       <!-- Left Pane: Sidebar & Recipe Navigation -->
       <aside class="sidebar" id="sidebar" aria-label="Cocktail library sidebar">
         <div class="sidebar-search-box">
@@ -330,6 +330,11 @@
 
         <!-- Recipe Editor View Container (Hidden initially) -->
         <div id="editor-view-container" class="editor-view" style="display: none;">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Menu Builder View Container (Hidden initially) -->
+        <div id="menu-builder-view-container" class="menu-builder-view" style="display: none;">
           <!-- Rendered dynamically -->
         </div>
       </section>
