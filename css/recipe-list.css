@@ -11,6 +11,18 @@
   overflow: hidden;
 }
 
+/* Full-width task pages (currently: Menu Builder) hide the library sidebar
+   entirely on desktop too, not just mobile — a persistent recipe search/list
+   that navigates away on click has no good role next to a focused builder
+   flow, and it's redundant with the picker that page already has built in. */
+.app-main.hide-sidebar {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app-main.hide-sidebar .sidebar {
+  display: none !important;
+}
+
 /* Sidebar */
 .sidebar {
   background: rgba(18, 17, 16, 0.6);
