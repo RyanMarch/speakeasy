@@ -56,3 +56,10 @@ CREATE TABLE IF NOT EXISTS drink_history (
     recipe_id TEXT NOT NULL,
     made_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- One-Time Password / Magic Link Codes
+CREATE TABLE IF NOT EXISTS otp_codes (
+    email TEXT NOT NULL,
+    code TEXT NOT NULL,
+    expires_at DATETIME NOT NULL
+);
