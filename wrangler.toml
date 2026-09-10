@@ -6,3 +6,6 @@ pages_build_output_dir = "."
 binding = "DB"
 database_name = "speakeasy-db"
 database_id = "local-d1-binding"
+
+[[send_email]]
+name = "EMAIL"
