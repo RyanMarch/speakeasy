@@ -31,7 +31,7 @@ async function runTests() {
   const { SEED_RECIPES: storageSeeds } = await import('../js/modules/storage.js');
 
   assert(Array.isArray(directSeeds), 'seed-recipes.js exports an array');
-  assert(directSeeds.length === 182, `seed-recipes.js has 182 recipes (found: ${directSeeds.length})`);
+  assert(directSeeds.length === 181, `seed-recipes.js has 181 recipes (found: ${directSeeds.length})`);
   assert(storageSeeds === directSeeds, 'storage.js re-exports the exact same SEED_RECIPES array');
 
   const seenIds = new Set();
@@ -43,8 +43,8 @@ async function runTests() {
       validSpecsCount++;
     }
   }
-  assert(seenIds.size === 182, 'All 182 recipe IDs are unique');
-  assert(validSpecsCount === 182, 'All 182 recipes have non-empty specs arrays');
+  assert(seenIds.size === 181, 'All 181 recipe IDs are unique');
+  assert(validSpecsCount === 181, 'All 181 recipes have non-empty specs arrays');
 
   console.log('\n--- 2. Testing Module Exports & Contracts ---');
   const stateMod = await import('../js/state.js');
@@ -180,7 +180,7 @@ async function runTests() {
   while ((match = importRegex.exec(indexCss)) !== null) {
     importedCss.push(match[1]);
   }
-  assert(importedCss.length === 7, `index.css imports 7 modular stylesheets (found: ${importedCss.length})`);
+  assert(importedCss.length === 8, `index.css imports 8 modular stylesheets (found: ${importedCss.length})`);
   for (const cssFile of importedCss) {
     const fullPath = path.join(rootDir, 'css', cssFile);
     assert(fs.existsSync(fullPath), `CSS module file exists: css/${cssFile}`);

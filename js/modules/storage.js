@@ -499,7 +499,7 @@ export const DEFAULT_STARTER_BAR = [
   'tequila_blanco',
   'sweet_vermouth',
   'dry_vermouth',
-  'red_bitter',
+  'campari',
   'triple_sec',
   'simple_syrup',
   'aromatic_bitters',
