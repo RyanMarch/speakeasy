@@ -181,7 +181,36 @@ const env = { DB: db };
   assert.equal(savedOtps.length, 1);
   assert.equal(savedOtps[0].code.length, 6);
   assert.ok(/^\d{6}$/.test(savedOtps[0].code));
-  console.log('PASS: request-otp endpoint generates and saves 6-digit code');
+
+  // Test with mock EMAIL binding
+  let sentMessage = null;
+  class MockEmailMessage {
+    constructor(from, to, content) {
+      this.from = from;
+      this.to = to;
+      this.content = content;
+    }
+  }
+  globalThis.EmailMessage = MockEmailMessage;
+
+  const mockEmailEnv = {
+    DB: db,
+    EMAIL: {
+      send: async (msg) => {
+        sentMessage = msg;
+      },
+    },
+  };
+  const emailReq = createMockRequest({ body: { email: 'bartender@example.com' } });
+  const emailRes = await onRequestPostRequestOtp({ request: emailReq, env: mockEmailEnv });
+  assert.equal(emailRes.status, 200);
+  assert.ok(sentMessage);
+  assert.equal(sentMessage.from, 'auth@ryanmarch.me');
+  assert.equal(sentMessage.to, 'bartender@example.com');
+  assert.ok(sentMessage.content.includes('Your Speakeasy Sign-In Code'));
+
+  delete globalThis.EmailMessage;
+  console.log('PASS: request-otp endpoint generates and saves 6-digit code, and dispatches via send_email');
 }
 
 // 2. Test verify-otp endpoint
