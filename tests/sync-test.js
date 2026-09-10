@@ -175,15 +175,15 @@ db.tables.sessions.set('expired-token', {
 // Test 2: Missing or invalid token
 {
   const reqNoAuth = createMockRequest({ body: {} });
-  const resNoAuth = await onRequestPost({ request: reqNoAuth, env: { DB: db } });
+  const resNoAuth = await onRequestPost({ request: reqNoAuth, env: { speakeasy_db: db } });
   assert.equal(resNoAuth.status, 401);
 
   const reqInvalid = createMockRequest({ headers: { Authorization: 'Bearer bogus-token' }, body: {} });
-  const resInvalid = await onRequestPost({ request: reqInvalid, env: { DB: db } });
+  const resInvalid = await onRequestPost({ request: reqInvalid, env: { speakeasy_db: db } });
   assert.equal(resInvalid.status, 401);
 
   const reqExpired = createMockRequest({ headers: { Authorization: 'Bearer expired-token' }, body: {} });
-  const resExpired = await onRequestPost({ request: reqExpired, env: { DB: db } });
+  const resExpired = await onRequestPost({ request: reqExpired, env: { speakeasy_db: db } });
   assert.equal(resExpired.status, 401);
   console.log('PASS: Session authentication validation');
 }
@@ -217,7 +217,7 @@ db.tables.sessions.set('expired-token', {
     body: syncPayload,
   });
 
-  const res = await onRequestPost({ request: req, env: { DB: db } });
+  const res = await onRequestPost({ request: req, env: { speakeasy_db: db } });
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.success, true);

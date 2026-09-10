@@ -159,7 +159,7 @@ function createMockRequest({ method = 'POST', headers = {}, body = null }) {
 }
 
 const db = new MockD1();
-const env = { DB: db };
+const env = { speakeasy_db: db };
 
 // 1. Test request-otp endpoint
 {
@@ -181,7 +181,36 @@ const env = { DB: db };
   assert.equal(savedOtps.length, 1);
   assert.equal(savedOtps[0].code.length, 6);
   assert.ok(/^\d{6}$/.test(savedOtps[0].code));
-  console.log('PASS: request-otp endpoint generates and saves 6-digit code');
+
+  // Test with EMAIL_RELAY_URL configured
+  let sentPayload = null;
+  let sentHeaders = null;
+  let sentUrl = null;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options) => {
+    sentUrl = url;
+    sentHeaders = options.headers;
+    sentPayload = JSON.parse(options.body);
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+  };
+
+  const mockRelayEnv = {
+    speakeasy_db: db,
+    EMAIL_RELAY_URL: 'https://speakeasy-email-relay.example.workers.dev',
+    EMAIL_RELAY_SECRET: 'super-secret-relay-token',
+  };
+  const emailReq = createMockRequest({ body: { email: 'bartender@example.com' } });
+  const emailRes = await onRequestPostRequestOtp({ request: emailReq, env: mockRelayEnv });
+  assert.equal(emailRes.status, 200);
+  assert.equal(sentUrl, 'https://speakeasy-email-relay.example.workers.dev');
+  assert.equal(sentHeaders['Authorization'], 'Bearer super-secret-relay-token');
+  assert.equal(sentHeaders['Content-Type'], 'application/json');
+  assert.equal(sentPayload.to, 'bartender@example.com');
+  assert.equal(typeof sentPayload.code, 'string');
+  assert.equal(sentPayload.code.length, 6);
+
+  globalThis.fetch = originalFetch;
+  console.log('PASS: request-otp endpoint generates and saves 6-digit code, and dispatches via EMAIL_RELAY_URL');
 }
 
 // 2. Test verify-otp endpoint
