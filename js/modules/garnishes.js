@@ -764,6 +764,47 @@ function renderSwizzleStick(x, y, angle = 6, glassBottomY = null) {
   `;
 }
 
+// How far above the rim (in the shared 240-wide drawing scale) each garnish
+// type's ink actually reaches, measured from each render function above.
+// Used by glass-view.js to crop the SVG viewBox to *this recipe's* actual
+// content instead of reserving room for the tallest garnish on every drink.
+const GARNISH_HEADROOM = {
+  mintSprig: 72, // 66-unit max leaf reach + 6 margin (see renderMintSprig)
+  pineappleWedge: 48,
+  limeWheel: 29, lemonWheel: 29, orangeWheel: 29, cucumberSlice: 29,
+  limeWedge: 24, lemonWedge: 24, orangeWedge: 24, appleSlice: 24,
+  lemonTwist: 14, orangeTwist: 14, limeTwist: 14,
+  cherry: 15, olive: 15, cocktailOnion: 15, pickleSpear: 15,
+};
+// Rim highlight stroke + a touch of breathing room — the floor for any drink,
+// garnished or not.
+const BASE_HEADROOM = 14;
+// Celery and the swizzle stick are planted at the bottom of the glass and
+// rise well above the rim, same order of magnitude as mint. Both only occur
+// in practice on already-tall glasses (highball/tiki mug) that need little
+// or no crop anyway, so this generous value costs those recipes nothing.
+const TALL_PLANTED_HEADROOM = 72;
+
+/**
+ * How much clearance (in SVG units, above the glass's rim) this specific
+ * recipe's garnish needs so glass-view.js can crop its viewBox tightly
+ * without clipping anything.
+ */
+export function getGarnishHeadroom(recipe) {
+  const types = resolveGarnishTypes(recipe?.garnish);
+  if (types.includes('celeryStalk')) return TALL_PLANTED_HEADROOM;
+
+  const swizzleSignal = `${recipe?.method || ''} ${recipe?.instructions || ''}`.toLowerCase();
+  const hasSwizzleStick = recipe?.method === 'Swizzled' || swizzleSignal.includes('swizzle stick');
+  if (hasSwizzleStick) return TALL_PLANTED_HEADROOM;
+
+  let headroom = BASE_HEADROOM;
+  for (const type of types) {
+    headroom = Math.max(headroom, GARNISH_HEADROOM[type] ?? BASE_HEADROOM);
+  }
+  return headroom;
+}
+
 /**
  * Main entry point: Renders garnish SVG elements for a cocktail recipe and glassware
  */

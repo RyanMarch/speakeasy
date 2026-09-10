@@ -43,7 +43,7 @@ export const state = {
   riffRemovedSpecs: new Set(), // Set<specIndex> — existing specs dropped from the recipe while riffing
   riffModeActive: false,
   searchQuery: '',
-  viewMode: 'counter', // 'home' | 'counter' | 'edit'
+  viewMode: 'counter', // 'home' | 'counter' | 'edit' | 'menu-builder'
   pinnedTags: getPinnedTags(),
   unitSystem: getUnitPreference(), // 'oz' | 'ml'
   glassViewMode: getGlassViewPreference(), // 'layered' | 'blended'
@@ -92,6 +92,7 @@ export const elements = {};
 export function initElements() {
   if (typeof document === 'undefined') return;
   elements.sidebar = document.getElementById('sidebar');
+  elements.appMain = document.getElementById('app-main');
   elements.mainStage = document.getElementById('main-stage');
   elements.recipeList = document.getElementById('recipe-list');
   elements.recipeCountBadge = document.getElementById('recipe-count-badge');
@@ -149,6 +150,8 @@ export function initElements() {
   elements.backbarDialogSubtitle = document.getElementById('backbar-dialog-subtitle');
   elements.backbarInventoryToolbar = document.getElementById('backbar-inventory-toolbar');
   elements.timerModal = document.getElementById('timer-modal');
+
+  elements.menuBuilderViewContainer = document.getElementById('menu-builder-view-container');
 }
 
 // Automatically populate elements if document is defined
