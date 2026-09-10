@@ -65,6 +65,7 @@ async function runTests() {
   assert(typeof homeViewMod.renderHomeView === 'function', 'home-view.js exports renderHomeView()');
   assert(typeof homeViewMod.renderHomeShelf === 'function', 'home-view.js exports renderHomeShelf()');
   assert(typeof homeViewMod.renderHomeCard === 'function', 'home-view.js exports renderHomeCard()');
+  assert(typeof homeViewMod.formatRelativeTime === 'function', 'home-view.js exports formatRelativeTime()');
   assert(typeof homeViewMod.setHomeViewCallbacks === 'function', 'home-view.js exports setHomeViewCallbacks()');
 
   const counterViewMod = await import('../js/views/counter-view.js');
@@ -133,6 +134,11 @@ async function runTests() {
   assert(typeof counterViewMod.getEnhancedSimilarCocktails === 'function', 'counter-view.js exports getEnhancedSimilarCocktails()');
   assert(typeof counterViewMod.formatPalateMatchLabel === 'function', 'counter-view.js exports formatPalateMatchLabel()');
   assert(typeof backbarModalMod.renderShoppingListContent === 'function', 'backbar-modal.js exports renderShoppingListContent()');
+
+  const historyMod = await import('../js/modules/history.js');
+  assert(typeof historyMod.logDrinkMade === 'function', 'history.js exports logDrinkMade()');
+  assert(typeof historyMod.getDrinkHistory === 'function', 'history.js exports getDrinkHistory()');
+  assert(typeof historyMod.syncLocalHistoryToCloud === 'function', 'history.js exports syncLocalHistoryToCloud()');
 
 
   const appMod = await import('../app.js');
