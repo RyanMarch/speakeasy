@@ -43,6 +43,7 @@ import { GlassView, renderGlassSvg } from '../modules/glass-view.js';
 import { setupTagAutocomplete, filterByTag } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
 import { openTimerModal } from '../components/timer-modal.js';
+import { logDrinkMade } from '../modules/history.js';
 
 let _selectRecipeFn = null;
 let _openEditorFn = null;
@@ -638,6 +639,18 @@ export function renderCounterView() {
              layer regardless. -->
         <div id="counter-more-popover" popover="auto" class="counter-more-popover" role="menu" aria-label="More recipe actions">
             <div class="vault-actions-list">
+              <button type="button" id="btn-more-made-this" class="vault-action-item" role="menuitem">
+                <span class="vault-action-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
+                <span class="vault-action-meta">
+                  <span class="vault-action-label">I Made This</span>
+                  <span class="vault-action-sub">Log this drink to your history</span>
+                </span>
+              </button>
+
               ${isSeed ? /*html*/ `
                 <button type="button" id="btn-edit-drink" class="vault-action-item" role="menuitem">
                   <span class="vault-action-icon">
@@ -859,6 +872,14 @@ export function renderCounterView() {
             <div class="recipe-editorial-section">
               <h3 class="editorial-section-title">Method</h3>
               ${methodBodyHtml}
+              <div class="method-actions-row">
+                <button type="button" id="btn-made-this" class="btn-made-this" title="I made this drink (log to history)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span>I Made This</span>
+                </button>
+              </div>
             </div>
           `;
     })()}
@@ -1208,6 +1229,22 @@ export function renderCounterView() {
     if (_selectRecipeFn) _selectRecipeFn(saved.id);
     showToast(`Saved new riff: ${newName}`);
   });
+
+  // "I made this" action handlers (Method row and More popover menu)
+  const handleMadeThis = async () => {
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+        navigator.vibrate(40);
+      }
+    } catch {
+      // Ignore vibration errors
+    }
+    await logDrinkMade(recipe.id);
+    showToast(`Logged ${recipe.name} to history`);
+  };
+
+  document.getElementById('btn-made-this')?.addEventListener('click', handleMadeThis);
+  document.getElementById('btn-more-made-this')?.addEventListener('click', handleMadeThis);
 
   // Apply header substitute recommendation
   document.getElementById('btn-apply-header-sub')?.addEventListener('click', (e) => {
