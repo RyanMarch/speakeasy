@@ -436,6 +436,66 @@
       </div>
     </dialog>
 
+    <!-- Menu Builder Modal -->
+    <dialog id="menu-builder-modal" class="backbar-dialog menu-builder-dialog" closedby="any" aria-labelledby="menu-builder-title">
+      <div class="backbar-dialog-container">
+        <div class="backbar-dialog-header">
+          <div>
+            <h2 id="menu-builder-title" class="backbar-dialog-title">Menu Builder</h2>
+            <p class="backbar-dialog-subtitle">Pick cocktails for an event and see what you'll need.</p>
+          </div>
+          <button id="btn-close-menu-builder" class="btn btn-ghost btn-sm close-modal-btn" aria-label="Close modal">✕</button>
+        </div>
+
+        <div id="menu-builder-list-pane">
+          <div class="menu-builder-list-container" id="menu-builder-list-container">
+            <!-- Dynamically populated saved menus -->
+          </div>
+          <div class="backbar-dialog-footer">
+            <button type="button" id="btn-new-menu" class="btn btn-primary btn-sm">+ New Menu</button>
+          </div>
+        </div>
+
+        <div id="menu-builder-builder-pane" style="display: none;">
+          <div class="backbar-toolbar">
+            <div class="search-input-wrapper backbar-search-wrapper">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="search" id="menu-builder-search-input" class="search-input"
+                placeholder="Search cocktails..." aria-label="Search cocktails to add">
+            </div>
+          </div>
+
+          <div class="menu-builder-body">
+            <div class="menu-builder-picker-container" id="menu-builder-picker-container">
+              <!-- Dynamically populated recipe picker pills -->
+            </div>
+            <div class="menu-builder-summary">
+              <div class="menu-builder-selected-container" id="menu-builder-selected-container">
+                <!-- Dynamically populated selected-recipe rows -->
+              </div>
+              <div class="menu-builder-glassware-container" id="menu-builder-glassware-container">
+                <!-- Dynamically populated glassware tally -->
+              </div>
+              <div class="menu-builder-shopping-container" id="menu-builder-shopping-container">
+                <!-- Dynamically populated scoped shopping list -->
+              </div>
+            </div>
+          </div>
+
+          <div class="backbar-dialog-footer menu-builder-footer">
+            <input type="text" id="menu-builder-name-input" class="menu-builder-name-input"
+              placeholder="Menu name..." aria-label="Menu name">
+            <button type="button" id="btn-back-to-menu-list" class="btn btn-secondary btn-sm">Back</button>
+            <button type="button" id="btn-save-menu" class="btn btn-primary btn-sm">Save Menu</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
     <!-- Smart Counter Timer Toast (Non-modal floating widget) -->
     <div id="timer-modal" class="timer-toast" role="status" aria-live="polite" style="display: none;"></div>
 

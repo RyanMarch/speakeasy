@@ -97,6 +97,60 @@
   width: 150px;
 }
 
+/* Almost Ready banner (compact — deliberately not a shelf, see home-view.js) */
+.home-almost-ready-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: rgba(212, 163, 89, 0.08);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.home-almost-ready-banner:hover,
+.home-almost-ready-banner:focus-visible {
+  background: rgba(212, 163, 89, 0.14);
+  border-color: rgba(212, 163, 89, 0.5);
+  outline: none;
+}
+
+.home-almost-ready-count {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-accent-light);
+  flex-shrink: 0;
+}
+
+.home-almost-ready-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-almost-ready-banner svg {
+  flex-shrink: 0;
+  color: var(--color-accent);
+}
+
+/* Build a Menu — a peer action to Browse/Search, but visible at every
+   breakpoint (unlike those, it has no desktop equivalent already on screen) */
+.home-menu-builder-btn {
+  margin-left: auto;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
 /* Home Collection Shelves (reuses .similar-cocktails-shelf / .similar-cocktail-card) */
 
 .home-see-all-card {

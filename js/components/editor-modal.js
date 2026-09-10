@@ -171,6 +171,7 @@ export function openEditor(recipe = null) {
             <option value="Martini" ${currentData.glassware === 'Martini' ? 'selected' : ''}>Martini</option>
             <option value="Nick & Nora" ${currentData.glassware === 'Nick & Nora' ? 'selected' : ''}>Nick & Nora</option>
             <option value="Wine" ${currentData.glassware === 'Wine' ? 'selected' : ''}>Wine Glass</option>
+            <option value="Champagne Flute" ${currentData.glassware === 'Champagne Flute' ? 'selected' : ''}>Champagne Flute</option>
             <option value="Tiki Mug" ${currentData.glassware === 'Tiki Mug' ? 'selected' : ''}>Tiki Mug</option>
           </select>
         </div>

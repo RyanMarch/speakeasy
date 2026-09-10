@@ -25,10 +25,14 @@ import { formatIngredientName } from '../modules/parser.js';
 
 let _selectRecipeFn = null;
 let _showDrinksListMobileFn = null;
+let _openBackbarModalFn = null;
+let _openMenuBuilderModalFn = null;
 
-export function setHomeViewCallbacks({ selectRecipe, showDrinksListMobile }) {
+export function setHomeViewCallbacks({ selectRecipe, showDrinksListMobile, openBackbarModal, openMenuBuilderModal }) {
   if (selectRecipe) _selectRecipeFn = selectRecipe;
   if (showDrinksListMobile) _showDrinksListMobileFn = showDrinksListMobile;
+  if (openBackbarModal) _openBackbarModalFn = openBackbarModal;
+  if (openMenuBuilderModal) _openMenuBuilderModalFn = openMenuBuilderModal;
 }
 
 export function formatTagTitle(tag) {
@@ -90,6 +94,11 @@ export function renderHomeView() {
   homeCollectionsCache = allCollections;
   const pinnableTags = getAllUniqueTags(state.recipes).filter(t => !state.pinnedTags.includes(t));
 
+  // "Almost Ready" is a compact banner, not a shelf — a full row of cards here
+  // would reintroduce the home-screen bulk this whole page was just decluttered
+  // of. Uses the same isBottleNext filter as the sidebar's "Ready" toggle.
+  const almostReadyCount = state.recipes.filter(r => getCachedInventoryAnalysis(r).isBottleNext).length;
+
   container.innerHTML =  /*html*/`
     <div class="home-stats-card">
       <div class="home-stats-name">${escapeHtml(barName)}</div>
@@ -103,9 +112,12 @@ export function renderHomeView() {
           <strong>${ingredientCount}</strong>
           <span>${ingredientCount === 1 ? 'Ingredient' : 'Ingredients'} in Bar</span>
         </div>
+        <button type="button" class="btn btn-secondary btn-sm home-menu-builder-btn" data-action="open-menu-builder">
+          <span aria-hidden="true">🍸</span> Build a Menu
+        </button>
       </div>
       <div class="home-browse-actions">
-        <button type="button" id="btn-home-browse-all" class="btn btn-secondary btn-sm home-browse-all-btn">
+        <button type="button" id="btn-home-browse-all" class="btn btn-primary btn-sm home-browse-all-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="8" y1="6" x2="21" y2="6"></line>
             <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -126,11 +138,13 @@ export function renderHomeView() {
       </div>
     </div>
 
-    ${allCollections.length > 0 ? allCollections.map(renderHomeShelf).join('') : /*html*/`
-      <div class="home-empty-state">
-        <p>No collections yet — tag a few drinks and they'll show up here as browsable rows.</p>
-      </div>
-    `}
+    ${almostReadyCount > 0 ? /*html*/`
+      <button type="button" class="home-almost-ready-banner" data-action="open-shopping">
+        <span class="home-almost-ready-count">${almostReadyCount}</span>
+        <span class="home-almost-ready-text">cocktail${almostReadyCount === 1 ? ' is' : 's are'} one bottle away — Shop the list</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+    ` : ''}
 
     <div class="home-pin-row">
       <span class="home-pin-label">Pin a tag as a collection</span>
@@ -140,6 +154,12 @@ export function renderHomeView() {
         <ul class="tag-suggest-list" id="home-pin-suggest-list" role="listbox" hidden></ul>
       </div>
     </div>
+
+    ${allCollections.length > 0 ? allCollections.map(renderHomeShelf).join('') : /*html*/`
+      <div class="home-empty-state">
+        <p>No collections yet — tag a few drinks and they'll show up here as browsable rows.</p>
+      </div>
+    `}
   `;
 
   setupHomeViewEvents(pinnableTags);
@@ -218,6 +238,15 @@ export function setupHomeViewEvents(pinnableTags) {
 
   document.getElementById('btn-home-search')?.addEventListener('click', () => {
     if (_showDrinksListMobileFn) _showDrinksListMobileFn({ focusSearch: true });
+  });
+
+  container.querySelector('[data-action="open-shopping"]')?.addEventListener('click', () => {
+    state.backbarTab = 'shopping';
+    if (_openBackbarModalFn) _openBackbarModalFn();
+  });
+
+  container.querySelector('[data-action="open-menu-builder"]')?.addEventListener('click', () => {
+    if (_openMenuBuilderModalFn) _openMenuBuilderModalFn();
   });
 
   container.querySelectorAll('.home-shelf').forEach(shelf => {
