@@ -7,7 +7,7 @@
     "dev": "npx wrangler pages dev . --port 8789",
     "lint:syntax": "node --check app.js sw.js js/*.js js/**/*.js functions/api/*.js functions/api/**/*.js 2>/dev/null || true",
     "d1:migrate:local": "wrangler d1 execute speakeasy-db --local --file=./schema.sql",
-    "test": "npm run lint:syntax && node tests/parser-test.js && node tests/architecture-test.js && node tests/sync-test.js"
+    "test": "npm run lint:syntax && node tests/parser-test.js && node tests/architecture-test.js && node tests/sync-test.js && node tests/auth-test.js"
   },
   "devDependencies": {
     "wrangler": "^3.114.0"
