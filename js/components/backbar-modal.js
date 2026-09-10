@@ -23,6 +23,7 @@ import {
   TAXONOMY,
   REFRIGERATED_INGREDIENT_IDS,
   getRankedShoppingList,
+  getFamilyGroupLabel,
 } from '../modules/taxonomy.js';
 
 import { escapeHtml, showToast } from './toast.js';
@@ -192,7 +193,20 @@ export function renderInventoryPillsContent() {
     // .backbar-pill-low-stock-btn block below and its CSS to remove the feature.
     const lowStockSet = new Set(getLowStockIds());
 
-    const pillsHtml = items.map(item => {
+    // Cluster items by their family (e.g. all rums, all scotches, all
+    // amari) so related bottles sit together, then alphabetize within each
+    // cluster and order clusters alphabetically by label. Flat alphabetical
+    // scattered same-spirit bottles across the whole category, which made a
+    // specific style (like "all my tequilas") hard to scan for.
+    const groups = new Map();
+    items.forEach(item => {
+      const label = getFamilyGroupLabel(item);
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(item);
+    });
+    const sortedLabels = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+    const renderPill = (item) => {
       const isOwned = state.inventory.has(item.id);
       const isFridge = REFRIGERATED_INGREDIENT_IDS.has(item.id);
       const bg = item.color || '#c67828';
@@ -210,6 +224,20 @@ export function renderInventoryPillsContent() {
           ` : ''}
         </div>
       `;
+    };
+
+    const groupsHtml = sortedLabels.map(label => {
+      const groupItems = groups.get(label).sort((a, b) => a.name.localeCompare(b.name));
+      return `
+        <div class="backbar-family-group">
+          <div class="backbar-family-header">
+            <span class="backbar-family-title">${escapeHtml(label)}</span>
+          </div>
+          <div class="backbar-pills-grid">
+            ${groupItems.map(renderPill).join('')}
+          </div>
+        </div>
+      `;
     }).join('');
 
     return `
@@ -218,9 +246,7 @@ export function renderInventoryPillsContent() {
           <span class="backbar-category-title">${escapeHtml(cat.title)}</span>
           <span class="backbar-category-count">${ownedCount} / ${items.length}</span>
         </div>
-        <div class="backbar-pills-grid">
-          ${pillsHtml}
-        </div>
+        ${groupsHtml}
       </div>
     `;
   }).filter(Boolean).join('');

@@ -139,6 +139,34 @@ export function duplicateRecipe(recipe) {
 }
 
 /**
+ * Share a seed recipe via a deep link. Only seed recipes are shareable this
+ * way — they're bundled into every install, so `#recipe-id` resolves for
+ * anyone. A custom recipe only exists in the creator's own localStorage, so
+ * the same link would be broken for a recipient; that needs either a
+ * self-contained (data-carrying) link or a real backend, neither of which
+ * exists yet, so custom recipes don't get a Share entry point at all.
+ */
+export function shareRecipe(recipe) {
+  if (!recipe || !recipe.id) return;
+  const url = `${window.location.origin}${window.location.pathname}#${recipe.id}`;
+
+  if (navigator.share) {
+    navigator.share({ title: recipe.name, text: `${recipe.name} — Speakeasy Cocktail Recipe Library`, url }).catch(() => {
+      // User cancelled the native share sheet, or it failed silently — no toast needed either way.
+    });
+    return;
+  }
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Link copied to clipboard'))
+      .catch(() => showToast(url));
+  } else {
+    showToast(url);
+  }
+}
+
+/**
  * Toggle hide/unhide status for a seed recipe.
  */
 export function toggleHideRecipe(recipe) {
@@ -617,7 +645,7 @@ export function renderCounterView() {
                   </span>
                   <span class="vault-action-meta">
                     <span class="vault-action-label">Edit as New Recipe</span>
-                    <span class="vault-action-sub">Create a new drink based on this one.</span>
+                    <span class="vault-action-sub">Make new drink based on this one.</span>
                   </span>
                 </button>
               ` : /*html*/ `
@@ -655,6 +683,17 @@ export function renderCounterView() {
                   </span>
                 </button>
               `}
+
+              ${isSeed ? /*html*/ `
+                <button type="button" id="btn-share-drink" class="vault-action-item" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">Share</span>
+                  </span>
+                </button>
+              ` : ''}
             </div>
         </div>
       </div>
@@ -1305,6 +1344,10 @@ export function renderCounterView() {
 
   document.getElementById('btn-delete-drink')?.addEventListener('click', () => {
     confirmDeleteRecipe(recipe);
+  });
+
+  document.getElementById('btn-share-drink')?.addEventListener('click', () => {
+    shareRecipe(recipe);
   });
 
   document.getElementById('btn-mobile-back')?.addEventListener('click', () => {

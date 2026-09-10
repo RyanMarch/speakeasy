@@ -99,7 +99,8 @@
 
 /* Almost Ready banner (compact — deliberately not a shelf, see home-view.js) */
 .home-almost-ready-banner {
-  display: flex;
+  /* display: flex; */
+  display: none;
   align-items: center;
   gap: 0.65rem;
   width: 100%;
