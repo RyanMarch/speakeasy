@@ -1,0 +1,182 @@
+/**
+ * Cloudflare Pages Function: POST /api/sync
+ *
+ * Ingestion and synchronization endpoint for Speakeasy unified backup payloads.
+ */
+
+function jsonResponse(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+    },
+  });
+}
+
+export async function onRequestPost(context) {
+  const { request, env } = context;
+
+  if (!env || !env.DB) {
+    return jsonResponse({ error: 'Database binding (DB) is unavailable.' }, 500);
+  }
+
+  // 1. Verify Authorization Bearer token
+  const authHeader = request.headers.get('Authorization') || '';
+  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+
+  if (!tokenMatch) {
+    return jsonResponse({ error: 'Missing or malformed Authorization header.' }, 401);
+  }
+
+  const token = tokenMatch[1].trim();
+  if (!token) {
+    return jsonResponse({ error: 'Empty bearer token.' }, 401);
+  }
+
+  // Query session from D1
+  const sessionRow = await env.DB.prepare(
+    `SELECT user_id, expires_at FROM sessions WHERE token = ?`
+  ).bind(token).first();
+
+  if (!sessionRow) {
+    return jsonResponse({ error: 'Invalid or expired session token.' }, 401);
+  }
+
+  // Check expiration if expires_at is in the past
+  const expiresAt = new Date(sessionRow.expires_at).getTime();
+  if (!Number.isNaN(expiresAt) && Date.now() > expiresAt) {
+    return jsonResponse({ error: 'Session token has expired.' }, 401);
+  }
+
+  const userId = sessionRow.user_id;
+
+  // Parse payload
+  let payload;
+  try {
+    payload = await request.json();
+  } catch {
+    return jsonResponse({ error: 'Invalid JSON body.' }, 400);
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    return jsonResponse({ error: 'Payload must be a JSON object.' }, 400);
+  }
+
+  // 2. Ensure user has a default "Home Bar"
+  let defaultBar = await env.DB.prepare(
+    `SELECT id FROM bars WHERE user_id = ? ORDER BY is_default DESC, created_at ASC LIMIT 1`
+  ).bind(userId).first();
+
+  let barId = defaultBar?.id;
+  if (!barId) {
+    barId = `bar-${crypto.randomUUID()}`;
+    await env.DB.prepare(
+      `INSERT INTO bars (id, user_id, name, is_default) VALUES (?, ?, 'Home Bar', 1)`
+    ).bind(barId, userId).run();
+  }
+
+  const statements = [];
+
+  // 3. Insert taxonomy IDs from inventory into bar_inventory
+  let inventoryCount = 0;
+  if (Array.isArray(payload.inventory)) {
+    const uniqueTaxonomyIds = Array.from(
+      new Set(payload.inventory.filter(id => typeof id === 'string' && id.trim().length > 0))
+    );
+    inventoryCount = uniqueTaxonomyIds.length;
+
+    for (const ingredientId of uniqueTaxonomyIds) {
+      statements.push(
+        env.DB.prepare(
+          `INSERT INTO bar_inventory (bar_id, ingredient_id, is_low_stock)
+           VALUES (?, ?, 0)
+           ON CONFLICT(bar_id, ingredient_id) DO NOTHING`
+        ).bind(barId, ingredientId)
+      );
+    }
+  }
+
+  // 4. Insert recipes from customRecipes into custom_recipes
+  let recipeCount = 0;
+  if (Array.isArray(payload.customRecipes)) {
+    const validRecipes = payload.customRecipes.filter(
+      r => r && typeof r === 'object' && typeof r.name === 'string' && r.name.trim().length > 0
+    );
+    recipeCount = validRecipes.length;
+
+    for (const r of validRecipes) {
+      const recipeId = r.id || `custom-${crypto.randomUUID()}`;
+      const name = r.name.trim();
+      const glassware = typeof r.glassware === 'string' ? r.glassware : null;
+      const method = typeof r.method === 'string' ? r.method : null;
+      const specs = JSON.stringify(Array.isArray(r.specs) ? r.specs : []);
+      const instructions = typeof r.instructions === 'string' ? r.instructions : (typeof r.notes === 'string' ? r.notes : null);
+      const description = typeof r.description === 'string' ? r.description : null;
+      const notes = typeof r.notes === 'string' ? r.notes : null;
+      const riffOfId = r.riffOfId || r.riff_of_id || null;
+      const riffOfName = r.riffOfName || r.riff_of_name || null;
+      const tags = JSON.stringify(Array.isArray(r.tags) ? r.tags : []);
+      const isPublic = r.is_public ? 1 : 0;
+
+      statements.push(
+        env.DB.prepare(
+          `INSERT INTO custom_recipes (
+             id, user_id, name, glassware, method, specs, instructions,
+             description, notes, riff_of_id, riff_of_name, tags, is_public, updated_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+           ON CONFLICT(id) DO UPDATE SET
+             name = excluded.name,
+             glassware = excluded.glassware,
+             method = excluded.method,
+             specs = excluded.specs,
+             instructions = excluded.instructions,
+             description = excluded.description,
+             notes = excluded.notes,
+             riff_of_id = excluded.riff_of_id,
+             riff_of_name = excluded.riff_of_name,
+             tags = excluded.tags,
+             is_public = excluded.is_public,
+             updated_at = CURRENT_TIMESTAMP
+           WHERE custom_recipes.user_id = excluded.user_id`
+        ).bind(
+          recipeId,
+          userId,
+          name,
+          glassware,
+          method,
+          specs,
+          instructions,
+          description,
+          notes,
+          riffOfId,
+          riffOfName,
+          tags,
+          isPublic
+        )
+      );
+    }
+  }
+
+  // 5. Update user's settings JSON column if provided
+  if (payload.settings && typeof payload.settings === 'object') {
+    const settingsJson = JSON.stringify(payload.settings);
+    statements.push(
+      env.DB.prepare(
+        `UPDATE users SET settings = ? WHERE id = ?`
+      ).bind(settingsJson, userId)
+    );
+  }
+
+  if (statements.length > 0) {
+    await env.DB.batch(statements);
+  }
+
+  // 6. Return response
+  return jsonResponse({
+    success: true,
+    imported: {
+      recipes: recipeCount,
+      inventory: inventoryCount,
+    },
+  });
+}
