@@ -874,7 +874,7 @@ export function renderCounterView() {
           ` : ''}
           <div class="drink-tags-bar">
             <div class="drink-tags-chips">
-              ${(recipe.tags || []).map(tag => `
+              ${(recipe.tags || []).map(tag => /*html*/`
                 <span class="drink-tag-chip" data-tag="${escapeHtml(tag)}">
                   <span class="drink-tag-text" data-action="filter-tag" data-tag="${escapeHtml(tag)}" role="button" tabindex="0">#${escapeHtml(tag)}</span>
                   <button type="button" class="drink-tag-remove" data-tag="${escapeHtml(tag)}" title="Remove tag" aria-label="Remove tag #${escapeHtml(tag)}">×</button>
@@ -889,7 +889,7 @@ export function renderCounterView() {
         </footer>
 
         <!-- Bottle Next Recommendation Card -->
-        ${(invAnalysis.isBottleNext && invAnalysis.missingItems.length === 1) ? `
+        ${(invAnalysis.isBottleNext && invAnalysis.missingItems.length === 1) ? /*html*/`
           <div class="counter-card bottle-next-banner">
             <div class="bottle-next-banner-content">
               <div class="bottle-next-text">

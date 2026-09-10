@@ -765,6 +765,7 @@ export const TAXONOMY = {
   },
   eau_de_vie: {
     id: 'eau_de_vie',
+    isCategory: true,
     name: 'Fruit Eaux-de-Vie',
     family: 'brandy',
     parent: 'spirits',
@@ -811,7 +812,7 @@ export const TAXONOMY = {
     light: '#eaf1f7',
     dark: '#a8c2d2',
     defaultAbv: 40,
-    aliases: ['flavored vodka', 'citrus vodka', 'vanilla vodka'],
+    aliases: ['flavored vodka', 'citrus vodka', 'citron vodka', 'vanilla vodka'],
     brands: [
       'Absolut Citron',
       'Ketel One Citroen',
@@ -875,6 +876,7 @@ export const TAXONOMY = {
   },
   quinquina: {
     id: 'quinquina',
+    isCategory: true,
     name: 'Aperitif & Quinquina Wine',
     family: 'quinquina',
     parent: 'fortified_wine',
@@ -919,6 +921,7 @@ export const TAXONOMY = {
   },
   oxidized_wine: {
     id: 'oxidized_wine',
+    isCategory: true,
     name: 'Madeira & Marsala',
     family: 'oxidized_wine',
     parent: 'fortified_wine',
@@ -989,6 +992,7 @@ export const TAXONOMY = {
   // ==========================================
   red_bitter: {
     id: 'red_bitter',
+    isCategory: true,
     name: 'Aperitivo / Red Bitter',
     family: 'amaro',
     parent: 'liqueurs',
@@ -1000,6 +1004,7 @@ export const TAXONOMY = {
   },
   herbal_amaro: {
     id: 'herbal_amaro',
+    isCategory: true,
     name: 'Medium / Herbal Amaro',
     family: 'amaro',
     parent: 'liqueurs',
@@ -1011,6 +1016,7 @@ export const TAXONOMY = {
   },
   fernet_alpine: {
     id: 'fernet_alpine',
+    isCategory: true,
     name: 'Fernet / Alpine Amaro',
     family: 'amaro',
     parent: 'liqueurs',
@@ -1022,6 +1028,7 @@ export const TAXONOMY = {
   },
   gentian: {
     id: 'gentian',
+    isCategory: true,
     name: 'Gentian Liqueur',
     family: 'amaro',
     parent: 'liqueurs',
@@ -1033,6 +1040,7 @@ export const TAXONOMY = {
   },
   botanical_liqueur: {
     id: 'botanical_liqueur',
+    isCategory: true,
     name: 'Herbal & Botanical Liqueur',
     family: 'botanical_liqueur',
     parent: 'liqueurs',
@@ -1044,6 +1052,7 @@ export const TAXONOMY = {
   },
   anise: {
     id: 'anise',
+    isCategory: true,
     name: 'Anise Spirits',
     family: 'anise',
     parent: 'liqueurs',
@@ -1088,6 +1097,7 @@ export const TAXONOMY = {
   },
   brandy_orange_liqueur: {
     id: 'brandy_orange_liqueur',
+    isCategory: true,
     name: 'Brandy-Based Orange Liqueur',
     family: 'orange_liqueur',
     parent: 'liqueurs',
@@ -1099,6 +1109,7 @@ export const TAXONOMY = {
   },
   citrus_liqueur: {
     id: 'citrus_liqueur',
+    isCategory: true,
     name: 'Citrus Liqueur',
     family: 'orange_liqueur',
     parent: 'liqueurs',
@@ -1133,6 +1144,7 @@ export const TAXONOMY = {
   },
   berry_liqueur: {
     id: 'berry_liqueur',
+    isCategory: true,
     name: 'Berry Liqueurs',
     family: 'fruit_liqueur',
     parent: 'liqueurs',
@@ -1144,6 +1156,7 @@ export const TAXONOMY = {
   },
   stone_fruit_liqueur: {
     id: 'stone_fruit_liqueur',
+    isCategory: true,
     name: 'Stone Fruit Liqueurs',
     family: 'fruit_liqueur',
     parent: 'liqueurs',
@@ -1155,6 +1168,7 @@ export const TAXONOMY = {
   },
   tropical_fruit_liqueur: {
     id: 'tropical_fruit_liqueur',
+    isCategory: true,
     name: 'Tropical & Banana Liqueurs',
     family: 'fruit_liqueur',
     parent: 'liqueurs',
@@ -1166,6 +1180,7 @@ export const TAXONOMY = {
   },
   fruit_liqueur: {
     id: 'fruit_liqueur',
+    isCategory: true,
     name: 'Fruit & Berry Liqueurs',
     family: 'fruit_liqueur',
     parent: 'liqueurs',
@@ -1199,6 +1214,7 @@ export const TAXONOMY = {
   },
   nut_liqueur: {
     id: 'nut_liqueur',
+    isCategory: true,
     name: 'Nut Liqueur',
     family: 'nut_seed_liqueur',
     parent: 'liqueurs',
@@ -1210,6 +1226,7 @@ export const TAXONOMY = {
   },
   spiced_liqueur: {
     id: 'spiced_liqueur',
+    isCategory: true,
     name: 'Spiced Liqueurs',
     family: 'spiced_liqueur',
     parent: 'liqueurs',
@@ -1221,6 +1238,7 @@ export const TAXONOMY = {
   },
   floral_liqueur: {
     id: 'floral_liqueur',
+    isCategory: true,
     name: 'Floral Liqueurs',
     family: 'floral_liqueur',
     parent: 'liqueurs',
@@ -1254,6 +1272,7 @@ export const TAXONOMY = {
   },
   cream_liqueur: {
     id: 'cream_liqueur',
+    isCategory: true,
     name: 'Cream Liqueurs',
     family: 'cream_liqueur',
     parent: 'liqueurs',
@@ -1412,6 +1431,7 @@ export const TAXONOMY = {
   },
   raw_sweetener: {
     id: 'raw_sweetener',
+    isCategory: true,
     name: 'Raw Sweetener',
     family: 'raw_sweetener',
     parent: 'sweeteners',
@@ -1482,6 +1502,7 @@ export const TAXONOMY = {
   },
   fruit_juice: {
     id: 'fruit_juice',
+    isCategory: true,
     name: 'Fruit Juice',
     family: 'fruit_juice',
     parent: 'produce',
@@ -1559,6 +1580,7 @@ export const TAXONOMY = {
   },
   acids: {
     id: 'acids',
+    isCategory: true,
     name: 'Formulated Acids',
     family: 'acids',
     parent: 'produce',
@@ -1570,6 +1592,7 @@ export const TAXONOMY = {
   },
   fresh_produce: {
     id: 'fresh_produce',
+    isCategory: true,
     name: 'Fresh Produce',
     family: 'fresh_produce',
     parent: 'produce',
@@ -1612,6 +1635,7 @@ export const TAXONOMY = {
   },
   citrus_bitters: {
     id: 'citrus_bitters',
+    isCategory: true,
     name: 'Citrus Bitters',
     family: 'bitters',
     parent: 'bitters',
@@ -1623,6 +1647,7 @@ export const TAXONOMY = {
   },
   specialty_bitters: {
     id: 'specialty_bitters',
+    isCategory: true,
     name: 'Specialty Bitters',
     family: 'bitters',
     parent: 'bitters',
@@ -1634,6 +1659,7 @@ export const TAXONOMY = {
   },
   tinctures: {
     id: 'tinctures',
+    isCategory: true,
     name: 'Saline & Tinctures',
     family: 'tinctures',
     parent: 'bitters',
@@ -1778,6 +1804,7 @@ export const TAXONOMY = {
   },
   dairy: {
     id: 'dairy',
+    isCategory: true,
     name: 'Cream & Milk',
     family: 'texture',
     parent: 'mixers',
@@ -1800,6 +1827,7 @@ export const TAXONOMY = {
   },
   beer: {
     id: 'beer',
+    isCategory: true,
     name: 'Beer',
     family: 'fermented',
     parent: 'mixers',
@@ -2481,6 +2509,22 @@ const GENERIC_FAMILIES = {
   cane_syrup: ['simple syrup or demerara', 'sugar syrup'],
 };
 
+// Normalizes casing for a recipe's own free-text ingredient name when it's
+// shown verbatim on a shopping list (e.g. a recipe authored as "amaro
+// averna" should read "Amaro Averna"). Deliberately simple word-by-word
+// capitalization — recipe text is already close to correct almost always,
+// this just cleans up the stray lowercase case.
+const TITLE_CASE_MINOR_WORDS = new Set(['of', 'the', 'and', 'a', 'an', 'in', 'on', 'or']);
+
+function titleCaseIngredientName(str) {
+  let wordIndex = 0;
+  return str.replace(/\w\S*/g, (w) => {
+    const isMinor = wordIndex > 0 && TITLE_CASE_MINOR_WORDS.has(w.toLowerCase());
+    wordIndex++;
+    return isMinor ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1);
+  });
+}
+
 /**
  * Checks whether an ingredient is present in the user's inventory.
  * Handles pantry staples, direct matches, aliases, brands, and child-to-parent hierarchy.
@@ -2488,6 +2532,23 @@ const GENERIC_FAMILIES = {
 export function checkIngredientStock(specName, inventorySet = new Set()) {
   if (!specName) return { inStock: true, isStaple: true };
   const clean = specName.trim().toLowerCase();
+
+  // A curated set of TAXONOMY entries are shared "family" placeholders
+  // standing in for a whole group of genuinely distinct products (e.g.
+  // `spiced_liqueur`'s canonical name "Spiced Liqueurs" covers Falernum,
+  // Allspice Dram, Ancho Reyes... — real, different bottles, not phrasings
+  // of one item). Showing that umbrella name on a shopping list ("go buy a
+  // Spiced Liqueurs") isn't actionable, so those (and only those, flagged
+  // via `isCategory` below) show what the recipe actually asked for instead.
+  // Ordinary specific entries (e.g. `rye_whiskey`) always show their own
+  // proper name — a recipe writing shorthand like "rye" shouldn't produce
+  // "rye" (or a nonsense merged "rye / Rye Whiskey") when what's actually
+  // needed is just Rye Whiskey.
+  const displayName = (candidateItem) => {
+    if (!candidateItem) return titleCaseIngredientName(specName.trim());
+    if (!candidateItem.isCategory) return candidateItem.name;
+    return candidateItem.name.toLowerCase() === clean ? candidateItem.name : titleCaseIngredientName(specName.trim());
+  };
 
   // 1. Always-assumed pantry staples (ice, water, saline)
   if (PANTRY_STAPLE_NAMES.has(clean) || clean === 'ice' || clean === 'water') {
@@ -2498,23 +2559,23 @@ export function checkIngredientStock(specName, inventorySet = new Set()) {
   const item = findIngredient(specName);
   if (item) {
     if (inventorySet.has(item.id)) {
-      return { inStock: true, item, id: item.id, name: item.name };
+      return { inStock: true, item, id: item.id, name: displayName(item) };
     }
     for (const alias of item.aliases || []) {
       if (inventorySet.has(alias.toLowerCase())) {
-        return { inStock: true, item, id: item.id, name: item.name };
+        return { inStock: true, item, id: item.id, name: displayName(item) };
       }
     }
     for (const brand of item.brands || []) {
       if (inventorySet.has(brand.toLowerCase())) {
-        return { inStock: true, item, id: item.id, name: item.name };
+        return { inStock: true, item, id: item.id, name: displayName(item) };
       }
     }
   }
 
   // Direct string match in inventory
   if (inventorySet.has(clean)) {
-    return { inStock: true, item, id: item ? item.id : clean, name: item ? item.name : specName };
+    return { inStock: true, item, id: item ? item.id : clean, name: item ? displayName(item) : specName };
   }
 
   // 3. Hierarchical Child-to-Parent match:
@@ -2535,7 +2596,7 @@ export function checkIngredientStock(specName, inventorySet = new Set()) {
     inStock: false,
     item,
     id: item ? item.id : clean.replace(/\s+/g, '_'),
-    name: item ? item.name : specName,
+    name: item ? displayName(item) : specName,
     family: item ? item.family : 'other',
     color: item ? item.color : '#c67828',
   };
@@ -2763,10 +2824,17 @@ export function getRankedShoppingList(recipes = null, inventorySet = null, optio
 
   const getOrCreateEntry = (stockStatus) => {
     const key = stockStatus.id || stockStatus.name.toLowerCase();
+    const displayName = stockStatus.name || (stockStatus.item ? stockStatus.item.name : key);
     if (!missingMap.has(key)) {
       missingMap.set(key, {
         id: stockStatus.id || key,
-        name: stockStatus.name || (stockStatus.item ? stockStatus.item.name : key),
+        // Different recipes can ask for different specific products that
+        // resolve to the same taxonomy bucket (e.g. one wants Falernum,
+        // another wants Allspice Dram) — track every distinct name seen so
+        // the merged entry says what's actually needed, not just whichever
+        // recipe happened to be processed first.
+        names: [displayName],
+        name: displayName,
         family: stockStatus.family || (stockStatus.item ? stockStatus.item.family : 'other'),
         color: stockStatus.color || (stockStatus.item ? stockStatus.item.color : '#c67828'),
         unlockCount: 0,
@@ -2775,6 +2843,15 @@ export function getRankedShoppingList(recipes = null, inventorySet = null, optio
         secondaryCocktails: [],
         item: stockStatus.item || null,
       });
+    } else {
+      const entry = missingMap.get(key);
+      // Keep the header name as whichever was seen first — joining every
+      // variant into one string ("Campari / Aperol") reads as broken UI and
+      // wraps badly; alternates are listed in the card's expandable detail
+      // instead (see renderShoppingCard's `altNames` handling).
+      if (!entry.names.includes(displayName)) {
+        entry.names.push(displayName);
+      }
     }
     return missingMap.get(key);
   };

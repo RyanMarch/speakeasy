@@ -296,23 +296,35 @@ export function renderShoppingCard(item, options = {}) {
     </button>
   `).join('');
 
+  // Some ingredients merge several genuinely distinct products that share one
+  // taxonomy "family" bucket (e.g. Campari and Aperol both count as owning
+  // "red bitter"). Rather than cramming all of them into the header as
+  // "Campari / Aperol" — which reads as broken UI and wraps badly — the
+  // header shows just the first one, and any others are listed here instead.
+  const altNames = (item.names || []).slice(1);
+  const altNamesHtml = altNames.length > 0 ? /*html*/`
+    <div class="shopping-alt-names">Also acceptable: ${escapeHtml(altNames.join(', '))}</div>
+  ` : '';
+
   return /*html*/`
     <div class="shopping-card" data-bottle-id="${escapeHtml(item.id)}">
       <div class="shopping-card-header">
         <div class="shopping-card-left" role="button" tabindex="0" aria-label="Expand ${escapeHtml(item.name)} unlocked cocktails">
-          <span class="shopping-pill-dot" style="background-color: ${bg}; color: ${textColor};"></span>
+          ${options.hideDot ? '' : `<span class="shopping-pill-dot" style="background-color: ${bg}; color: ${textColor};"></span>`}
           <div class="shopping-card-info">
             <div class="shopping-card-title-row">
               <h4 class="shopping-card-name">${escapeHtml(item.name)}</h4>
               <span class="shopping-unlock-badge${badgeClass}">${escapeHtml(badgeText)}</span>
             </div>
-            <span class="shopping-card-family">${escapeHtml(formatFamilyLabel(item.family))}${secondaryNote}</span>
+            ${options.hideFamily ? '' : `<span class="shopping-card-family">${escapeHtml(formatFamilyLabel(item.family))}${secondaryNote}</span>`}
           </div>
         </div>
         <div class="shopping-card-actions">
-          <button type="button" class="btn btn-secondary btn-sm btn-quick-add-shopping" data-bottle-id="${escapeHtml(item.id)}" title="Add ${escapeHtml(item.name)} to your bar">
-            + Add to Bar
-          </button>
+          ${item.owned ? '' : `
+            <button type="button" class="btn btn-secondary btn-sm btn-quick-add-shopping" data-bottle-id="${escapeHtml(item.id)}" title="Add ${escapeHtml(item.name)} to your bar" aria-label="Add ${escapeHtml(item.name)} to your bar">
+              <span class="btn-quick-add-icon" aria-hidden="true">+</span><span class="btn-quick-add-label"> Add to Bar</span>
+            </button>
+          `}
           <button type="button" class="btn btn-ghost btn-sm btn-toggle-shopping-details" aria-label="Toggle unlocked cocktails" aria-expanded="false" title="Show unlocked cocktails">
             <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
@@ -320,6 +332,7 @@ export function renderShoppingCard(item, options = {}) {
       </div>
 
       <div class="shopping-card-details" style="display: none;">
+        ${altNamesHtml}
         <div class="shopping-details-title">${escapeHtml(detailsTitle)}</div>
         <div class="shopping-drinks-grid">
           ${drinksListHtml}
@@ -403,11 +416,23 @@ function renderRunningLowSection() {
       getCachedInventoryAnalysis(r).matchedItems.some(m => m.id === id));
     if (recipesUsingIt.length === 0) return '';
 
+    // Some taxonomy ids are shared "family" buckets covering several
+    // genuinely distinct products (e.g. `spiced_liqueur`'s name "Spiced
+    // Liqueurs" covers Falernum, Allspice Dram...) — show what each recipe
+    // actually calls it, not the umbrella label.
+    const names = [];
+    recipesUsingIt.forEach(r => {
+      const match = getCachedInventoryAnalysis(r).matchedItems.find(m => m.id === id);
+      if (match && !names.includes(match.name)) names.push(match.name);
+    });
+
     return renderShoppingCard({
       id,
-      name: taxonomyItem.name,
+      name: names[0] || taxonomyItem.name,
+      names,
       family: taxonomyItem.family,
       color: taxonomyItem.color,
+      owned: true,
       unlockCount: recipesUsingIt.length,
       secondaryCount: 0,
       unlockedCocktails: recipesUsingIt,
