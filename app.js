@@ -8,6 +8,7 @@ import { getRecipes, getBarName } from './js/modules/storage.js';
 import {
   selectRecipe,
   goHome,
+  goToMenuBuilder,
   renderCurrentView,
   showDrinksListMobile,
 } from './js/router.js';
@@ -53,6 +54,11 @@ import {
 } from './js/components/hidden-modal.js';
 
 import {
+  setMenuBuilderCallbacks,
+  applyMenuBuilderHash,
+} from './js/views/menu-builder-view.js';
+
+import {
   openEditor,
   cancelEditor,
   setEditorModalCallbacks,
@@ -85,15 +91,21 @@ function init() {
   }
 
   const deepLinkedToRecipe = Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
+  const deepLinkedToMenuBuilder = urlHash === 'menus' || urlHash.startsWith('menus/');
 
   if (!initialId && state.recipes.length > 0) {
     initialId = state.recipes[0].id;
   }
 
   state.activeRecipeId = initialId;
-  state.viewMode = deepLinkedToRecipe ? 'counter' : 'home';
+  state.viewMode = deepLinkedToRecipe ? 'counter' : (deepLinkedToMenuBuilder ? 'menu-builder' : 'home');
   if (urlHash && initialId && deepLinkedToRecipe) {
     history.replaceState(null, '', `#${initialId}`);
+  }
+  if (deepLinkedToMenuBuilder) {
+    // Same "restore this state, don't push new history" entry point the
+    // hashchange listener below uses for browser back/forward.
+    applyMenuBuilderHash(urlHash === 'menus' ? null : urlHash.slice('menus/'.length));
   }
 
   const isMobile = window.innerWidth <= 768;
@@ -104,7 +116,7 @@ function init() {
 
   // Connect callbacks across components
   setRecipeListCallbacks({ openEditor, updateVaultStats, showDrinksListMobile });
-  setHomeViewCallbacks({ selectRecipe, showDrinksListMobile });
+  setHomeViewCallbacks({ selectRecipe, showDrinksListMobile, openBackbarModal, openMenuBuilderModal: goToMenuBuilder });
   setCounterViewCallbacks({
     selectRecipe,
     openEditor,
@@ -139,6 +151,7 @@ function init() {
     renderCounterView,
     renderHomeView,
   });
+  setMenuBuilderCallbacks({ selectRecipe, goHome });
   setEditorModalCallbacks({
     selectRecipe,
     renderCurrentView,
@@ -225,6 +238,17 @@ function setupGlobalEventListeners() {
       if (state.viewMode !== 'counter' || rawHash !== state.activeRecipeId) {
         selectRecipe(rawHash, false);
       }
+      return;
+    }
+    if (rawHash === 'menus' || rawHash.startsWith('menus/')) {
+      const menuId = rawHash === 'menus' ? null : rawHash.slice('menus/'.length);
+      applyMenuBuilderHash(menuId);
+      if (state.viewMode !== 'menu-builder') {
+        state.viewMode = 'menu-builder';
+        renderCurrentView();
+      }
+      elements.sidebar?.classList.add('mobile-hidden');
+      elements.mainStage?.classList.remove('mobile-hidden');
     }
   });
 

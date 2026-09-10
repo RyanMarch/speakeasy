@@ -7,17 +7,23 @@ import {
   elements,
   BACKBAR_CATEGORIES,
   invalidateInventoryCache,
+  getCachedInventoryAnalysis,
 } from '../state.js';
 
 import {
   DEFAULT_STARTER_BAR,
   saveInventory,
+  // LOW STOCK FEATURE: remove this import if the feature is pulled.
+  getLowStockIds,
+  toggleLowStock,
+  clearLowStock,
 } from '../modules/storage.js';
 
 import {
   TAXONOMY,
   REFRIGERATED_INGREDIENT_IDS,
   getRankedShoppingList,
+  getFamilyGroupLabel,
 } from '../modules/taxonomy.js';
 
 import { escapeHtml, showToast } from './toast.js';
@@ -104,6 +110,9 @@ export function closeBackbarModal() {
 export function toggleInventoryBottle(bottleId) {
   if (state.inventory.has(bottleId)) {
     state.inventory.delete(bottleId);
+    // LOW STOCK FEATURE: the flag only makes sense while a bottle is owned —
+    // remove this line if the feature is pulled.
+    clearLowStock(bottleId);
   } else {
     state.inventory.add(bottleId);
   }
@@ -179,17 +188,55 @@ export function renderInventoryPillsContent() {
 
     const ownedCount = items.filter(i => state.inventory.has(i.id)).length;
 
-    const pillsHtml = items.map(item => {
+    // LOW STOCK FEATURE: computed once per category (not per pill) to avoid an
+    // O(n) localStorage read per item. Delete this line along with the
+    // .backbar-pill-low-stock-btn block below and its CSS to remove the feature.
+    const lowStockSet = new Set(getLowStockIds());
+
+    // Cluster items by their family (e.g. all rums, all scotches, all
+    // amari) so related bottles sit together, then alphabetize within each
+    // cluster and order clusters alphabetically by label. Flat alphabetical
+    // scattered same-spirit bottles across the whole category, which made a
+    // specific style (like "all my tequilas") hard to scan for.
+    const groups = new Map();
+    items.forEach(item => {
+      const label = getFamilyGroupLabel(item);
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(item);
+    });
+    const sortedLabels = Array.from(groups.keys()).sort((a, b) => a.localeCompare(b));
+
+    const renderPill = (item) => {
       const isOwned = state.inventory.has(item.id);
       const isFridge = REFRIGERATED_INGREDIENT_IDS.has(item.id);
       const bg = item.color || '#c67828';
       const textColor = getContrastColor(bg);
+      const isLowStock = isOwned && lowStockSet.has(item.id);
       return `
-        <button type="button" class="backbar-pill ${isOwned ? 'active' : ''} ${isFridge ? 'is-fridge-item' : ''}" data-bottle-id="${escapeHtml(item.id)}" aria-pressed="${isOwned}" title="${isFridge ? `${escapeHtml(item.name)} (Keep refrigerated once opened)` : escapeHtml(item.name)}">
-          <span class="backbar-pill-dot" style="background-color: ${bg}; color: ${textColor};">${isOwned ? '✓' : ''}</span>
-          <span class="backbar-pill-name">${escapeHtml(item.name)}</span>
-          ${isFridge ? '<span class="backbar-pill-fridge-tag" aria-label="Refrigerate" title="Keep refrigerated">❄️</span>' : ''}
-        </button>
+        <div class="backbar-pill-wrap">
+          <button type="button" class="backbar-pill ${isOwned ? 'active' : ''} ${isFridge ? 'is-fridge-item' : ''}" data-bottle-id="${escapeHtml(item.id)}" aria-pressed="${isOwned}" title="${isFridge ? `${escapeHtml(item.name)} (Keep refrigerated once opened)` : escapeHtml(item.name)}">
+            <span class="backbar-pill-dot" style="background-color: ${bg}; color: ${textColor};">${isOwned ? '✓' : ''}</span>
+            <span class="backbar-pill-name">${escapeHtml(item.name)}</span>
+            ${isFridge ? '<span class="backbar-pill-fridge-tag" aria-label="Refrigerate" title="Keep refrigerated">❄️</span>' : ''}
+          </button>
+          ${isOwned ? `
+            <button type="button" class="backbar-pill-low-stock-btn ${isLowStock ? 'is-low' : ''}" data-low-stock-id="${escapeHtml(item.id)}" aria-pressed="${isLowStock}" title="${isLowStock ? 'Remove low-stock flag' : 'Mark as running low'}">⚠</button>
+          ` : ''}
+        </div>
+      `;
+    };
+
+    const groupsHtml = sortedLabels.map(label => {
+      const groupItems = groups.get(label).sort((a, b) => a.name.localeCompare(b.name));
+      return `
+        <div class="backbar-family-group">
+          <div class="backbar-family-header">
+            <span class="backbar-family-title">${escapeHtml(label)}</span>
+          </div>
+          <div class="backbar-pills-grid">
+            ${groupItems.map(renderPill).join('')}
+          </div>
+        </div>
       `;
     }).join('');
 
@@ -199,9 +246,7 @@ export function renderInventoryPillsContent() {
           <span class="backbar-category-title">${escapeHtml(cat.title)}</span>
           <span class="backbar-category-count">${ownedCount} / ${items.length}</span>
         </div>
-        <div class="backbar-pills-grid">
-          ${pillsHtml}
-        </div>
+        ${groupsHtml}
       </div>
     `;
   }).filter(Boolean).join('');
@@ -226,93 +271,114 @@ export function renderInventoryPillsContent() {
       }
     });
   });
+
+  // LOW STOCK FEATURE: delete this block to remove the feature.
+  elements.backbarCategoriesContainer.querySelectorAll('.backbar-pill-low-stock-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-low-stock-id');
+      if (id) {
+        toggleLowStock(id);
+        renderInventoryPillsContent();
+      }
+    });
+  });
 }
 
 /**
- * Render Ranked Bar Unlock Shopping List
+ * Format a taxonomy family key as a display label (e.g. "citrus_juice" -> "Citrus Juice"),
+ * falling back to a matching BACKBAR_CATEGORIES title when one exists.
  */
-export function renderShoppingListContent() {
-  if (!elements.backbarShoppingContainer) return;
+export function formatFamilyLabel(familyKey) {
+  if (!familyKey) return 'Ingredient';
+  const foundCat = BACKBAR_CATEGORIES.find(c => c.key === familyKey);
+  if (foundCat) return foundCat.title;
+  return familyKey.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
 
-  const rankedList = getRankedShoppingList(state.recipes, state.inventory);
-  const unlockableItems = rankedList.filter(item => item.unlockCount > 0);
+/**
+ * Render one shopping-list card for an ingredient. Shared by the ranked "unlock"
+ * grid, the low-stock "Running Low" section, and the Menu Builder's scoped
+ * shopping summary — all three just need an ingredient plus a list of related
+ * recipes, they differ only in badge/heading copy.
+ * @param {Object} item - {id, name, family, color, unlockCount, secondaryCount, unlockedCocktails}
+ * @param {Object} [options]
+ * @param {string} [options.badgeText] - Overrides the default "+N cocktails unlocked" badge.
+ * @param {string} [options.detailsTitle] - Overrides the default "Unlocks N cocktails:" heading.
+ */
+export function renderShoppingCard(item, options = {}) {
+  const bg = item.color || '#c67828';
+  const textColor = getContrastColor(bg);
+  const count = item.unlockCount || 0;
+  const badgeText = options.badgeText || `+${count} cocktail${count === 1 ? '' : 's'} unlocked`;
+  const badgeClass = options.badgeClass ? ` ${options.badgeClass}` : '';
+  const secondaryNote = item.secondaryCount > 0 ? ` · +${item.secondaryCount} nearly ready` : '';
+  const detailsTitle = options.detailsTitle || `Unlocks ${count} cocktail${count === 1 ? '' : 's'}:`;
 
-  if (unlockableItems.length === 0) {
-    elements.backbarShoppingContainer.innerHTML =  /*html*/`
-      <div class="empty-state shopping-empty-state">
-        <p class="empty-state-title">No unlocked opportunities</p>
-        <p class="card-content-text">
-          ${state.inventory.size === 0
-        ? 'Add bottles to your backbar to discover which single bottle unlocks the most cocktails.'
-        : 'You own ingredients for all reachable cocktails, or no single bottle unlocks new drinks right now.'}
-        </p>
-      </div>
-    `;
-    return;
-  }
+  const drinksListHtml = (item.unlockedCocktails || []).map(r => `
+    <button type="button" class="shopping-drink-pill" data-recipe-id="${escapeHtml(r.id)}" title="View ${escapeHtml(r.name)}">
+      <span class="shopping-drink-name">${escapeHtml(r.name)}</span>
+      <span class="shopping-drink-meta">${escapeHtml(r.glassware || 'Glass')}${r.glassware && r.method ? ' · ' : ''}${escapeHtml(r.method || '')}</span>
+    </button>
+  `).join('');
 
-  const formatFamily = (familyKey) => {
-    if (!familyKey) return 'Ingredient';
-    const foundCat = BACKBAR_CATEGORIES.find(c => c.key === familyKey);
-    if (foundCat) return foundCat.title;
-    return familyKey.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  };
+  // Some ingredients merge several genuinely distinct products that share one
+  // taxonomy "family" bucket (e.g. Campari and Aperol both count as owning
+  // "red bitter"). Rather than cramming all of them into the header as
+  // "Campari / Aperol" — which reads as broken UI and wraps badly — the
+  // header shows just the first one, and any others are listed here instead.
+  const altNames = (item.names || []).slice(1);
+  const altNamesHtml = altNames.length > 0 ? /*html*/`
+    <div class="shopping-alt-names">Also acceptable: ${escapeHtml(altNames.join(', '))}</div>
+  ` : '';
 
-  const cardsHtml = unlockableItems.map(item => {
-    const bg = item.color || '#c67828';
-    const textColor = getContrastColor(bg);
-    const count = item.unlockCount;
-    const badgeText = `+${count} cocktail${count === 1 ? '' : 's'} unlocked`;
-    const secondaryNote = item.secondaryCount > 0 ? ` · +${item.secondaryCount} nearly ready` : '';
-
-    const drinksListHtml = (item.unlockedCocktails || []).map(r => `
-      <button type="button" class="shopping-drink-pill" data-recipe-id="${escapeHtml(r.id)}" title="View ${escapeHtml(r.name)}">
-        <span class="shopping-drink-name">${escapeHtml(r.name)}</span>
-        <span class="shopping-drink-meta">${escapeHtml(r.glassware || 'Glass')}${r.glassware && r.method ? ' · ' : ''}${escapeHtml(r.method || '')}</span>
-      </button>
-    `).join('');
-
-    return /*html*/`
-      <div class="shopping-card" data-bottle-id="${escapeHtml(item.id)}">
-        <div class="shopping-card-header">
-          <div class="shopping-card-left" role="button" tabindex="0" aria-label="Expand ${escapeHtml(item.name)} unlocked cocktails">
-            <span class="shopping-pill-dot" style="background-color: ${bg}; color: ${textColor};"></span>
-            <div class="shopping-card-info">
-              <div class="shopping-card-title-row">
-                <h4 class="shopping-card-name">${escapeHtml(item.name)}</h4>
-                <span class="shopping-unlock-badge">${escapeHtml(badgeText)}</span>
-              </div>
-              <span class="shopping-card-family">${escapeHtml(formatFamily(item.family))}${secondaryNote}</span>
+  return /*html*/`
+    <div class="shopping-card" data-bottle-id="${escapeHtml(item.id)}">
+      <div class="shopping-card-header">
+        <div class="shopping-card-left" role="button" tabindex="0" aria-label="Expand ${escapeHtml(item.name)} unlocked cocktails">
+          ${options.hideDot ? '' : `<span class="shopping-pill-dot" style="background-color: ${bg}; color: ${textColor};"></span>`}
+          <div class="shopping-card-info">
+            <div class="shopping-card-title-row">
+              <h4 class="shopping-card-name">${escapeHtml(item.name)}</h4>
+              <span class="shopping-unlock-badge${badgeClass}">${escapeHtml(badgeText)}</span>
             </div>
-          </div>
-          <div class="shopping-card-actions">
-            <button type="button" class="btn btn-secondary btn-sm btn-quick-add-shopping" data-bottle-id="${escapeHtml(item.id)}" title="Add ${escapeHtml(item.name)} to your bar">
-              + Add to Bar
-            </button>
-            <button type="button" class="btn btn-ghost btn-sm btn-toggle-shopping-details" aria-label="Toggle unlocked cocktails" aria-expanded="false" title="Show unlocked cocktails">
-              <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
+            ${options.hideFamily ? '' : `<span class="shopping-card-family">${escapeHtml(formatFamilyLabel(item.family))}${secondaryNote}</span>`}
           </div>
         </div>
-
-        <div class="shopping-card-details" style="display: none;">
-          <div class="shopping-details-title">Unlocks ${count} cocktail${count === 1 ? '' : 's'}:</div>
-          <div class="shopping-drinks-grid">
-            ${drinksListHtml}
-          </div>
+        <div class="shopping-card-actions">
+          ${item.owned ? '' : `
+            <button type="button" class="btn btn-secondary btn-sm btn-quick-add-shopping" data-bottle-id="${escapeHtml(item.id)}" title="Add ${escapeHtml(item.name)} to your bar" aria-label="Add ${escapeHtml(item.name)} to your bar">
+              <span class="btn-quick-add-icon" aria-hidden="true">+</span><span class="btn-quick-add-label"> Add to Bar</span>
+            </button>
+          `}
+          <button type="button" class="btn btn-ghost btn-sm btn-toggle-shopping-details" aria-label="Toggle unlocked cocktails" aria-expanded="false" title="Show unlocked cocktails">
+            <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
         </div>
       </div>
-    `;
-  }).join('');
 
-  elements.backbarShoppingContainer.innerHTML =  /*html*/`
-    <div class="shopping-list-grid">
-      ${cardsHtml}
+      <div class="shopping-card-details" style="display: none;">
+        ${altNamesHtml}
+        <div class="shopping-details-title">${escapeHtml(detailsTitle)}</div>
+        <div class="shopping-drinks-grid">
+          ${drinksListHtml}
+        </div>
+      </div>
     </div>
   `;
+}
 
-  // Wire card events
-  elements.backbarShoppingContainer.querySelectorAll('.shopping-card').forEach(card => {
+/**
+ * Wire accordion/quick-add/recipe-pill interactions for a container of .shopping-card
+ * elements (shared by the Shopping tab, Running Low section, and Menu Builder).
+ * @param {HTMLElement} container
+ * @param {Object} [options]
+ * @param {Function} [options.onSelectRecipe] - Called with a recipe id when a drink
+ *   pill is clicked, instead of the default close-modal-and-select behavior.
+ */
+export function wireShoppingCardEvents(container, options = {}) {
+  if (!container) return;
+  container.querySelectorAll('.shopping-card').forEach(card => {
     const toggleBtn = card.querySelector('.btn-toggle-shopping-details');
     const details = card.querySelector('.shopping-card-details');
 
@@ -339,6 +405,11 @@ export function renderShoppingListContent() {
       if (bottleId) {
         toggleInventoryBottle(bottleId);
         showToast('Added to backbar');
+        // toggleInventoryBottle already refreshes the My Bar modal's own tabs,
+        // but a caller rendering shopping cards somewhere else (e.g. the Menu
+        // Builder) needs its own chance to re-render so "Need to Buy" flips
+        // to "Have" immediately instead of on next open.
+        options.onInventoryChange?.();
       }
     });
 
@@ -346,15 +417,102 @@ export function renderShoppingListContent() {
       pill.addEventListener('click', (e) => {
         e.stopPropagation();
         const recipeId = pill.getAttribute('data-recipe-id');
-        if (recipeId) {
+        if (!recipeId) return;
+        if (options.onSelectRecipe) {
+          options.onSelectRecipe(recipeId);
+        } else {
           closeBackbarModal();
-          if (_selectRecipeFn) {
-            _selectRecipeFn(recipeId);
-          }
+          if (_selectRecipeFn) _selectRecipeFn(recipeId);
         }
       });
     });
   });
+}
+
+// LOW STOCK FEATURE: delete this function (and its call site in
+// renderShoppingListContent below) to remove the feature.
+function renderRunningLowSection() {
+  const lowIds = getLowStockIds().filter(id => state.inventory.has(id));
+  if (lowIds.length === 0) return '';
+
+  const cardsHtml = lowIds.map(id => {
+    const taxonomyItem = TAXONOMY[id];
+    if (!taxonomyItem) return '';
+    const recipesUsingIt = state.recipes.filter(r =>
+      getCachedInventoryAnalysis(r).matchedItems.some(m => m.id === id));
+    if (recipesUsingIt.length === 0) return '';
+
+    // Some taxonomy ids are shared "family" buckets covering several
+    // genuinely distinct products (e.g. `spiced_liqueur`'s name "Spiced
+    // Liqueurs" covers Falernum, Allspice Dram...) — show what each recipe
+    // actually calls it, not the umbrella label.
+    const names = [];
+    recipesUsingIt.forEach(r => {
+      const match = getCachedInventoryAnalysis(r).matchedItems.find(m => m.id === id);
+      if (match && !names.includes(match.name)) names.push(match.name);
+    });
+
+    return renderShoppingCard({
+      id,
+      name: names[0] || taxonomyItem.name,
+      names,
+      family: taxonomyItem.family,
+      color: taxonomyItem.color,
+      owned: true,
+      unlockCount: recipesUsingIt.length,
+      secondaryCount: 0,
+      unlockedCocktails: recipesUsingIt,
+    }, {
+      badgeText: 'Running Low',
+      detailsTitle: 'Cocktails using this:',
+    });
+  }).filter(Boolean).join('');
+
+  if (!cardsHtml) return '';
+
+  return /*html*/`
+    <div class="running-low-section">
+      <div class="running-low-heading">Running Low</div>
+      <div class="shopping-list-grid running-low-grid">${cardsHtml}</div>
+    </div>
+  `;
+}
+
+/**
+ * Render Ranked Bar Unlock Shopping List
+ */
+export function renderShoppingListContent() {
+  if (!elements.backbarShoppingContainer) return;
+
+  const rankedList = getRankedShoppingList(state.recipes, state.inventory);
+  const unlockableItems = rankedList.filter(item => item.unlockCount > 0);
+  // LOW STOCK FEATURE: remove this line (and its render call below) to remove the feature.
+  const runningLowHtml = renderRunningLowSection();
+
+  if (unlockableItems.length === 0 && !runningLowHtml) {
+    elements.backbarShoppingContainer.innerHTML =  /*html*/`
+      <div class="empty-state shopping-empty-state">
+        <p class="empty-state-title">No unlocked opportunities</p>
+        <p class="card-content-text">
+          ${state.inventory.size === 0
+        ? 'Add bottles to your backbar to discover which single bottle unlocks the most cocktails.'
+        : 'You own ingredients for all reachable cocktails, or no single bottle unlocks new drinks right now.'}
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  const cardsHtml = unlockableItems.map(item => renderShoppingCard(item)).join('');
+
+  elements.backbarShoppingContainer.innerHTML =  /*html*/`
+    ${runningLowHtml}
+    <div class="shopping-list-grid">
+      ${cardsHtml}
+    </div>
+  `;
+
+  wireShoppingCardEvents(elements.backbarShoppingContainer);
 }
 
 /**

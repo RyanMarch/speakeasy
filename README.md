@@ -20,24 +20,32 @@ Everything runs locally in your browser. There are no accounts to create, no tra
 - Discover drinks where you are only one bottle away, helping you decide what to pick up next.
 - Understand bottle storage requirements, including which fortified wines and vermouths belong in the refrigerator once opened.
 
+### Menu Builder & Event Planning
+- Curate custom drink menus for dinner parties, gatherings, or seasonal rotations.
+- Automatically calculates total glassware requirements across your chosen drink lineup.
+- Generates a consolidated checklist categorized by bar, refrigerator, and pantry locations, highlighting exactly which bottles you need to purchase.
+
 ### Riff Engine & Lineage
 - Explore cocktail family trees to learn how modern drinks evolved from classics.
 - Missing a bottle? Use built-in substitution recommendations to swap ingredients without ruining drink balance.
+- Discover similar drinks through flavor radar palate matching.
 
 ### Counter View
 - High-contrast typography designed to stay readable across a dimly lit bar counter.
 - One-tap conversions between fluid ounces (`oz`) and milliliters (`ml`).
 - Dynamic serving multipliers to scale recipes up or down for guests.
-- Sticky drink titles ensure you never lose your place while scrolling steps.
+- Sticky drink titles and screen wake-lock ensure you never lose your place while mixing.
+- Inline smart timers detected directly from recipe instructions with haptic alerts.
 
 ### Quick Paste & Recipe Notes
 - Paste raw cocktail specs from recipe books, websites, or personal notes. The parser interprets vulgar unicode fractions, decimals, barspoons, dashes, and standard units automatically.
-- Tag and organize drinks into collections like party menus, evening favorites, or seasonal drinks.
+- Automatic detection identifies preparation methods, glassware types, and suggested flavor tags.
 - Hide drinks you do not plan to serve to keep your collection curated.
 
-### Private & Portable
+### Private, Portable & Shareable
 - All data stays on your machine using standard browser storage.
-- Back up or transfer your library anytime with one-click JSON export and import.
+- Share deep links to canonical seed recipes with guests and friends.
+- Back up or transfer your library anytime with unified JSON export and import.
 
 ---
 
@@ -68,5 +76,4 @@ npm test
 
 ---
 
-*Last updated: September 7, 2026*
-
+*Last updated: September 10, 2026*
