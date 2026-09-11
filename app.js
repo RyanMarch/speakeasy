@@ -76,7 +76,7 @@ import {
   closeAuthModal,
 } from './js/components/auth-modal.js';
 
-import { checkSession } from './js/modules/auth.js';
+import { checkSession, pullRemoteData } from './js/modules/auth.js';
 
 /**
  * Initialize application
@@ -183,8 +183,15 @@ function init() {
   renderCurrentView();
 
   // Validate stored session token against backend and sync state
-  checkSession().then(result => {
+  checkSession().then(async result => {
     updateAuthIndicator();
+    if (result && result.authenticated) {
+      try {
+        await pullRemoteData();
+      } catch (err) {
+        console.warn('Initial session pull error:', err);
+      }
+    }
     if (state.viewMode === 'account') {
       renderVaultSettingsModal();
     }

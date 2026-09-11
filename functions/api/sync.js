@@ -180,3 +180,115 @@ export async function onRequestPost(context) {
     },
   });
 }
+
+export async function onRequestGet(context) {
+  const { request, env } = context;
+
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
+  }
+
+  // 1. Verify Authorization Bearer token
+  const authHeader = request.headers.get('Authorization') || '';
+  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+
+  if (!tokenMatch) {
+    return jsonResponse({ error: 'Missing or malformed Authorization header.' }, 401);
+  }
+
+  const token = tokenMatch[1].trim();
+  if (!token) {
+    return jsonResponse({ error: 'Empty bearer token.' }, 401);
+  }
+
+  // Query session from D1
+  const sessionRow = await env.speakeasy_db.prepare(
+    `SELECT user_id, expires_at FROM sessions WHERE token = ?`
+  ).bind(token).first();
+
+  if (!sessionRow) {
+    return jsonResponse({ error: 'Invalid or expired session token.' }, 401);
+  }
+
+  const expiresAt = new Date(sessionRow.expires_at).getTime();
+  if (!Number.isNaN(expiresAt) && Date.now() > expiresAt) {
+    return jsonResponse({ error: 'Session token has expired.' }, 401);
+  }
+
+  const userId = sessionRow.user_id;
+
+  // 2. Query user's default or first bar
+  const defaultBar = await env.speakeasy_db.prepare(
+    `SELECT id, name FROM bars WHERE user_id = ? ORDER BY is_default DESC, created_at ASC LIMIT 1`
+  ).bind(userId).first();
+
+  let inventory = [];
+  if (defaultBar && defaultBar.id) {
+    const invRows = await env.speakeasy_db.prepare(
+      `SELECT ingredient_id FROM bar_inventory WHERE bar_id = ?`
+    ).bind(defaultBar.id).all();
+    inventory = (invRows.results || []).map(row => row.ingredient_id);
+  }
+
+  // 3. Query custom recipes
+  const recipeRows = await env.speakeasy_db.prepare(
+    `SELECT id, name, glassware, method, specs, instructions, description, notes, riff_of_id, riff_of_name, tags, is_public
+     FROM custom_recipes WHERE user_id = ?`
+  ).bind(userId).all();
+
+  const customRecipes = (recipeRows.results || []).map(r => {
+    let specs = [];
+    try {
+      specs = JSON.parse(r.specs || '[]');
+    } catch {
+      specs = [];
+    }
+    let tags = [];
+    try {
+      tags = JSON.parse(r.tags || '[]');
+    } catch {
+      tags = [];
+    }
+    return {
+      id: r.id,
+      name: r.name,
+      glassware: r.glassware || 'Rocks',
+      method: r.method || 'Stirred',
+      specs,
+      instructions: r.instructions || '',
+      description: r.description || '',
+      notes: r.notes || '',
+      riffOfId: r.riff_of_id || null,
+      riffOfName: r.riff_of_name || '',
+      tags,
+      isPublic: Boolean(r.is_public),
+    };
+  });
+
+  // 4. Query user settings
+  const userRow = await env.speakeasy_db.prepare(
+    `SELECT settings FROM users WHERE id = ?`
+  ).bind(userId).first();
+
+  let settings = { unitPref: 'oz', sortPref: 'curated', glassViewMode: 'layered' };
+  if (userRow && userRow.settings) {
+    try {
+      settings = typeof userRow.settings === 'object' ? userRow.settings : JSON.parse(userRow.settings);
+    } catch {
+      // Keep default settings
+    }
+  }
+
+  return jsonResponse({
+    success: true,
+    backup: {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      inventory,
+      hiddenRecipes: [],
+      settings,
+      customRecipes,
+    },
+  });
+}
+

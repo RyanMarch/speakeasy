@@ -3,7 +3,8 @@
  * Passwordless OTP sign-in dialog and guest-to-cloud data migration.
  */
 
-import { requestOtp, verifyOtp, migrateGuestData } from '../modules/auth.js';
+import { requestOtp, verifyOtp, migrateGuestData, pullRemoteData } from '../modules/auth.js';
+import { getInventory, getCustomRecipesForBackup } from '../modules/storage.js';
 import { showToast } from './toast.js';
 
 let _authModal = null;
@@ -107,11 +108,25 @@ export function setupAuthModalEventListeners() {
     try {
       await verifyOtp(_pendingEmail, code);
 
-      // Automatically migrate guest data to the authenticated cloud account
+      // Check if guest had entered any custom data before signing in
+      const guestInventory = getInventory();
+      const guestCustomRecipes = getCustomRecipesForBackup();
+      const hasGuestData = guestInventory.length > 0 || guestCustomRecipes.length > 0;
+
+      // 1. Pull cloud data down from D1 to restore inventory, recipes, and preferences
       try {
-        await migrateGuestData();
-      } catch (syncErr) {
-        console.warn('Post-auth guest data migration error:', syncErr);
+        await pullRemoteData();
+      } catch (pullErr) {
+        console.warn('Post-auth cloud data pull error:', pullErr);
+      }
+
+      // 2. If the user had added guest data in this session, push merged changes up
+      if (hasGuestData) {
+        try {
+          await migrateGuestData();
+        } catch (syncErr) {
+          console.warn('Post-auth guest data migration error:', syncErr);
+        }
       }
 
       showToast('Welcome back!');
