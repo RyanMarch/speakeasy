@@ -188,6 +188,7 @@ function init() {
     if (result && result.authenticated) {
       try {
         await pullRemoteData();
+        renderRecipeList();
       } catch (err) {
         console.warn('Initial session pull error:', err);
       }
