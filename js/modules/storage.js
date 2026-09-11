@@ -290,7 +290,7 @@ export function deleteRecipe(id) {
   return filtered;
 }
 
-const BACKUP_SCHEMA_VERSION = 1;
+const BACKUP_SCHEMA_VERSION = 2;
 
 // Fields compared to decide whether a stored recipe still matches its canonical
 // seed spec (unmodified seeds are excluded from backups since they're already
@@ -348,14 +348,20 @@ export function getCustomRecipesForBackup() {
 }
 
 /**
- * Build the full v1 backup payload (recipes, inventory, hidden recipes, settings)
+ * Build the full v2 backup payload (recipes, bars+inventory, hidden recipes, settings)
  * without touching the DOM, so it can be used for both export and testing.
  */
 export function buildBackupPayload() {
+  const bars = getBars().map(b => ({
+    id: b.id,
+    name: b.name,
+    isDefault: Boolean(b.isDefault),
+    inventory: readInventoryForBar(b.id),
+  }));
   return {
     version: BACKUP_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
-    inventory: getInventory(),
+    bars,
     hiddenRecipes: getHiddenRecipeIds(),
     settings: {
       unitPref: getUnitPreference(),
@@ -418,9 +424,12 @@ function excludeUnmodifiedSeeds(recipes) {
 }
 
 /**
- * Import a v1 unified backup ({ version, inventory, hiddenRecipes, settings, customRecipes }).
+ * Import a unified backup, either v1 ({ version: 1, inventory: string[], ... })
+ * or v2 ({ version: 2, bars: [{id, name, isDefault, inventory}], ... }).
  * Recipes are merged by id; inventory and hidden recipes are merged (union),
  * never overwritten, so the user never loses bottles/recipes they already had.
+ * v2 bars are merged by id: a matching local bar gets its inventory unioned in
+ * place, an unmatched remote bar is appended as a new local bar.
  * Returns a summary usable for a confirmation toast.
  */
 export function importData(jsonString) {
@@ -431,12 +440,12 @@ export function importData(jsonString) {
     throw new Error('Invalid JSON format');
   }
 
-  if (!parsed || typeof parsed !== 'object' || parsed.version !== BACKUP_SCHEMA_VERSION || !Array.isArray(parsed.customRecipes)) {
+  if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.customRecipes) ||
+      (parsed.version !== 1 && parsed.version !== 2)) {
     throw new Error('Unrecognized backup format');
   }
 
   const validRecipes = excludeUnmodifiedSeeds(sanitizeImportedRecipes(parsed.customRecipes));
-  const inventoryRaw = Array.isArray(parsed.inventory) ? parsed.inventory : [];
   const hiddenRaw = Array.isArray(parsed.hiddenRecipes) ? parsed.hiddenRecipes : [];
   const settingsRaw = (parsed.settings && typeof parsed.settings === 'object') ? parsed.settings : {};
 
@@ -446,11 +455,62 @@ export function importData(jsonString) {
   const mergedRecipes = Array.from(recipeMap.values());
   saveRecipes(mergedRecipes);
 
-  const mergedInventory = new Set(getInventory());
-  const inventoryBefore = mergedInventory.size;
-  inventoryRaw.forEach(id => { if (typeof id === 'string') mergedInventory.add(id); });
-  const inventoryAddedCount = mergedInventory.size - inventoryBefore;
-  saveInventory(Array.from(mergedInventory));
+  let inventoryAddedCount = 0;
+  if (parsed.version === 2 && Array.isArray(parsed.bars)) {
+    const localBars = getBars();
+    const localBarIds = new Set(localBars.map(b => b.id));
+    const localDefaultBar = localBars.find(b => b.isDefault);
+    const newBars = [];
+
+    parsed.bars.forEach(remoteBar => {
+      if (!remoteBar || typeof remoteBar.id !== 'string') return;
+      const incomingInventory = Array.isArray(remoteBar.inventory) ? remoteBar.inventory : [];
+
+      // There is exactly one "default"/Home Bar per user on each side. For an
+      // account that synced under the old single-bar model, the local bar
+      // freshly created by migration and the pre-existing remote default bar
+      // are the SAME conceptual bar under two unrelated generated ids — match
+      // them by role rather than id so they merge instead of appearing as a
+      // bogus duplicate. Any other (deliberately created) bar still matches by id.
+      if (remoteBar.isDefault && localDefaultBar && !localBarIds.has(remoteBar.id)) {
+        const merged = new Set(readInventoryForBar(localDefaultBar.id));
+        const before = merged.size;
+        incomingInventory.forEach(id => { if (typeof id === 'string') merged.add(id); });
+        inventoryAddedCount += merged.size - before;
+        writeInventoryForBar(localDefaultBar.id, Array.from(merged));
+        return;
+      }
+
+      if (localBarIds.has(remoteBar.id)) {
+        const merged = new Set(readInventoryForBar(remoteBar.id));
+        const before = merged.size;
+        incomingInventory.forEach(id => { if (typeof id === 'string') merged.add(id); });
+        inventoryAddedCount += merged.size - before;
+        writeInventoryForBar(remoteBar.id, Array.from(merged));
+      } else {
+        newBars.push({
+          id: remoteBar.id,
+          name: (remoteBar.name && String(remoteBar.name).trim()) || 'New Bar',
+          isDefault: false,
+          createdAt: Date.now(),
+        });
+        writeInventoryForBar(remoteBar.id, incomingInventory.filter(id => typeof id === 'string'));
+        inventoryAddedCount += incomingInventory.length;
+      }
+    });
+
+    if (newBars.length > 0) {
+      saveBars([...localBars, ...newBars]);
+    }
+  } else {
+    // v1 legacy shape: flat inventory merges into the currently active bar.
+    const inventoryRaw = Array.isArray(parsed.inventory) ? parsed.inventory : [];
+    const mergedInventory = new Set(getInventory());
+    const before = mergedInventory.size;
+    inventoryRaw.forEach(id => { if (typeof id === 'string') mergedInventory.add(id); });
+    inventoryAddedCount = mergedInventory.size - before;
+    saveInventory(Array.from(mergedInventory));
+  }
 
   const mergedHidden = new Set(getHiddenRecipeIds());
   hiddenRaw.forEach(id => { if (typeof id === 'string') mergedHidden.add(id); });
@@ -493,8 +553,11 @@ export function resetToDefaults() {
 export function clearUserDataOnSignOut() {
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(INVENTORY_STORAGE_KEY);
-      localStorage.removeItem(BAR_NAME_STORAGE_KEY);
+      Object.keys(localStorage)
+        .filter(key => key.startsWith(INVENTORY_KEY_PREFIX))
+        .forEach(key => localStorage.removeItem(key));
+      localStorage.removeItem(BARS_STORAGE_KEY);
+      localStorage.removeItem(ACTIVE_BAR_ID_STORAGE_KEY);
       localStorage.removeItem(LAST_SYNCED_STORAGE_KEY);
       localStorage.removeItem(LAST_EXPORTED_STORAGE_KEY);
       localStorage.removeItem(AVATAR_RECIPE_STORAGE_KEY);
@@ -515,9 +578,17 @@ export function clearUserDataOnSignOut() {
 }
 
 // ==========================================
-// Backbar Personal Inventory Persistence
+// Multiple Saved Bars & Per-Bar Inventory Persistence
 // ==========================================
-const INVENTORY_STORAGE_KEY = 'speakeasy_inventory';
+
+// Legacy single-bar keys, kept only for one-time migration on first load.
+const LEGACY_INVENTORY_STORAGE_KEY = 'speakeasy_inventory';
+const LEGACY_BAR_NAME_STORAGE_KEY = 'speakeasy_bar_name';
+
+const BARS_STORAGE_KEY = 'speakeasy_bars';
+const ACTIVE_BAR_ID_STORAGE_KEY = 'speakeasy_active_bar_id';
+const INVENTORY_KEY_PREFIX = 'speakeasy_inventory__';
+const DEFAULT_BAR_NAME = 'Speakeasy Cocktail Library';
 
 export const DEFAULT_STARTER_BAR = [
   'bourbon',
@@ -535,27 +606,258 @@ export const DEFAULT_STARTER_BAR = [
   'lime_juice',
 ];
 
-export function getInventory() {
+function generateBarId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `bar-${crypto.randomUUID()}`;
+  }
+  return `bar-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function readInventoryForBar(barId) {
   try {
-    const raw = localStorage.getItem(INVENTORY_STORAGE_KEY);
+    const raw = localStorage.getItem(`${INVENTORY_KEY_PREFIX}${barId}`);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
-    console.error('Failed to read inventory from localStorage:', err);
+    console.error('Failed to read bar inventory from localStorage:', err);
     return [];
   }
 }
 
-export function saveInventory(ids) {
+function writeInventoryForBar(barId, ids) {
   try {
-    const list = Array.from(new Set(ids));
-    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(list));
+    const list = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
+    localStorage.setItem(`${INVENTORY_KEY_PREFIX}${barId}`, JSON.stringify(list));
     return list;
   } catch (err) {
-    console.error('Failed to save inventory to localStorage:', err);
+    console.error('Failed to save bar inventory to localStorage:', err);
     return ids;
   }
+}
+
+/**
+ * One-time, idempotent migration from the legacy single-bar storage shape
+ * (one flat inventory array + one bar name) into the multi-bar registry.
+ * Guarded by presence of BARS_STORAGE_KEY so it only ever runs once per browser.
+ */
+function ensureBarsInitialized() {
+  let existing;
+  try {
+    existing = localStorage.getItem(BARS_STORAGE_KEY);
+  } catch (err) {
+    console.error('Failed to read bars registry from localStorage:', err);
+    return;
+  }
+  if (existing) return;
+
+  const legacyName = (() => {
+    try {
+      return localStorage.getItem(LEGACY_BAR_NAME_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  })();
+  const legacyInventory = (() => {
+    try {
+      const raw = localStorage.getItem(LEGACY_INVENTORY_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const barId = generateBarId();
+  const bar = {
+    id: barId,
+    name: (legacyName && legacyName.trim()) || 'Home Bar',
+    isDefault: true,
+    createdAt: Date.now(),
+  };
+
+  try {
+    localStorage.setItem(BARS_STORAGE_KEY, JSON.stringify([bar]));
+    localStorage.setItem(ACTIVE_BAR_ID_STORAGE_KEY, JSON.stringify(barId));
+  } catch (err) {
+    console.error('Failed to initialize bars registry:', err);
+  }
+  writeInventoryForBar(barId, legacyInventory);
+}
+
+/**
+ * Repairs an early-rollout data issue: a pre-existing single-bar account
+ * could end up with two locally-stored bars both literally named "Home Bar"
+ * (one from local migration, one appended from a cloud pull that didn't yet
+ * reconcile bar identity by role — see importData()). Merges any such
+ * duplicates into the earliest-created one, union-ing their inventories,
+ * and repoints the active bar pointer if it referenced a merged-away id.
+ */
+function dedupeHomeBarDuplicates(bars) {
+  const homeBarDupes = bars.filter(b => b.name === 'Home Bar');
+  if (homeBarDupes.length <= 1) return bars;
+
+  const sorted = homeBarDupes.slice().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  const canonical = sorted[0];
+  const duplicateIds = new Set(sorted.slice(1).map(b => b.id));
+
+  const merged = new Set(readInventoryForBar(canonical.id));
+  duplicateIds.forEach(dupId => {
+    readInventoryForBar(dupId).forEach(id => merged.add(id));
+    try {
+      localStorage.removeItem(`${INVENTORY_KEY_PREFIX}${dupId}`);
+    } catch (err) {
+      console.error('Failed to remove duplicate bar inventory during dedupe:', err);
+    }
+  });
+  writeInventoryForBar(canonical.id, Array.from(merged));
+
+  const wasDefault = sorted.some(b => b.isDefault);
+  const deduped = bars
+    .filter(b => !duplicateIds.has(b.id))
+    .map(b => (b.id === canonical.id ? { ...b, isDefault: wasDefault || b.isDefault } : b));
+  saveBars(deduped);
+
+  let activeId;
+  try {
+    const raw = localStorage.getItem(ACTIVE_BAR_ID_STORAGE_KEY);
+    activeId = raw ? JSON.parse(raw) : null;
+  } catch {
+    activeId = null;
+  }
+  if (duplicateIds.has(activeId)) {
+    setActiveBarId(canonical.id);
+  }
+
+  return deduped;
+}
+
+export function getBars() {
+  ensureBarsInitialized();
+  try {
+    const raw = localStorage.getItem(BARS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    const bars = Array.isArray(parsed) ? parsed : [];
+    return dedupeHomeBarDuplicates(bars);
+  } catch (err) {
+    console.error('Failed to read bars registry from localStorage:', err);
+    return [];
+  }
+}
+
+export function saveBars(bars) {
+  try {
+    localStorage.setItem(BARS_STORAGE_KEY, JSON.stringify(bars));
+    return bars;
+  } catch (err) {
+    console.error('Failed to save bars registry to localStorage:', err);
+    return bars;
+  }
+}
+
+export function getBarById(barId) {
+  return getBars().find(b => b.id === barId) || null;
+}
+
+/**
+ * Returns the active bar id, self-healing if the stored pointer is missing
+ * or refers to a bar that no longer exists (falls back to the default bar,
+ * else the first bar, and persists that as the new pointer).
+ */
+export function getActiveBarId() {
+  const bars = getBars();
+  if (bars.length === 0) return null;
+
+  let stored;
+  try {
+    const raw = localStorage.getItem(ACTIVE_BAR_ID_STORAGE_KEY);
+    stored = raw ? JSON.parse(raw) : null;
+  } catch {
+    stored = null;
+  }
+
+  if (stored && bars.some(b => b.id === stored)) return stored;
+
+  const fallback = bars.find(b => b.isDefault) || bars[0];
+  try {
+    localStorage.setItem(ACTIVE_BAR_ID_STORAGE_KEY, JSON.stringify(fallback.id));
+  } catch (err) {
+    console.error('Failed to persist active bar id:', err);
+  }
+  return fallback.id;
+}
+
+export function setActiveBarId(barId) {
+  try {
+    localStorage.setItem(ACTIVE_BAR_ID_STORAGE_KEY, JSON.stringify(barId));
+  } catch (err) {
+    console.error('Failed to set active bar id:', err);
+  }
+  return barId;
+}
+
+export function createBar(name) {
+  const bars = getBars();
+  const clean = (name || '').trim() || 'New Bar';
+  const bar = { id: generateBarId(), name: clean, isDefault: bars.length === 0, createdAt: Date.now() };
+  saveBars([...bars, bar]);
+  writeInventoryForBar(bar.id, []);
+  return bar;
+}
+
+export function renameBar(barId, name) {
+  const bars = getBars();
+  const clean = (name || '').trim() || 'New Bar';
+  const updated = bars.map(b => (b.id === barId ? { ...b, name: clean } : b));
+  saveBars(updated);
+  return clean;
+}
+
+/**
+ * Deletes a bar and its inventory. Refuses when it's the last remaining bar.
+ * If the deleted bar was active, picks a fallback (default, else oldest
+ * remaining) and updates the active pointer before returning.
+ * Returns the new active bar id if it changed, otherwise null.
+ */
+export function deleteBar(barId) {
+  const bars = getBars();
+  if (bars.length <= 1) return null;
+
+  const remaining = bars.filter(b => b.id !== barId);
+  if (remaining.length === bars.length) return null; // barId not found
+
+  const wasDefault = bars.find(b => b.id === barId)?.isDefault;
+  if (wasDefault && !remaining.some(b => b.isDefault)) {
+    remaining[0] = { ...remaining[0], isDefault: true };
+  }
+  saveBars(remaining);
+
+  try {
+    localStorage.removeItem(`${INVENTORY_KEY_PREFIX}${barId}`);
+  } catch (err) {
+    console.error('Failed to remove deleted bar inventory:', err);
+  }
+
+  const activeId = getActiveBarId();
+  if (activeId === barId || !remaining.some(b => b.id === activeId)) {
+    const fallback = remaining.find(b => b.isDefault) || remaining[0];
+    setActiveBarId(fallback.id);
+    return fallback.id;
+  }
+  return null;
+}
+
+export function getInventory() {
+  return readInventoryForBar(getActiveBarId());
+}
+
+/** Reads a specific bar's inventory without changing the active bar. */
+export function getInventoryForBar(barId) {
+  return readInventoryForBar(barId);
+}
+
+export function saveInventory(ids) {
+  return writeInventoryForBar(getActiveBarId(), ids);
 }
 
 export function toggleInventoryItem(id) {
@@ -579,7 +881,6 @@ export function clearInventory() {
 // User Preferences & Bar Profile
 // ==========================================
 const UNIT_STORAGE_KEY = 'speakeasy_unit_system';
-const BAR_NAME_STORAGE_KEY = 'speakeasy_bar_name';
 
 export function getUnitPreference() {
   try {
@@ -602,23 +903,14 @@ export function saveUnitPreference(unit) {
 }
 
 export function getBarName() {
-  try {
-    const val = localStorage.getItem(BAR_NAME_STORAGE_KEY);
-    return val && val.trim() ? val.trim() : 'Speakeasy Cocktail Library';
-  } catch {
-    return 'Speakeasy Cocktail Library';
-  }
+  const bar = getBarById(getActiveBarId());
+  return bar ? bar.name : DEFAULT_BAR_NAME;
 }
 
 export function saveBarName(name) {
-  try {
-    const clean = (name || '').trim() || 'Speakeasy Cocktail Library';
-    localStorage.setItem(BAR_NAME_STORAGE_KEY, clean);
-    return clean;
-  } catch (err) {
-    console.error('Failed to save bar name:', err);
-    return name;
-  }
+  const activeId = getActiveBarId();
+  if (!activeId) return (name || '').trim() || DEFAULT_BAR_NAME;
+  return renameBar(activeId, name);
 }
 
 const LAST_SYNCED_STORAGE_KEY = 'speakeasy_last_synced_at';

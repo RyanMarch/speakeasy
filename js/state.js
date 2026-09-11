@@ -8,6 +8,9 @@ import {
   getGlassViewPreference,
   getInventory,
   getSortPreference,
+  getBars,
+  getActiveBarId,
+  setActiveBarId,
   SEED_RECIPES,
 } from './modules/storage.js';
 
@@ -62,6 +65,8 @@ export const state = {
   glassViewMain: null,
   glassViewEditor: null,
   inventory: new Set(getInventory()),
+  bars: getBars(),
+  activeBarId: getActiveBarId(),
   inventoryFilter: 'all', // 'all' | 'can_make' | 'one_missing'
   sortPreference: getSortPreference(), // 'curated' | 'name-asc' | 'name-desc' | 'ready' | 'specs-asc'
   packFilter: 'all', // 'all' | 'classic' | 'modern-craft' | 'tropical-tiki' | 'prohibition-era' | 'aperitivo-amaro' | 'nightcaps'
@@ -75,6 +80,28 @@ export let inventoryVersion = 0;
 
 export function invalidateInventoryCache() {
   inventoryVersion++;
+}
+
+/**
+ * Re-reads bars/active bar/inventory from storage into state — the single
+ * choke point used after anything that can change the bar registry or the
+ * active bar's contents out from under the in-memory state (import, sync,
+ * sign-out, sign-in restore, reset).
+ */
+export function resyncBarState() {
+  state.activeBarId = getActiveBarId();
+  state.inventory = new Set(getInventory());
+  invalidateInventoryCache();
+  state.bars = getBars();
+}
+
+/**
+ * Switches the active bar and resyncs dependent state. UI callers should
+ * re-render any inventory-dependent view after calling this.
+ */
+export function switchActiveBar(barId) {
+  setActiveBarId(barId);
+  resyncBarState();
 }
 
 export function getCachedInventoryAnalysis(recipe) {
@@ -104,8 +131,6 @@ export function initElements() {
   elements.btnImportTrigger = document.getElementById('btn-import-trigger');
   elements.importFileInput = document.getElementById('import-file-input');
   elements.vaultPopover = document.getElementById('vault-popover');
-  elements.vaultBarNameInput = document.getElementById('vault-bar-name-input');
-  elements.vaultStatsLine = document.getElementById('vault-stats-line');
   elements.popoverUnitOz = document.getElementById('popover-unit-oz');
   elements.popoverUnitMl = document.getElementById('popover-unit-ml');
   elements.popoverGlassLayered = document.getElementById('popover-glass-layered');
