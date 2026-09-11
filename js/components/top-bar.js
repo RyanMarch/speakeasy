@@ -9,6 +9,7 @@ import {
   saveBarName,
   getBarName,
   getHiddenRecipeIds,
+  getRecipes,
   getInventory,
   getUnitPreference,
   getSortPreference,
@@ -35,6 +36,7 @@ import {
   logout,
   deleteAccount,
   migrateGuestData,
+  pullRemoteData,
   checkSession,
   updateDisplayName,
   AUTH_EVENT_NAME,
@@ -596,7 +598,22 @@ export function setupTopBarEventListeners() {
     }
 
     try {
+      // 1. Pull down remote cloud data first to sync remote changes
+      await pullRemoteData();
+
+      // 2. Push current local backup data to ensure cloud is up to date
       const res = await migrateGuestData();
+
+      // 3. Update reactive application state
+      state.recipes = getRecipes();
+      state.inventory = new Set(getInventory());
+      invalidateInventoryCache();
+
+      if (_renderRecipeListFn) _renderRecipeListFn();
+      if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+      if (_renderCounterViewFn && state.viewMode === 'counter') _renderCounterViewFn();
+      updateMyBarBadge();
+
       if (elements.accountSyncBadge) {
         elements.accountSyncBadge.className = 'sync-status-dot';
       }
@@ -606,7 +623,7 @@ export function setupTopBarEventListeners() {
       if (elements.accountSyncTime) {
         elements.accountSyncTime.textContent = formatRelativeSyncTime(saveLastSyncedAt());
       }
-      showToast(`Cloud synced: ${res.imported?.recipes || 0} recipes, ${res.imported?.inventory || 0} bottles`);
+      showToast(`Cloud synced: ${state.recipes.length} recipes, ${state.inventory.size} bottles`);
     } catch (err) {
       if (elements.accountSyncBadge) {
         elements.accountSyncBadge.className = 'sync-status-dot offline';
@@ -876,9 +893,21 @@ export function setupTopBarEventListeners() {
 
   // Listen to speakeasy:auth-changed to update UI
   if (typeof window !== 'undefined') {
-    window.addEventListener(AUTH_EVENT_NAME, () => {
+    window.addEventListener(AUTH_EVENT_NAME, (event) => {
+      // Re-hydrate state from local storage (which was just merged or cleared)
+      state.recipes = getRecipes();
+      state.inventory = new Set(getInventory());
+      state.unitSystem = getUnitPreference();
+      state.sortPreference = getSortPreference();
+      state.glassViewMode = getGlassViewPreference();
+      invalidateInventoryCache();
+
       updateAuthIndicator();
       renderVaultSettingsModal();
+      updateMyBarBadge();
+      if (_renderRecipeListFn) _renderRecipeListFn();
+      if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+      if (_renderCounterViewFn && state.viewMode === 'counter') _renderCounterViewFn();
     });
   }
 

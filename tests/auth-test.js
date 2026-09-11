@@ -386,6 +386,7 @@ let createdUser = null;
   assert.equal(typeof authClient.logout, 'function');
   assert.equal(typeof authClient.deleteAccount, 'function');
   assert.equal(typeof authClient.migrateGuestData, 'function');
+  assert.equal(typeof authClient.pullRemoteData, 'function');
   console.log('PASS: js/modules/auth.js contract and exports verified');
 }
 

@@ -5,7 +5,7 @@
  * OTP verification, session termination, and guest data cloud migration.
  */
 
-import { buildBackupPayload } from './storage.js';
+import { buildBackupPayload, importData } from './storage.js';
 
 export const AUTH_TOKEN_KEY = 'speakeasy_auth_token';
 export const AUTH_USER_KEY = 'speakeasy_user';
@@ -235,6 +235,40 @@ export async function migrateGuestData() {
   }
 
   return data;
+}
+
+/**
+ * Pulls remote user data (inventory, custom recipes, settings) from Cloudflare D1
+ * via GET /api/sync and hydrates local storage seamlessly.
+ */
+export async function pullRemoteData() {
+  const token = getToken();
+  if (!token) {
+    throw new Error('Cannot pull remote data without active authentication.');
+  }
+
+  const response = await fetch('/api/sync', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok || !data.success || !data.backup) {
+    throw new Error(data.error || 'Failed to retrieve cloud data.');
+  }
+
+  // Import and merge cloud backup into local storage
+  const summary = importData(JSON.stringify(data.backup));
+
+  // Dispatch auth event so UI components refresh reactive views
+  dispatchAuthChange({ authenticated: true, user: getUser(), cloudSync: true });
+
+  return {
+    ...summary,
+    backup: data.backup,
+  };
 }
 
 /**

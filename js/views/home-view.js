@@ -22,7 +22,7 @@ import { renderGlassSvg } from '../modules/glass-view.js';
 import { setupTagAutocomplete } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
 import { formatIngredientName } from '../modules/parser.js';
-import { getDrinkHistory } from '../modules/history.js';
+import { getDrinkHistory, HISTORY_UPDATED_EVENT } from '../modules/history.js';
 
 let _selectRecipeFn = null;
 let _showDrinksListMobileFn = null;
@@ -396,4 +396,13 @@ export function setupHomeViewEvents(pinnableTags) {
     () => pinnableTags,
     pinTag
   );
+}
+
+// Reactively refresh Home view whenever drink history is logged or synced from the cloud
+if (typeof window !== 'undefined') {
+  window.addEventListener(HISTORY_UPDATED_EVENT, () => {
+    if (state.viewMode === 'home') {
+      renderHomeView();
+    }
+  });
 }

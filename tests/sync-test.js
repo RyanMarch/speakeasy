@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { onRequestPost } from '../functions/api/sync.js';
+import { onRequestPost, onRequestGet } from '../functions/api/sync.js';
 
 console.log('--- Testing /functions/api/sync.js Endpoint ---');
 
@@ -64,14 +64,14 @@ class MockD1PreparedStatement {
       };
     }
 
-    // SELECT id FROM bars WHERE user_id = ? ...
-    if (sql.startsWith('SELECT id FROM bars WHERE user_id = ?')) {
+    // SELECT id FROM bars WHERE user_id = ? ... or SELECT id, name FROM bars WHERE user_id = ? ...
+    if (sql.includes('FROM bars WHERE user_id = ?')) {
       const [userId] = params;
       const bars = Array.from(this.db.tables.bars.values())
         .filter(b => b.user_id === userId)
         .sort((a, b) => (b.is_default - a.is_default) || a.created_at.localeCompare(b.created_at));
       return {
-        results: bars.length > 0 ? [{ id: bars[0].id }] : [],
+        results: bars.length > 0 ? [{ id: bars[0].id, name: bars[0].name }] : [],
         success: true,
       };
     }
@@ -118,6 +118,30 @@ class MockD1PreparedStatement {
       };
       this.db.tables.custom_recipes.set(id, recipe);
       return { results: [], success: true };
+    }
+
+    // SELECT ingredient_id FROM bar_inventory WHERE bar_id = ?
+    if (sql.startsWith('SELECT ingredient_id FROM bar_inventory WHERE bar_id = ?')) {
+      const [barId] = params;
+      const rows = Array.from(this.db.tables.bar_inventory.values())
+        .filter(item => item.bar_id === barId)
+        .map(item => ({ ingredient_id: item.ingredient_id }));
+      return { results: rows, success: true };
+    }
+
+    // SELECT id, name, glassware, method, specs, instructions, description, notes, riff_of_id, riff_of_name, tags, is_public FROM custom_recipes WHERE user_id = ?
+    if (sql.includes('FROM custom_recipes WHERE user_id = ?')) {
+      const [userId] = params;
+      const rows = Array.from(this.db.tables.custom_recipes.values())
+        .filter(r => r.user_id === userId);
+      return { results: rows, success: true };
+    }
+
+    // SELECT settings FROM users WHERE id = ?
+    if (sql.startsWith('SELECT settings FROM users WHERE id = ?')) {
+      const [userId] = params;
+      const user = this.db.tables.users.get(userId);
+      return { results: user ? [{ settings: user.settings }] : [], success: true };
     }
 
     // UPDATE users SET settings = ? WHERE id = ?
@@ -256,4 +280,32 @@ db.tables.sessions.set('expired-token', {
   console.log('PASS: Successful sync and hydration verification');
 }
 
+// Test 4: Successful GET /api/sync returns user's cloud inventory, custom recipes, and settings
+{
+  const req = createMockRequest({
+    method: 'GET',
+    headers: { Authorization: 'Bearer valid-token' },
+  });
+
+  const res = await onRequestGet({ request: req, env: { speakeasy_db: db } });
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.success, true);
+  assert.ok(data.backup);
+  assert.equal(data.backup.version, 1);
+  assert.equal(data.backup.inventory.length, 3);
+  assert.ok(data.backup.inventory.includes('gin'));
+  assert.ok(data.backup.inventory.includes('campari'));
+  assert.ok(data.backup.inventory.includes('sweet_vermouth'));
+  assert.equal(data.backup.customRecipes.length, 1);
+  assert.equal(data.backup.customRecipes[0].name, 'House Martini');
+  assert.equal(data.backup.customRecipes[0].glassware, 'Coupe');
+  assert.equal(data.backup.settings.unitPref, 'ml');
+  assert.equal(data.backup.settings.sortPref, 'name-asc');
+  assert.equal(data.backup.settings.glassViewMode, 'blended');
+
+  console.log('PASS: GET /api/sync returns cloud backup payload for authenticated user');
+}
+
 console.log('All /functions/api/sync.js tests passed successfully!');
+

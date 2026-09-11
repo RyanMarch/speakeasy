@@ -205,13 +205,57 @@ export async function syncLocalHistoryToCloud() {
   return { syncedCount };
 }
 
-// Automatically listen for auth changes to trigger sync upon login
+/**
+ * Fetches remote history entries and merges them into local storage.
+ * Dispatches speakeasy:history-updated so UI updates seamlessly.
+ *
+ * @param {number} [limit=50]
+ * @returns {Promise<Array<{ id: string, recipeId: string, madeAt: string }>>}
+ */
+export async function fetchRemoteHistory(limit = 50) {
+  if (!isAuthenticated() || typeof fetch !== 'function') {
+    return getLocalHistoryEntries();
+  }
+
+  const token = getToken();
+  try {
+    const res = await fetch(`/api/history/list?limit=${encodeURIComponent(limit)}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) return getLocalHistoryEntries();
+
+    const data = await res.json();
+    if (data && Array.isArray(data.history)) {
+      const local = getLocalHistoryEntries();
+      const remoteIds = new Set(data.history.map(h => h.id));
+      const localOnly = local.filter(h => !remoteIds.has(h.id));
+      const merged = [...data.history, ...localOnly].sort(
+        (a, b) => new Date(b.madeAt).getTime() - new Date(a.madeAt).getTime()
+      );
+      setLocalHistoryEntries(merged);
+      dispatchHistoryUpdated({ history: merged });
+      return merged;
+    }
+  } catch (err) {
+    console.warn('Failed to fetch remote history:', err);
+  }
+
+  return getLocalHistoryEntries();
+}
+
+// Automatically listen for auth changes to trigger sync and history pull upon login
 if (typeof window !== 'undefined') {
-  window.addEventListener(AUTH_EVENT_NAME, (event) => {
+  window.addEventListener(AUTH_EVENT_NAME, async (event) => {
     if (event.detail && event.detail.authenticated) {
-      syncLocalHistoryToCloud().catch(err => {
-        console.warn('Automatic history cloud sync error:', err);
-      });
+      try {
+        await syncLocalHistoryToCloud();
+        await fetchRemoteHistory(50);
+      } catch (err) {
+        console.warn('Automatic history cloud sync/pull error:', err);
+      }
     }
   });
 }
+
