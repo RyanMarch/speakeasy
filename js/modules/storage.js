@@ -486,6 +486,34 @@ export function resetToDefaults() {
   return SEED_RECIPES;
 }
 
+/**
+ * Completely resets user-specific session data on sign out so private
+ * custom recipes, inventory, menus, and history are not left exposed in guest mode.
+ */
+export function clearUserDataOnSignOut() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(INVENTORY_STORAGE_KEY);
+      localStorage.removeItem(BAR_NAME_STORAGE_KEY);
+      localStorage.removeItem(LAST_SYNCED_STORAGE_KEY);
+      localStorage.removeItem(LAST_EXPORTED_STORAGE_KEY);
+      localStorage.removeItem(AVATAR_RECIPE_STORAGE_KEY);
+      localStorage.removeItem(PINNED_TAGS_STORAGE_KEY);
+      localStorage.removeItem(RECENTLY_VIEWED_STORAGE_KEY);
+      localStorage.removeItem(LOW_STOCK_STORAGE_KEY);
+      localStorage.removeItem(MENUS_STORAGE_KEY);
+      localStorage.removeItem('speakeasy_drink_history');
+      localStorage.removeItem('speakeasy_last_active_recipe');
+    }
+  } catch (err) {
+    console.warn('Failed to clear user data keys on sign out:', err);
+  }
+
+  saveHiddenRecipeIds([]);
+  saveRecipes(SEED_RECIPES);
+  return SEED_RECIPES;
+}
+
 // ==========================================
 // Backbar Personal Inventory Persistence
 // ==========================================

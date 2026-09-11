@@ -19,6 +19,7 @@ import {
   exportData,
   importData,
   resetToDefaults,
+  clearUserDataOnSignOut,
   getLastSyncedAt,
   saveLastSyncedAt,
   getLastExportedAt,
@@ -39,7 +40,9 @@ import {
   AUTH_EVENT_NAME,
 } from '../modules/auth.js';
 import { getDrinkHistory } from '../modules/history.js';
-import { openHiddenModal } from './hidden-modal.js';
+import { openHiddenModal, closeHiddenModal } from './hidden-modal.js';
+import { closeBackbarModal } from './backbar-modal.js';
+import { closeAuthModal } from './auth-modal.js';
 import { showToast } from './toast.js';
 
 /**
@@ -745,9 +748,38 @@ export function setupTopBarEventListeners() {
 
   // Session Sign Out
   const handleSignOut = async () => {
+    // 1. Close any open dialogs or popovers
     closeVaultSettingsModal();
+    closeBackbarModal();
+    closeAuthModal();
+    closeHiddenModal();
+
+    // 2. Perform remote logout and credential cleanup
     await logout();
-    showToast('Signed out');
+
+    // 3. Completely clear user custom data, inventory, menus, history, and restore seed library
+    state.recipes = clearUserDataOnSignOut();
+    state.inventory = new Set();
+    invalidateInventoryCache();
+
+    // 4. Reset router/view to a safe landing state (Home page)
+    if (_goHomeFn) {
+      _goHomeFn();
+    } else if (state.recipes.length > 0 && _selectRecipeFn) {
+      _selectRecipeFn(state.recipes[0].id, true);
+    }
+
+    // 5. Refresh all reactive UI elements
+    if (_renderRecipeListFn) _renderRecipeListFn();
+    if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+    updateMyBarBadge();
+    renderVaultSettingsModal();
+
+    showToast('Successfully signed out', {
+      className: 'toast-prominent',
+      duration: 3200,
+      icon: /*html*/`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+    });
   };
 
   elements.btnSignOut?.addEventListener('click', handleSignOut);
@@ -807,6 +839,25 @@ export function setupTopBarEventListeners() {
     try {
       await deleteAccount();
       closeVaultSettingsModal();
+      closeBackbarModal();
+      closeAuthModal();
+      closeHiddenModal();
+
+      state.recipes = clearUserDataOnSignOut();
+      state.inventory = new Set();
+      invalidateInventoryCache();
+
+      if (_goHomeFn) {
+        _goHomeFn();
+      } else if (state.recipes.length > 0 && _selectRecipeFn) {
+        _selectRecipeFn(state.recipes[0].id, true);
+      }
+
+      if (_renderRecipeListFn) _renderRecipeListFn();
+      if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+      updateMyBarBadge();
+      renderVaultSettingsModal();
+
       showToast('Account permanently deleted');
     } catch (err) {
       alert(`Account deletion failed: ${err.message}`);
