@@ -27,8 +27,13 @@ import {
   saveLastExportedAt,
   getAvatarRecipeId,
   saveAvatarRecipeId,
+  getAllUniqueTags,
+  savePinnedTags,
+  normalizeTagName,
 } from '../modules/storage.js';
 import { renderGlassSvg } from '../modules/glass-view.js';
+import { formatTagTitle } from '../views/home-view.js';
+import { setupTagAutocomplete } from '../views/recipe-list-view.js';
 
 import {
   isAuthenticated,
@@ -45,7 +50,7 @@ import { getDrinkHistory } from '../modules/history.js';
 import { openHiddenModal, closeHiddenModal } from './hidden-modal.js';
 import { closeBackbarModal } from './backbar-modal.js';
 import { closeAuthModal } from './auth-modal.js';
-import { showToast } from './toast.js';
+import { showToast, escapeHtml } from './toast.js';
 
 /**
  * Calculates mixologist rank based on drinks poured and custom riffs created.
@@ -178,6 +183,38 @@ export function closeVaultSettingsModal() {
 /**
  * Populates and refreshes all 6 sections of the User Account & Vault Settings modal
  */
+/**
+ * Renders the "Pinned Home Collections" list in the Account & Vault Settings
+ * modal: one row per pinned tag with up/down reorder and remove controls,
+ * matching state.pinnedTags order (the same order Home renders its shelves in).
+ */
+function renderPinnedTagsList() {
+  const listEl = document.getElementById('vault-pinned-tags-list');
+  if (!listEl) return;
+
+  if (state.pinnedTags.length === 0) {
+    listEl.innerHTML = /*html*/`<li class="vault-pinned-tags-empty">No pinned collections yet — pin a tag below to add one.</li>`;
+    return;
+  }
+
+  listEl.innerHTML = state.pinnedTags.map((tag, idx) => {
+    const title = formatTagTitle(tag);
+    return /*html*/`
+    <li class="vault-pinned-tag-row" data-tag="${escapeHtml(tag)}">
+      <span class="vault-pinned-tag-name">${escapeHtml(title)}</span>
+      <div class="vault-pinned-tag-actions">
+        <button type="button" class="vault-reorder-btn" data-action="pin-move-up" data-tag="${escapeHtml(tag)}"
+          aria-label="Move ${escapeHtml(title)} up" ${idx === 0 ? 'disabled' : ''}>&uarr;</button>
+        <button type="button" class="vault-reorder-btn" data-action="pin-move-down" data-tag="${escapeHtml(tag)}"
+          aria-label="Move ${escapeHtml(title)} down" ${idx === state.pinnedTags.length - 1 ? 'disabled' : ''}>&darr;</button>
+        <button type="button" class="vault-pinned-tag-remove" data-action="pin-remove" data-tag="${escapeHtml(tag)}"
+          aria-label="Unpin ${escapeHtml(title)}">&times;</button>
+      </div>
+    </li>
+  `;
+  }).join('');
+}
+
 export function renderVaultSettingsModal() {
   const loggedIn = isAuthenticated();
   const user = getUser();
@@ -297,7 +334,10 @@ export function renderVaultSettingsModal() {
     elements.countSavedMenus.textContent = menusCount === 1 ? '1 saved menu' : `${menusCount} saved menus`;
   }
 
-  // 4. Mixing Preferences
+  // 4. Pinned Home Collections
+  renderPinnedTagsList();
+
+  // 5. Mixing Preferences
   const unit = getUnitPreference();
   if (elements.popoverUnitOz && elements.popoverUnitMl) {
     elements.popoverUnitOz.classList.toggle('active', unit === 'oz');
@@ -880,6 +920,51 @@ export function setupTopBarEventListeners() {
       alert(`Account deletion failed: ${err.message}`);
     }
   });
+
+  // Pinned Home Collections: reorder / remove. Delegated on the list container
+  // since renderPinnedTagsList() replaces its rows' innerHTML on every render.
+  document.getElementById('vault-pinned-tags-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const tag = btn.getAttribute('data-tag');
+    const action = btn.getAttribute('data-action');
+    const idx = state.pinnedTags.indexOf(tag);
+    if (idx === -1) return;
+
+    if (action === 'pin-remove') {
+      state.pinnedTags = state.pinnedTags.filter(t => t !== tag);
+    } else if (action === 'pin-move-up' && idx > 0) {
+      const reordered = [...state.pinnedTags];
+      [reordered[idx - 1], reordered[idx]] = [reordered[idx], reordered[idx - 1]];
+      state.pinnedTags = reordered;
+    } else if (action === 'pin-move-down' && idx < state.pinnedTags.length - 1) {
+      const reordered = [...state.pinnedTags];
+      [reordered[idx + 1], reordered[idx]] = [reordered[idx], reordered[idx + 1]];
+      state.pinnedTags = reordered;
+    } else {
+      return;
+    }
+
+    savePinnedTags(state.pinnedTags);
+    renderPinnedTagsList();
+    if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+  });
+
+  // Pinned Home Collections: add a new pin via the same tag autocomplete used on Home
+  setupTagAutocomplete(
+    document.getElementById('vault-pin-tag-input'),
+    document.getElementById('vault-pin-suggest-list'),
+    () => getAllUniqueTags(state.recipes).filter(t => !state.pinnedTags.includes(t)),
+    (rawTag) => {
+      const clean = normalizeTagName(rawTag);
+      if (!clean || state.pinnedTags.includes(clean)) return;
+      state.pinnedTags = [...state.pinnedTags, clean];
+      savePinnedTags(state.pinnedTags);
+      renderPinnedTagsList();
+      if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+      showToast(`Pinned #${clean} to Home`);
+    }
+  );
 
   // Header My Bar button
   elements.btnMyBar?.addEventListener('click', () => {

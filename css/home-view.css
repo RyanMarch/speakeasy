@@ -11,9 +11,6 @@
 }
 
 .home-stats-card {
-  /* No top padding — matches .drink-title-section, which has none of its own,
-     so "Speakeasy Vault" and a recipe's name start at the exact same height. */
-  padding: 0 0 1.5rem;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
@@ -26,14 +23,14 @@
   letter-spacing: -0.015em;
   color: var(--color-text);
   line-height: 1.15;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.15rem;
 }
 
 .home-stats-row {
   display: flex;
   align-items: baseline;
   gap: 1.25rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .home-stat {
@@ -78,7 +75,9 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  margin-top: 1.25rem;
+  padding-bottom: 0.5rem;
+  margin: 4.25rem 0;
+  border-bottom: 1px solid rgba(235, 188, 114, 0.5);
 }
 
 .home-pin-label {
@@ -153,6 +152,33 @@
 }
 
 /* Home Collection Shelves (reuses .similar-cocktails-shelf / .similar-cocktail-card) */
+
+.similar-cocktails-shelf.home-shelf {
+  margin-top: 2rem !important;
+  padding-top: 0 !important;
+}
+
+/* Same divider as .home-pin-row's border-bottom, but .shelf-header itself is
+   full-bleed on desktop (see --shelf-bleed in responsive.css) — a border
+   directly on it would run edge-to-edge instead of stopping at the visible
+   content column. This pseudo-element insets by the exact same amount the
+   bled box uses to pad its content back into alignment, so the line lines
+   up with the title/arrows above it (and with the pin-row divider below) at
+   every width. The var() fallbacks make it a no-op where the shelf isn't
+   bled at all (below the 1080px breakpoint), since those custom properties
+   are simply unset there. */
+.home-shelf .shelf-header {
+  position: relative;
+}
+
+.home-shelf .shelf-header::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--desktop-inset, 0px) + var(--shelf-bleed, 0px));
+  right: calc(var(--desktop-inset, 0px) + var(--shelf-bleed, 0px));
+  bottom: 0;
+  border-bottom: 1px solid rgba(235, 188, 114, 0.5);
+}
 
 .home-see-all-card {
   align-items: center;
