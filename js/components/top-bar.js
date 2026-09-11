@@ -2,15 +2,19 @@
  * Speakeasy Top Bar & Vault Settings Popover Component
  */
 
-import { state, elements, SEED_RECIPE_IDS, invalidateInventoryCache } from '../state.js';
+import { state, elements, SEED_RECIPE_IDS, resyncBarState, switchActiveBar } from '../state.js';
 import {
   saveUnitPreference,
   saveGlassViewPreference,
-  saveBarName,
   getBarName,
+  getBars,
+  getActiveBarId,
+  createBar,
+  renameBar,
+  deleteBar,
   getHiddenRecipeIds,
   getRecipes,
-  getInventory,
+  getInventoryForBar,
   getUnitPreference,
   getSortPreference,
   getGlassViewPreference,
@@ -313,11 +317,7 @@ export function renderVaultSettingsModal() {
   }
 
   // 2. Active Bar Profile & Inventory summary
-  const currentBarName = getBarName();
-  if (elements.vaultBarNameInput) {
-    elements.vaultBarNameInput.value = currentBarName;
-    autoResizeNameInput(elements.vaultBarNameInput);
-  }
+  renderVaultBarsList();
 
   // 3. Library & Custom Recipe Summary Shortcuts
   const customCount = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
@@ -412,18 +412,61 @@ export function updateVaultStats() {
   }
 
   const bottleCount = state.inventory.size;
-  const cocktailText = customCount === 1 ? '1 custom cocktail' : `${customCount} custom cocktails`;
-  const bottleText = bottleCount === 1 ? '1 ingredient' : `${bottleCount} ingredients`;
-
-  if (elements.vaultStatsLine) {
-    elements.vaultStatsLine.textContent = `${cocktailText} · ${bottleText}`;
-  }
 
   const footerStatus = document.getElementById('vault-footer-status-text');
   if (footerStatus) {
     const activeName = getBarName();
     footerStatus.textContent = `${activeName} (${bottleCount} ${bottleCount === 1 ? 'bottle' : 'bottles'})`;
   }
+}
+
+/**
+ * Renders the list of saved bars in the vault modal's Active Bar Selection
+ * section, one card per bar with switch/rename/delete controls.
+ */
+export function renderVaultBarsList() {
+  const container = document.getElementById('vault-bars-list');
+  if (!container) return;
+
+  const bars = getBars();
+  const activeId = getActiveBarId();
+  const customCount = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
+  const cocktailText = customCount === 1 ? '1 custom cocktail' : `${customCount} custom cocktails`;
+  const canDelete = bars.length > 1;
+
+  container.innerHTML = bars.map(bar => {
+    const isActive = bar.id === activeId;
+    const bottleCount = isActive ? state.inventory.size : getInventoryForBar(bar.id).length;
+    const bottleText = bottleCount === 1 ? '1 ingredient' : `${bottleCount} ingredients`;
+
+    return /*html*/`
+      <div class="vault-bar-card ${isActive ? 'active' : ''}" data-bar-id="${escapeHtml(bar.id)}">
+        <input type="radio" name="active_bar_profile" value="${escapeHtml(bar.id)}" ${isActive ? 'checked' : ''}
+          class="vault-bar-radio" aria-label="Make ${escapeHtml(bar.name)} the active bar" />
+        <div class="vault-bar-card-info">
+          <div class="vault-input-icon-row vault-bar-name-row">
+            <input type="text" class="vault-bar-name-input" data-bar-id="${escapeHtml(bar.id)}"
+              value="${escapeHtml(bar.name)}" maxlength="32" title="Click to rename this bar" aria-label="Bar name">
+            <svg class="vault-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+            </svg>
+          </div>
+          <div class="vault-bar-card-bottles">${cocktailText} · ${bottleText}</div>
+        </div>
+        ${isActive ? '<span class="vault-badge-pill">Active</span>' : ''}
+        <button type="button" class="vault-bar-delete-btn" data-bar-id="${escapeHtml(bar.id)}"
+          ${canDelete ? '' : 'disabled'} title="${canDelete ? `Delete ${escapeHtml(bar.name)}` : 'At least one bar is required'}"
+          aria-label="Delete ${escapeHtml(bar.name)}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+      </div>
+    `;
+  }).join('');
 }
 
 /**
@@ -526,11 +569,10 @@ export function handleFileImport(e) {
       if (!state.recipes.find(r => r.id === state.activeRecipeId)) {
         state.activeRecipeId = state.recipes[0]?.id || null;
       }
-      state.inventory = new Set(getInventory());
+      resyncBarState();
       state.unitSystem = getUnitPreference();
       state.sortPreference = getSortPreference();
       state.glassViewMode = getGlassViewPreference();
-      invalidateInventoryCache();
 
       if (elements.popoverUnitOz && elements.popoverUnitMl) {
         elements.popoverUnitOz.classList.toggle('active', state.unitSystem === 'oz');
@@ -646,12 +688,12 @@ export function setupTopBarEventListeners() {
 
       // 3. Update reactive application state
       state.recipes = getRecipes();
-      state.inventory = new Set(getInventory());
-      invalidateInventoryCache();
+      resyncBarState();
 
       if (_renderRecipeListFn) _renderRecipeListFn();
       if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
       if (_renderCounterViewFn && state.viewMode === 'counter') _renderCounterViewFn();
+      renderVaultBarsList();
       updateMyBarBadge();
 
       if (elements.accountSyncBadge) {
@@ -780,26 +822,86 @@ export function setupTopBarEventListeners() {
 
   elements.importFileInput?.addEventListener('change', handleFileImport);
 
-  // Bar Profile Rename
-  elements.vaultBarNameInput?.addEventListener('input', (e) => {
-    autoResizeNameInput(e.target);
+  // Active Bar Selection: switch / rename / delete — delegated since cards
+  // are re-rendered dynamically by renderVaultBarsList().
+  const vaultBarsList = document.getElementById('vault-bars-list');
+
+  vaultBarsList?.addEventListener('click', (e) => {
+    const radio = e.target.closest('.vault-bar-radio');
+    const deleteBtn = e.target.closest('.vault-bar-delete-btn');
+    const card = e.target.closest('.vault-bar-card');
+    if (!card) return;
+    const barId = card.dataset.barId;
+
+    if (radio && barId !== state.activeBarId) {
+      const bar = getBars().find(b => b.id === barId);
+      switchActiveBar(barId);
+      renderVaultBarsList();
+      updateVaultStats();
+      updateMyBarBadge();
+      if (state.viewMode === 'home' && _renderHomeViewFn) _renderHomeViewFn();
+      if (state.viewMode === 'counter' && _renderCounterViewFn) _renderCounterViewFn();
+      showToast(`Switched to ${bar ? bar.name : 'bar'}`);
+      return;
+    }
+
+    if (deleteBtn && !deleteBtn.disabled) {
+      const bar = getBars().find(b => b.id === barId);
+      if (!confirm(`Delete "${bar?.name || 'this bar'}"? Its ingredient inventory will be lost. Recipes and drink history are unaffected.`)) return;
+      const newActiveId = deleteBar(barId);
+      if (newActiveId) {
+        switchActiveBar(newActiveId);
+      } else {
+        resyncBarState();
+      }
+      renderVaultBarsList();
+      updateVaultStats();
+      updateMyBarBadge();
+      if (state.viewMode === 'home' && _renderHomeViewFn) _renderHomeViewFn();
+      if (state.viewMode === 'counter' && _renderCounterViewFn) _renderCounterViewFn();
+      showToast('Bar deleted');
+    }
   });
 
-  elements.vaultBarNameInput?.addEventListener('change', (e) => {
-    const newName = saveBarName(e.target.value);
-    e.target.value = newName;
-    autoResizeNameInput(e.target);
-    if (state.viewMode === 'home' && _renderHomeViewFn) {
+  vaultBarsList?.addEventListener('input', (e) => {
+    const nameInput = e.target.closest('.vault-bar-name-input');
+    if (!nameInput) return;
+    autoResizeNameInput(nameInput);
+  });
+
+  vaultBarsList?.addEventListener('change', (e) => {
+    const nameInput = e.target.closest('.vault-bar-name-input');
+    if (!nameInput) return;
+    const barId = nameInput.dataset.barId;
+    const newName = renameBar(barId, nameInput.value);
+    nameInput.value = newName;
+    state.bars = getBars();
+    if (barId === state.activeBarId && state.viewMode === 'home' && _renderHomeViewFn) {
       _renderHomeViewFn();
     }
     updateVaultStats();
-    showToast('Bar name updated');
+    showToast('Bar renamed');
   });
 
-  elements.vaultBarNameInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+  vaultBarsList?.addEventListener('keydown', (e) => {
+    const nameInput = e.target.closest('.vault-bar-name-input');
+    if (nameInput && e.key === 'Enter') {
       e.preventDefault();
-      elements.vaultBarNameInput.blur();
+      nameInput.blur();
+    }
+  });
+
+  document.getElementById('btn-add-bar')?.addEventListener('click', () => {
+    const bar = createBar('New Bar');
+    state.bars = getBars();
+    renderVaultBarsList();
+    showToast(`Created "${bar.name}" — rename it below`);
+    // Focus the new card's name field so the user can rename it inline,
+    // matching the existing per-bar rename UX rather than a native prompt.
+    const newNameInput = document.querySelector(`.vault-bar-name-input[data-bar-id="${bar.id}"]`);
+    if (newNameInput) {
+      newNameInput.focus();
+      newNameInput.select();
     }
   });
 
@@ -816,8 +918,7 @@ export function setupTopBarEventListeners() {
 
     // 3. Completely clear user custom data, inventory, menus, history, and restore seed library
     state.recipes = clearUserDataOnSignOut();
-    state.inventory = new Set();
-    invalidateInventoryCache();
+    resyncBarState();
 
     // 4. Reset router/view to a safe landing state (Home page)
     if (_goHomeFn) {
@@ -847,8 +948,7 @@ export function setupTopBarEventListeners() {
   elements.btnDangerResetLocal?.addEventListener('click', () => {
     if (confirm('Reset all cocktails and backbar to the default library? Custom recipe modifications will be replaced.')) {
       state.recipes = resetToDefaults();
-      state.inventory = new Set(getInventory());
-      invalidateInventoryCache();
+      resyncBarState();
       if (_renderRecipeListFn) _renderRecipeListFn();
       if (state.recipes.length > 0 && _selectRecipeFn) {
         _selectRecipeFn(state.recipes[0].id, false);
@@ -901,8 +1001,7 @@ export function setupTopBarEventListeners() {
       closeHiddenModal();
 
       state.recipes = clearUserDataOnSignOut();
-      state.inventory = new Set();
-      invalidateInventoryCache();
+      resyncBarState();
 
       if (_goHomeFn) {
         _goHomeFn();
@@ -981,11 +1080,10 @@ export function setupTopBarEventListeners() {
     window.addEventListener(AUTH_EVENT_NAME, (event) => {
       // Re-hydrate state from local storage (which was just merged or cleared)
       state.recipes = getRecipes();
-      state.inventory = new Set(getInventory());
+      resyncBarState();
       state.unitSystem = getUnitPreference();
       state.sortPreference = getSortPreference();
       state.glassViewMode = getGlassViewPreference();
-      invalidateInventoryCache();
 
       updateAuthIndicator();
       renderVaultSettingsModal();

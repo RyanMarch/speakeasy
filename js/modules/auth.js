@@ -262,7 +262,9 @@ export async function pullRemoteData() {
   // Import and merge cloud backup into local storage
   const summary = importData(JSON.stringify(data.backup));
 
-  // Dispatch auth event so UI components refresh reactive views
+  // Dispatch auth event so UI components refresh reactive views (the
+  // speakeasy:auth-changed listener in top-bar.js resyncs state.bars/
+  // activeBarId/inventory from storage before any UI reads them)
   dispatchAuthChange({ authenticated: true, user: getUser(), cloudSync: true });
 
   return {

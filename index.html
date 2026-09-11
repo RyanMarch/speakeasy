@@ -319,26 +319,18 @@
             <section class="vault-modal-section" aria-labelledby="heading-active-bar">
               <div class="vault-modal-section-header">
                 <h2 class="vault-modal-section-title" id="heading-active-bar">Active Bar Selection</h2>
+                <button type="button" id="btn-add-bar" class="btn btn-secondary btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Add Bar</span>
+                </button>
               </div>
               <div class="vault-bar-selector-box">
-                <div class="vault-bars-list" role="radiogroup" aria-label="Active bar profile">
-                  <div class="vault-bar-card active">
-                    <input type="radio" name="active_bar_profile" value="default" checked class="vault-bar-radio"
-                      aria-label="This bar profile is active" />
-                    <div class="vault-bar-card-info">
-                      <div class="vault-input-icon-row vault-bar-name-row">
-                        <input type="text" id="vault-bar-name-input" class="vault-bar-name-input"
-                          value="Speakeasy Cocktail Library" maxlength="32" title="Click to rename your bar"
-                          aria-label="Bar name">
-                        <svg class="vault-edit-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                          stroke="currentColor" stroke-width="2" aria-hidden="true">
-                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                        </svg>
-                      </div>
-                      <div class="vault-bar-card-bottles" id="vault-stats-line">0 custom cocktails · 0 ingredients</div>
-                    </div>
-                    <span class="vault-badge-pill">Active</span>
-                  </div>
+                <div class="vault-bars-list" role="radiogroup" aria-label="Active bar profile" id="vault-bars-list">
+                  <!-- rendered by renderVaultBarsList() in js/components/top-bar.js -->
                 </div>
               </div>
             </section>

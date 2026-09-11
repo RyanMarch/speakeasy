@@ -1513,6 +1513,33 @@
   color: var(--color-text-muted);
 }
 
+.vault-bar-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.vault-bar-delete-btn:hover:not(:disabled) {
+  color: var(--color-danger, #d9756a);
+  border-color: var(--color-danger, #d9756a);
+  background: rgba(217, 117, 106, 0.1);
+}
+
+.vault-bar-delete-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .vault-badge-pill {
   font-size: 0.66rem;
   font-weight: 700;
