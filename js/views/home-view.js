@@ -91,14 +91,17 @@ export function renderHomeView() {
     recipes: recentlyViewedRecipes,
   }] : [];
 
-  const historyEntries = getDrinkHistory(10);
-  const recentlyMadeRecipes = historyEntries
-    .map(entry => {
-      const recipe = state.recipes.find(r => r.id === entry.recipeId);
-      if (!recipe) return null;
-      return { ...recipe, madeAt: entry.madeAt };
-    })
-    .filter(Boolean);
+  const historyEntries = getDrinkHistory(50);
+  const seenRecipeIds = new Set();
+  const recentlyMadeRecipes = [];
+  for (const entry of historyEntries) {
+    if (seenRecipeIds.has(entry.recipeId)) continue;
+    const recipe = state.recipes.find(r => r.id === entry.recipeId);
+    if (recipe) {
+      seenRecipeIds.add(entry.recipeId);
+      recentlyMadeRecipes.push({ ...recipe, madeAt: entry.madeAt });
+    }
+  }
 
   const recentlyMadeCollection = recentlyMadeRecipes.length > 0 ? [{
     key: '__recently-made__',
