@@ -164,29 +164,39 @@ export function renderHomeView() {
           <span>${ingredientCount === 1 ? 'Ingredient' : 'Ingredients'} in Bar</span>
         </div>
         <button type="button" class="btn btn-secondary btn-sm home-menu-builder-btn" data-action="open-menu-builder">
-          <span aria-hidden="true">🍸</span> Build a Menu
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+            <path d="M6 6h10"></path>
+            <path d="M6 10h10"></path>
+          </svg>
+          Build a Menu
         </button>
       </div>
-      <div class="home-browse-actions">
-        <button type="button" id="btn-home-browse-all" class="btn btn-primary btn-sm home-browse-all-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="8" y1="6" x2="21" y2="6"></line>
-            <line x1="8" y1="12" x2="21" y2="12"></line>
-            <line x1="8" y1="18" x2="21" y2="18"></line>
-            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-          </svg>
-          Browse Cocktails
-        </button>
-        <button type="button" id="btn-home-search" class="btn btn-secondary btn-sm home-search-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          Search Cocktails
-        </button>
-      </div>
+    </div>
+
+    <!-- A direct child of .home-view (not nested in .home-stats-card above) so
+         its mobile position:sticky has that whole page's height to stick within
+         — a sticky element can't stay stuck past the bottom of its own
+         containing block, and .home-stats-card ends right after this. -->
+    <div class="home-browse-actions">
+      <button type="button" id="btn-home-browse-all" class="btn btn-secondary btn-sm home-browse-all-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+        Browse Cocktails
+      </button>
+      <button type="button" id="btn-home-search" class="btn btn-primary btn-sm home-search-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        Search Cocktails
+      </button>
     </div>
 
     ${almostReadyCount > 0 ? /*html*/`
@@ -206,7 +216,7 @@ export function renderHomeView() {
 function renderHomePinPromptRow() {
   return  /*html*/`
     <div class="home-pin-row">
-      <span class="counter-card-title">Pin a tag as a collection</span>
+      <span class="counter-card-title">Pin a tag<span class="home-pin-label-suffix"> as a collection</span></span>
       <div class="tag-input-inline-wrapper home-pin-input-wrapper">
         <input type="text" id="home-pin-tag-input" class="tag-input-inline home-pin-input"
           placeholder="+ Pin tag..." aria-label="Pin a tag as a Home collection" autocomplete="off">
