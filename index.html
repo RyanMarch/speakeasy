@@ -427,7 +427,23 @@
               <button type="button" id="btn-popover-new-drink" style="display: none;"></button>
             </section>
 
-            <!-- Section 4: Bar Mixing Preferences -->
+            <!-- Section 4: Pinned Home Collections -->
+            <section class="vault-modal-section" aria-labelledby="heading-pinned-tags">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-pinned-tags">Pinned Home Collections</h2>
+              </div>
+              <p class="vault-section-hint">Tags pinned here show up as rows at the top of your Home screen, in this order.</p>
+              <ul class="vault-pinned-tags-list" id="vault-pinned-tags-list">
+                <!-- Populated by renderVaultSettingsModal() -->
+              </ul>
+              <div class="tag-input-inline-wrapper vault-pin-input-wrapper">
+                <input type="text" id="vault-pin-tag-input" class="tag-input-inline"
+                  placeholder="+ Pin tag..." aria-label="Pin a tag as a Home collection" autocomplete="off">
+                <ul class="tag-suggest-list" id="vault-pin-suggest-list" role="listbox" hidden></ul>
+              </div>
+            </section>
+
+            <!-- Section 5: Bar Mixing Preferences -->
             <section class="vault-modal-section" aria-labelledby="heading-mixing-prefs">
               <div class="vault-modal-section-header">
                 <h2 class="vault-modal-section-title" id="heading-mixing-prefs">Bar Mixing Preferences</h2>
@@ -477,7 +493,7 @@
               </div>
             </section>
 
-            <!-- Section 5: Data Portability -->
+            <!-- Section 6: Data Portability -->
             <section class="vault-modal-section" aria-labelledby="heading-data-portability">
               <div class="vault-modal-section-header">
                 <h2 class="vault-modal-section-title" id="heading-data-portability">Data Management & Backups</h2>
@@ -508,7 +524,7 @@
               <p class="vault-export-reminder" id="account-export-reminder">never exported</p>
             </section>
 
-            <!-- Section 6: Session & Danger Zone -->
+            <!-- Section 7: Session & Danger Zone -->
             <section class="vault-modal-section" aria-labelledby="heading-danger-zone">
               <div class="vault-modal-section-header">
                 <h2 class="vault-modal-section-title" id="heading-danger-zone">Account Session & Danger Zone</h2>

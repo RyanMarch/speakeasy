@@ -136,6 +136,15 @@ export function renderHomeView() {
   homeCollectionsCache = allCollections;
   const pinnableTags = getAllUniqueTags(state.recipes).filter(t => !state.pinnedTags.includes(t));
 
+  // The pin prompt is anchored to a landmark row, not a raw index, so it
+  // doesn't jump around whenever Recently Viewed/Made appear or disappear:
+  // right after the last pinned row once the user has any pins, otherwise
+  // right after the first default collection (Classic Cocktails).
+  const topRowCount = recentlyViewedCollection.length + recentlyMadeCollection.length + pinnedCollections.length;
+  const pinPromptIndex = pinnedCollections.length > 0
+    ? topRowCount
+    : topRowCount + (defaultCollections.length > 0 ? 1 : 0);
+
   // "Almost Ready" is a compact banner, not a shelf — a full row of cards here
   // would reintroduce the home-screen bulk this whole page was just decluttered
   // of. Uses the same isBottleNext filter as the sidebar's "Ready" toggle.
@@ -188,23 +197,45 @@ export function renderHomeView() {
       </button>
     ` : ''}
 
+    ${renderHomeCollectionsWithPinPrompt(allCollections, pinPromptIndex)}
+  `;
+
+  setupHomeViewEvents(pinnableTags);
+}
+
+function renderHomePinPromptRow() {
+  return  /*html*/`
     <div class="home-pin-row">
-      <span class="home-pin-label">Pin a tag as a collection</span>
+      <span class="counter-card-title">Pin a tag as a collection</span>
       <div class="tag-input-inline-wrapper home-pin-input-wrapper">
         <input type="text" id="home-pin-tag-input" class="tag-input-inline home-pin-input"
           placeholder="+ Pin tag..." aria-label="Pin a tag as a Home collection" autocomplete="off">
         <ul class="tag-suggest-list" id="home-pin-suggest-list" role="listbox" hidden></ul>
       </div>
     </div>
+  `;
+}
 
-    ${allCollections.length > 0 ? allCollections.map(renderHomeShelf).join('') : /*html*/`
+// Interleaves the "pin a tag" prompt into the shelf list at `pinPromptIndex`
+// (see renderHomeView for how that index is chosen) instead of it being a
+// fixed banner above every row. Shelf `idx` values stay aligned with
+// homeCollectionsCache since the prompt doesn't consume a collection slot.
+function renderHomeCollectionsWithPinPrompt(allCollections, pinPromptIndex) {
+  if (allCollections.length === 0) {
+    return /*html*/`
       <div class="home-empty-state">
         <p>No collections yet — tag a few drinks and they'll show up here as browsable rows.</p>
       </div>
-    `}
-  `;
+    ` + renderHomePinPromptRow();
+  }
 
-  setupHomeViewEvents(pinnableTags);
+  const rows = [];
+  allCollections.forEach((col, idx) => {
+    if (idx === pinPromptIndex) rows.push(renderHomePinPromptRow());
+    rows.push(renderHomeShelf(col, idx));
+  });
+  if (pinPromptIndex >= allCollections.length) rows.push(renderHomePinPromptRow());
+  return rows.join('');
 }
 
 export function renderHomeShelf(col, idx) {
