@@ -132,6 +132,41 @@ export async function logout() {
 }
 
 /**
+ * Permanently deletes the authenticated user's account and all associated cloud data,
+ * clearing local credentials and notifying the application.
+ */
+export async function deleteAccount() {
+  const token = getToken();
+  if (!token) {
+    throw new Error('No active account to delete.');
+  }
+
+  const response = await fetch('/api/auth/delete-account', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.success) {
+    throw new Error(data.error || 'Failed to delete cloud account.');
+  }
+
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_USER_KEY);
+    }
+  } catch (err) {
+    console.warn('Failed to clear credentials from localStorage:', err);
+  }
+
+  dispatchAuthChange({ authenticated: false, user: null });
+  return data;
+}
+
+/**
  * Checks with the server (/api/auth/me) to ensure the local token remains valid.
  * Clears local state if expired or invalid.
  */
@@ -200,4 +235,53 @@ export async function migrateGuestData() {
   }
 
   return data;
+}
+
+/**
+ * Updates the user's display name locally and in Cloudflare D1.
+ */
+export async function updateDisplayName(displayName) {
+  const token = getToken();
+  const trimmed = (displayName || '').trim();
+  if (!trimmed) {
+    throw new Error('Name cannot be empty.');
+  }
+
+  // Update local storage user profile first
+  const currentUser = getUser() || {};
+  currentUser.displayName = trimmed;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+    }
+  } catch (err) {
+    console.warn('Failed to update user in localStorage:', err);
+  }
+
+  // Sync to remote server if authenticated
+  if (token) {
+    try {
+      const res = await fetch('/api/auth/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ displayName: trimmed }),
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
+        }
+        dispatchAuthChange({ authenticated: true, user: data.user });
+        return data.user;
+      }
+    } catch (err) {
+      console.warn('Failed to patch display name on server:', err);
+    }
+  }
+
+  dispatchAuthChange({ authenticated: Boolean(token), user: currentUser });
+  return currentUser;
 }

@@ -22,6 +22,7 @@ import {
   isRecipeHidden,
   hideRecipe,
   unhideRecipe,
+  getWakeLockPreference,
   SEED_RECIPES,
 } from '../modules/storage.js';
 
@@ -78,6 +79,7 @@ export function setCounterViewCallbacks(cbs) {
 let wakeLockSentinel = null;
 
 export async function requestWakeLock() {
+  if (!getWakeLockPreference()) return;
   if (!('wakeLock' in navigator) || wakeLockSentinel) return;
   try {
     wakeLockSentinel = await navigator.wakeLock.request('screen');

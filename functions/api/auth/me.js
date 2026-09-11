@@ -64,7 +64,7 @@ export async function onRequestGet(context) {
 
   // Look up user
   const user = await env.speakeasy_db.prepare(
-    `SELECT id, email, display_name, settings FROM users WHERE id = ?`
+    `SELECT id, email, display_name, settings, created_at FROM users WHERE id = ?`
   ).bind(sessionRow.user_id).first();
 
   if (!user) {
@@ -78,6 +78,72 @@ export async function onRequestGet(context) {
       email: user.email,
       displayName: user.display_name,
       settings: parseSettings(user.settings),
+      createdAt: user.created_at || null,
+    },
+  });
+}
+
+export async function onRequestPatch(context) {
+  const { request, env } = context;
+
+  if (!env || !env.speakeasy_db) {
+    return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
+  }
+
+  const authHeader = request.headers.get('Authorization') || '';
+  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+
+  if (!tokenMatch) {
+    return jsonResponse({ error: 'Unauthorized' }, 401);
+  }
+
+  const token = tokenMatch[1].trim();
+  if (!token) {
+    return jsonResponse({ error: 'Unauthorized' }, 401);
+  }
+
+  const sessionRow = await env.speakeasy_db.prepare(
+    `SELECT user_id, expires_at FROM sessions WHERE token = ?`
+  ).bind(token).first();
+
+  if (!sessionRow) {
+    return jsonResponse({ error: 'Unauthorized' }, 401);
+  }
+
+  const expiresTime = new Date(sessionRow.expires_at).getTime();
+  if (!Number.isNaN(expiresTime) && Date.now() > expiresTime) {
+    await env.speakeasy_db.prepare(`DELETE FROM sessions WHERE token = ?`).bind(token).run();
+    return jsonResponse({ error: 'Session expired' }, 401);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse({ error: 'Invalid JSON payload' }, 400);
+  }
+
+  const displayName = typeof body.displayName === 'string' ? body.displayName.trim() : null;
+  if (!displayName) {
+    return jsonResponse({ error: 'Display name cannot be empty' }, 400);
+  }
+
+  await env.speakeasy_db.prepare(
+    `UPDATE users SET display_name = ? WHERE id = ?`
+  ).bind(displayName, sessionRow.user_id).run();
+
+  const user = await env.speakeasy_db.prepare(
+    `SELECT id, email, display_name, settings, created_at FROM users WHERE id = ?`
+  ).bind(sessionRow.user_id).first();
+
+  return jsonResponse({
+    success: true,
+    user: {
+      id: user.id,
+      email: user.email,
+      displayName: user.display_name,
+      settings: parseSettings(user.settings),
+      createdAt: user.created_at || null,
     },
   });
 }
