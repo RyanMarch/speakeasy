@@ -21,6 +21,24 @@ function dispatchHistoryUpdated(detail = {}) {
 }
 
 /**
+ * True when two already-sorted history arrays contain the same entries in the
+ * same order. Used to skip the write + event dispatch when a background
+ * refresh comes back identical — dispatching unconditionally here feeds
+ * straight back into any view that re-renders on this event by calling
+ * getDrinkHistory() again, which re-fires this same fetch: an infinite
+ * fetch loop that only a real change should ever break out of.
+ */
+function historyEntriesEqual(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].id !== b[i].id || a[i].recipeId !== b[i].recipeId || a[i].madeAt !== b[i].madeAt) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Retrieves raw entries from localStorage.
  * Format: Array<{ id?: string, recipeId: string, madeAt: string }>
  */
@@ -129,8 +147,10 @@ export function getDrinkHistory(limit = 15) {
           const merged = [...data.history, ...localOnly].sort(
             (a, b) => new Date(b.madeAt).getTime() - new Date(a.madeAt).getTime()
           );
-          setLocalHistoryEntries(merged);
-          dispatchHistoryUpdated({ history: merged });
+          if (!historyEntriesEqual(merged, local)) {
+            setLocalHistoryEntries(merged);
+            dispatchHistoryUpdated({ history: merged });
+          }
         }
       })
       .catch(err => {
@@ -234,8 +254,10 @@ export async function fetchRemoteHistory(limit = 50) {
       const merged = [...data.history, ...localOnly].sort(
         (a, b) => new Date(b.madeAt).getTime() - new Date(a.madeAt).getTime()
       );
-      setLocalHistoryEntries(merged);
-      dispatchHistoryUpdated({ history: merged });
+      if (!historyEntriesEqual(merged, local)) {
+        setLocalHistoryEntries(merged);
+        dispatchHistoryUpdated({ history: merged });
+      }
       return merged;
     }
   } catch (err) {
