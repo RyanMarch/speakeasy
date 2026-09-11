@@ -81,6 +81,7 @@ async function runTests() {
 
   const recipeListViewMod = await import('../js/views/recipe-list-view.js');
   assert(typeof recipeListViewMod.renderRecipeList === 'function', 'recipe-list-view.js exports renderRecipeList()');
+  assert(typeof recipeListViewMod.updateCustomFilterVisibility === 'function', 'recipe-list-view.js exports updateCustomFilterVisibility()');
   assert(typeof recipeListViewMod.filterByTag === 'function', 'recipe-list-view.js exports filterByTag()');
   assert(typeof recipeListViewMod.setupTagAutocomplete === 'function', 'recipe-list-view.js exports setupTagAutocomplete()');
   assert(typeof recipeListViewMod.setRecipeListCallbacks === 'function', 'recipe-list-view.js exports setRecipeListCallbacks()');
@@ -218,6 +219,42 @@ async function runTests() {
   assert(stateMod.inventoryVersion === v1 + 1, 'invalidateInventoryCache increments inventoryVersion');
   const res3 = stateMod.getCachedInventoryAnalysis(testRecipe);
   assert(typeof res3 === 'object' && res3.canMake !== undefined, 'getCachedInventoryAnalysis re-evaluates after cache invalidation');
+
+  console.log('\n--- 6. Testing Custom Pack Filter Visibility & Filter Logic ---');
+  const authMod = await import('../js/modules/auth.js');
+  const mockButton = { style: { display: 'none' } };
+  stateMod.elements.packPillCustom = mockButton;
+
+  // Case 1: Guest (not authenticated), with custom recipes -> hidden
+  stateMod.state.recipes = [...directSeeds, { id: 'custom-cocktail-1', name: 'My Own Cocktail', specs: [] }];
+  recipeListViewMod.updateCustomFilterVisibility();
+  assert(mockButton.style.display === 'none', 'Custom filter button is hidden when user is not authenticated');
+
+  // Case 2: Signed in, but 0 custom recipes -> hidden
+  globalThis.localStorage = {
+    getItem: (k) => k === 'speakeasy_auth_token' ? 'fake-token-123' : (k === 'speakeasy_user' ? JSON.stringify({ id: 'u1', email: 'test@example.com' }) : null),
+    setItem: () => {},
+    removeItem: () => {}
+  };
+  stateMod.state.recipes = [...directSeeds];
+  recipeListViewMod.updateCustomFilterVisibility();
+  assert(mockButton.style.display === 'none', 'Custom filter button is hidden when user has no custom recipes');
+
+  // Case 3: Signed in AND has custom recipes -> displayed
+  stateMod.state.recipes = [...directSeeds, { id: 'custom-cocktail-1', name: 'My Own Cocktail', specs: [] }];
+  recipeListViewMod.updateCustomFilterVisibility();
+  assert(mockButton.style.display === 'inline-flex', 'Custom filter button is shown when signed in and user has custom cocktails');
+
+  // Case 4: Pack filter set to custom filters properly
+  stateMod.state.packFilter = 'custom';
+  stateMod.state.searchQuery = '';
+  stateMod.state.inventoryFilter = 'all';
+  recipeListViewMod.renderRecipeList();
+  // Ensure the count reflects custom recipes
+  assert(stateMod.elements.countAll?.textContent === '1', 'Custom pack filter only includes non-seed recipes');
+
+  // Clean up mock localStorage
+  delete globalThis.localStorage;
 
   console.log(`\nAll Architecture Tests Complete! Passed: ${passedTests} / ${totalTests}`);
 }

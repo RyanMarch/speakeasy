@@ -123,6 +123,7 @@ export function initElements() {
   elements.btnMyBar = document.getElementById('btn-my-bar');
   elements.myBarBadge = document.getElementById('my-bar-badge');
   elements.sidebarPackFilter = document.getElementById('sidebar-pack-filter');
+  elements.packPillCustom = document.getElementById('pack-pill-custom');
   elements.sidebarInventoryFilter = document.getElementById('sidebar-inventory-filter');
   elements.sidebarSortSelect = document.getElementById('sidebar-sort-select');
   elements.countAll = document.getElementById('count-all');
