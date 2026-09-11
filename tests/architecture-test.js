@@ -32,7 +32,9 @@ async function runTests() {
 
   assert(Array.isArray(directSeeds), 'seed-recipes.js exports an array');
   assert(directSeeds.length === 181, `seed-recipes.js has 181 recipes (found: ${directSeeds.length})`);
-  assert(storageSeeds === directSeeds, 'storage.js re-exports the exact same SEED_RECIPES array');
+  const storageMod = await import('../js/modules/storage.js');
+  assert(typeof storageMod.clearUserDataOnSignOut === 'function', 'storage.js exports clearUserDataOnSignOut()');
+  assert(storageMod.SEED_RECIPES === directSeeds, 'storage.js re-exports the exact same SEED_RECIPES array');
 
   const seenIds = new Set();
   let validSpecsCount = 0;
