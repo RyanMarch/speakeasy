@@ -9,6 +9,7 @@ import {
   selectRecipe,
   goHome,
   goToMenuBuilder,
+  goToAccount,
   renderCurrentView,
   showDrinksListMobile,
 } from './js/router.js';
@@ -38,6 +39,9 @@ import {
   setUnitSystem,
   setGlassViewMode,
   setLibrarySort,
+  openVaultSettingsModal,
+  renderVaultSettingsModal,
+  updateAuthIndicator,
 } from './js/components/top-bar.js';
 
 import {
@@ -100,13 +104,14 @@ function init() {
 
   const deepLinkedToRecipe = Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
   const deepLinkedToMenuBuilder = urlHash === 'menus' || urlHash.startsWith('menus/');
+  const deepLinkedToAccount = urlHash === 'account' || urlHash === 'vault';
 
   if (!initialId && state.recipes.length > 0) {
     initialId = state.recipes[0].id;
   }
 
   state.activeRecipeId = initialId;
-  state.viewMode = deepLinkedToRecipe ? 'counter' : (deepLinkedToMenuBuilder ? 'menu-builder' : 'home');
+  state.viewMode = deepLinkedToRecipe ? 'counter' : (deepLinkedToMenuBuilder ? 'menu-builder' : (deepLinkedToAccount ? 'account' : 'home'));
   if (urlHash && initialId && deepLinkedToRecipe) {
     history.replaceState(null, '', `#${initialId}`);
   }
@@ -146,6 +151,7 @@ function init() {
     openBackbarModal,
     updateBackbarActionButtons,
     openAuthModal,
+    goToAccount,
   });
   setBackbarModalCallbacks({
     updateMyBarBadge,
@@ -176,9 +182,18 @@ function init() {
   renderRecipeList();
   renderCurrentView();
 
-  // Validate stored session token against backend
-  checkSession().catch(err => {
+  // Validate stored session token against backend and sync state
+  checkSession().then(result => {
+    updateAuthIndicator();
+    if (state.viewMode === 'account') {
+      renderVaultSettingsModal();
+    }
+  }).catch(err => {
     console.warn('Initial session check error:', err);
+    updateAuthIndicator();
+    if (state.viewMode === 'account') {
+      renderVaultSettingsModal();
+    }
   });
 
   // Initialize Vault Settings Popover values
@@ -243,6 +258,15 @@ function setupGlobalEventListeners() {
       if (state.viewMode !== 'home') {
         state.viewMode = 'home';
         renderRecipeList();
+        renderCurrentView();
+      }
+      elements.sidebar?.classList.add('mobile-hidden');
+      elements.mainStage?.classList.remove('mobile-hidden');
+      return;
+    }
+    if (rawHash === 'vault' || rawHash === 'account') {
+      if (state.viewMode !== 'account') {
+        state.viewMode = 'account';
         renderCurrentView();
       }
       elements.sidebar?.classList.add('mobile-hidden');

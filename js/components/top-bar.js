@@ -7,18 +7,56 @@ import {
   saveUnitPreference,
   saveGlassViewPreference,
   saveBarName,
+  getBarName,
   getHiddenRecipeIds,
   getInventory,
   getUnitPreference,
   getSortPreference,
   getGlassViewPreference,
+  getWakeLockPreference,
+  saveWakeLockPreference,
+  getMenus,
   exportData,
   importData,
   resetToDefaults,
+  getLastSyncedAt,
+  saveLastSyncedAt,
+  getLastExportedAt,
+  saveLastExportedAt,
+  getAvatarRecipeId,
+  saveAvatarRecipeId,
 } from '../modules/storage.js';
+import { renderGlassSvg } from '../modules/glass-view.js';
 
-import { isAuthenticated, getUser, logout, AUTH_EVENT_NAME } from '../modules/auth.js';
+import {
+  isAuthenticated,
+  getUser,
+  logout,
+  deleteAccount,
+  migrateGuestData,
+  checkSession,
+  updateDisplayName,
+  AUTH_EVENT_NAME,
+} from '../modules/auth.js';
+import { getDrinkHistory } from '../modules/history.js';
+import { openHiddenModal } from './hidden-modal.js';
 import { showToast } from './toast.js';
+
+/**
+ * Calculates mixologist rank based on drinks poured and custom riffs created.
+ */
+function getMixologistRank() {
+  const historyEntries = Array.isArray(getDrinkHistory()) ? getDrinkHistory() : [];
+  const drinksPoured = historyEntries.length;
+  const customRiffs = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
+  const totalScore = drinksPoured + (customRiffs * 2);
+
+  if (totalScore >= 50) return 'Master Distiller';
+  if (totalScore >= 20) return 'Head Mixologist';
+  if (totalScore >= 8) return 'Bartender';
+  if (totalScore >= 3) return 'Barback';
+  return 'Apprentice';
+}
 
 let _goHomeFn = null;
 let _openEditorFn = null;
@@ -29,6 +67,73 @@ let _renderRecipeListFn = null;
 let _openBackbarModalFn = null;
 let _updateBackbarActionButtonsFn = null;
 let _openAuthModalFn = null;
+let _goToAccountFn = null;
+
+function autoResizeNameInput(input) {
+  if (!input) return;
+  const text = input.value || input.placeholder || '';
+  // Accurate width calculation using a single shared canvas context
+  const canvas = autoResizeNameInput._canvas || (autoResizeNameInput._canvas = document.createElement('canvas'));
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    const style = window.getComputedStyle(input);
+    ctx.font = `${style.fontWeight || '700'} ${style.fontSize || '1.25rem'} ${style.fontFamily || 'serif'}`;
+    const textWidth = ctx.measureText(text).width;
+    // text width + 1rem padding
+    input.style.width = `${Math.ceil(textWidth + 18)}px`;
+  } else {
+    input.style.width = `${Math.max(text.length + 2, 8)}ch`;
+  }
+}
+
+function timeAgo(timestamp) {
+  if (!timestamp) return '';
+  const seconds = Math.round((Date.now() - timestamp) / 1000);
+  if (seconds < 45) return 'just now';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} hr${hours === 1 ? '' : 's'} ago`;
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
+
+function formatRelativeSyncTime(timestamp) {
+  return timestamp ? `last synced ${timeAgo(timestamp)}` : '';
+}
+
+function formatRelativeExportTime(timestamp) {
+  return timestamp ? `last exported ${timeAgo(timestamp)}` : 'never exported';
+}
+
+/**
+ * Picks a recipe to represent the account avatar as a mini fluid-glass
+ * illustration for accounts without a Gravatar. Sticks with the stored
+ * choice until the user shuffles, so the avatar stays stable across visits.
+ */
+function pickAvatarRecipe(excludeId = null) {
+  const pool = state.recipes.filter(r => Array.isArray(r.specs) && r.specs.length > 0);
+  if (pool.length === 0) return null;
+  const candidates = excludeId ? pool.filter(r => r.id !== excludeId) : pool;
+  const list = candidates.length > 0 ? candidates : pool;
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function getStoredOrRandomAvatarRecipe() {
+  const storedId = getAvatarRecipeId();
+  const stored = storedId ? state.recipes.find(r => r.id === storedId) : null;
+  if (stored) return stored;
+  const picked = pickAvatarRecipe();
+  if (picked) saveAvatarRecipeId(picked.id);
+  return picked;
+}
+
+function renderAvatarGlass(avatarEl, recipe) {
+  if (!avatarEl || !recipe) return;
+  avatarEl.innerHTML = /*html*/`
+    <div class="vault-avatar-glass">${renderGlassSvg(recipe, `account-avatar-glass-${recipe.id}`, { mode: 'blended' })}</div>
+  `;
+}
 
 export function setTopBarCallbacks(cbs) {
   if (cbs.goHome) _goHomeFn = cbs.goHome;
@@ -40,10 +145,209 @@ export function setTopBarCallbacks(cbs) {
   if (cbs.openBackbarModal) _openBackbarModalFn = cbs.openBackbarModal;
   if (cbs.updateBackbarActionButtons) _updateBackbarActionButtonsFn = cbs.updateBackbarActionButtons;
   if (cbs.openAuthModal) _openAuthModalFn = cbs.openAuthModal;
+  if (cbs.goToAccount) _goToAccountFn = cbs.goToAccount;
 }
 
 /**
- * Update vault stats line in Settings popover
+ * Opens the unified User Account & Vault Settings page
+ */
+export function openVaultSettingsModal() {
+  if (_goToAccountFn) {
+    _goToAccountFn();
+  } else {
+    window.location.hash = '#account';
+  }
+}
+
+/**
+ * Closes or exits the unified User Account & Vault Settings page
+ */
+export function closeVaultSettingsModal() {
+  if (_goHomeFn) {
+    _goHomeFn();
+  } else {
+    window.location.hash = '';
+  }
+}
+
+/**
+ * Populates and refreshes all 6 sections of the User Account & Vault Settings modal
+ */
+export function renderVaultSettingsModal() {
+  const loggedIn = isAuthenticated();
+  const user = getUser();
+
+  // 1. User Identity & Cloud Sync
+  const nameInput = elements.accountUserNameInput || document.getElementById('account-display-name-input');
+  const emailDisplay = elements.accountEmailDisplay || document.getElementById('account-email-display');
+  const createdDisplay = elements.accountCreatedDisplay || document.getElementById('account-created-display');
+  const btnSync = elements.btnSyncNow || document.getElementById('btn-sync-now');
+  const btnGuestSign = elements.btnGuestSignIn || document.getElementById('btn-guest-sign-in');
+  const btnSignOut = elements.btnAccountSignOut || document.getElementById('btn-account-sign-out');
+  const btnDangerSignOut = document.getElementById('btn-danger-sign-out');
+  const deleteCloudRow = document.getElementById('danger-row-delete-cloud');
+
+  const rankDisplay = elements.accountRankDisplay || document.getElementById('account-rank-display');
+  const modalAvatar = document.getElementById('account-avatar-icon');
+  const btnAvatarShuffle = document.getElementById('btn-avatar-shuffle');
+  const rank = getMixologistRank();
+  if (rankDisplay) {
+    rankDisplay.textContent = rank;
+  }
+
+  const useGlassAvatarFallback = () => {
+    const recipe = getStoredOrRandomAvatarRecipe();
+    if (recipe) {
+      renderAvatarGlass(modalAvatar, recipe);
+      if (btnAvatarShuffle) btnAvatarShuffle.style.display = 'flex';
+    } else if (modalAvatar) {
+      modalAvatar.innerHTML = /*html*/`
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>`;
+      if (btnAvatarShuffle) btnAvatarShuffle.style.display = 'none';
+    }
+  };
+
+  if (loggedIn && user) {
+    if (nameInput) {
+      nameInput.value = user.displayName || '';
+      nameInput.placeholder = 'Mixologist Name';
+      autoResizeNameInput(nameInput);
+    }
+    if (emailDisplay) {
+      emailDisplay.textContent = user.email || 'Cloud Member';
+    }
+    if (createdDisplay) {
+      if (user.createdAt) {
+        try {
+          const d = new Date(user.createdAt);
+          const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+          createdDisplay.textContent = `Mixing since ${dateStr}`;
+        } catch {
+          createdDisplay.textContent = 'Cloud Member';
+        }
+      } else {
+        createdDisplay.textContent = 'Cloud Synced Account';
+      }
+    }
+    if (btnSync) btnSync.style.display = 'inline-flex';
+    if (btnGuestSign) btnGuestSign.style.display = 'none';
+    if (btnSignOut) btnSignOut.style.display = 'inline-flex';
+    if (btnDangerSignOut) btnDangerSignOut.style.display = 'inline-flex';
+    const confirmRowOpen = elements.dangerDeleteConfirmRow?.style.display === 'flex';
+    if (deleteCloudRow) deleteCloudRow.style.display = confirmRowOpen ? 'none' : 'flex';
+    if (elements.accountSyncTime) {
+      elements.accountSyncTime.textContent = formatRelativeSyncTime(getLastSyncedAt());
+    }
+
+    // Use the shuffleable mini cocktail-glass illustration as the avatar.
+    // Purely local, instant, zero network dependencies, and keeps the browser console 100% clean.
+    useGlassAvatarFallback();
+  } else {
+    useGlassAvatarFallback();
+    if (nameInput) {
+      nameInput.value = '';
+      nameInput.placeholder = 'Guest Bartender';
+      autoResizeNameInput(nameInput);
+    }
+    if (emailDisplay) {
+      emailDisplay.textContent = 'Guest Mode (Not signed in)';
+    }
+    if (createdDisplay) {
+      createdDisplay.textContent = 'Offline Local Bar Library';
+    }
+    if (btnSync) btnSync.style.display = 'none';
+    if (btnGuestSign) btnGuestSign.style.display = 'inline-flex';
+    if (btnSignOut) btnSignOut.style.display = 'none';
+    if (btnDangerSignOut) btnDangerSignOut.style.display = 'none';
+    if (deleteCloudRow) deleteCloudRow.style.display = 'none';
+    if (elements.dangerDeleteConfirmRow) elements.dangerDeleteConfirmRow.style.display = 'none';
+    if (elements.accountSyncTime) {
+      elements.accountSyncTime.textContent = '';
+    }
+  }
+
+  // 2. Active Bar Profile & Inventory summary
+  const currentBarName = getBarName();
+  if (elements.vaultBarNameInput) {
+    elements.vaultBarNameInput.value = currentBarName;
+    autoResizeNameInput(elements.vaultBarNameInput);
+  }
+
+  // 3. Library & Custom Recipe Summary Shortcuts
+  const customCount = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
+  const hiddenCount = getHiddenRecipeIds().length;
+  const menusCount = getMenus().length;
+
+  if (elements.countCustomRiffs) {
+    elements.countCustomRiffs.textContent = customCount === 1 ? '1 custom recipe' : `${customCount} custom recipes`;
+  }
+  if (elements.countHiddenCocktails) {
+    elements.countHiddenCocktails.textContent = hiddenCount === 1 ? '1 hidden' : `${hiddenCount} hidden`;
+  }
+  if (elements.countSavedMenus) {
+    elements.countSavedMenus.textContent = menusCount === 1 ? '1 saved menu' : `${menusCount} saved menus`;
+  }
+
+  // 4. Mixing Preferences
+  const unit = getUnitPreference();
+  if (elements.popoverUnitOz && elements.popoverUnitMl) {
+    elements.popoverUnitOz.classList.toggle('active', unit === 'oz');
+    elements.popoverUnitMl.classList.toggle('active', unit === 'ml');
+  }
+
+  const glassMode = getGlassViewPreference();
+  if (elements.popoverGlassLayered && elements.popoverGlassBlended) {
+    elements.popoverGlassLayered.classList.toggle('active', glassMode === 'layered');
+    elements.popoverGlassBlended.classList.toggle('active', glassMode === 'blended');
+  }
+
+  if (elements.btnWakeLockToggle) {
+    elements.btnWakeLockToggle.checked = getWakeLockPreference();
+  }
+
+  // "Your Bar at a Glance" stat strip
+  const historyEntries = Array.isArray(getDrinkHistory()) ? getDrinkHistory() : [];
+  if (elements.accountStatDrinks) {
+    elements.accountStatDrinks.textContent = String(historyEntries.length);
+  }
+  if (elements.accountStatIngredients) {
+    elements.accountStatIngredients.textContent = String(state.inventory.size);
+  }
+  if (elements.accountStatFavorite) {
+    if (historyEntries.length === 0) {
+      elements.accountStatFavorite.textContent = '—';
+    } else {
+      const tally = new Map();
+      for (const entry of historyEntries) {
+        tally.set(entry.recipeId, (tally.get(entry.recipeId) || 0) + 1);
+      }
+      let topId = null;
+      let topCount = 0;
+      for (const [id, count] of tally) {
+        if (count > topCount) {
+          topId = id;
+          topCount = count;
+        }
+      }
+      const topRecipe = topId ? state.recipes.find(r => r.id === topId) : null;
+      elements.accountStatFavorite.textContent = topRecipe ? topRecipe.name : '—';
+    }
+  }
+
+  // Export reminder
+  if (elements.accountExportReminder) {
+    elements.accountExportReminder.textContent = formatRelativeExportTime(getLastExportedAt());
+  }
+
+  updateVaultStats();
+}
+
+/**
+ * Update vault stats line in Settings modal
  */
 export function updateVaultStats() {
   const hiddenCount = getHiddenRecipeIds().length;
@@ -53,12 +357,28 @@ export function updateVaultStats() {
   if (elements.vaultHiddenSub) {
     elements.vaultHiddenSub.textContent = hiddenCount === 1 ? '1 drink hidden' : `${hiddenCount} drinks hidden`;
   }
-  if (!elements.vaultStatsLine) return;
+  if (elements.countHiddenCocktails) {
+    elements.countHiddenCocktails.textContent = hiddenCount === 1 ? '1 hidden' : `${hiddenCount} hidden`;
+  }
+
   const customCount = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
-  const cocktailText = customCount === 1 ? '1 custom cocktail' : `${customCount} custom cocktails`;
+  if (elements.countCustomRiffs) {
+    elements.countCustomRiffs.textContent = customCount === 1 ? '1 custom recipe' : `${customCount} custom recipes`;
+  }
+
   const bottleCount = state.inventory.size;
+  const cocktailText = customCount === 1 ? '1 custom cocktail' : `${customCount} custom cocktails`;
   const bottleText = bottleCount === 1 ? '1 ingredient' : `${bottleCount} ingredients`;
-  elements.vaultStatsLine.textContent = `${cocktailText} · ${bottleText}`;
+
+  if (elements.vaultStatsLine) {
+    elements.vaultStatsLine.textContent = `${cocktailText} · ${bottleText}`;
+  }
+
+  const footerStatus = document.getElementById('vault-footer-status-text');
+  if (footerStatus) {
+    const activeName = getBarName();
+    footerStatus.textContent = `${activeName} (${bottleCount} ${bottleCount === 1 ? 'bottle' : 'bottles'})`;
+  }
 }
 
 /**
@@ -186,7 +506,7 @@ export function handleFileImport(e) {
         _renderHomeViewFn();
       }
       updateMyBarBadge();
-      updateVaultStats();
+      renderVaultSettingsModal();
 
       showToast(`Imported ${importedRecipeCount} custom recipe${importedRecipeCount === 1 ? '' : 's'}, ${inventoryAddedCount} inventory item${inventoryAddedCount === 1 ? '' : 's'}`);
     } catch (err) {
@@ -199,7 +519,7 @@ export function handleFileImport(e) {
 }
 
 /**
- * Set up top bar and vault popover event listeners
+ * Set up top bar and vault settings modal event listeners
  */
 export function setupTopBarEventListeners() {
   elements.btnGoHome?.addEventListener('click', () => {
@@ -214,28 +534,143 @@ export function setupTopBarEventListeners() {
     if (_openEditorFn) _openEditorFn(null);
   });
 
-  elements.btnPopoverNewDrink?.addEventListener('click', () => {
-    if (elements.vaultPopover?.hidePopover) {
-      try {
-        elements.vaultPopover.hidePopover();
-      } catch (err) {
-        // Ignore if already hidden
+  // Open the unified Account & Vault Settings modal
+  elements.btnVaultMenu?.addEventListener('click', () => {
+    openVaultSettingsModal();
+  });
+
+  elements.btnUserPill?.addEventListener('click', () => {
+    openVaultSettingsModal();
+  });
+
+  elements.btnAccountBack?.addEventListener('click', () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      closeVaultSettingsModal();
+    }
+  });
+
+  elements.btnCloseVaultSettings?.addEventListener('click', () => {
+    closeVaultSettingsModal();
+  });
+
+  elements.btnDoneVaultSettings?.addEventListener('click', () => {
+    closeVaultSettingsModal();
+  });
+
+  // Light dismiss on backdrop click for <dialog>
+  elements.vaultSettingsModal?.addEventListener('click', (event) => {
+    if (event.target !== elements.vaultSettingsModal) return;
+    const rect = elements.vaultSettingsModal.getBoundingClientRect();
+    const isInsideDialog = (
+      rect.top <= event.clientY &&
+      event.clientY <= rect.top + rect.height &&
+      rect.left <= event.clientX &&
+      event.clientX <= rect.left + rect.width
+    );
+    if (!isInsideDialog) {
+      closeVaultSettingsModal();
+    }
+  });
+
+  // Manual Sync Button
+  elements.btnSyncNow?.addEventListener('click', async () => {
+    if (!isAuthenticated()) {
+      closeVaultSettingsModal();
+      if (_openAuthModalFn) _openAuthModalFn();
+      return;
+    }
+
+    if (elements.accountSyncBadge) {
+      elements.accountSyncBadge.className = 'sync-status-dot syncing';
+    }
+    if (elements.accountSyncLabel) {
+      elements.accountSyncLabel.textContent = 'Syncing...';
+    }
+    if (elements.btnSyncNow) {
+      elements.btnSyncNow.disabled = true;
+    }
+
+    try {
+      const res = await migrateGuestData();
+      if (elements.accountSyncBadge) {
+        elements.accountSyncBadge.className = 'sync-status-dot';
+      }
+      if (elements.accountSyncLabel) {
+        elements.accountSyncLabel.textContent = 'Synced';
+      }
+      if (elements.accountSyncTime) {
+        elements.accountSyncTime.textContent = formatRelativeSyncTime(saveLastSyncedAt());
+      }
+      showToast(`Cloud synced: ${res.imported?.recipes || 0} recipes, ${res.imported?.inventory || 0} bottles`);
+    } catch (err) {
+      if (elements.accountSyncBadge) {
+        elements.accountSyncBadge.className = 'sync-status-dot offline';
+      }
+      if (elements.accountSyncLabel) {
+        elements.accountSyncLabel.textContent = 'Offline';
+      }
+      showToast(`Sync error: ${err.message}`);
+    } finally {
+      if (elements.btnSyncNow) {
+        elements.btnSyncNow.disabled = false;
       }
     }
-    if (_openEditorFn) _openEditorFn(null);
   });
 
-  elements.btnExportJson?.addEventListener('click', () => {
-    exportData();
-    showToast('Exported bar backup to JSON');
+  // Bartender Name Edit
+  elements.accountUserNameInput?.addEventListener('input', (e) => {
+    autoResizeNameInput(e.target);
   });
 
-  elements.btnImportTrigger?.addEventListener('click', () => {
-    elements.importFileInput?.click();
+  elements.accountUserNameInput?.addEventListener('change', async (e) => {
+    const val = e.target.value.trim();
+    if (!val) {
+      renderVaultSettingsModal();
+      return;
+    }
+    try {
+      await updateDisplayName(val);
+      updateAuthIndicator();
+      showToast('Bartender name updated');
+    } catch (err) {
+      showToast(err.message || 'Failed to update name');
+    }
   });
 
-  elements.importFileInput?.addEventListener('change', handleFileImport);
+  elements.accountUserNameInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      elements.accountUserNameInput.blur();
+    }
+  });
 
+  elements.btnGuestSignIn?.addEventListener('click', () => {
+    closeVaultSettingsModal();
+    if (_openAuthModalFn) _openAuthModalFn();
+  });
+
+  // Library & Custom Recipe Shortcuts
+  elements.customRiffsShortcut?.addEventListener('click', () => {
+    closeVaultSettingsModal();
+    state.packFilter = 'riff';
+    if (elements.sidebarPackFilter) elements.sidebarPackFilter.value = 'riff';
+    if (_renderRecipeListFn) _renderRecipeListFn();
+    showToast('Filtered library by #riff');
+  });
+
+  elements.hiddenCocktailsShortcut?.addEventListener('click', () => {
+    closeVaultSettingsModal();
+    openHiddenModal();
+  });
+
+  elements.menusShortcut?.addEventListener('click', () => {
+    closeVaultSettingsModal();
+    window.location.hash = '#menus';
+  });
+
+  // Preferences: Units
   elements.popoverUnitOz?.addEventListener('click', () => {
     setUnitSystem('oz');
   });
@@ -244,6 +679,7 @@ export function setupTopBarEventListeners() {
     setUnitSystem('ml');
   });
 
+  // Preferences: Glass presentation
   elements.popoverGlassLayered?.addEventListener('click', () => {
     setGlassViewMode('layered');
   });
@@ -252,12 +688,51 @@ export function setupTopBarEventListeners() {
     setGlassViewMode('blended');
   });
 
+  // Preferences: Wake-Lock Toggle
+  elements.btnWakeLockToggle?.addEventListener('change', (e) => {
+    const enabled = saveWakeLockPreference(e.target.checked);
+    showToast(enabled ? 'Screen wake-lock enabled' : 'Screen wake-lock disabled');
+  });
+
+  // Data Portability
+  elements.btnExportJson?.addEventListener('click', () => {
+    exportData();
+    saveLastExportedAt();
+    if (elements.accountExportReminder) {
+      elements.accountExportReminder.textContent = formatRelativeExportTime(getLastExportedAt());
+    }
+    showToast('Exported bar backup to JSON');
+  });
+
+  // Avatar Shuffle: pick a different recipe's glass for accounts without a Gravatar
+  elements.btnAvatarShuffle?.addEventListener('click', () => {
+    const modalAvatar = document.getElementById('account-avatar-icon');
+    const currentId = getAvatarRecipeId();
+    const next = pickAvatarRecipe(currentId);
+    if (!next) return;
+    saveAvatarRecipeId(next.id);
+    renderAvatarGlass(modalAvatar, next);
+  });
+
+  elements.btnImportTrigger?.addEventListener('click', () => {
+    elements.importFileInput?.click();
+  });
+
+  elements.importFileInput?.addEventListener('change', handleFileImport);
+
+  // Bar Profile Rename
+  elements.vaultBarNameInput?.addEventListener('input', (e) => {
+    autoResizeNameInput(e.target);
+  });
+
   elements.vaultBarNameInput?.addEventListener('change', (e) => {
     const newName = saveBarName(e.target.value);
     e.target.value = newName;
+    autoResizeNameInput(e.target);
     if (state.viewMode === 'home' && _renderHomeViewFn) {
       _renderHomeViewFn();
     }
+    updateVaultStats();
     showToast('Bar name updated');
   });
 
@@ -268,44 +743,91 @@ export function setupTopBarEventListeners() {
     }
   });
 
-  elements.btnResetDefaults?.addEventListener('click', () => {
-    if (confirm('Reset all cocktails to the default library? Custom recipe modifications will be replaced.')) {
+  // Session Sign Out
+  const handleSignOut = async () => {
+    closeVaultSettingsModal();
+    await logout();
+    showToast('Signed out');
+  };
+
+  elements.btnSignOut?.addEventListener('click', handleSignOut);
+  elements.btnAccountSignOut?.addEventListener('click', handleSignOut);
+  document.getElementById('btn-danger-sign-out')?.addEventListener('click', handleSignOut);
+
+  // Danger Zone: Reset Local Data
+  elements.btnDangerResetLocal?.addEventListener('click', () => {
+    if (confirm('Reset all cocktails and backbar to the default library? Custom recipe modifications will be replaced.')) {
       state.recipes = resetToDefaults();
+      state.inventory = new Set(getInventory());
+      invalidateInventoryCache();
       if (_renderRecipeListFn) _renderRecipeListFn();
       if (state.recipes.length > 0 && _selectRecipeFn) {
         _selectRecipeFn(state.recipes[0].id, false);
       }
-      updateVaultStats();
       updateMyBarBadge();
-      elements.vaultPopover?.hidePopover?.();
+      renderVaultSettingsModal();
       showToast('Vault reset to default cocktail library');
     }
   });
 
+  // Danger Zone: Delete Cloud Account — requires typing the bar profile name
+  // to confirm, rather than a pair of browser confirm() dialogs people learn
+  // to click through on reflex for an action this destructive.
+  const resetDeleteConfirmRow = () => {
+    if (elements.dangerDeleteConfirmRow) elements.dangerDeleteConfirmRow.style.display = 'none';
+    if (elements.dangerRowDeleteCloud) elements.dangerRowDeleteCloud.style.display = 'flex';
+    if (elements.dangerConfirmInput) elements.dangerConfirmInput.value = '';
+    if (elements.btnDangerDeleteConfirm) elements.btnDangerDeleteConfirm.disabled = true;
+  };
+
+  elements.btnDangerDeleteAccount?.addEventListener('click', () => {
+    if (!isAuthenticated()) return;
+    if (elements.dangerConfirmBarName) elements.dangerConfirmBarName.textContent = getBarName();
+    if (elements.dangerRowDeleteCloud) elements.dangerRowDeleteCloud.style.display = 'none';
+    if (elements.dangerDeleteConfirmRow) elements.dangerDeleteConfirmRow.style.display = 'flex';
+    if (elements.dangerConfirmInput) {
+      elements.dangerConfirmInput.value = '';
+      elements.dangerConfirmInput.focus();
+    }
+    if (elements.btnDangerDeleteConfirm) elements.btnDangerDeleteConfirm.disabled = true;
+  });
+
+  elements.dangerConfirmInput?.addEventListener('input', (e) => {
+    if (elements.btnDangerDeleteConfirm) {
+      elements.btnDangerDeleteConfirm.disabled = e.target.value !== getBarName();
+    }
+  });
+
+  elements.btnDangerDeleteCancel?.addEventListener('click', resetDeleteConfirmRow);
+
+  elements.btnDangerDeleteConfirm?.addEventListener('click', async () => {
+    if (!isAuthenticated()) return;
+    if (elements.dangerConfirmInput?.value !== getBarName()) return;
+
+    try {
+      await deleteAccount();
+      closeVaultSettingsModal();
+      showToast('Account permanently deleted');
+    } catch (err) {
+      alert(`Account deletion failed: ${err.message}`);
+    }
+  });
+
+  // Header My Bar button
   elements.btnMyBar?.addEventListener('click', () => {
     if (_openBackbarModalFn) _openBackbarModalFn();
   });
 
+  // Header Sign In button
   elements.btnSignIn?.addEventListener('click', () => {
     if (_openAuthModalFn) _openAuthModalFn();
   });
 
-  elements.btnSignOut?.addEventListener('click', async () => {
-    if (elements.userPopover?.hidePopover) {
-      try {
-        elements.userPopover.hidePopover();
-      } catch (err) {
-        // Ignore if already hidden
-      }
-    }
-    await logout();
-    showToast('Signed out');
-  });
-
-  // Listen to speakeasy:auth-changed to update the UI reactively
+  // Listen to speakeasy:auth-changed to update UI
   if (typeof window !== 'undefined') {
     window.addEventListener(AUTH_EVENT_NAME, () => {
       updateAuthIndicator();
+      renderVaultSettingsModal();
     });
   }
 
@@ -330,16 +852,19 @@ export function updateAuthIndicator() {
 
   if (loggedIn && user) {
     const displayName = user.displayName || user.email || 'User';
-    const initial = (displayName.charAt(0) || 'U').toUpperCase();
 
-    if (elements.userPillAvatar) {
-      elements.userPillAvatar.textContent = initial;
+    const pillName = elements.userPillName || document.getElementById('user-pill-name');
+    if (pillName) {
+      pillName.textContent = displayName;
     }
-    if (elements.userPillName) {
-      elements.userPillName.textContent = displayName;
+    const popoverEmail = elements.userPopoverEmail || document.getElementById('user-popover-email');
+    if (popoverEmail) {
+      popoverEmail.textContent = user.email || displayName;
     }
-    if (elements.userPopoverEmail) {
-      elements.userPopoverEmail.textContent = user.email || displayName;
+  } else {
+    const pillName = elements.userPillName || document.getElementById('user-pill-name');
+    if (pillName) {
+      pillName.textContent = 'Profile';
     }
   }
 }

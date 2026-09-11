@@ -94,8 +94,12 @@ export function setupAuthModalEventListeners() {
   // Step 2: Submit OTP code
   _authFormOtp?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const code = _authOtpInput?.value.trim();
-    if (!code || !_pendingEmail) return;
+    const rawVal = _authOtpInput?.value || '';
+    const code = rawVal.replace(/\D/g, '').slice(0, 6);
+    if (!code || code.length !== 6 || !_pendingEmail) {
+      setErrorMessage(_authOtpError, 'Please enter a valid 6-digit verification code.');
+      return;
+    }
 
     setFormLoading(_authFormOtp, true);
     setErrorMessage(_authOtpError, '');

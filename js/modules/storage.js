@@ -593,6 +593,65 @@ export function saveBarName(name) {
   }
 }
 
+const LAST_SYNCED_STORAGE_KEY = 'speakeasy_last_synced_at';
+
+export function getLastSyncedAt() {
+  try {
+    const val = localStorage.getItem(LAST_SYNCED_STORAGE_KEY);
+    return val ? Number(val) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLastSyncedAt(timestamp = Date.now()) {
+  try {
+    localStorage.setItem(LAST_SYNCED_STORAGE_KEY, String(timestamp));
+  } catch (err) {
+    console.error('Failed to save last synced timestamp:', err);
+  }
+  return timestamp;
+}
+
+const LAST_EXPORTED_STORAGE_KEY = 'speakeasy_last_exported_at';
+
+export function getLastExportedAt() {
+  try {
+    const val = localStorage.getItem(LAST_EXPORTED_STORAGE_KEY);
+    return val ? Number(val) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLastExportedAt(timestamp = Date.now()) {
+  try {
+    localStorage.setItem(LAST_EXPORTED_STORAGE_KEY, String(timestamp));
+  } catch (err) {
+    console.error('Failed to save last exported timestamp:', err);
+  }
+  return timestamp;
+}
+
+const AVATAR_RECIPE_STORAGE_KEY = 'speakeasy_avatar_recipe_id';
+
+export function getAvatarRecipeId() {
+  try {
+    return localStorage.getItem(AVATAR_RECIPE_STORAGE_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveAvatarRecipeId(recipeId) {
+  try {
+    localStorage.setItem(AVATAR_RECIPE_STORAGE_KEY, recipeId);
+  } catch (err) {
+    console.error('Failed to save avatar recipe id:', err);
+  }
+  return recipeId;
+}
+
 const GLASS_VIEW_STORAGE_KEY = 'speakeasy_glass_view_mode';
 
 export function getGlassViewPreference() {
@@ -612,6 +671,28 @@ export function saveGlassViewPreference(mode) {
   } catch (err) {
     console.error('Failed to save glass view preference:', err);
     return mode;
+  }
+}
+
+const WAKE_LOCK_STORAGE_KEY = 'speakeasy_wake_lock_enabled';
+
+export function getWakeLockPreference() {
+  try {
+    const val = localStorage.getItem(WAKE_LOCK_STORAGE_KEY);
+    return val === null ? true : val === 'true';
+  } catch {
+    return true;
+  }
+}
+
+export function saveWakeLockPreference(enabled) {
+  try {
+    const bool = Boolean(enabled);
+    localStorage.setItem(WAKE_LOCK_STORAGE_KEY, String(bool));
+    return bool;
+  } catch (err) {
+    console.error('Failed to save wake lock preference:', err);
+    return enabled;
   }
 }
 

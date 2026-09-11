@@ -103,7 +103,6 @@ export function initElements() {
   elements.btnExportJson = document.getElementById('btn-export-json');
   elements.btnImportTrigger = document.getElementById('btn-import-trigger');
   elements.importFileInput = document.getElementById('import-file-input');
-  elements.btnVaultMenu = document.getElementById('btn-vault-menu');
   elements.vaultPopover = document.getElementById('vault-popover');
   elements.vaultBarNameInput = document.getElementById('vault-bar-name-input');
   elements.vaultStatsLine = document.getElementById('vault-stats-line');
@@ -152,6 +151,8 @@ export function initElements() {
   elements.timerModal = document.getElementById('timer-modal');
 
   elements.menuBuilderViewContainer = document.getElementById('menu-builder-view-container');
+  elements.accountViewContainer = document.getElementById('account-view-container');
+  elements.btnAccountBack = document.getElementById('btn-account-back');
 
   elements.btnSignIn = document.getElementById('btn-sign-in');
   elements.btnUserPill = document.getElementById('btn-user-pill');
@@ -161,6 +162,41 @@ export function initElements() {
   elements.userPopoverEmail = document.getElementById('user-popover-email');
   elements.btnSignOut = document.getElementById('btn-sign-out');
   elements.authModal = document.getElementById('auth-modal');
+
+  // Unified User Account & Vault Settings Page / View Elements
+  elements.vaultSettingsModal = document.getElementById('vault-settings-modal');
+  elements.btnCloseVaultSettings = document.getElementById('btn-close-vault-settings');
+  elements.btnDoneVaultSettings = document.getElementById('btn-done-vault-settings');
+  elements.accountEmailDisplay = document.getElementById('account-email-display');
+  elements.accountUserNameInput = document.getElementById('account-display-name-input');
+  elements.accountRankDisplay = document.getElementById('account-rank-display');
+  elements.accountCreatedDisplay = document.getElementById('account-created-display');
+  elements.accountSyncBadge = document.getElementById('account-sync-badge');
+  elements.accountSyncLabel = document.getElementById('account-sync-label');
+  elements.accountSyncTime = document.getElementById('account-sync-time');
+  elements.btnSyncNow = document.getElementById('btn-sync-now');
+  elements.btnGuestSignIn = document.getElementById('btn-guest-sign-in');
+  elements.customRiffsShortcut = document.getElementById('shortcut-custom-riffs');
+  elements.hiddenCocktailsShortcut = document.getElementById('shortcut-hidden-cocktails');
+  elements.menusShortcut = document.getElementById('shortcut-menus');
+  elements.countCustomRiffs = document.getElementById('count-custom-riffs');
+  elements.countHiddenCocktails = document.getElementById('count-hidden-cocktails');
+  elements.countSavedMenus = document.getElementById('count-saved-menus');
+  elements.btnWakeLockToggle = document.getElementById('wake-lock-toggle');
+  elements.btnAccountSignOut = document.getElementById('btn-account-sign-out');
+  elements.btnDangerResetLocal = document.getElementById('btn-danger-reset-local');
+  elements.btnDangerDeleteAccount = document.getElementById('btn-danger-delete-account');
+  elements.btnAvatarShuffle = document.getElementById('btn-avatar-shuffle');
+  elements.accountStatDrinks = document.getElementById('account-stat-drinks');
+  elements.accountStatFavorite = document.getElementById('account-stat-favorite');
+  elements.accountStatIngredients = document.getElementById('account-stat-ingredients');
+  elements.accountExportReminder = document.getElementById('account-export-reminder');
+  elements.dangerRowDeleteCloud = document.getElementById('danger-row-delete-cloud');
+  elements.dangerDeleteConfirmRow = document.getElementById('danger-delete-confirm-row');
+  elements.dangerConfirmBarName = document.getElementById('danger-confirm-bar-name');
+  elements.dangerConfirmInput = document.getElementById('danger-confirm-input');
+  elements.btnDangerDeleteConfirm = document.getElementById('btn-danger-delete-confirm');
+  elements.btnDangerDeleteCancel = document.getElementById('btn-danger-delete-cancel');
 }
 
 // Automatically populate elements if document is defined
