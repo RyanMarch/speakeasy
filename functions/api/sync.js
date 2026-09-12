@@ -358,6 +358,46 @@ export async function onRequestGet(context) {
     }
   }
 
+  // 5. Query active global recipes and globally hidden recipes
+  let globalRecipes = [];
+  let globallyHiddenIds = [];
+
+  try {
+    const globalRows = await env.speakeasy_db.prepare(
+      `SELECT id, name, glassware, method, specs, instructions, description, notes, riff_of_id, riff_of_name, tags
+       FROM global_recipes`
+    ).all();
+
+    globalRecipes = (globalRows.results || []).map(r => {
+      let specs = [];
+      try { specs = JSON.parse(r.specs || '[]'); } catch {}
+      let tags = [];
+      try { tags = JSON.parse(r.tags || '[]'); } catch {}
+      return {
+        id: r.id,
+        name: r.name,
+        glassware: r.glassware || 'Rocks',
+        method: r.method || 'Stirred',
+        specs,
+        instructions: r.instructions || '',
+        description: r.description || '',
+        notes: r.notes || '',
+        riffOfId: r.riff_of_id || null,
+        riffOfName: r.riff_of_name || '',
+        tags,
+        isGlobal: true,
+      };
+    });
+
+    const hiddenRows = await env.speakeasy_db.prepare(
+      `SELECT recipe_id FROM global_hidden_recipes`
+    ).all();
+    globallyHiddenIds = (hiddenRows.results || []).map(r => r.recipe_id);
+  } catch (err) {
+    // If table hasn't migrated yet or query fails, fail soft
+    console.warn('Could not query global recipes or hidden recipes:', err);
+  }
+
   return jsonResponse({
     success: true,
     backup: {
@@ -367,6 +407,8 @@ export async function onRequestGet(context) {
       hiddenRecipes: [],
       settings,
       customRecipes,
+      globalRecipes,
+      globallyHiddenIds,
     },
   });
 }
