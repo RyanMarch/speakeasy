@@ -249,6 +249,7 @@ async function runTests() {
   stateMod.state.packFilter = 'custom';
   stateMod.state.searchQuery = '';
   stateMod.state.inventoryFilter = 'all';
+  stateMod.elements.countAll = { _t: '', get textContent() { return this._t; }, set textContent(v) { this._t = String(v); } };
   recipeListViewMod.renderRecipeList();
   // Ensure the count reflects custom recipes
   assert(stateMod.elements.countAll?.textContent === '1', 'Custom pack filter only includes non-seed recipes');
