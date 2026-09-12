@@ -11,7 +11,7 @@ Speakeasy is a local-first web application for cocktail enthusiasts and bartende
 ### Foundational Principles
 
 1. **Zero Runtime Dependencies**: Built entirely with standards-based HTML5, modern vanilla CSS, and ES6+ modules running directly in browsers. No bundlers or client frameworks.
-2. **Local-First & Client-Authoritative**: All application state, custom recipes, inventory toggles, event menus, and UI preferences persist in browser `localStorage`. No external database or login is required.
+2. **Local-First & Client-Authoritative**: All application state persists locally in browser `localStorage` first. While an optional Cloudflare D1 backend provides cloud synchronization, multi-bar management, and custom recipe sharing, the client remains authoritative and fully functional offline.
 3. **Cocktail Craft Realism**: Calculations for ABV, dilution, ingredient hierarchy, bottle substitutions, and glassware fluid physics follow established bar industry standards.
 4. **Counter & Kitchen Usability**: Dark-mode aesthetic tailored for low-light bar environments with large touch targets, instant imperial (`oz`) and metric (`ml`) conversion, wake-lock screen retention, and sticky recipe navigation.
 
@@ -52,6 +52,8 @@ speakeasy/
 │   │   ├── timer-modal.js     # Floating counter timer toast, 3-phase countdown, haptic alerts
 │   │   └── toast.js           # Toast notifications and HTML escaping utility
 │   └── modules/
+│       ├── auth.js            # Passwordless OTP authentication and session management
+│       ├── history.js         # Drink history logging and cloud synchronization
 │       ├── taxonomy.js        # Hierarchical ingredient graph, brand mapping, search, substitutes, shopping list
 │       ├── storage.js         # LocalStorage manager, menus, low stock, backup export/import, seed re-exports
 │       ├── parser.js          # Natural text ingredient parser, fractions, method/timer detector
@@ -62,6 +64,18 @@ speakeasy/
 │       ├── colors.js          # Color calculation, hex blending, and volume normalization
 │       ├── balance.js         # Flavor balance radar calculation, SVG renderer, palate distance similarity
 │       └── abv.js             # Proof heuristics, method-based dilution (stir/shake/build/blend)
+├── functions/
+│   └── api/                   # Cloudflare Pages Functions (Serverless Backend)
+│       ├── auth/              # Endpoints for OTP generation, verification, session, and account deletion
+│       ├── history/           # Endpoints to log and list user drink history
+│       ├── shares/            # Endpoints to create and read public recipe snapshots
+│       └── sync.js            # Endpoint to sync local library to the cloud and fetch updates
+├── migrations/                # Versioned Cloudflare D1 SQL schema migrations
+│   ├── 0001_initial_schema.sql
+│   └── 0002_add_shares.sql
+├── .github/
+│   └── workflows/
+│       └── deploy.yml         # GitHub Actions automated test, D1 migration & Pages deploy
 ├── assets/                    # Favicons, web app icons, and graphics
 ├── tests/
 │   ├── architecture-test.js   # Structural integrity, module exports, CSS imports, preload checks
@@ -114,7 +128,10 @@ speakeasy/
   - `speakeasy_hidden_recipes`: Array of recipe IDs soft-hidden from general browsing.
   - `speakeasy_low_stock`: Array of taxonomy IDs marked as running low. Independent of ownership; cleared automatically when a bottle is toggled out of inventory.
   - `speakeasy_menus`: Array of saved event menus (`{ id, name, recipeIds, createdAt }`).
+  - `speakeasy_drink_history`: Log of drinks made (`{ id, recipeId, madeAt }`).
   - `speakeasy_pinned_tags`: Array of tag names pinned to display as dedicated carousels on the Home landing page.
+  - `speakeasy_bars`: Metadata for multi-bar locations, with `speakeasy_active_bar_id` tracking the current view.
+  - `speakeasy_auth_token` and `speakeasy_user`: Authentication state for cloud sync.
   - `speakeasy_recently_viewed`: Array of the last 15 viewed recipe IDs for quick history recall.
   - `speakeasy_bar_name`: Custom bar title displayed in the app header (defaults to "Speakeasy Cocktail Library").
   - `speakeasy_unit_system`: Imperial (`oz`) or metric (`ml`) display preference.
@@ -188,7 +205,7 @@ Speakeasy utilizes a lightweight hash-based router combined with the native brow
 
 ### Deep Linking & Recipe Sharing
 - **Seed Recipes**: Deep-linked and shared directly via native share sheets or clipboard (`#<id>`). Because canonical seed recipes are bundled in all installs, these links resolve reliably for any recipient.
-- **Custom Recipes**: Confined to the creator's local storage. Custom recipes intentionally omit external share links until a self-contained URI format or remote synchronization exists.
+- **Custom Recipes**: Custom recipes can be shared by posting a read-only snapshot to `/api/shares`. This generates a public short link backed by D1, allowing recipients to view the exact specs and instructions without needing an account.
 
 ---
 

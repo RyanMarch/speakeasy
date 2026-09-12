@@ -1063,8 +1063,8 @@ if (totalStarterUnlocks !== 46) {
 console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingList[0].name} (+${canonicalShoppingList[0].unlockCount} cocktails)`);
 console.log('Ranked Bar Unlock Shopping List tests passed.');
 
-console.log('--- Testing Backup Export/Import (v1 Schema) ---');
-const { buildBackupPayload, importData, saveRecipes, saveInventory, getInventory, getUnitPreference } = await import('../js/modules/storage.js');
+console.log('--- Testing Backup Export/Import (v2 Schema, v1 back-compat) ---');
+const { buildBackupPayload, importData, saveRecipes, saveInventory, getInventory, getUnitPreference, getActiveBarId, getBars, saveBars } = await import('../js/modules/storage.js');
 
 const customRiff = {
   id: 'test-custom-riff',
@@ -1091,10 +1091,14 @@ saveHiddenRecipeIds(['blue-hawaii']);
 
 // 1. Export payload shape and unmodified-seed exclusion
 const backup = buildBackupPayload();
-if (backup.version !== 1) throw new Error('Expected backup version to be 1');
+if (backup.version !== 2) throw new Error('Expected backup version to be 2');
 if (typeof backup.exportedAt !== 'string') throw new Error('Expected backup exportedAt to be a timestamp string');
-if (!Array.isArray(backup.inventory) || !backup.inventory.includes('gin')) {
-  throw new Error(`Expected backup inventory to include "gin", got ${JSON.stringify(backup.inventory)}`);
+if (!Array.isArray(backup.bars) || backup.bars.length === 0) {
+  throw new Error(`Expected backup bars to be a non-empty array, got ${JSON.stringify(backup.bars)}`);
+}
+const activeBackupBar = backup.bars.find(b => b.id === getActiveBarId());
+if (!activeBackupBar || !activeBackupBar.inventory.includes('gin')) {
+  throw new Error(`Expected active bar's inventory to include "gin", got ${JSON.stringify(activeBackupBar)}`);
 }
 if (!Array.isArray(backup.hiddenRecipes) || !backup.hiddenRecipes.includes('blue-hawaii')) {
   throw new Error(`Expected backup hiddenRecipes to include "blue-hawaii", got ${JSON.stringify(backup.hiddenRecipes)}`);
@@ -1141,7 +1145,7 @@ console.log('Retired/renamed-tag normalization does not cause false-positive bac
 
 unhideAllRecipes();
 
-// 2. Only the v1 unified schema is accepted; anything else is rejected outright
+// 2. Only the v1/v2 unified schemas are accepted; anything else is rejected outright
 let rejectedFlatArray = false;
 try {
   importData(JSON.stringify([customRiff]));
@@ -1151,9 +1155,9 @@ try {
 if (!rejectedFlatArray) {
   throw new Error('Expected importData to reject a bare array (unsupported legacy format)');
 }
-console.log('Non-v1 import format is rejected as expected.');
+console.log('Unrecognized import format is rejected as expected.');
 
-// 3. Unified v1 backup import merges (never overwrites) inventory/hidden recipes
+// 3. Legacy v1 backup import merges (never overwrites) into the active bar's inventory/hidden recipes
 saveRecipes(SEED_RECIPES);
 saveInventory(['gin']);
 saveHiddenRecipeIds([]);
@@ -1180,7 +1184,108 @@ if (!getHiddenRecipeIds().includes('negroni')) {
 if (getUnitPreference() !== 'ml') {
   throw new Error('Expected v1 import to restore the unitPref setting');
 }
-console.log('Unified v1 backup import test passed.');
+console.log('Legacy v1 backup import (back-compat) test passed.');
+
+// 4. Unified v2 backup import merges bars by id: a matching local bar's inventory
+// is unioned in place, an unmatched remote bar id is appended as a new local bar.
+unhideAllRecipes();
+saveRecipes(SEED_RECIPES);
+saveInventory(['gin']);
+saveHiddenRecipeIds([]);
+const activeBarId = getActiveBarId();
+
+const v2Result = importData(JSON.stringify({
+  version: 2,
+  exportedAt: new Date().toISOString(),
+  bars: [
+    { id: activeBarId, name: 'Home Bar', isDefault: true, inventory: ['campari', 'sweet_vermouth'] },
+    { id: 'bar-remote-tiki', name: 'Tiki Cart', isDefault: false, inventory: ['light_rum', 'lime_juice'] },
+  ],
+  hiddenRecipes: ['negroni'],
+  settings: { unitPref: 'oz' },
+  customRecipes: [customRiff],
+}));
+
+if (v2Result.importedRecipeCount !== 1) {
+  throw new Error(`Expected v2 import to add 1 custom recipe, got ${v2Result.importedRecipeCount}`);
+}
+const activeBarMergedInventory = getInventory();
+if (!activeBarMergedInventory.includes('gin') || !activeBarMergedInventory.includes('campari')) {
+  throw new Error(`Expected active bar inventory to retain "gin" and add "campari", got ${JSON.stringify(activeBarMergedInventory)}`);
+}
+const barsAfterV2Import = getBars();
+const tikiBar = barsAfterV2Import.find(b => b.id === 'bar-remote-tiki');
+if (!tikiBar) {
+  throw new Error('Expected v2 import to append an unmatched remote bar as a new local bar');
+}
+if (!getHiddenRecipeIds().includes('negroni')) {
+  throw new Error('Expected v2 import to merge in the "negroni" hidden recipe');
+}
+console.log('Unified v2 backup import (multi-bar merge-by-id) test passed.');
+
+// 5. Regression: a pre-existing single-bar account's cloud "Home Bar" and a
+// freshly (re-)migrated local default bar are the SAME conceptual bar under
+// two unrelated generated ids. The remote default bar must merge into the
+// local default bar by role, not get appended as a bogus duplicate.
+unhideAllRecipes();
+saveRecipes(SEED_RECIPES);
+saveInventory(['gin']);
+const barsBeforeDefaultMerge = getBars();
+const barCountBeforeDefaultMerge = barsBeforeDefaultMerge.length;
+const localDefaultId = getActiveBarId();
+
+importData(JSON.stringify({
+  version: 2,
+  exportedAt: new Date().toISOString(),
+  bars: [
+    { id: 'bar-unrelated-cloud-id', name: 'Home Bar', isDefault: true, inventory: ['campari', 'sweet_vermouth'] },
+  ],
+  hiddenRecipes: [],
+  settings: {},
+  customRecipes: [],
+}));
+
+const barsAfterDefaultMerge = getBars();
+if (barsAfterDefaultMerge.length !== barCountBeforeDefaultMerge) {
+  throw new Error(`Expected the remote default bar to merge into the local default bar, not be appended; bar count changed from ${barCountBeforeDefaultMerge} to ${barsAfterDefaultMerge.length}`);
+}
+if (barsAfterDefaultMerge.some(b => b.id === 'bar-unrelated-cloud-id')) {
+  throw new Error('Expected the remote default bar\'s id to never appear as a separate local bar');
+}
+if (getActiveBarId() !== localDefaultId) {
+  throw new Error('Expected the local default bar id to be preserved after merging in the remote default bar');
+}
+const mergedDefaultInventory = getInventory();
+if (!mergedDefaultInventory.includes('gin') || !mergedDefaultInventory.includes('campari') || !mergedDefaultInventory.includes('sweet_vermouth')) {
+  throw new Error(`Expected default-bar merge to union all three ingredients, got ${JSON.stringify(mergedDefaultInventory)}`);
+}
+console.log('Default-bar role-based merge (prevents duplicate "Home Bar" on first cloud pull) test passed.');
+
+// 6. Regression: if a duplicate "Home Bar" already exists locally (e.g. from
+// before this fix shipped), getBars() self-heals by merging it away.
+const activeIdBeforeDedupe = getActiveBarId();
+const existingBars = getBars();
+const barCountBeforeDedupe = existingBars.length;
+const dupeBar = { id: 'bar-leftover-duplicate', name: 'Home Bar', isDefault: false, createdAt: Date.now() + 1000 };
+saveBars([...existingBars, dupeBar]);
+// Directly seed the duplicate's inventory the same way storage.js would.
+localStorage.setItem(`speakeasy_inventory__${dupeBar.id}`, JSON.stringify(['lime_juice']));
+
+const dedupedBars = getBars();
+if (dedupedBars.length !== barCountBeforeDedupe) {
+  throw new Error(`Expected duplicate "Home Bar" entries to be merged away, bar count changed from ${barCountBeforeDedupe} to ${dedupedBars.length}`);
+}
+if (dedupedBars.some(b => b.id === 'bar-leftover-duplicate')) {
+  throw new Error('Expected the leftover duplicate bar id to no longer exist after dedupe');
+}
+if (getActiveBarId() !== activeIdBeforeDedupe) {
+  throw new Error('Expected the original (active) bar id to survive the dedupe merge');
+}
+const dedupedInventory = getInventory();
+if (!dedupedInventory.includes('lime_juice')) {
+  throw new Error(`Expected the duplicate's inventory to be merged in, got ${JSON.stringify(dedupedInventory)}`);
+}
+console.log('Local duplicate "Home Bar" self-heal (getBars dedupe) test passed.');
 
 unhideAllRecipes();
 saveRecipes(SEED_RECIPES);

@@ -5,6 +5,7 @@
  */
 
 import { SEED_RECIPES } from '../data/seed-recipes.js';
+import { getInventory } from './storage.js';
 
 export const TAXONOMY = {
   // ==========================================
@@ -3658,7 +3659,7 @@ export function getFlavorProfile(rawIngredientName = '') {
  * then alphabetical by ingredient display name.
  *
  * @param {Array<Object>} [recipes] - Recipes to inspect (defaults to user recipes or canonical seed recipes)
- * @param {Set<string>|Array<string>} [inventorySet] - Current owned inventory (defaults to speakeasy_inventory in localStorage)
+ * @param {Set<string>|Array<string>} [inventorySet] - Current owned inventory (defaults to the active bar's inventory via getInventory())
  * @param {Object} [options]
  * @returns {Array<{id: string, name: string, family: string, color: string, unlockCount: number, secondaryCount: number, unlockedCocktails: Array<Object>, secondaryCocktails: Array<Object>, item: Object|null}>}
  */
@@ -3667,12 +3668,7 @@ export function getRankedShoppingList(recipes = null, inventorySet = null, optio
   let inv = inventorySet;
   if (!inv) {
     try {
-      if (typeof localStorage !== 'undefined') {
-        const raw = localStorage.getItem('speakeasy_inventory');
-        inv = new Set(raw ? JSON.parse(raw) : []);
-      } else {
-        inv = new Set();
-      }
+      inv = new Set(getInventory());
     } catch {
       inv = new Set();
     }
