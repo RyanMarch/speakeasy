@@ -41,19 +41,64 @@ import { SEED_RECIPES } from "../data/seed-recipes.js";
 export { SEED_RECIPES };
 
 // ==========================================
-// Hidden Recipes Persistence
+// Hidden & Global Recipes Persistence
 // ==========================================
 const HIDDEN_RECIPES_STORAGE_KEY = 'speakeasy_hidden_recipes';
+const GLOBALLY_HIDDEN_RECIPES_STORAGE_KEY = 'speakeasy_globally_hidden_recipes';
+const DYNAMIC_GLOBAL_RECIPES_STORAGE_KEY = 'speakeasy_dynamic_global_recipes';
 
-export function getHiddenRecipeIds() {
+export function getGloballyHiddenRecipeIds() {
   try {
-    const raw = localStorage.getItem(HIDDEN_RECIPES_STORAGE_KEY);
+    const raw = localStorage.getItem(GLOBALLY_HIDDEN_RECIPES_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter(id => typeof id === 'string') : [];
   } catch (err) {
-    console.error('Failed to read hidden recipes from localStorage:', err);
     return [];
+  }
+}
+
+export function saveGloballyHiddenRecipeIds(ids) {
+  try {
+    const clean = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
+    localStorage.setItem(GLOBALLY_HIDDEN_RECIPES_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
+  } catch (err) {
+    return ids;
+  }
+}
+
+export function getDynamicGlobalRecipes() {
+  try {
+    const raw = localStorage.getItem(DYNAMIC_GLOBAL_RECIPES_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+export function saveDynamicGlobalRecipes(recipes) {
+  try {
+    const clean = Array.isArray(recipes) ? recipes : [];
+    localStorage.setItem(DYNAMIC_GLOBAL_RECIPES_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
+  } catch (err) {
+    return recipes;
+  }
+}
+
+export function getHiddenRecipeIds() {
+  try {
+    const raw = localStorage.getItem(HIDDEN_RECIPES_STORAGE_KEY);
+    const localHidden = raw ? JSON.parse(raw) : [];
+    const cleanLocal = Array.isArray(localHidden) ? localHidden.filter(id => typeof id === 'string') : [];
+    const globallyHidden = getGloballyHiddenRecipeIds();
+    return Array.from(new Set([...cleanLocal, ...globallyHidden]));
+  } catch (err) {
+    console.error('Failed to read hidden recipes from localStorage:', err);
+    return getGloballyHiddenRecipeIds();
   }
 }
 
@@ -107,12 +152,15 @@ export function getRecipes() {
       let updatedStorage = false;
       const hiddenIds = new Set(getHiddenRecipeIds());
 
-      // Automatically backfill any canonical seed recipes missing from stored list,
+      // Automatically backfill canonical seed recipes and dynamic global recipes missing from stored list,
       // UNLESS the user explicitly hid them.
-      SEED_RECIPES.forEach(seedRecipe => {
-        const exists = parsed.some(r => r.id === seedRecipe.id);
-        if (!exists && !hiddenIds.has(seedRecipe.id)) {
-          parsed.push({ ...seedRecipe });
+      const dynamicGlobals = getDynamicGlobalRecipes();
+      const allGlobalSources = [...SEED_RECIPES, ...dynamicGlobals];
+
+      allGlobalSources.forEach(globalRecipe => {
+        const exists = parsed.some(r => r.id === globalRecipe.id);
+        if (!exists && !hiddenIds.has(globalRecipe.id)) {
+          parsed.push({ ...globalRecipe });
           updatedStorage = true;
         }
       });
@@ -516,12 +564,27 @@ export function importData(jsonString) {
   hiddenRaw.forEach(id => { if (typeof id === 'string') mergedHidden.add(id); });
   saveHiddenRecipeIds(Array.from(mergedHidden));
 
+  // Sync down dynamic global recipes and globally hidden IDs from cloud if present
+  if (Array.isArray(parsed.globallyHiddenIds)) {
+    saveGloballyHiddenRecipeIds(parsed.globallyHiddenIds);
+  }
+  if (Array.isArray(parsed.globalRecipes)) {
+    saveDynamicGlobalRecipes(parsed.globalRecipes);
+    // Merge global recipes into local list if missing
+    parsed.globalRecipes.forEach(g => {
+      if (!recipeMap.has(g.id)) {
+        recipeMap.set(g.id, g);
+      }
+    });
+    saveRecipes(Array.from(recipeMap.values()));
+  }
+
   if (settingsRaw.unitPref) saveUnitPreference(settingsRaw.unitPref);
   if (settingsRaw.sortPref) saveSortPreference(settingsRaw.sortPref);
   if (settingsRaw.glassViewPref) saveGlassViewPreference(settingsRaw.glassViewPref);
 
   return {
-    recipes: mergedRecipes,
+    recipes: Array.from(recipeMap.values()),
     importedRecipeCount: validRecipes.length,
     inventoryAddedCount,
   };
