@@ -383,7 +383,7 @@ export function exportData() {
   downloadAnchor.remove();
 }
 
-function sanitizeImportedRecipes(items) {
+export function sanitizeImportedRecipes(items) {
   return (items || []).filter(item => {
     return item && typeof item === 'object' && typeof item.name === 'string' && item.name.trim().length > 0;
   }).map(item => ({

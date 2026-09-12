@@ -1170,26 +1170,24 @@
    Duplicate/Edit/Hide/Delete don't need standing icon-row prominence, so
    they're tucked behind one entry point instead. Two triggers exist (this
    one in the title row for desktop/tablet, #btn-counter-more-mobile in the
-   sticky bar for mobile — see responsive.css) sharing one popover, so each
-   needs its OWN anchor-name: if two elements declare the same anchor-name,
-   anchor() can't resolve which one to use and silently falls back to
-   position: auto, which is what made the popover render at 0×0 before this
-   was split out. */
+   sticky bar for mobile — see responsive.css) sharing one popover.
+   Positioning is done in JS (counter-view.js, on the popover's 'toggle'
+   event) from the actual visible trigger's getBoundingClientRect() — CSS
+   anchor positioning (anchor-name/position-anchor/anchor()) doesn't resolve
+   consistently across every Chromium build in the wild, and a hardcoded CSS
+   fallback offset only lines up with the trigger at one specific viewport
+   size. The values below are just the pre-JS/no-JS default. */
 .counter-more-btn {
   position: relative;
-  anchor-name: --btn-counter-more;
 }
 
 /* Hidden by default (desktop/tablet keep the trigger in the title row); shown
    only at the mobile breakpoint, where it moves into the sticky back-button
-   bar instead — see responsive.css. Both buttons share #counter-more-popover,
-   so whichever is actually visible is what the popover anchors to (its own
-   anchor-name, and responsive.css repoints position-anchor at the mobile
-   breakpoint). */
+   bar instead — see responsive.css. Both buttons share #counter-more-popover;
+   the JS positioning logic picks whichever one is actually visible. */
 .mobile-only-more-btn {
   display: none;
   position: relative;
-  anchor-name: --btn-counter-more-mobile;
 }
 
 .counter-more-popover {
@@ -1223,15 +1221,6 @@
   .counter-more-popover:popover-open {
     opacity: 0;
     transform: translateY(-8px) scale(0.98);
-  }
-}
-
-@supports (position-anchor: --btn-counter-more) {
-  .counter-more-popover {
-    position-anchor: --btn-counter-more;
-    top: anchor(bottom);
-    right: anchor(right);
-    margin-top: 8px;
   }
 }
 

@@ -142,19 +142,16 @@ export function duplicateRecipe(recipe) {
 }
 
 /**
- * Share a seed recipe via a deep link. Only seed recipes are shareable this
- * way — they're bundled into every install, so `#recipe-id` resolves for
- * anyone. A custom recipe only exists in the creator's own localStorage, so
- * the same link would be broken for a recipient; that needs either a
- * self-contained (data-carrying) link or a real backend, neither of which
- * exists yet, so custom recipes don't get a Share entry point at all.
+ * Offer the native share sheet if available, else copy to clipboard, else
+ * fall back to toasting the raw link. Shared by shareRecipe() (seed
+ * recipes) and shareCustomRecipe() (custom recipes via /api/shares).
+ * Deliberately shares just the bare URL — passing a title/text alongside it
+ * makes most share targets (Messages, etc.) prepend that text ahead of the
+ * link instead of a clean link-only share.
  */
-export function shareRecipe(recipe) {
-  if (!recipe || !recipe.id) return;
-  const url = `${window.location.origin}${window.location.pathname}#${recipe.id}`;
-
+function copyOrShareLink(url) {
   if (navigator.share) {
-    navigator.share({ title: recipe.name, text: `${recipe.name} — Speakeasy Cocktail Recipe Library`, url }).catch(() => {
+    navigator.share({ url }).catch(() => {
       // User cancelled the native share sheet, or it failed silently — no toast needed either way.
     });
     return;
@@ -167,6 +164,73 @@ export function shareRecipe(recipe) {
   } else {
     showToast(url);
   }
+}
+
+/**
+ * Share a seed recipe via a deep link. Seed recipes are bundled into every
+ * install, so a plain `#recipe-id` link resolves for anyone with zero backend
+ * involvement. Custom recipes use shareCustomRecipe() instead, which POSTs a
+ * snapshot to /api/shares since a bare id would only resolve in the
+ * creator's own browser/account.
+ */
+export function shareRecipe(recipe) {
+  if (!recipe || !recipe.id) return;
+  const url = `${window.location.origin}${window.location.pathname}#${recipe.id}`;
+  copyOrShareLink(url);
+}
+
+/**
+ * Share a custom recipe via a public, read-only link. Posts a point-in-time
+ * snapshot to /api/shares (no auth required — guests can share too) and
+ * hands the resulting short link to copyOrShareLink(). Editing the recipe
+ * later does not affect an already-created link.
+ */
+export async function shareCustomRecipe(recipe) {
+  if (!recipe || !recipe.name) return;
+
+  showToast('Generating link…');
+
+  let response;
+  try {
+    response = await fetch('/api/shares', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: recipe.name,
+        glassware: recipe.glassware,
+        method: recipe.method,
+        specs: recipe.specs,
+        instructions: recipe.instructions,
+        description: recipe.description,
+        notes: recipe.notes,
+        riffOfId: recipe.riffOfId,
+        riffOfName: recipe.riffOfName,
+        tags: recipe.tags,
+      }),
+    });
+  } catch {
+    showToast('Could not create share link — try again');
+    return;
+  }
+
+  if (!response.ok) {
+    showToast('Could not create share link — try again');
+    return;
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!data || !data.url) {
+    showToast('Could not create share link — try again');
+    return;
+  }
+
+  copyOrShareLink(data.url);
 }
 
 /**
@@ -708,7 +772,16 @@ export function renderCounterView() {
                     <span class="vault-action-label">Share</span>
                   </span>
                 </button>
-              ` : ''}
+              ` : /*html*/ `
+                <button type="button" id="btn-share-custom-drink" class="vault-action-item" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">Share</span>
+                  </span>
+                </button>
+              `}
             </div>
         </div>
       </div>
@@ -1346,10 +1419,39 @@ export function renderCounterView() {
 
   // Native popover auto-dismisses on an outside click, but not on a click of
   // its own menu items — close it manually once an action's been chosen.
-  document.getElementById('counter-more-popover')?.querySelectorAll('.vault-action-item').forEach(item => {
+  const moreActionsPopover = document.getElementById('counter-more-popover');
+  moreActionsPopover?.querySelectorAll('.vault-action-item').forEach(item => {
     item.addEventListener('click', () => {
-      document.getElementById('counter-more-popover')?.hidePopover();
+      moreActionsPopover?.hidePopover();
     });
+  });
+
+  // CSS anchor positioning (position-anchor/anchor()) isn't reliably
+  // supported across every Chromium build in the wild yet, and when it
+  // silently fails to resolve, the popover falls back to a hardcoded CSS
+  // offset that only happens to line up with the trigger at one specific
+  // viewport size — everywhere else it renders far from the button that
+  // opened it. Position it from the actual trigger's rect instead, which
+  // works identically regardless of anchor-positioning support.
+  moreActionsPopover?.addEventListener('toggle', (e) => {
+    if (e.newState !== 'open') return;
+    const trigger = document.getElementById('btn-counter-more-mobile')?.offsetParent
+      ? document.getElementById('btn-counter-more-mobile')
+      : document.getElementById('btn-counter-more');
+    if (!trigger) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const popoverRect = moreActionsPopover.getBoundingClientRect();
+    const margin = 8;
+
+    let left = triggerRect.right - popoverRect.width;
+    left = Math.max(margin, Math.min(left, window.innerWidth - popoverRect.width - margin));
+    let top = triggerRect.bottom + margin;
+    top = Math.min(top, window.innerHeight - popoverRect.height - margin);
+
+    moreActionsPopover.style.top = `${Math.max(margin, top)}px`;
+    moreActionsPopover.style.left = `${left}px`;
+    moreActionsPopover.style.right = 'auto';
   });
 
   document.getElementById('btn-calorie-info')?.addEventListener('click', (e) => {
@@ -1387,6 +1489,10 @@ export function renderCounterView() {
 
   document.getElementById('btn-share-drink')?.addEventListener('click', () => {
     shareRecipe(recipe);
+  });
+
+  document.getElementById('btn-share-custom-drink')?.addEventListener('click', () => {
+    shareCustomRecipe(recipe);
   });
 
   document.getElementById('btn-mobile-back')?.addEventListener('click', () => {
