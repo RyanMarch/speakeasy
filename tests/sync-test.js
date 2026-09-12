@@ -13,6 +13,8 @@ class MockD1 {
       bar_inventory: new Map(),
       custom_recipes: new Map(),
       drink_history: new Map(),
+      global_recipes: new Map(),
+      global_hidden_recipes: new Map(),
     };
   }
 
@@ -198,6 +200,18 @@ class MockD1PreparedStatement {
         user.settings = settings;
       }
       return { results: [], success: true };
+    }
+
+    // SELECT ... FROM global_recipes
+    if (sql.includes('FROM global_recipes')) {
+      const rows = Array.from(this.db.tables.global_recipes.values());
+      return { results: rows, success: true };
+    }
+
+    // SELECT recipe_id FROM global_hidden_recipes
+    if (sql.includes('FROM global_hidden_recipes')) {
+      const rows = Array.from(this.db.tables.global_hidden_recipes.values());
+      return { results: rows, success: true };
     }
 
     throw new Error(`Unhandled SQL query in mock: ${sql}`);

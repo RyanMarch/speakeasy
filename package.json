@@ -9,7 +9,7 @@
     "d1:migrate:local": "wrangler d1 execute speakeasy-db --local --file=./schema.sql",
     "d1:migrate:apply:local": "wrangler d1 migrations apply speakeasy-db --local",
     "d1:migrate:apply:remote": "wrangler d1 migrations apply speakeasy-db --remote",
-    "test": "npm run lint:syntax && node tests/parser-test.js && node tests/architecture-test.js && node tests/sync-test.js && node tests/auth-test.js && node tests/history-test.js && node tests/shares-test.js"
+    "test": "npm run lint:syntax && node tests/parser-test.js && node tests/architecture-test.js && node tests/sync-test.js && node tests/auth-test.js && node tests/history-test.js && node tests/shares-test.js && node tests/admin-test.js"
   },
   "devDependencies": {
     "wrangler": "^3.114.0"
