@@ -48,6 +48,12 @@ Everything runs locally in your browser by default. You can use it completely of
 - **Drink History**: Log drinks as you make them to keep a running history of what you've mixed and when.
 - **Unified Export**: Back up or transfer your library anytime with unified JSON export and import.
 
+### Admin Dashboard & Product Analytics
+- **Privacy-First Analytics**: Local-first event telemetry tracks cocktail views, user discovery searches, and feature utilization without capturing IP addresses or personal identifiers.
+- **Insight Dashboards**: Monitor most/least viewed cocktails, top poured drinks ("I Made This"), search query gaps, and device category splits.
+- **Ingredient & Spirit Trends**: Analyze frequently stocked bottles across user bars alongside most/least called-for ingredients and base spirit family distributions across catalog cocktails.
+- **Global Recipe Management**: Review and promote custom cocktails into the global catalog, or hide canonical recipes across all users.
+
 ---
 
 ## Technical Details

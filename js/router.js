@@ -14,6 +14,7 @@ import {
 import { renderMenuBuilderView, resetMenuBuilderToList } from './views/menu-builder-view.js';
 import { renderVaultSettingsModal } from './components/top-bar.js';
 import { renderSharedRecipeView, setSharedRecipeViewCallbacks } from './views/shared-recipe-view.js';
+import { trackEvent } from './modules/telemetry.js';
 
 setSharedRecipeViewCallbacks({
   selectRecipe,
@@ -39,6 +40,7 @@ export function selectRecipe(id, updateHistory = true) {
   state.activeRecipeId = id;
   state.viewMode = 'counter';
   recordRecentlyViewed(id);
+  trackEvent('recipe_view', { targetId: id });
 
   try {
     localStorage.setItem('speakeasy_last_active_recipe', id);
@@ -227,6 +229,7 @@ export function goHome() {
  */
 export function goToMenuBuilder() {
   state.viewMode = 'menu-builder';
+  trackEvent('feature_use', { targetId: 'menu_builder' });
   resetMenuBuilderToList();
   if (window.location.hash !== '#menus') {
     history.pushState(null, '', '#menus');
@@ -246,6 +249,7 @@ export function goToMenuBuilder() {
  */
 export function goToAccount() {
   state.viewMode = 'account';
+  trackEvent('feature_use', { targetId: 'account_vault' });
   if (window.location.hash !== '#account') {
     history.pushState(null, '', '#account');
   }
