@@ -46,7 +46,8 @@ export const state = {
   riffRemovedSpecs: new Set(), // Set<specIndex> — existing specs dropped from the recipe while riffing
   riffModeActive: false,
   searchQuery: '',
-  viewMode: 'counter', // 'home' | 'counter' | 'edit' | 'menu-builder'
+  viewMode: 'counter', // 'home' | 'counter' | 'edit' | 'menu-builder' | 'account' | 'shared-recipe'
+  pendingShareId: null, // share id to render when viewMode === 'shared-recipe'
   pinnedTags: getPinnedTags(),
   unitSystem: getUnitPreference(), // 'oz' | 'ml'
   glassViewMode: getGlassViewPreference(), // 'layered' | 'blended'
@@ -178,6 +179,7 @@ export function initElements() {
 
   elements.menuBuilderViewContainer = document.getElementById('menu-builder-view-container');
   elements.accountViewContainer = document.getElementById('account-view-container');
+  elements.sharedRecipeViewContainer = document.getElementById('shared-recipe-view-container');
   elements.btnAccountBack = document.getElementById('btn-account-back');
 
   elements.btnSignIn = document.getElementById('btn-sign-in');

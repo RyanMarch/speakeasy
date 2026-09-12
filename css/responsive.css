@@ -573,13 +573,11 @@
     display: none;
   }
 
-  /* Anchor positioning (used for the desktop trigger, see counter-view.css)
-     didn't reliably resolve against this button in mobile testing — the
-     mobile trigger's position is fixed and predictable anyway (top-right of
-     the sticky back-button bar), so this just places it directly rather than
-     depending on anchor(). */
+  /* Pre-JS/no-JS default — counter-view.js repositions this from the visible
+     trigger's actual rect on open, but the mobile trigger's position is fixed
+     and predictable anyway (top-right of the sticky back-button bar), so this
+     fallback already lines up correctly on its own. */
   .counter-more-popover {
-    position-anchor: none;
     top: calc(var(--mobile-header-height) + 4.4rem);
     right: 1rem;
     margin-top: 0;

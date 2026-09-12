@@ -49,6 +49,13 @@ CREATE TABLE IF NOT EXISTS custom_recipes (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Public Read-Only Snapshots of Custom Recipes (Share-via-Link)
+CREATE TABLE IF NOT EXISTS shares (
+    share_id TEXT PRIMARY KEY,
+    recipe TEXT NOT NULL,          -- JSON blob: full recipe snapshot at share-time
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Drink History ("I made this" Log)
 CREATE TABLE IF NOT EXISTS drink_history (
     id TEXT PRIMARY KEY,

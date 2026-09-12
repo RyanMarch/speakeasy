@@ -102,16 +102,20 @@ function init() {
     }
   }
 
-  const deepLinkedToRecipe = Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
-  const deepLinkedToMenuBuilder = urlHash === 'menus' || urlHash.startsWith('menus/');
-  const deepLinkedToAccount = urlHash === 'account' || urlHash === 'vault';
+  const deepLinkedToShare = urlHash === 'share' || urlHash.startsWith('share/');
+  const deepLinkedToRecipe = !deepLinkedToShare && Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
+  const deepLinkedToMenuBuilder = !deepLinkedToShare && (urlHash === 'menus' || urlHash.startsWith('menus/'));
+  const deepLinkedToAccount = !deepLinkedToShare && (urlHash === 'account' || urlHash === 'vault');
 
   if (!initialId && state.recipes.length > 0) {
     initialId = state.recipes[0].id;
   }
 
   state.activeRecipeId = initialId;
-  state.viewMode = deepLinkedToRecipe ? 'counter' : (deepLinkedToMenuBuilder ? 'menu-builder' : (deepLinkedToAccount ? 'account' : 'home'));
+  state.viewMode = deepLinkedToShare ? 'shared-recipe' : (deepLinkedToRecipe ? 'counter' : (deepLinkedToMenuBuilder ? 'menu-builder' : (deepLinkedToAccount ? 'account' : 'home')));
+  if (deepLinkedToShare) {
+    state.pendingShareId = urlHash === 'share' ? null : urlHash.slice('share/'.length);
+  }
   if (urlHash && initialId && deepLinkedToRecipe) {
     history.replaceState(null, '', `#${initialId}`);
   }
@@ -277,6 +281,14 @@ function setupGlobalEventListeners() {
         state.viewMode = 'account';
         renderCurrentView();
       }
+      elements.sidebar?.classList.add('mobile-hidden');
+      elements.mainStage?.classList.remove('mobile-hidden');
+      return;
+    }
+    if (rawHash === 'share' || rawHash.startsWith('share/')) {
+      state.pendingShareId = rawHash === 'share' ? null : rawHash.slice('share/'.length);
+      state.viewMode = 'shared-recipe';
+      renderCurrentView();
       elements.sidebar?.classList.add('mobile-hidden');
       elements.mainStage?.classList.remove('mobile-hidden');
       return;

@@ -376,6 +376,163 @@
   letter-spacing: -0.01em;
 }
 
+/* ==========================================================================
+   Shared Recipe (Public Link) View
+   Standalone read-only page for a visitor opening a #share/<id> link.
+   ========================================================================== */
+.shared-recipe-view {
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto 7rem;
+  padding: 2rem 1.5rem 0;
+  min-width: 0;
+  animation: fadeIn 200ms ease;
+}
+
+.shared-recipe-card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+}
+
+.shared-recipe-body {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.shared-recipe-glass-col {
+  flex: 0 0 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.shared-recipe-glass-wrapper {
+  max-width: 220px;
+}
+
+.shared-recipe-details-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.shared-recipe-details-col .shared-recipe-section-title:first-child {
+  margin-top: 0;
+}
+
+@media (max-width: 640px) {
+  .shared-recipe-body {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .shared-recipe-glass-col {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .shared-recipe-glass-wrapper {
+    max-width: 200px;
+  }
+}
+
+.shared-recipe-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border: 1px solid var(--color-border-active);
+  border-radius: var(--radius-full, 999px);
+  padding: 0.25rem 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.shared-recipe-name {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--color-text-bright);
+  margin: 0 0 0.4rem;
+}
+
+.shared-recipe-meta {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.shared-recipe-riff-note {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.shared-recipe-description {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.shared-recipe-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin: 1.75rem 0 0.75rem;
+}
+
+.shared-recipe-specs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.shared-recipe-specs li {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text);
+}
+
+.shared-recipe-specs .spec-amount {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  color: var(--color-accent-light);
+  font-weight: 600;
+}
+
+.shared-recipe-instructions {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.shared-recipe-tags {
+  margin-top: 1.5rem;
+}
+
+.shared-recipe-actions {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  justify-content: center;
+}
+
+.shared-recipe-loading {
+  padding: 5rem 1.5rem;
+}
+
 .account-page-footer {
   margin-top: 3rem;
   padding-top: 1.5rem;

@@ -13,6 +13,13 @@ import {
 } from './views/counter-view.js';
 import { renderMenuBuilderView, resetMenuBuilderToList } from './views/menu-builder-view.js';
 import { renderVaultSettingsModal } from './components/top-bar.js';
+import { renderSharedRecipeView, setSharedRecipeViewCallbacks } from './views/shared-recipe-view.js';
+
+setSharedRecipeViewCallbacks({
+  selectRecipe,
+  goHome,
+  refreshRecipeList: renderRecipeList,
+});
 
 /**
  * Select a recipe and display counter view
@@ -82,6 +89,7 @@ export function renderCurrentView() {
       if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'block';
+      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
       elements.appMain?.classList.remove('hide-sidebar');
       elements.desktopStickyTitle?.classList.remove('visible');
@@ -94,6 +102,7 @@ export function renderCurrentView() {
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
       if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
+      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
       if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'block';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = '';
       elements.appMain?.classList.remove('hide-sidebar');
@@ -109,6 +118,7 @@ export function renderCurrentView() {
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
       if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'block';
+      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
       // The library sidebar navigates away on every interaction (search,
       // click) — a poor fit next to a focused builder flow that already has
@@ -126,6 +136,7 @@ export function renderCurrentView() {
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
       if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
+      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
       if (elements.accountViewContainer) elements.accountViewContainer.style.display = 'block';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
       elements.appMain?.classList.add('hide-sidebar');
@@ -137,11 +148,32 @@ export function renderCurrentView() {
       window.scrollTo(0, 0);
       renderVaultSettingsModal();
       releaseWakeLock();
+    } else if (state.viewMode === 'shared-recipe') {
+      if (window._counterScrollObserver) {
+        window._counterScrollObserver.disconnect();
+      }
+      if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
+      if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
+      if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
+      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
+      if (elements.accountViewContainer) elements.accountViewContainer.style.display = 'none';
+      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'block';
+      if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
+      elements.appMain?.classList.add('hide-sidebar');
+      elements.desktopStickyTitle?.classList.remove('visible', 'editor-mode');
+      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
+      if (elements.mainStage) {
+        elements.mainStage.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+      renderSharedRecipeView(state.pendingShareId);
+      releaseWakeLock();
     } else {
       if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
       if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
       if (elements.accountViewContainer) elements.accountViewContainer.style.display = 'none';
+      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'block';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = '';
       elements.appMain?.classList.remove('hide-sidebar');
