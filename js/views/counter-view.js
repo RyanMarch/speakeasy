@@ -175,7 +175,8 @@ function copyOrShareLink(url) {
  */
 export function shareRecipe(recipe) {
   if (!recipe || !recipe.id) return;
-  const url = `${window.location.origin}${window.location.pathname}#${recipe.id}`;
+  const path = window.location.pathname.startsWith('/app') ? window.location.pathname : '/app';
+  const url = `${window.location.origin}${path}#${recipe.id}`;
   copyOrShareLink(url);
 }
 
