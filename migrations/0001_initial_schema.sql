@@ -38,22 +38,15 @@ CREATE TABLE IF NOT EXISTS custom_recipes (
     name TEXT NOT NULL,
     glassware TEXT,
     method TEXT,
-    specs TEXT NOT NULL,          -- JSON array of ingredients/amounts
+    specs TEXT NOT NULL,
     instructions TEXT,
     description TEXT,
     notes TEXT,
     riff_of_id TEXT,
     riff_of_name TEXT,
-    tags TEXT,                   -- JSON array of tag strings
+    tags TEXT,
     is_public INTEGER DEFAULT 0,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Public Read-Only Snapshots of Custom Recipes (Share-via-Link)
-CREATE TABLE IF NOT EXISTS shares (
-    share_id TEXT PRIMARY KEY,
-    recipe TEXT NOT NULL,          -- JSON blob: full recipe snapshot at share-time
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Drink History ("I made this" Log)

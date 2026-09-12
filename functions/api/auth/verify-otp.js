@@ -76,23 +76,25 @@ export async function onRequestPost(context) {
 
   // Find or create user
   let user = await env.speakeasy_db.prepare(
-    `SELECT id, email, display_name, settings FROM users WHERE email = ?`
+    `SELECT id, email, display_name, settings, created_at FROM users WHERE email = ?`
   ).bind(email).first();
 
   if (!user) {
     const userId = crypto.randomUUID();
     const defaultSettings = JSON.stringify({ unitPref: 'oz', sortPref: 'curated', glassViewMode: 'layered' });
     const displayName = email.split('@')[0];
+    const now = new Date().toISOString();
 
     await env.speakeasy_db.prepare(
-      `INSERT INTO users (id, email, display_name, settings) VALUES (?, ?, ?, ?)`
-    ).bind(userId, email, displayName, defaultSettings).run();
+      `INSERT INTO users (id, email, display_name, settings, created_at) VALUES (?, ?, ?, ?, ?)`
+    ).bind(userId, email, displayName, defaultSettings, now).run();
 
     user = {
       id: userId,
       email,
       display_name: displayName,
       settings: defaultSettings,
+      created_at: now,
     };
   }
 
@@ -113,6 +115,7 @@ export async function onRequestPost(context) {
       email: user.email,
       displayName: user.display_name,
       settings: parseSettings(user.settings),
+      createdAt: user.created_at || null,
     },
   });
 }

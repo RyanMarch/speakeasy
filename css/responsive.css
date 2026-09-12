@@ -290,6 +290,14 @@
     justify-content: center;
   }
 
+  .auth-user-pill {
+    min-height: 38px;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.8rem;
+    gap: 0.4rem;
+    box-sizing: border-box;
+  }
+
   .auth-user-pill .auth-user-name {
     display: none;
   }
@@ -299,6 +307,7 @@
     padding: 0.4rem 0.65rem;
     font-size: 0.8rem;
     gap: 0.4rem;
+    box-sizing: border-box;
   }
 
   /* Document-Level Scrolling Mobile Layout
@@ -564,13 +573,11 @@
     display: none;
   }
 
-  /* Anchor positioning (used for the desktop trigger, see counter-view.css)
-     didn't reliably resolve against this button in mobile testing — the
-     mobile trigger's position is fixed and predictable anyway (top-right of
-     the sticky back-button bar), so this just places it directly rather than
-     depending on anchor(). */
+  /* Pre-JS/no-JS default — counter-view.js repositions this from the visible
+     trigger's actual rect on open, but the mobile trigger's position is fixed
+     and predictable anyway (top-right of the sticky back-button bar), so this
+     fallback already lines up correctly on its own. */
   .counter-more-popover {
-    position-anchor: none;
     top: calc(var(--mobile-header-height) + 4.4rem);
     right: 1rem;
     margin-top: 0;
@@ -1100,15 +1107,46 @@
     row-gap: 0.75rem;
   }
 
+  /* De-emphasized on mobile: Build a Menu is a lower-frequency, less mature
+     feature than Search/Browse below, so it drops to a plain ghost link
+     rather than competing with them as an equal-weight bordered button.
+     Desktop is untouched — only this breakpoint's rules carry !important to
+     beat .btn-secondary's own !important background/border. */
   .home-menu-builder-btn {
     margin-left: 0;
     flex-basis: 100%;
+    justify-content: center;
+    background: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    color: var(--color-text-muted) !important;
+    padding: 0.35rem 0;
   }
 
+  /* Search/Browse are the only way into the drink list + search on mobile
+     (there's no other persistent nav to them from Home), so they stay
+     sticky just below the header as the user scrolls past the shelves.
+     A direct child of .home-view (see the JS template) rather than nested
+     in .home-stats-card — sticky can't stay stuck past the bottom of its
+     own containing block, and .home-stats-card ends right after this row.
+     Unlike .counter-mobile-bar, this one does NOT bleed edge-to-edge —
+     margin (not padding) keeps it and its background confined to the same
+     inset column as the rest of Home's content, so it doesn't read as
+     wider than everything else while stuck. Nothing on mobile Home scrolls
+     past that column at rest, so the background still fully masks content
+     scrolling underneath. */
   .home-browse-actions {
     display: flex;
     gap: 0.6rem;
-    margin-top: 0.25rem;
+    position: sticky;
+    top: var(--mobile-header-height);
+    z-index: 90;
+    margin: 0.25rem var(--mobile-inset) 0;
+    padding: 0.65rem 0;
+    background: rgba(18, 17, 16, 0.98);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   .home-browse-all-btn,
@@ -1119,9 +1157,38 @@
     font-size: 0.88rem;
   }
 
+  /* .home-pin-row's border-bottom draws at its own box edge, but the shared
+     rule above insets its CONTENT via padding — so on mobile the box (and
+     border) reach the true screen edges while the label/input sit 1rem
+     in from them. Swapping padding for margin shrinks the box to match the
+     content instead, so the border lines up with the label/input the same
+     way it already does on desktop (where .home-view has no left padding
+     of its own, so the box edge and content edge happen to coincide). */
   .home-pin-row {
     flex-wrap: wrap;
     row-gap: 0.5rem;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: var(--mobile-inset);
+    margin-right: var(--mobile-inset);
+  }
+
+  /* "as a collection" is dropped on mobile so the label doesn't wrap the
+     row to two lines next to the input beside it. */
+  .home-pin-label-suffix {
+    display: none;
+  }
+
+  /* Same content-column alignment for the shelf title/arrows divider — the
+     home-view.css rule's --desktop-inset/--shelf-bleed calc only applies
+     above the 1080px breakpoint where those tokens are meaningful; at
+     mobile widths --desktop-inset is incidentally still set to 1.5rem by
+     the unrelated max-width:1375px rule further up, which doesn't match
+     .shelf-header's own mobile padding (--mobile-inset, 1rem) and left the
+     divider sitting further in than the title text and arrow buttons. */
+  .home-shelf .shelf-header::after {
+    left: var(--mobile-inset);
+    right: var(--mobile-inset);
   }
 
   /* Backbar Modal on Mobile */
@@ -1422,6 +1489,56 @@
   .quick-paste-textarea {
     font-size: 0.85rem;
     height: 85px;
+  }
+}
+
+@media (max-width: 768px) {
+  .vault-settings-dialog {
+    width: 100vw;
+    height: 100%;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
+
+  .vault-settings-modal-body {
+    padding: 1rem 1.15rem;
+    gap: 1.25rem;
+  }
+
+  .vault-sync-row {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .vault-shortcuts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vault-pref-tile {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .vault-segmented-group {
+    width: 100%;
+  }
+
+  .vault-segmented-group .vault-unit-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .danger-action-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .danger-action-row .btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 

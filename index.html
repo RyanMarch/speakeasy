@@ -69,7 +69,8 @@
       <!-- Desktop Sticky Scrolled Title (also used, with the Save button shown, while editing a recipe) -->
       <div class="desktop-sticky-title" id="desktop-sticky-title" aria-hidden="true">
         <span class="desktop-sticky-name" id="desktop-sticky-name"></span>
-        <button type="button" id="desktop-sticky-save" class="btn btn-primary btn-sm desktop-sticky-save">Save Recipe</button>
+        <button type="button" id="desktop-sticky-save" class="btn btn-primary btn-sm desktop-sticky-save">Save
+          Recipe</button>
       </div>
 
       <div class="header-actions">
@@ -85,21 +86,6 @@
           </svg>
           <span class="btn-text">New Drink</span>
         </button>
-        <button id="btn-vault-menu" class="btn btn-secondary btn-sm vault-menu-btn" popovertarget="vault-popover"
-          title="Settings">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-            </path>
-          </svg>
-          <span class="btn-text">Settings</span>
-          <svg class="chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2.5" aria-hidden="true">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </button>
 
         <!-- Auth Status Indicator (Guest / Authenticated) -->
         <button id="btn-sign-in" class="btn btn-secondary btn-sm auth-signin-btn" title="Sign in to sync your library">
@@ -112,184 +98,29 @@
           <span class="btn-text">Sign In</span>
         </button>
 
-        <button id="btn-user-pill" class="auth-user-pill" popovertarget="user-popover" title="Account & Sync Status" style="display: none;">
-          <span class="auth-avatar-circle" id="user-pill-avatar" aria-hidden="true">?</span>
-          <span class="auth-user-name" id="user-pill-name">User</span>
+        <button id="btn-user-pill" class="btn btn-secondary btn-sm auth-user-pill" title="User Account & Vault Settings" style="display: none;">
+          <svg class="auth-pill-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span class="auth-user-name" id="user-pill-name">Profile</span>
           <span class="auth-status-badge" title="Synced with cloud"></span>
         </button>
 
-        <!-- Authenticated User Popover Menu -->
-        <div id="user-popover" popover="auto" class="auth-user-popover">
-          <div class="auth-popover-content">
-            <div class="auth-popover-header">
-              <span class="auth-popover-email" id="user-popover-email">user@example.com</span>
-              <span class="auth-popover-status">
-                <span class="auth-status-badge"></span>
-                <span>Cloud Synced</span>
-              </span>
-            </div>
-            <div class="auth-popover-actions">
-              <button type="button" id="btn-sign-out" class="auth-signout-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <polyline points="16 17 21 12 16 7"></polyline>
-                  <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
+        <!-- Hidden Popovers kept as hidden containers for backwards-compatibility -->
+        <div id="user-popover" style="display: none;">
+          <span id="user-popover-email"></span>
+          <button type="button" id="btn-sign-out" style="display: none;"></button>
         </div>
+        <div id="vault-popover" style="display: none;"></div>
 
         <input type="file" id="import-file-input" accept=".json,application/json" style="display: none;"
           aria-label="Upload JSON recipes file">
       </div>
     </header>
 
-    <!-- Vault & App Settings Popover -->
-    <div id="vault-popover" popover="auto" class="vault-popover">
-      <div class="vault-popover-header">
-        <div class="vault-identity-avatar" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 22h8"></path>
-            <path d="M12 11v11"></path>
-            <path d="m19 3-7 8-7-8Z"></path>
-          </svg>
-        </div>
-        <div class="vault-identity-text">
-          <div class="vault-name-row">
-            <input type="text" id="vault-bar-name-input" class="vault-bar-name-input" value="Speakeasy Vault"
-              maxlength="32" title="Click to rename your bar" aria-label="Bar name">
-            <svg class="vault-edit-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" aria-hidden="true">
-              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-            </svg>
-          </div>
-          <div class="vault-stats-line" id="vault-stats-line">0 custom cocktails · 0 ingredients</div>
-        </div>
-      </div>
 
-      <div class="vault-popover-body">
-        <!-- Section: Unit Preference -->
-        <div class="vault-section">
-          <div class="vault-section-title">Units & Measures</div>
-          <div class="vault-unit-toggle" role="group" aria-label="Measurement units preference">
-            <button type="button" id="popover-unit-oz" class="vault-unit-btn active" data-unit="oz">
-              <span class="vault-unit-label">Ounces</span>
-              <span class="vault-unit-abbr">oz</span>
-            </button>
-            <button type="button" id="popover-unit-ml" class="vault-unit-btn" data-unit="ml">
-              <span class="vault-unit-label">Milliliters</span>
-              <span class="vault-unit-abbr">ml</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Section: Glass Presentation Preference -->
-        <div class="vault-section">
-          <div class="vault-section-title">Glass Presentation</div>
-          <div class="vault-unit-toggle" role="group" aria-label="Default glass view mode">
-            <button type="button" id="popover-glass-layered" class="vault-unit-btn active" data-glass-mode="layered">
-              <span class="vault-unit-label">Layered</span>
-            </button>
-            <button type="button" id="popover-glass-blended" class="vault-unit-btn" data-glass-mode="blended">
-              <span class="vault-unit-label">Mixed</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Section: Actions & Portability -->
-        <div class="vault-section">
-          <div class="vault-section-title">Actions & Data</div>
-          <div class="vault-actions-list">
-            <button type="button" id="btn-popover-new-drink" class="vault-action-item vault-action-primary"
-              title="Create a new cocktail recipe">
-              <div class="vault-action-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </div>
-              <div class="vault-action-meta">
-                <span class="vault-action-label">New Cocktail</span>
-                <span class="vault-action-sub">Create and save a custom recipe</span>
-              </div>
-            </button>
-
-            <button type="button" id="btn-manage-hidden" class="vault-action-item"
-              title="View and restore hidden cocktails">
-              <div class="vault-action-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-                  </path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-              </div>
-              <div class="vault-action-meta">
-                <span class="vault-action-label">Hidden Cocktails</span>
-                <span class="vault-action-sub" id="vault-hidden-sub">0 drinks hidden</span>
-              </div>
-            </button>
-
-            <button type="button" id="btn-export-json" class="vault-action-item" title="Download recipes backup">
-              <div class="vault-action-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-              </div>
-              <div class="vault-action-meta">
-                <span class="vault-action-label">Export Recipes</span>
-                <span class="vault-action-sub">Download JSON backup</span>
-              </div>
-            </button>
-
-            <button type="button" id="btn-import-trigger" class="vault-action-item" title="Import recipes from JSON">
-              <div class="vault-action-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-              </div>
-              <div class="vault-action-meta">
-                <span class="vault-action-label">Import Recipes</span>
-                <span class="vault-action-sub">Merge or restore from file</span>
-              </div>
-            </button>
-
-            <button type="button" id="btn-reset-defaults" class="vault-action-item vault-action-danger"
-              title="Restore default starter recipes">
-              <div class="vault-action-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                  <path d="M3 3v5h5"></path>
-                </svg>
-              </div>
-              <div class="vault-action-meta">
-                <span class="vault-action-label">Reset Default Library</span>
-                <span class="vault-action-sub">Restore original classics</span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- <div class="vault-popover-footer">
-        <span class="vault-badge-offline">Local-First Vault</span>
-        <span class="vault-dot-sep">•</span>
-        <span class="vault-footer-note">Offline Ready</span>
-      </div> -->
-    </div>
 
 
     <!-- Two-Pane Application Shell -->
@@ -320,6 +151,7 @@
         <!-- Themed Pack Filter Pills -->
         <div class="sidebar-pack-filter" id="sidebar-pack-filter" role="tablist" aria-label="Cocktail packs">
           <button type="button" class="pack-pill active" data-pack="all" role="tab" aria-selected="true">All</button>
+          <button type="button" class="pack-pill" data-pack="custom" id="pack-pill-custom" role="tab" aria-selected="false" style="display: none;">Custom</button>
           <button type="button" class="pack-pill" data-pack="classic" role="tab" aria-selected="false">Classic</button>
           <button type="button" class="pack-pill" data-pack="modern-craft" role="tab" aria-selected="false">
             Craft</button>
@@ -380,6 +212,380 @@
 
         <!-- Menu Builder View Container (Hidden initially) -->
         <div id="menu-builder-view-container" class="menu-builder-view" style="display: none;">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- User Account & Vault Settings Page View Container (Hidden initially) -->
+        <div id="account-view-container" class="account-view" style="display: none;">
+          <header class="account-page-header">
+            <button type="button" id="btn-account-back" class="account-back-link" aria-label="Return to previous view">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              <span>Back</span>
+            </button>
+            <div class="account-header-info">
+              <h1 class="account-page-title">Speakeasy Settings</h1>
+              <p class="account-page-subtitle">Configure your Speakeasy preferences, cloud sync, library
+                shortcuts, and backups.</p>
+            </div>
+          </header>
+
+          <div class="account-page-body">
+            <!-- Section 1: User Identity & Cloud Sync -->
+            <section class="vault-modal-section" aria-labelledby="heading-user-identity">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-user-identity">Profile & Cloud Sync</h2>
+              </div>
+              <div class="vault-identity-card">
+                <div class="vault-identity-profile">
+                  <div class="vault-avatar-wrap">
+                    <div class="vault-identity-avatar" id="account-avatar-icon" aria-hidden="true">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </div>
+                    <button type="button" id="btn-avatar-shuffle" class="vault-avatar-shuffle-btn"
+                      style="display: none;" title="Shuffle to a new cocktail avatar" aria-label="Shuffle avatar">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="21 16 21 21 16 21"></polyline>
+                        <line x1="15" y1="15" x2="21" y2="21"></line>
+                        <line x1="4" y1="4" x2="9" y2="9"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  <div class="vault-identity-details">
+                    <div class="vault-identity-name-row">
+                      <input type="text" id="account-display-name-input" class="vault-user-name-input"
+                        name="speakeasy_mixologist_alias" autocomplete="off" autocorrect="off" autocapitalize="words"
+                        spellcheck="false" data-1p-ignore="true" data-lpignore="true" placeholder="Guest Bartender"
+                        maxlength="32" title="Your display name / alias" aria-label="Mixologist display name" />
+                      <svg class="vault-edit-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                      </svg>
+                    </div>
+                    <div class="vault-identity-meta-row">
+                      <span class="vault-identity-rank" id="account-rank-display">Apprentice</span>
+                      <span class="vault-meta-separator" aria-hidden="true">·</span>
+                      <span class="vault-identity-meta" id="account-created-display">Offline Local Library</span>
+                    </div>
+                    <div class="vault-identity-meta-row">
+                      <span class="vault-identity-email" id="account-email-display">Not signed in</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="vault-sync-row">
+                  <div class="vault-sync-status-indicator">
+                    <span class="sync-status-dot" id="account-sync-badge"></span>
+                    <span class="sync-status-text" id="account-sync-label">Synced</span>
+                    <span class="sync-status-time" id="account-sync-time"></span>
+                  </div>
+                  <div class="vault-sync-row-actions">
+                    <button type="button" id="btn-account-sign-out" class="vault-signout-ghost" style="display: none;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                      <span>Sign Out</span>
+                    </button>
+                    <button type="button" id="btn-sync-now" class="btn btn-secondary btn-sm vault-sync-btn">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+                      </svg>
+                      <span>Sync Now</span>
+                    </button>
+                    <button type="button" id="btn-guest-sign-in" class="btn btn-primary btn-sm vault-signin-btn"
+                      style="display: none;">
+                      <span>Sign In to Sync</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 2: Active Bar Selector -->
+            <section class="vault-modal-section" aria-labelledby="heading-active-bar">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-active-bar">Active Bar Selection</h2>
+                <button type="button" id="btn-add-bar" class="btn btn-secondary btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Add Bar</span>
+                </button>
+              </div>
+              <div class="vault-bar-selector-box">
+                <div class="vault-bars-list" role="radiogroup" aria-label="Active bar profile" id="vault-bars-list">
+                  <!-- rendered by renderVaultBarsList() in js/components/top-bar.js -->
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 2b: Your Bar at a Glance -->
+            <section class="vault-modal-section" aria-labelledby="heading-bar-glance">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-bar-glance">Your Bar at a Glance</h2>
+              </div>
+              <div class="vault-stat-strip">
+                <div class="vault-stat-tile">
+                  <span class="vault-stat-value" id="account-stat-drinks">0</span>
+                  <span class="vault-stat-label">Drinks Poured</span>
+                </div>
+                <div class="vault-stat-tile">
+                  <span class="vault-stat-value vault-stat-value-text" id="account-stat-favorite">—</span>
+                  <span class="vault-stat-label">Go-To Drink</span>
+                </div>
+                <div class="vault-stat-tile">
+                  <span class="vault-stat-value" id="account-stat-ingredients">0</span>
+                  <span class="vault-stat-label">Ingredients Stocked</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 3: Library & Custom Recipe Shortcuts -->
+            <section class="vault-modal-section" aria-labelledby="heading-library-shortcuts">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-library-shortcuts">Library & Custom Recipe Shortcuts
+                </h2>
+              </div>
+              <div class="vault-shortcuts-grid">
+                <button type="button" id="shortcut-custom-riffs" class="vault-shortcut-card"
+                  title="Browse custom and riff recipes in sidebar">
+                  <div class="vault-shortcut-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                  </div>
+                  <div class="vault-shortcut-content">
+                    <div class="vault-shortcut-title">Custom & Riff Recipes</div>
+                    <div class="vault-shortcut-count" id="count-custom-riffs">0 custom recipes</div>
+                  </div>
+                  <span class="vault-shortcut-arrow">→</span>
+                </button>
+
+                <button type="button" id="shortcut-hidden-cocktails" class="vault-shortcut-card"
+                  title="Open hidden cocktails manager">
+                  <div class="vault-shortcut-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                      </path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  </div>
+                  <div class="vault-shortcut-content">
+                    <div class="vault-shortcut-title">Hidden Cocktails</div>
+                    <div class="vault-shortcut-count" id="count-hidden-cocktails">0 hidden</div>
+                  </div>
+                  <span class="vault-shortcut-arrow">→</span>
+                </button>
+
+                <button type="button" id="shortcut-menus" class="vault-shortcut-card" title="Open saved event menus">
+                  <div class="vault-shortcut-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                      <path d="M6 6h10"></path>
+                      <path d="M6 10h10"></path>
+                    </svg>
+                  </div>
+                  <div class="vault-shortcut-content">
+                    <div class="vault-shortcut-title">Saved Event Menus</div>
+                    <div class="vault-shortcut-count" id="count-saved-menus">0 saved menus</div>
+                  </div>
+                  <span class="vault-shortcut-arrow">→</span>
+                </button>
+              </div>
+              <!-- Retain hidden elements for backwards-compatibility -->
+              <button type="button" id="btn-manage-hidden" style="display: none;"></button>
+              <span id="vault-hidden-sub" style="display: none;"></span>
+              <button type="button" id="btn-popover-new-drink" style="display: none;"></button>
+            </section>
+
+            <!-- Section 4: Pinned Home Collections -->
+            <section class="vault-modal-section" aria-labelledby="heading-pinned-tags">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-pinned-tags">Pinned Home Collections</h2>
+              </div>
+              <p class="vault-section-hint">Tags pinned here show up as rows at the top of your Home screen, in this order.</p>
+              <ul class="vault-pinned-tags-list" id="vault-pinned-tags-list">
+                <!-- Populated by renderVaultSettingsModal() -->
+              </ul>
+              <div class="tag-input-inline-wrapper vault-pin-input-wrapper">
+                <input type="text" id="vault-pin-tag-input" class="tag-input-inline"
+                  placeholder="+ Pin tag..." aria-label="Pin a tag as a Home collection" autocomplete="off">
+                <ul class="tag-suggest-list" id="vault-pin-suggest-list" role="listbox" hidden></ul>
+              </div>
+            </section>
+
+            <!-- Section 5: Bar Mixing Preferences -->
+            <section class="vault-modal-section" aria-labelledby="heading-mixing-prefs">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-mixing-prefs">Bar Mixing Preferences</h2>
+              </div>
+              <div class="vault-prefs-grid">
+                <div class="vault-pref-tile">
+                  <div class="vault-pref-meta">
+                    <span class="vault-pref-label">Measurement Units</span>
+                    <span class="vault-pref-desc">Display cocktail specs in fluid ounces or milliliters</span>
+                  </div>
+                  <div class="vault-segmented-group" role="group" aria-label="Measurement units preference">
+                    <button type="button" id="popover-unit-oz" class="vault-unit-btn active" data-unit="oz">
+                      <span class="vault-unit-label">Ounces</span>
+                    </button>
+                    <button type="button" id="popover-unit-ml" class="vault-unit-btn" data-unit="ml">
+                      <span class="vault-unit-label">Metric</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="vault-pref-tile">
+                  <div class="vault-pref-meta">
+                    <span class="vault-pref-label">Fluid Appearance</span>
+                    <span class="vault-pref-desc">Glass simulation default rendering on recipe cards</span>
+                  </div>
+                  <div class="vault-segmented-group" role="group" aria-label="Default glass view mode">
+                    <button type="button" id="popover-glass-layered" class="vault-unit-btn active"
+                      data-glass-mode="layered">
+                      <span class="vault-unit-label">Layers</span>
+                    </button>
+                    <button type="button" id="popover-glass-blended" class="vault-unit-btn" data-glass-mode="blended">
+                      <span class="vault-unit-label">Mixed</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="vault-pref-tile">
+                  <div class="vault-pref-meta">
+                    <span class="vault-pref-label">Screen Wake-Lock</span>
+                    <span class="vault-pref-desc">Keep device display awake while mixing recipes at the counter</span>
+                  </div>
+                  <label class="vault-switch-label">
+                    <input type="checkbox" id="wake-lock-toggle" class="vault-toggle-input" checked />
+                    <span class="vault-switch-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 6: Data Portability -->
+            <section class="vault-modal-section" aria-labelledby="heading-data-portability">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-data-portability">Data Management & Backups</h2>
+              </div>
+              <div class="vault-portability-row">
+                <button type="button" id="btn-export-json" class="btn btn-secondary vault-portability-btn"
+                  title="Download recipes backup JSON">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span>Export Full Backup (JSON)</span>
+                </button>
+
+                <button type="button" id="btn-import-trigger" class="btn btn-secondary vault-portability-btn"
+                  title="Import recipes from JSON">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <span>Import Backup File</span>
+                </button>
+              </div>
+              <p class="vault-export-reminder" id="account-export-reminder">never exported</p>
+            </section>
+
+            <!-- Section 7: Session & Danger Zone -->
+            <section class="vault-modal-section" aria-labelledby="heading-danger-zone">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-danger-zone">Account Session & Danger Zone</h2>
+              </div>
+              <div class="vault-session-actions">
+                <button type="button" id="btn-danger-sign-out" class="btn btn-secondary vault-signout-btn"
+                  style="display: none;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span>Sign Out of Account</span>
+                </button>
+              </div>
+
+              <div class="vault-danger-zone">
+                <div class="danger-zone-title">Danger Zone</div>
+                <div class="danger-zone-body">
+                  <div class="danger-action-row">
+                    <div class="danger-action-text">
+                      <strong>Reset Local Bar Data</strong>
+                      <span>Restores recipes and backbar to default library. Custom recipes not backed up will be
+                        lost.</span>
+                    </div>
+                    <button type="button" id="btn-danger-reset-local" class="btn btn-danger btn-sm">
+                      Reset Local Data
+                    </button>
+                  </div>
+                  <div class="danger-action-row" id="danger-row-delete-cloud" style="display: none;">
+                    <div class="danger-action-text">
+                      <strong>Delete Cloud Account</strong>
+                      <span>Permanently purges your cloud profile, synchronized bars, custom cocktails, and drink
+                        history.</span>
+                    </div>
+                    <button type="button" id="btn-danger-delete-account" class="btn btn-danger btn-sm">
+                      Delete Cloud Account
+                    </button>
+                  </div>
+                  <div class="danger-confirm-row" id="danger-delete-confirm-row" style="display: none;">
+                    <p class="danger-confirm-prompt">
+                      Type <strong id="danger-confirm-bar-name"></strong> to permanently delete your cloud account.
+                      This cannot be undone.
+                    </p>
+                    <div class="danger-confirm-controls">
+                      <input type="text" id="danger-confirm-input" class="danger-confirm-input" autocomplete="off"
+                        autocorrect="off" autocapitalize="off" spellcheck="false" data-1p-ignore="true"
+                        data-lpignore="true" placeholder="Bar profile name" aria-label="Type the bar profile name to confirm deletion" />
+                      <button type="button" id="btn-danger-delete-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+                      <button type="button" id="btn-danger-delete-confirm" class="btn btn-danger btn-sm" disabled>
+                        Permanently Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Retain legacy trigger for test suite compatibility -->
+              <button type="button" id="btn-reset-defaults" style="display: none;"></button>
+            </section>
+          </div>
+
+          <div class="account-page-footer">
+            <span class="vault-modal-footer-status" id="vault-footer-status-text">Speakeasy Vault</span>
+          </div>
+        </div>
+
+        <!-- Shared Recipe (Public Link) View Container (Hidden initially) -->
+        <div id="shared-recipe-view-container" class="shared-recipe-view" style="display: none;">
           <!-- Rendered dynamically -->
         </div>
       </section>
@@ -494,7 +700,8 @@
       <div class="auth-dialog-container">
         <div class="auth-dialog-header">
           <h2 class="auth-dialog-title" id="auth-modal-title">Account & Cloud Sync</h2>
-          <button id="btn-close-auth-modal" class="btn btn-ghost btn-sm close-modal-btn" aria-label="Close dialog">✕</button>
+          <button id="btn-close-auth-modal" class="btn btn-ghost btn-sm close-modal-btn"
+            aria-label="Close dialog">✕</button>
         </div>
 
         <!-- Step 1: Email Input Form -->
@@ -502,7 +709,8 @@
           <p class="auth-prompt">Enter your email for a passwordless sign-in code.</p>
           <form id="auth-form-email" class="auth-form" novalidate>
             <div class="auth-form-field">
-              <input type="email" id="auth-email-input" class="auth-input" required placeholder="bartender@example.com" autocomplete="email" />
+              <input type="email" id="auth-email-input" class="auth-input" required placeholder="bartender@example.com"
+                autocomplete="email" />
               <div id="auth-email-error" class="auth-error" style="display: none;"></div>
             </div>
             <div class="auth-actions">
@@ -513,10 +721,12 @@
 
         <!-- Step 2: OTP Verification Form -->
         <div id="auth-step-otp" class="auth-step" style="display: none;">
-          <p class="auth-prompt">Check your email (or dev console) for the 6-digit code sent to <strong id="auth-email-display"></strong>.</p>
+          <p class="auth-prompt">Check your email for the 6-digit code sent to <strong
+              id="auth-email-display"></strong>.</p>
           <form id="auth-form-otp" class="auth-form" novalidate>
             <div class="auth-form-field">
-              <input type="text" id="auth-otp-input" class="auth-input auth-input-otp" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" placeholder="······" />
+              <input type="text" id="auth-otp-input" class="auth-input auth-input-otp" required maxlength="6"
+                inputmode="numeric" autocomplete="one-time-code" placeholder="······" />
               <div id="auth-otp-error" class="auth-error" style="display: none;"></div>
             </div>
             <div class="auth-actions">
@@ -532,7 +742,7 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=31"></script>
+  <script type="module" src="app.js?v=32"></script>
 </body>
 
 </html>

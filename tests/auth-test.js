@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { onRequestPost as onRequestPostRequestOtp } from '../functions/api/auth/request-otp.js';
 import { onRequestPost as onRequestPostVerifyOtp } from '../functions/api/auth/verify-otp.js';
-import { onRequestGet as onRequestGetMe } from '../functions/api/auth/me.js';
+import { onRequestGet as onRequestGetMe, onRequestPatch as onRequestPatchMe } from '../functions/api/auth/me.js';
 import { onRequestPost as onRequestPostLogout } from '../functions/api/auth/logout.js';
+import { onRequestPost as onRequestPostDeleteAccount } from '../functions/api/auth/delete-account.js';
 import * as authClient from '../js/modules/auth.js';
 
 console.log('--- Testing /functions/api/auth/* and js/modules/auth.js ---');
@@ -104,8 +105,8 @@ class MockD1PreparedStatement {
       };
     }
 
-    // SELECT id, email, display_name, settings FROM users WHERE id = ?
-    if (sql.startsWith('SELECT id, email, display_name, settings FROM users WHERE id = ?')) {
+    // SELECT id, email, display_name, settings, created_at FROM users WHERE id = ?
+    if (sql.startsWith('SELECT id, email, display_name, settings')) {
       const [id] = params;
       const user = this.db.tables.users.get(id);
       return {
@@ -117,7 +118,7 @@ class MockD1PreparedStatement {
     // INSERT INTO users (id, email, display_name, settings) VALUES (?, ?, ?, ?)
     if (sql.startsWith('INSERT INTO users')) {
       const [id, email, display_name, settings] = params;
-      const user = { id, email, display_name, settings };
+      const user = { id, email, display_name, settings, created_at: new Date().toISOString() };
       this.db.tables.users.set(id, user);
       return { results: [], success: true };
     }
@@ -143,6 +144,40 @@ class MockD1PreparedStatement {
     if (sql.startsWith('DELETE FROM sessions WHERE token = ?')) {
       const [token] = params;
       this.db.tables.sessions.delete(token);
+      return { results: [], success: true };
+    }
+
+    // DELETE FROM sessions WHERE user_id = ?
+    if (sql.startsWith('DELETE FROM sessions WHERE user_id = ?')) {
+      const [userId] = params;
+      for (const [key, val] of this.db.tables.sessions.entries()) {
+        if (val.user_id === userId) this.db.tables.sessions.delete(key);
+      }
+      return { results: [], success: true };
+    }
+
+    // DELETE FROM users WHERE id = ?
+    if (sql.startsWith('DELETE FROM users WHERE id = ?')) {
+      const [userId] = params;
+      this.db.tables.users.delete(userId);
+      return { results: [], success: true };
+    }
+
+    // UPDATE users SET display_name = ? WHERE id = ?
+    if (sql.startsWith('UPDATE users SET display_name = ? WHERE id = ?')) {
+      const [displayName, userId] = params;
+      const user = this.db.tables.users.get(userId);
+      if (user) {
+        user.display_name = displayName;
+      }
+      return { results: [], success: true };
+    }
+
+    // Generic delete cascades for delete-account mock
+    if (sql.startsWith('DELETE FROM custom_recipes') ||
+        sql.startsWith('DELETE FROM drink_history') ||
+        sql.startsWith('DELETE FROM bar_inventory') ||
+        sql.startsWith('DELETE FROM bars')) {
       return { results: [], success: true };
     }
 
@@ -275,6 +310,30 @@ let createdUser = null;
   console.log('PASS: /api/auth/me checks session authenticity');
 }
 
+// 3b. Test /api/auth/me PATCH endpoint (display name update)
+{
+  const patchReq = createMockRequest({
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${createdToken}` },
+    body: { displayName: 'The Alchemist' },
+  });
+  const patchRes = await onRequestPatchMe({ request: patchReq, env });
+  assert.equal(patchRes.status, 200);
+  const patchData = await patchRes.json();
+  assert.equal(patchData.success, true);
+  assert.equal(patchData.user.displayName, 'The Alchemist');
+
+  // Verify updated in GET /api/auth/me
+  const getReq = createMockRequest({
+    method: 'GET',
+    headers: { Authorization: `Bearer ${createdToken}` },
+  });
+  const getRes = await onRequestGetMe({ request: getReq, env });
+  const getData = await getRes.json();
+  assert.equal(getData.user.displayName, 'The Alchemist');
+  console.log('PASS: /api/auth/me PATCH updates user display name');
+}
+
 // 4. Test /api/auth/logout endpoint
 {
   const req = createMockRequest({
@@ -296,7 +355,28 @@ let createdUser = null;
   console.log('PASS: /api/auth/logout invalidates session');
 }
 
-// 5. Test client module exports and storage bridge
+// 5. Test /api/auth/delete-account endpoint
+{
+  // Re-create a session to delete
+  const testUserId = 'user-to-delete';
+  const testToken = 'token-to-delete';
+  db.tables.users.set(testUserId, { id: testUserId, email: 'delete-me@example.com' });
+  db.tables.sessions.set(testToken, { token: testToken, user_id: testUserId, expires_at: new Date(Date.now() + 86400000).toISOString() });
+
+  const delReq = createMockRequest({
+    method: 'POST',
+    headers: { Authorization: `Bearer ${testToken}` },
+  });
+  const delRes = await onRequestPostDeleteAccount({ request: delReq, env });
+  assert.equal(delRes.status, 200);
+  const delData = await delRes.json();
+  assert.equal(delData.success, true);
+  assert.equal(db.tables.users.has(testUserId), false);
+  assert.equal(db.tables.sessions.has(testToken), false);
+  console.log('PASS: /api/auth/delete-account removes user and cascading data');
+}
+
+// 6. Test client module exports and storage bridge
 {
   assert.equal(typeof authClient.isAuthenticated, 'function');
   assert.equal(typeof authClient.getToken, 'function');
@@ -304,7 +384,9 @@ let createdUser = null;
   assert.equal(typeof authClient.requestOtp, 'function');
   assert.equal(typeof authClient.verifyOtp, 'function');
   assert.equal(typeof authClient.logout, 'function');
+  assert.equal(typeof authClient.deleteAccount, 'function');
   assert.equal(typeof authClient.migrateGuestData, 'function');
+  assert.equal(typeof authClient.pullRemoteData, 'function');
   console.log('PASS: js/modules/auth.js contract and exports verified');
 }
 
