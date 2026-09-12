@@ -516,6 +516,281 @@
       color: var(--color-text-muted);
       font-size: 0.9rem;
     }
+
+    /* Analytics Dashboard Styles */
+    .time-selector {
+      display: inline-flex;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .time-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-text-secondary);
+      font-size: 0.78rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all var(--transition-fast);
+    }
+
+    .time-btn:hover {
+      color: var(--color-text-bright);
+    }
+
+    .time-btn.active {
+      background: var(--color-surface-hover);
+      color: var(--color-accent);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .tile-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.15rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100px;
+    }
+
+    .tile-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .tile-value {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--color-text-bright);
+      font-family: var(--font-sans);
+      letter-spacing: -0.02em;
+    }
+
+    .tile-subtext {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 0.35rem;
+    }
+
+    .analytics-section-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    @media (max-width: 600px) {
+      .analytics-section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .analytics-box {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .analytics-box-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-text-bright);
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .analytics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .analytics-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      color: var(--color-text-muted);
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .analytics-table td {
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--color-border-subtle);
+      color: var(--color-text);
+    }
+
+    .analytics-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .metric-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .metric-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: var(--color-bg);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      background: var(--color-accent);
+      border-radius: 999px;
+    }
+
+    .metric-bar-fill.secondary {
+      background: var(--color-sky, #75b8d4);
+    }
+
+    .metric-bar-num {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-text-bright);
+      min-width: 2.2rem;
+      text-align: right;
+    }
+
+    .device-bar-container {
+      display: flex;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0.8rem 0;
+      background: var(--color-bg);
+    }
+
+    .device-segment {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .device-legend {
+      display: flex;
+      gap: 1.25rem;
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      margin-top: 0.5rem;
+    }
+
+    .device-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .legend-color-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Pie / Donut Chart Styles */
+    .donut-chart-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .donut-svg-wrap {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      flex-shrink: 0;
+    }
+
+    .donut-svg-wrap svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .donut-hole-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .donut-hole-total {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--color-text-bright);
+      line-height: 1;
+    }
+
+    .donut-hole-sub {
+      font-size: 0.68rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 3px;
+    }
+
+    .donut-legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.6rem 1.25rem;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .donut-legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .donut-legend-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--color-text);
+    }
+
+    .donut-legend-right {
+      font-weight: 600;
+      color: var(--color-text-bright);
+      font-variant-numeric: tabular-nums;
+    }
   </style>
 </head>
 
@@ -554,7 +829,10 @@
     <!-- Main Dashboard -->
     <div id="dashboard-section" style="display:none;">
       <div class="tabs-nav">
-        <button type="button" class="tab-btn active" id="tab-btn-personal">
+        <button type="button" class="tab-btn active" id="tab-btn-analytics">
+          Analytics &amp; Insights
+        </button>
+        <button type="button" class="tab-btn" id="tab-btn-personal">
           Personal Library (Add to Global)
           <span class="tab-count" id="count-personal">0</span>
         </button>
@@ -563,6 +841,279 @@
           <span class="tab-count" id="count-catalog">0</span>
         </button>
       </div>
+
+      <!-- Tab 0: Analytics & Insights -->
+      <section id="panel-analytics" class="admin-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Product &amp; Usage Analytics</h2>
+            <div style="font-size:0.8rem; color:var(--color-text-muted); margin-top:0.25rem;">
+              Privacy-first telemetry tracking recipe discovery, searches, bar inventory, and feature engagement.
+            </div>
+          </div>
+          <div class="panel-controls">
+            <div class="time-selector" id="analytics-time-range">
+              <button type="button" class="time-btn" data-days="7">7 Days</button>
+              <button type="button" class="time-btn active" data-days="30">30 Days</button>
+              <button type="button" class="time-btn" data-days="all">All Time</button>
+            </div>
+            <button type="button" class="filter-pill" id="btn-refresh-analytics">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+              </svg>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Top Overview Tiles -->
+        <div class="tiles-grid" id="analytics-tiles">
+          <div class="tile-card">
+            <div class="tile-label">Registered Accounts</div>
+            <div class="tile-value" id="kpi-users">-</div>
+            <div class="tile-subtext" id="kpi-users-subtext">Active recently</div>
+          </div>
+          <div class="tile-card">
+            <div class="tile-label">Cocktails Poured</div>
+            <div class="tile-value" id="kpi-pours">-</div>
+            <div class="tile-subtext">"I Made This" drink logs</div>
+          </div>
+          <div class="tile-card">
+            <div class="tile-label">Custom Recipes</div>
+            <div class="tile-value" id="kpi-custom">-</div>
+            <div class="tile-subtext" id="kpi-custom-subtext">Riffs &amp; creations</div>
+          </div>
+          <div class="tile-card">
+            <div class="tile-label">Total Bars Saved</div>
+            <div class="tile-value" id="kpi-bars">-</div>
+            <div class="tile-subtext">User inventory vaults</div>
+          </div>
+        </div>
+
+        <!-- Dual Column Grids -->
+        <div class="analytics-section-grid">
+          <!-- Most Viewed Cocktails -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Most Viewed Cocktails</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);" id="badge-top-views">Views</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Cocktail</th>
+                  <th style="width:130px; text-align:right;">Views</th>
+                </tr>
+              </thead>
+              <tbody id="table-top-views">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading recipe views...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Most Poured Cocktails (I Made This) -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Most Poured Cocktails</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Drink History</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Cocktail</th>
+                  <th style="width:130px; text-align:right;">Pours</th>
+                </tr>
+              </thead>
+              <tbody id="table-top-pours">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading drink pours...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="analytics-section-grid">
+          <!-- Popular Searches -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Search Queries</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Discovery Trends</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Query</th>
+                  <th style="width:130px; text-align:right;">Searches</th>
+                </tr>
+              </thead>
+              <tbody id="table-searches">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading search trends...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Most Stocked Ingredients in Bars -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Frequently Stocked Bottles</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">User Backbars</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="width:130px; text-align:right;">Bars</th>
+                </tr>
+              </thead>
+              <tbody id="table-stocked-ingredients">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading inventory data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="analytics-section-grid">
+          <!-- Most Called-For Ingredients Across Recipes -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Most Called-For Ingredients</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Catalog Recipes</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="width:130px; text-align:right;">Recipes</th>
+                </tr>
+              </thead>
+              <tbody id="table-most-called-ingredients">
+                <tr>
+                  <td colspan="2" class="empty-state">Calculating recipe ingredients...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Least Called-For Ingredients Across Recipes -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Least Called-For Ingredients</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Catalog Recipes</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="width:130px; text-align:right;">Recipes</th>
+                </tr>
+              </thead>
+              <tbody id="table-least-called-ingredients">
+                <tr>
+                  <td colspan="2" class="empty-state">Calculating recipe ingredients...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        <!-- Most Called-For Base Spirits (Pie/Donut Chart) -->
+        <div class="analytics-box" style="margin-bottom:1.75rem;">
+          <div class="analytics-box-title">
+            <span>Base Spirit Breakdown</span>
+            <span style="font-size:0.75rem; color:var(--color-text-muted);">Catalog Cocktails</span>
+          </div>
+          <div class="donut-chart-container" id="base-spirits-container">
+            <div class="donut-svg-wrap">
+              <svg viewBox="0 0 100 100" id="base-spirits-donut-svg">
+                <circle cx="50" cy="50" r="38" fill="transparent" stroke="var(--color-surface-hover)" stroke-width="14" />
+              </svg>
+              <div class="donut-hole-text">
+                <div class="donut-hole-total" id="donut-total-val">-</div>
+                <div class="donut-hole-sub">Cocktails</div>
+              </div>
+            </div>
+            <div class="donut-legend-grid" id="base-spirits-legend">
+              <div class="empty-state" style="padding:1rem;">Calculating base spirits...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-section-grid">
+          <!-- Devices: Desktop vs Mobile -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Device Distribution</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);" id="device-total-label">0 visits</span>
+            </div>
+            <div style="padding:0.5rem 0;">
+              <div class="device-bar-container">
+                <div class="device-segment" id="bar-segment-mobile" style="width:50%; background:var(--color-accent);"
+                  title="Mobile"></div>
+                <div class="device-segment" id="bar-segment-desktop"
+                  style="width:50%; background:var(--color-sky, #75b8d4);" title="Desktop"></div>
+              </div>
+              <div class="device-legend">
+                <div class="device-legend-item">
+                  <span class="legend-color-dot" style="background:var(--color-accent);"></span>
+                  <span>Mobile: <strong id="val-mobile-pct">0%</strong> (<span id="val-mobile-count">0</span>)</span>
+                </div>
+                <div class="device-legend-item">
+                  <span class="legend-color-dot" style="background:var(--color-sky, #75b8d4);"></span>
+                  <span>Desktop: <strong id="val-desktop-pct">0%</strong> (<span id="val-desktop-count">0</span>)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Engagement -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Feature Engagement</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Clicks &amp; Nav</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th style="width:130px; text-align:right;">Interactions</th>
+                </tr>
+              </thead>
+              <tbody id="table-features">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading feature engagement...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Least Discovered Cocktails -->
+        <div class="analytics-box" style="margin-bottom:1.5rem;">
+          <div class="analytics-box-title">
+            <span>Least Viewed Cocktails</span>
+            <span style="font-size:0.75rem; color:var(--color-text-muted);">surfacing candidates</span>
+          </div>
+          <table class="analytics-table">
+            <thead>
+              <tr>
+                <th>Cocktail</th>
+                <th style="width:130px; text-align:right;">Views</th>
+              </tr>
+            </thead>
+            <tbody id="table-least-views">
+              <tr>
+                <td colspan="2" class="empty-state">Loading recipe view stats...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <!-- Tab 1: Personal Library Promotion -->
       <section id="panel-personal" class="admin-panel">
@@ -599,9 +1150,11 @@
           </div>
           <div class="panel-controls">
             <button type="button" class="filter-pill" id="filter-hidden-only" aria-pressed="false">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
               </svg>
               <span>Hidden Only (<span id="count-hidden-badge">0</span>)</span>
             </button>
@@ -628,6 +1181,7 @@
   <script type="module">
     import { SEED_RECIPES } from './js/data/seed-recipes.js';
     import { parseMethodContent } from './js/modules/parser.js';
+    import { TAXONOMY, findIngredient } from './js/modules/taxonomy.js';
 
     let globalRecipes = [];
     let globallyHiddenIds = new Set();
@@ -734,24 +1288,30 @@
     });
 
     // Tab Switching
+    const tabBtnAnalytics = document.getElementById('tab-btn-analytics');
     const tabBtnPersonal = document.getElementById('tab-btn-personal');
     const tabBtnCatalog = document.getElementById('tab-btn-catalog');
+    const panelAnalytics = document.getElementById('panel-analytics');
     const panelPersonal = document.getElementById('panel-personal');
     const panelCatalog = document.getElementById('panel-catalog');
 
-    tabBtnPersonal?.addEventListener('click', () => {
-      tabBtnPersonal.classList.add('active');
-      tabBtnCatalog.classList.remove('active');
-      panelPersonal.style.display = 'block';
-      panelCatalog.style.display = 'none';
-    });
+    function setActiveTab(tab) {
+      tabBtnAnalytics?.classList.toggle('active', tab === 'analytics');
+      tabBtnPersonal?.classList.toggle('active', tab === 'personal');
+      tabBtnCatalog?.classList.toggle('active', tab === 'catalog');
 
-    tabBtnCatalog?.addEventListener('click', () => {
-      tabBtnCatalog.classList.add('active');
-      tabBtnPersonal.classList.remove('active');
-      panelCatalog.style.display = 'block';
-      panelPersonal.style.display = 'none';
-    });
+      if (panelAnalytics) panelAnalytics.style.display = tab === 'analytics' ? 'block' : 'none';
+      if (panelPersonal) panelPersonal.style.display = tab === 'personal' ? 'block' : 'none';
+      if (panelCatalog) panelCatalog.style.display = tab === 'catalog' ? 'block' : 'none';
+
+      if (tab === 'analytics') {
+        loadAnalytics();
+      }
+    }
+
+    tabBtnAnalytics?.addEventListener('click', () => setActiveTab('analytics'));
+    tabBtnPersonal?.addEventListener('click', () => setActiveTab('personal'));
+    tabBtnCatalog?.addEventListener('click', () => setActiveTab('catalog'));
 
     // Load Data from /api/admin/recipes
     async function loadData() {
@@ -1034,8 +1594,452 @@
         .replace(/"/g, '&quot;');
     }
 
+    // --- Analytics Implementation ---
+    let analyticsDays = '30';
+
+    async function loadAnalytics() {
+      try {
+        const res = await fetch(`/api/admin/analytics?days=${analyticsDays}`);
+        if (!res.ok) {
+          if (res.status === 401) {
+            showAuthGate();
+            return;
+          }
+          throw new Error('Analytics request failed');
+        }
+        const data = await res.json();
+        renderAnalytics(data);
+      } catch (err) {
+        toast('Error loading analytics: ' + err.message);
+      }
+    }
+
+    function renderAnalytics(data) {
+      if (!data) return;
+
+      // 1. Overview KPIs
+      const ov = data.overview || {};
+      const elUsers = document.getElementById('kpi-users');
+      const elUsersSub = document.getElementById('kpi-users-subtext');
+      const elPours = document.getElementById('kpi-pours');
+      const elCustom = document.getElementById('kpi-custom');
+      const elCustomSub = document.getElementById('kpi-custom-subtext');
+      const elBars = document.getElementById('kpi-bars');
+
+      if (elUsers) elUsers.textContent = (ov.total_users || 0).toLocaleString();
+      if (elUsersSub) elUsersSub.textContent = `${ov.users_7d || 0} in last 7d • ${ov.users_30d || 0} in 30d`;
+      if (elPours) elPours.textContent = (ov.total_pours || 0).toLocaleString();
+      if (elCustom) elCustom.textContent = (ov.total_custom_recipes || 0).toLocaleString();
+      if (elCustomSub) elCustomSub.textContent = `${ov.total_riffs || 0} riffs • ${ov.total_public_recipes || 0} public`;
+      if (elBars) elBars.textContent = (ov.total_bars || 0).toLocaleString();
+
+      // Helper to find cocktail name by ID
+      const allRecipesMap = new Map();
+      SEED_RECIPES.forEach(r => allRecipesMap.set(r.id, r.name));
+      globalRecipes.forEach(r => allRecipesMap.set(r.id, r.name));
+      customRecipes.forEach(r => allRecipesMap.set(r.id, r.name));
+
+      const getRecipeName = (id) => allRecipesMap.get(id) || id || 'Unknown Recipe';
+
+      // 2. Most Viewed Cocktails
+      const topViews = data.cocktails?.top_views || [];
+      const tbodyTopViews = document.getElementById('table-top-views');
+      if (tbodyTopViews) {
+        if (topViews.length === 0) {
+          tbodyTopViews.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No recipe views recorded yet in this window.</td></tr>`;
+        } else {
+          const maxView = Math.max(...topViews.map(v => v.views || 0), 1);
+          tbodyTopViews.innerHTML = topViews.map(v => {
+            const pct = Math.round((v.views / maxView) * 100);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(getRecipeName(v.target_id))}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${v.views}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 3. Most Poured Cocktails (Drink History)
+      const topPours = data.cocktails?.top_pours || [];
+      const tbodyTopPours = document.getElementById('table-top-pours');
+      if (tbodyTopPours) {
+        if (topPours.length === 0) {
+          tbodyTopPours.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No drinks recorded with "I Made This" yet.</td></tr>`;
+        } else {
+          const maxPour = Math.max(...topPours.map(p => p.pour_count || 0), 1);
+          tbodyTopPours.innerHTML = topPours.map(p => {
+            const pct = Math.round((p.pour_count / maxPour) * 100);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(getRecipeName(p.recipe_id))}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill secondary" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${p.pour_count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 4. Search Queries
+      const searches = data.searches || [];
+      const tbodySearches = document.getElementById('table-searches');
+      if (tbodySearches) {
+        if (searches.length === 0) {
+          tbodySearches.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No searches logged in this window.</td></tr>`;
+        } else {
+          const maxSearch = Math.max(...searches.map(s => s.search_count || 0), 1);
+          tbodySearches.innerHTML = searches.map(s => {
+            const pct = Math.round((s.search_count / maxSearch) * 100);
+            return /*html*/`
+              <tr>
+                <td><code>${escapeHtml(s.query)}</code></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${s.search_count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 5. Frequently Stocked Bottles
+      const rawStocked = data.stocked_ingredients || [];
+      // Sort primarily by bar_count DESC, secondarily by friendly ingredient name ASC
+      const getIngredientDisplayName = (id) => TAXONOMY[id]?.name || id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+      const stocked = [...rawStocked].sort((a, b) => {
+        if (b.bar_count !== a.bar_count) return b.bar_count - a.bar_count;
+        const nameA = getIngredientDisplayName(a.ingredient_id);
+        const nameB = getIngredientDisplayName(b.ingredient_id);
+        return nameA.localeCompare(nameB);
+      });
+
+      const tbodyStocked = document.getElementById('table-stocked-ingredients');
+      if (tbodyStocked) {
+        if (stocked.length === 0) {
+          tbodyStocked.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No bar inventory items recorded yet.</td></tr>`;
+        } else {
+          const maxStocked = Math.max(...stocked.map(s => s.bar_count || 0), 1);
+          tbodyStocked.innerHTML = stocked.map(s => {
+            const pct = Math.round((s.bar_count / maxStocked) * 100);
+            const displayName = getIngredientDisplayName(s.ingredient_id);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(displayName)}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill secondary" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${s.bar_count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 5b. Most & Least Called-For Ingredients Across All Recipes
+      const allActiveRecipes = [...SEED_RECIPES, ...globalRecipes, ...customRecipes];
+      const ingredientRecipeCount = new Map(); // ingredientName -> count
+
+      allActiveRecipes.forEach(recipe => {
+        if (Array.isArray(recipe.specs)) {
+          // Count each distinct ingredient name at most once per cocktail
+          const seenInRecipe = new Set();
+          recipe.specs.forEach(spec => {
+            const rawName = (spec.name || '').trim();
+            if (!rawName) return;
+            // Clean up garnish / optional notes if present
+            const cleanName = rawName.replace(/\s*\([^)]*\)/g, '').trim();
+            if (cleanName && !seenInRecipe.has(cleanName.toLowerCase())) {
+              seenInRecipe.add(cleanName.toLowerCase());
+              ingredientRecipeCount.set(cleanName, (ingredientRecipeCount.get(cleanName) || 0) + 1);
+            }
+          });
+        }
+      });
+
+      const sortedIngredientCalls = Array.from(ingredientRecipeCount.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+      const topCalled = sortedIngredientCalls.slice(0, 15);
+      const leastCalled = [...sortedIngredientCalls].reverse().slice(0, 15);
+
+      // Render Most Called-For
+      const tbodyMostCalled = document.getElementById('table-most-called-ingredients');
+      if (tbodyMostCalled) {
+        if (topCalled.length === 0) {
+          tbodyMostCalled.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No recipe ingredients found.</td></tr>`;
+        } else {
+          const maxCall = Math.max(...topCalled.map(c => c.count), 1);
+          tbodyMostCalled.innerHTML = topCalled.map(item => {
+            const pct = Math.round((item.count / maxCall) * 100);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(item.name)}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${item.count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // Render Least Called-For
+      const tbodyLeastCalled = document.getElementById('table-least-called-ingredients');
+      if (tbodyLeastCalled) {
+        if (leastCalled.length === 0) {
+          tbodyLeastCalled.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No recipe ingredients found.</td></tr>`;
+        } else {
+          tbodyLeastCalled.innerHTML = leastCalled.map(item => {
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(item.name)}</strong></td>
+                <td style="text-align:right;">
+                  <span class="metric-bar-num">${item.count}</span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 5c. Most Called-For Base Spirits (Pie/Donut Chart Calculation & Render)
+      const baseSpiritFamilies = {
+        whiskey: { label: 'Whiskey', color: '#d48b38' },
+        gin: { label: 'Gin', color: '#5eb5a6' },
+        rum: { label: 'Rum', color: '#c9593a' },
+        tequila: { label: 'Agave (Tequila/Mezcal)', color: '#88a825' },
+        brandy: { label: 'Brandy / Cognac', color: '#a04374' },
+        vodka: { label: 'Vodka', color: '#5b9dff' },
+        liqueurs: { label: 'Aperitif / Liqueur Base', color: '#d95926' },
+        other: { label: 'Other Spirits', color: '#8a97a8' },
+      };
+
+      const baseSpiritCounts = new Map();
+      Object.keys(baseSpiritFamilies).forEach(k => baseSpiritCounts.set(k, 0));
+
+      let totalBaseSpiritCalls = 0;
+
+      allActiveRecipes.forEach(recipe => {
+        if (Array.isArray(recipe.specs)) {
+          // Identify spirits called in this recipe
+          const detectedFamilies = new Set();
+          recipe.specs.forEach(spec => {
+            const rawName = (spec.name || '').trim();
+            if (!rawName) return;
+            const item = findIngredient(rawName);
+            if (item && (item.parent === 'spirits' || item.family === 'liqueurs')) {
+              let fam = item.family || 'other';
+              if (fam === 'tequila' || fam === 'mezcal' || fam === 'agave') fam = 'tequila';
+              if (fam === 'brandy' || fam === 'cognac' || fam === 'pisco' || fam === 'apple_brandy') fam = 'brandy';
+              if (baseSpiritFamilies[fam]) {
+                detectedFamilies.add(fam);
+              } else if (item.parent === 'spirits') {
+                detectedFamilies.add('other');
+              }
+            }
+          });
+
+          detectedFamilies.forEach(fam => {
+            baseSpiritCounts.set(fam, (baseSpiritCounts.get(fam) || 0) + 1);
+            totalBaseSpiritCalls++;
+          });
+        }
+      });
+
+      const donutTotalEl = document.getElementById('donut-total-val');
+      if (donutTotalEl) {
+        donutTotalEl.textContent = allActiveRecipes.length.toLocaleString();
+      }
+
+      // Build SVG donut segments and legend
+      const donutSvg = document.getElementById('base-spirits-donut-svg');
+      const legendGrid = document.getElementById('base-spirits-legend');
+
+      if (donutSvg && legendGrid) {
+        // Circumference for r=38 is 2 * PI * 38 = ~238.761
+        const radius = 38;
+        const circumference = 2 * Math.PI * radius;
+
+        const sortedSpirits = Array.from(baseSpiritCounts.entries())
+          .filter(([, count]) => count > 0)
+          .sort((a, b) => b[1] - a[1]);
+
+        if (sortedSpirits.length === 0) {
+          legendGrid.innerHTML = /*html*/`<div class="empty-state">No spirits detected in recipes.</div>`;
+        } else {
+          let accumulatedOffset = 0;
+          const svgCircles = [];
+          const legendItems = [];
+
+          sortedSpirits.forEach(([key, count]) => {
+            const config = baseSpiritFamilies[key] || { label: key, color: '#8a97a8' };
+            const pct = count / Math.max(totalBaseSpiritCalls, 1);
+            const dashLength = pct * circumference;
+            const remainingSpace = circumference - dashLength;
+            const strokeDashoffset = -accumulatedOffset;
+            accumulatedOffset += dashLength;
+
+            svgCircles.push(/*html*/`
+              <circle cx="50" cy="50" r="${radius}" fill="transparent"
+                stroke="${config.color}" stroke-width="14"
+                stroke-dasharray="${dashLength.toFixed(2)} ${remainingSpace.toFixed(2)}"
+                stroke-dashoffset="${strokeDashoffset.toFixed(2)}" />
+            `);
+
+            const pctLabel = Math.round(pct * 100);
+            legendItems.push(/*html*/`
+              <div class="donut-legend-item">
+                <div class="donut-legend-left">
+                  <span class="legend-color-dot" style="background:${config.color};"></span>
+                  <span>${escapeHtml(config.label)}</span>
+                </div>
+                <div class="donut-legend-right">
+                  ${count} <span style="font-weight:400; color:var(--color-text-muted); font-size:0.75rem;">(${pctLabel}%)</span>
+                </div>
+              </div>
+            `);
+          });
+
+          donutSvg.innerHTML = svgCircles.join('');
+          legendGrid.innerHTML = legendItems.join('');
+        }
+      }
+
+      // 6. Device Distribution
+      const devices = data.devices || { mobile: 0, desktop: 0, total: 0 };
+      const totalDev = devices.total || 0;
+      const mobCount = devices.mobile || 0;
+      const deskCount = devices.desktop || 0;
+      const mobPct = totalDev > 0 ? Math.round((mobCount / totalDev) * 100) : 50;
+      const deskPct = totalDev > 0 ? (100 - mobPct) : 50;
+
+      const segMob = document.getElementById('bar-segment-mobile');
+      const segDesk = document.getElementById('bar-segment-desktop');
+      const lblMobPct = document.getElementById('val-mobile-pct');
+      const lblMobCount = document.getElementById('val-mobile-count');
+      const lblDeskPct = document.getElementById('val-desktop-pct');
+      const lblDeskCount = document.getElementById('val-desktop-count');
+      const lblDevTotal = document.getElementById('device-total-label');
+
+      if (segMob) segMob.style.width = `${mobPct}%`;
+      if (segDesk) segDesk.style.width = `${deskPct}%`;
+      if (lblMobPct) lblMobPct.textContent = `${totalDev > 0 ? mobPct : 0}%`;
+      if (lblMobCount) lblMobCount.textContent = mobCount.toLocaleString();
+      if (lblDeskPct) lblDeskPct.textContent = `${totalDev > 0 ? deskPct : 0}%`;
+      if (lblDeskCount) lblDeskCount.textContent = deskCount.toLocaleString();
+      if (lblDevTotal) lblDevTotal.textContent = `${totalDev.toLocaleString()} total visits`;
+
+      // 7. Feature Usage
+      const features = data.features || [];
+      const tbodyFeatures = document.getElementById('table-features');
+      if (tbodyFeatures) {
+        if (features.length === 0) {
+          tbodyFeatures.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No feature interactions recorded.</td></tr>`;
+        } else {
+          const maxFeat = Math.max(...features.map(f => f.count || 0), 1);
+          tbodyFeatures.innerHTML = features.map(f => {
+            const pct = Math.round((f.count / maxFeat) * 100);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(f.feature_name)}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${f.count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 8. Least Discovered / Hidden Gems
+      const leastViews = data.cocktails?.least_views || [];
+      const tbodyLeastViews = document.getElementById('table-least-views');
+      if (tbodyLeastViews) {
+        // Exclude recipes that already appear in top views to avoid mirroring identical small datasets
+        const topViewIds = new Set((topViews || []).map(t => t.target_id));
+        const filteredLeast = leastViews.filter(v => !topViewIds.has(v.target_id));
+
+        if (filteredLeast.length === 0) {
+          if (leastViews.length > 0 && topViews.length > 0) {
+            tbodyLeastViews.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">All viewed cocktails currently appear in Most Viewed. As more drinks are explored, lower-viewed gems will appear here.</td></tr>`;
+          } else {
+            tbodyLeastViews.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No view stats recorded yet.</td></tr>`;
+          }
+        } else {
+          tbodyLeastViews.innerHTML = filteredLeast.map(v => {
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(getRecipeName(v.target_id))}</strong></td>
+                <td style="text-align:right;">
+                  <span class="metric-bar-num">${v.views}</span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    // Time selector event handlers
+    const timeSelector = document.getElementById('analytics-time-range');
+    timeSelector?.querySelectorAll('.time-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        timeSelector.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        analyticsDays = btn.getAttribute('data-days') || '30';
+        loadAnalytics();
+      });
+    });
+
+    document.getElementById('btn-refresh-analytics')?.addEventListener('click', () => {
+      toast('Refreshing analytics...');
+      loadAnalytics();
+    });
+
     // Init
-    checkAuth();
+    async function init() {
+      await checkAuth();
+      if (dashboardSection.style.display !== 'none') {
+        setActiveTab('analytics');
+      }
+    }
+    init();
   </script>
 </body>
 

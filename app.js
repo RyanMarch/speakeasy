@@ -43,6 +43,7 @@ import {
   renderVaultSettingsModal,
   updateAuthIndicator,
 } from './js/components/top-bar.js';
+import { trackEvent } from './js/modules/telemetry.js';
 
 import {
   setupBackbarEventListeners,
@@ -233,14 +234,23 @@ function init() {
  * Global Event Listeners
  */
 function setupGlobalEventListeners() {
-  // Search
+  // Search with debounced telemetry
+  let searchDebounceTimer = null;
   elements.searchInput?.addEventListener('input', (e) => {
     state.searchQuery = e.target.value.trim().toLowerCase();
     elements.searchClearBtn?.classList.toggle('visible', state.searchQuery.length > 0);
     renderRecipeList();
+
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+    if (state.searchQuery.length >= 2) {
+      searchDebounceTimer = setTimeout(() => {
+        trackEvent('search', { query: state.searchQuery });
+      }, 1500);
+    }
   });
 
   elements.searchClearBtn?.addEventListener('click', () => {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
     if (elements.searchInput) elements.searchInput.value = '';
     state.searchQuery = '';
     elements.searchClearBtn?.classList.remove('visible');

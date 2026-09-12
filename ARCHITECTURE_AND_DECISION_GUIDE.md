@@ -54,6 +54,7 @@ speakeasy/
 │   └── modules/
 │       ├── auth.js            # Passwordless OTP authentication and session management
 │       ├── history.js         # Drink history logging and cloud synchronization
+│       ├── telemetry.js       # Client telemetry tracking (views, searches, feature usage)
 │       ├── taxonomy.js        # Hierarchical ingredient graph, brand mapping, search, substitutes, shopping list
 │       ├── storage.js         # LocalStorage manager, menus, low stock, backup export/import, seed re-exports
 │       ├── parser.js          # Natural text ingredient parser, fractions, method/timer detector
@@ -64,15 +65,20 @@ speakeasy/
 │       ├── colors.js          # Color calculation, hex blending, and volume normalization
 │       ├── balance.js         # Flavor balance radar calculation, SVG renderer, palate distance similarity
 │       └── abv.js             # Proof heuristics, method-based dilution (stir/shake/build/blend)
+├── admin.html                 # Admin Dashboard: Analytics, Global Recipe Manager & Visibility
 ├── functions/
 │   └── api/                   # Cloudflare Pages Functions (Serverless Backend)
+│       ├── admin/             # Endpoints for admin session, analytics aggregation, recipes, and visibility
 │       ├── auth/              # Endpoints for OTP generation, verification, session, and account deletion
 │       ├── history/           # Endpoints to log and list user drink history
 │       ├── shares/            # Endpoints to create and read public recipe snapshots
+│       ├── telemetry.js       # Ingestion endpoint for recipe views, search logs, and feature events
 │       └── sync.js            # Endpoint to sync local library to the cloud and fetch updates
 ├── migrations/                # Versioned Cloudflare D1 SQL schema migrations
 │   ├── 0001_initial_schema.sql
-│   └── 0002_add_shares.sql
+│   ├── 0002_add_shares.sql
+│   ├── 0003_global_recipes.sql
+│   └── 0004_analytics.sql
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml         # GitHub Actions automated test, D1 migration & Pages deploy
@@ -207,6 +213,14 @@ Speakeasy utilizes a lightweight hash-based router combined with the native brow
 - **Seed Recipes**: Deep-linked and shared directly via native share sheets or clipboard (`#<id>`). Because canonical seed recipes are bundled in all installs, these links resolve reliably for any recipient.
 - **Custom Recipes**: Custom recipes can be shared by posting a read-only snapshot to `/api/shares`. This generates a public short link backed by D1, allowing recipients to view the exact specs and instructions without needing an account.
 
+### Admin Dashboard & Product Analytics
+- **Separate Surface**: Accessible at `/admin.html`. Gated behind an admin authentication session (`ADMIN_PASSWORD` or signed HMAC cookie issued by `/api/admin/login`).
+- **Telemetry Module (`js/modules/telemetry.js`)**: Fire-and-forget event dispatcher queuing recipe views, debounced search queries, and feature interactions. Flushes via `navigator.sendBeacon` or `fetch` with `keepalive: true`.
+- **Privacy Design**: Telemetry stores no personal identity, account IDs, or IP addresses. It captures event type, target entity ID/query, timestamp, and coarse device classification (`mobile` vs `desktop`).
+- **Analytics Aggregations (`/api/admin/analytics`)**: Summarizes total users, active accounts (7d/30d), total bars saved, custom recipes created, most/least viewed cocktails, top drinks poured via "I Made This", search trends, and backbar bottle stock counts.
+- **Catalog & Ingredient Intelligence**: Computes most and least called-for ingredients across catalog cocktails and visualizes the distribution of base spirit families (Whiskey, Gin, Rum, Agave, Brandy, Vodka, Liqueurs) via an SVG donut breakdown.
+- **Global Recipe Management**: Allows promoting user-created riffs into the global library (`global_recipes` table) and toggling global recipe visibility (`global_hidden_recipes` table).
+
 ---
 
 ## 5. Decision-Making Matrix for Future Changes
@@ -242,4 +256,4 @@ Before committing any alterations:
 
 ---
 
-*Last updated: September 10, 2026*
+*Last updated: September 12, 2026*
