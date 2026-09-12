@@ -70,6 +70,12 @@ speakeasy/
 │       ├── history/           # Endpoints to log and list user drink history
 │       ├── shares/            # Endpoints to create and read public recipe snapshots
 │       └── sync.js            # Endpoint to sync local library to the cloud and fetch updates
+├── migrations/                # Versioned Cloudflare D1 SQL schema migrations
+│   ├── 0001_initial_schema.sql
+│   └── 0002_add_shares.sql
+├── .github/
+│   └── workflows/
+│       └── deploy.yml         # GitHub Actions automated test, D1 migration & Pages deploy
 ├── assets/                    # Favicons, web app icons, and graphics
 ├── tests/
 │   ├── architecture-test.js   # Structural integrity, module exports, CSS imports, preload checks
