@@ -18,11 +18,15 @@ const CACHE_NAME = 'speakeasy-v3';
 const PRECACHE_URLS = [
   './',
   'index.html',
+  'app.html',
+  'terms.html',
   'manifest.webmanifest',
   'wrangler.toml',
   'app.js',
   'css/base.css',
+  'css/theme-deco.css',
   'css/index.css',
+  'css/marketing.css',
   'js/modules/taxonomy.js',
   'js/modules/storage.js',
   'js/modules/parser.js',
@@ -81,16 +85,6 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
-  // Network-first for everything same-origin: whatever's actually being served
-  // right now wins whenever the network is reachable, with the cache only used
-  // as an offline fallback. This used to be cache-first-with-background-update
-  // for CSS/JS (navigations were already network-first, below) — that meant
-  // every asset was always one load behind whatever was just deployed (or, in
-  // local dev, whatever was just edited): the stale cached copy served
-  // immediately every time, with the fetch that would've updated it landing
-  // in the background for a load nobody ever saw. Offline support still works
-  // exactly the same, since the cache fallback is unchanged; this just stops
-  // preferring stale over fresh when a network response is actually available.
   event.respondWith(
     fetch(request)
       .then((response) => {
@@ -104,6 +98,14 @@ self.addEventListener('fetch', (event) => {
         const cached = await cache.match(request);
         if (cached) return cached;
         if (request.mode === 'navigate') {
+          if (url.pathname.startsWith('/app')) {
+            const appShell = await cache.match('app.html');
+            if (appShell) return appShell;
+          }
+          if (url.pathname.startsWith('/terms')) {
+            const termsPage = await cache.match('terms.html');
+            if (termsPage) return termsPage;
+          }
           const shell = await cache.match('index.html');
           if (shell) return shell;
         }

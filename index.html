@@ -3,747 +3,381 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Speakeasy: Cocktail Recipe Library</title>
-  <meta name="description" content="Cocktail recipe library with interactive fluid layers and instant spec parsing.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Speakeasy: The Counter Cocktail Library & Bar Companion</title>
+  <meta name="description"
+    content="A local-first cocktail recipe library and backbar intelligence tool for kitchen and bar counters. Visual vector glassware, smart inventory matching, and classic recipe lineage.">
   <link rel="icon" type="image/x-icon" href="favicon.ico?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=2">
   <link rel="manifest" href="manifest.webmanifest?v=2">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Speakeasy">
-  <meta name="theme-color" content="#121110">
+  <meta name="theme-color" content="#020f20">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/index.css?v=51">
-  <link rel="stylesheet" href="css/theme-deco.css?v=9">
-  <!-- Preload the ES module graph so the browser fetches it in parallel instead of
-       discovering each import one-by-one as app.js's static imports are parsed. -->
-  <link rel="modulepreload" href="app.js?v=31">
-  <link rel="modulepreload" href="js/state.js">
-  <link rel="modulepreload" href="js/router.js">
-  <link rel="modulepreload" href="js/data/seed-recipes.js">
-  <link rel="modulepreload" href="js/views/recipe-list-view.js">
-  <link rel="modulepreload" href="js/views/home-view.js">
-  <link rel="modulepreload" href="js/views/counter-view.js">
-  <link rel="modulepreload" href="js/components/top-bar.js">
-  <link rel="modulepreload" href="js/components/backbar-modal.js">
-  <link rel="modulepreload" href="js/components/hidden-modal.js">
-  <link rel="modulepreload" href="js/components/editor-modal.js">
-  <link rel="modulepreload" href="js/components/timer-modal.js">
-  <link rel="modulepreload" href="js/components/toast.js">
-  <link rel="modulepreload" href="js/components/auth-modal.js">
-  <link rel="modulepreload" href="js/modules/auth.js">
-  <link rel="modulepreload" href="js/modules/storage.js">
-  <link rel="modulepreload" href="js/modules/parser.js">
-  <link rel="modulepreload" href="js/modules/colors.js">
-  <link rel="modulepreload" href="js/modules/taxonomy.js">
-  <link rel="modulepreload" href="js/modules/glass-view.js">
-  <link rel="modulepreload" href="js/modules/abv.js">
-  <link rel="modulepreload" href="js/modules/glassware.js">
-  <link rel="modulepreload" href="js/modules/garnishes.js">
-  <link rel="modulepreload" href="js/modules/balance.js">
-  <link rel="modulepreload" href="js/modules/history.js">
-  <link rel="modulepreload" href="js/modules/telemetry.js">
+  <link rel="stylesheet" href="css/base.css?v=52">
+  <link rel="stylesheet" href="css/theme-deco.css?v=10">
+  <link rel="stylesheet" href="css/marketing.css?v=1">
 </head>
 
-<body>
-  <div id="app">
-    <!-- Main Header -->
-    <header class="app-header">
-      <button type="button" id="btn-go-home" class="brand-group brand-group-btn" title="Go to Home"
-        aria-label="Go to Home">
-        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M8 22h8" />
-          <path d="M12 11v11" />
-          <path d="m19 3-7 8-7-8Z" />
-        </svg>
-        <div>
-          <h1 class="brand-title">Speakeasy</h1>
-          <div class="brand-subtitle">Cocktail Recipe Library</div>
-        </div>
-      </button>
+<body class="marketing-body">
+  <!-- Top Navigation Bar -->
+  <header class="site-header">
+    <a href="/" class="site-brand-link" aria-label="Speakeasy Home">
+      <svg class="site-brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 22h8" />
+        <path d="M12 11v11" />
+        <path d="m19 3-7 8-7-8Z" />
+      </svg>
+      <div>
+        <div class="site-brand-title">Speakeasy</div>
+        <div class="site-brand-subtitle">Cocktail Library</div>
+      </div>
+    </a>
 
-      <!-- Desktop Sticky Scrolled Title (also used, with the Save button shown, while editing a recipe) -->
-      <div class="desktop-sticky-title" id="desktop-sticky-title" aria-hidden="true">
-        <span class="desktop-sticky-name" id="desktop-sticky-name"></span>
-        <button type="button" id="desktop-sticky-save" class="btn btn-primary btn-sm desktop-sticky-save">Save
-          Recipe</button>
+    <nav class="site-nav" aria-label="Main Site Navigation">
+      <!-- <a href="#features" class="site-nav-link">Craft</a>
+      <a href="/terms" class="site-nav-link">Terms & Privacy</a> -->
+      <a href="/app" class="site-nav-cta">
+        <span>Launch App</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <!-- Editorial Hero -->
+    <header class="hero-section">
+      <div class="hero-ornament" aria-hidden="true">
+        <span></span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 34" width="48" height="48">
+          <defs>
+            <linearGradient id="avatarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#d4a359" stop-opacity="0.25" />
+              <stop offset="100%" stop-color="#d4a359" stop-opacity="0.08" />
+            </linearGradient>
+          </defs>
+
+          <!-- 34x34 Avatar Circular Badge (.vault-identity-avatar) -->
+          <circle cx="17" cy="17" r="16" fill="url(#avatarGrad)" stroke="#d4a359" stroke-width="1"
+            stroke-opacity="0.35" />
+
+          <!-- Centered 18x18 SVG from the Vault popover (offset by (8, 8) in the 34x34 box: 18/24 = scale 0.75) -->
+          <g transform="translate(8, 8) scale(0.75)" fill="none" stroke="#d4a359" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 22h8" />
+            <path d="M12 11v11" />
+            <path d="m19 3-7 8-7-8Z" />
+          </g>
+        </svg>
+
+        <span></span>
       </div>
 
-      <div class="header-actions">
-        <button id="btn-my-bar" class="btn btn-secondary btn-sm my-bar-btn"
-          title="Manage your personal backbar inventory">
-          <span class="btn-text">My Bar</span> <span id="my-bar-badge">0</span>
-        </button>
-        <button id="btn-new-drink" class="btn btn-primary btn-sm new-drink-btn" title="Create a new cocktail recipe">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          <span class="btn-text">New Drink</span>
-        </button>
+      <h1 class="hero-title">
+        The Craft Cocktail Companion
+      </h1>
 
-        <!-- Auth Status Indicator (Guest / Authenticated) -->
-        <button id="btn-sign-in" class="btn btn-secondary btn-sm auth-signin-btn" title="Sign in to sync your library">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-            <polyline points="10 17 15 12 10 7"></polyline>
-            <line x1="15" y1="12" x2="3" y2="12"></line>
-          </svg>
-          <span class="btn-text">Sign In</span>
-        </button>
+      <p class="hero-tagline">
+        Curate your home bar, track your bottles, <br /> and discover what to pour next.
+      </p>
 
-        <button id="btn-user-pill" class="btn btn-secondary btn-sm auth-user-pill" title="User Account & Vault Settings" style="display: none;">
-          <svg class="auth-pill-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <span class="auth-user-name" id="user-pill-name">Profile</span>
-          <span class="auth-status-badge" title="Synced with cloud"></span>
-        </button>
-
-        <!-- Hidden Popovers kept as hidden containers for backwards-compatibility -->
-        <div id="user-popover" style="display: none;">
-          <span id="user-popover-email"></span>
-          <button type="button" id="btn-sign-out" style="display: none;"></button>
-        </div>
-        <div id="vault-popover" style="display: none;"></div>
-
-        <input type="file" id="import-file-input" accept=".json,application/json" style="display: none;"
-          aria-label="Upload JSON recipes file">
+      <div class="hero-actions">
+        <a href="/app" class="btn-hero-primary" id="btn-hero-launch">
+          <span>Start Mixing</span>
+        </a>
       </div>
     </header>
 
+    <!-- Detailed Visual Spec Breakdown -->
+    <section class="showcase-section" aria-labelledby="showcase-heading">
+      <div class="showcase-frame">
+        <div class="showcase-grid">
+          <div class="showcase-visual">
+            <div class="showcase-drink-caption" id="showcase-drink-name">Negroni</div>
+            <div class="showcase-drink-sub" id="showcase-drink-sub">Count Camillo Negroni, Florence, 1919</div>
 
-
-
-    <!-- Two-Pane Application Shell -->
-    <main class="app-main" id="app-main">
-      <!-- Left Pane: Sidebar & Recipe Navigation -->
-      <aside class="sidebar" id="sidebar" aria-label="Cocktail library sidebar">
-        <div class="sidebar-search-box">
-          <div class="search-input-wrapper">
-            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input type="search" id="search-input" class="search-input" placeholder="Search drinks, spirits, flavors..."
-              aria-label="Search recipes">
-            <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
-          </div>
-          <!-- <div class="sidebar-sort-select-wrap">
-            <select id="sidebar-sort-select" class="sidebar-sort-select" aria-label="Sort cocktail list">
-              <option value="curated">Curated</option>
-              <option value="ready">Ready</option>
-              <option value="specs-asc">Simple</option>
-              <option value="name-asc">A–Z</option>
-            </select>
-          </div> -->
-        </div>
-
-        <!-- Themed Pack Filter Pills -->
-        <div class="sidebar-pack-filter" id="sidebar-pack-filter" role="tablist" aria-label="Cocktail packs">
-          <button type="button" class="pack-pill active" data-pack="all" role="tab" aria-selected="true">All</button>
-          <button type="button" class="pack-pill" data-pack="custom" id="pack-pill-custom" role="tab" aria-selected="false" style="display: none;">Custom</button>
-          <button type="button" class="pack-pill" data-pack="classic" role="tab" aria-selected="false">Classic</button>
-          <button type="button" class="pack-pill" data-pack="modern-craft" role="tab" aria-selected="false">
-            Craft</button>
-          <button type="button" class="pack-pill" data-pack="tropical-tiki" role="tab"
-            aria-selected="false">Tiki</button>
-          <button type="button" class="pack-pill" data-pack="prohibition-era" role="tab"
-            aria-selected="false">Prohibition</button>
-          <button type="button" class="pack-pill" data-pack="aperitivo-amaro" role="tab"
-            aria-selected="false">Aperitivo</button>
-          <button type="button" class="pack-pill" data-pack="nightcaps" role="tab"
-            aria-selected="false">Nightcaps</button>
-        </div>
-
-        <ul class="recipe-list" id="recipe-list" role="listbox" aria-label="Recipe List">
-          <!-- Dynamically populated recipe cards -->
-        </ul>
-
-        <div class="sidebar-footer">
-          <button type="button" id="btn-footer-home" class="footer-nav-btn" aria-label="Go to Home"
-            title="Home showcase">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            <span>Home</span>
-          </button>
-
-          <!-- Bottom Inventory Filter Toggle Switch -->
-          <div class="sidebar-inventory-filter footer-inventory-toggle" id="sidebar-inventory-filter" role="tablist"
-            aria-label="Filter drinks by bar inventory">
-            <button type="button" class="inventory-filter-btn active" data-filter="all" role="tab" aria-selected="true">
-              All <span class="filter-count" id="count-all">0</span>
-            </button>
-            <button type="button" class="inventory-filter-btn" data-filter="can_make" role="tab" aria-selected="false">
-              Ready <span class="filter-count" id="count-can-make">0</span>
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Right Pane: Main Display Area -->
-      <section class="main-stage" id="main-stage" aria-label="Recipe details and workspace">
-        <!-- Home View Container -->
-        <div id="home-view-container" class="home-view" style="display: none;">
-          <!-- Rendered dynamically -->
-        </div>
-
-        <!-- Counter View Container -->
-        <div id="counter-view-container" class="counter-view">
-          <!-- Rendered dynamically -->
-        </div>
-
-        <!-- Recipe Editor View Container (Hidden initially) -->
-        <div id="editor-view-container" class="editor-view" style="display: none;">
-          <!-- Rendered dynamically -->
-        </div>
-
-        <!-- Menu Builder View Container (Hidden initially) -->
-        <div id="menu-builder-view-container" class="menu-builder-view" style="display: none;">
-          <!-- Rendered dynamically -->
-        </div>
-
-        <!-- User Account & Vault Settings Page View Container (Hidden initially) -->
-        <div id="account-view-container" class="account-view" style="display: none;">
-          <header class="account-page-header">
-            <button type="button" id="btn-account-back" class="account-back-link" aria-label="Return to previous view">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              <span>Back</span>
-            </button>
-            <div class="account-header-info">
-              <h1 class="account-page-title">Speakeasy Settings</h1>
-              <p class="account-page-subtitle">Configure your Speakeasy preferences, cloud sync, library
-                shortcuts, and backups.</p>
+            <div id="showcase-glass-mount" class="showcase-glass-mount">
+              <!-- Rendered dynamically -->
             </div>
-          </header>
 
-          <div class="account-page-body">
-            <!-- Section 1: User Identity & Cloud Sync -->
-            <section class="vault-modal-section" aria-labelledby="heading-user-identity">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-user-identity">Profile & Cloud Sync</h2>
-              </div>
-              <div class="vault-identity-card">
-                <div class="vault-identity-profile">
-                  <div class="vault-avatar-wrap">
-                    <div class="vault-identity-avatar" id="account-avatar-icon" aria-hidden="true">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                    </div>
-                    <button type="button" id="btn-avatar-shuffle" class="vault-avatar-shuffle-btn"
-                      style="display: none;" title="Shuffle to a new cocktail avatar" aria-label="Shuffle avatar">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <polyline points="16 3 21 3 21 8"></polyline>
-                        <line x1="4" y1="20" x2="21" y2="3"></line>
-                        <polyline points="21 16 21 21 16 21"></polyline>
-                        <line x1="15" y1="15" x2="21" y2="21"></line>
-                        <line x1="4" y1="4" x2="9" y2="9"></line>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="vault-identity-details">
-                    <div class="vault-identity-name-row">
-                      <input type="text" id="account-display-name-input" class="vault-user-name-input"
-                        name="speakeasy_mixologist_alias" autocomplete="off" autocorrect="off" autocapitalize="words"
-                        spellcheck="false" data-1p-ignore="true" data-lpignore="true" placeholder="Guest Bartender"
-                        maxlength="32" title="Your display name / alias" aria-label="Mixologist display name" />
-                      <svg class="vault-edit-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path d="M12 20h9"></path>
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                      </svg>
-                    </div>
-                    <div class="vault-identity-meta-row">
-                      <span class="vault-identity-rank" id="account-rank-display">Apprentice</span>
-                      <span class="vault-meta-separator" aria-hidden="true">·</span>
-                      <span class="vault-identity-meta" id="account-created-display">Offline Local Library</span>
-                    </div>
-                    <div class="vault-identity-meta-row">
-                      <span class="vault-identity-email" id="account-email-display">Not signed in</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="vault-sync-row">
-                  <div class="vault-sync-status-indicator">
-                    <span class="sync-status-dot" id="account-sync-badge"></span>
-                    <span class="sync-status-text" id="account-sync-label">Synced</span>
-                    <span class="sync-status-time" id="account-sync-time"></span>
-                  </div>
-                  <div class="vault-sync-row-actions">
-                    <button type="button" id="btn-account-sign-out" class="vault-signout-ghost" style="display: none;">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                      <span>Sign Out</span>
-                    </button>
-                    <button type="button" id="btn-sync-now" class="btn btn-secondary btn-sm vault-sync-btn">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-                      </svg>
-                      <span>Sync Now</span>
-                    </button>
-                    <button type="button" id="btn-guest-sign-in" class="btn btn-primary btn-sm vault-signin-btn"
-                      style="display: none;">
-                      <span>Sign In to Sync</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- Section 2: Active Bar Selector -->
-            <section class="vault-modal-section" aria-labelledby="heading-active-bar">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-active-bar">Active Bar Selection</h2>
-                <button type="button" id="btn-add-bar" class="btn btn-secondary btn-sm">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            <div class="showcase-toggle-wrap">
+              <div class="showcase-toggle" role="group" aria-label="Cocktail presentation mode">
+                <button type="button" class="showcase-toggle-btn active" data-mode="layered" id="showcase-mode-layered">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
                   </svg>
-                  <span>Add Bar</span>
+                  <span>Layers</span>
                 </button>
-              </div>
-              <div class="vault-bar-selector-box">
-                <div class="vault-bars-list" role="radiogroup" aria-label="Active bar profile" id="vault-bars-list">
-                  <!-- rendered by renderVaultBarsList() in js/components/top-bar.js -->
-                </div>
-              </div>
-            </section>
-
-            <!-- Section 2b: Your Bar at a Glance -->
-            <section class="vault-modal-section" aria-labelledby="heading-bar-glance">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-bar-glance">Your Bar at a Glance</h2>
-              </div>
-              <div class="vault-stat-strip">
-                <div class="vault-stat-tile">
-                  <span class="vault-stat-value" id="account-stat-drinks">0</span>
-                  <span class="vault-stat-label">Drinks Poured</span>
-                </div>
-                <div class="vault-stat-tile">
-                  <span class="vault-stat-value vault-stat-value-text" id="account-stat-favorite">—</span>
-                  <span class="vault-stat-label">Go-To Drink</span>
-                </div>
-                <div class="vault-stat-tile">
-                  <span class="vault-stat-value" id="account-stat-ingredients">0</span>
-                  <span class="vault-stat-label">Ingredients Stocked</span>
-                </div>
-              </div>
-            </section>
-
-            <!-- Section 3: Library & Custom Recipe Shortcuts -->
-            <section class="vault-modal-section" aria-labelledby="heading-library-shortcuts">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-library-shortcuts">Library & Custom Recipe Shortcuts
-                </h2>
-              </div>
-              <div class="vault-shortcuts-grid">
-                <button type="button" id="shortcut-custom-riffs" class="vault-shortcut-card"
-                  title="Browse custom and riff recipes in sidebar">
-                  <div class="vault-shortcut-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 20h9"></path>
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                    </svg>
-                  </div>
-                  <div class="vault-shortcut-content">
-                    <div class="vault-shortcut-title">Custom & Riff Recipes</div>
-                    <div class="vault-shortcut-count" id="count-custom-riffs">0 custom recipes</div>
-                  </div>
-                  <span class="vault-shortcut-arrow">→</span>
-                </button>
-
-                <button type="button" id="shortcut-hidden-cocktails" class="vault-shortcut-card"
-                  title="Open hidden cocktails manager">
-                  <div class="vault-shortcut-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path
-                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-                      </path>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                  </div>
-                  <div class="vault-shortcut-content">
-                    <div class="vault-shortcut-title">Hidden Cocktails</div>
-                    <div class="vault-shortcut-count" id="count-hidden-cocktails">0 hidden</div>
-                  </div>
-                  <span class="vault-shortcut-arrow">→</span>
-                </button>
-
-                <button type="button" id="shortcut-menus" class="vault-shortcut-card" title="Open saved event menus">
-                  <div class="vault-shortcut-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                      <path d="M6 6h10"></path>
-                      <path d="M6 10h10"></path>
-                    </svg>
-                  </div>
-                  <div class="vault-shortcut-content">
-                    <div class="vault-shortcut-title">Saved Event Menus</div>
-                    <div class="vault-shortcut-count" id="count-saved-menus">0 saved menus</div>
-                  </div>
-                  <span class="vault-shortcut-arrow">→</span>
-                </button>
-              </div>
-              <!-- Retain hidden elements for backwards-compatibility -->
-              <button type="button" id="btn-manage-hidden" style="display: none;"></button>
-              <span id="vault-hidden-sub" style="display: none;"></span>
-              <button type="button" id="btn-popover-new-drink" style="display: none;"></button>
-            </section>
-
-            <!-- Section 4: Pinned Home Collections -->
-            <section class="vault-modal-section" aria-labelledby="heading-pinned-tags">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-pinned-tags">Pinned Home Collections</h2>
-              </div>
-              <p class="vault-section-hint">Tags pinned here show up as rows at the top of your Home screen, in this order.</p>
-              <ul class="vault-pinned-tags-list" id="vault-pinned-tags-list">
-                <!-- Populated by renderVaultSettingsModal() -->
-              </ul>
-              <div class="tag-input-inline-wrapper vault-pin-input-wrapper">
-                <input type="text" id="vault-pin-tag-input" class="tag-input-inline"
-                  placeholder="+ Pin tag..." aria-label="Pin a tag as a Home collection" autocomplete="off">
-                <ul class="tag-suggest-list" id="vault-pin-suggest-list" role="listbox" hidden></ul>
-              </div>
-            </section>
-
-            <!-- Section 5: Bar Mixing Preferences -->
-            <section class="vault-modal-section" aria-labelledby="heading-mixing-prefs">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-mixing-prefs">Bar Mixing Preferences</h2>
-              </div>
-              <div class="vault-prefs-grid">
-                <div class="vault-pref-tile">
-                  <div class="vault-pref-meta">
-                    <span class="vault-pref-label">Measurement Units</span>
-                    <span class="vault-pref-desc">Display cocktail specs in fluid ounces or milliliters</span>
-                  </div>
-                  <div class="vault-segmented-group" role="group" aria-label="Measurement units preference">
-                    <button type="button" id="popover-unit-oz" class="vault-unit-btn active" data-unit="oz">
-                      <span class="vault-unit-label">Ounces</span>
-                    </button>
-                    <button type="button" id="popover-unit-ml" class="vault-unit-btn" data-unit="ml">
-                      <span class="vault-unit-label">Metric</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="vault-pref-tile">
-                  <div class="vault-pref-meta">
-                    <span class="vault-pref-label">Fluid Appearance</span>
-                    <span class="vault-pref-desc">Glass simulation default rendering on recipe cards</span>
-                  </div>
-                  <div class="vault-segmented-group" role="group" aria-label="Default glass view mode">
-                    <button type="button" id="popover-glass-layered" class="vault-unit-btn active"
-                      data-glass-mode="layered">
-                      <span class="vault-unit-label">Layers</span>
-                    </button>
-                    <button type="button" id="popover-glass-blended" class="vault-unit-btn" data-glass-mode="blended">
-                      <span class="vault-unit-label">Mixed</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="vault-pref-tile">
-                  <div class="vault-pref-meta">
-                    <span class="vault-pref-label">Screen Wake-Lock</span>
-                    <span class="vault-pref-desc">Keep device display awake while mixing recipes at the counter</span>
-                  </div>
-                  <label class="vault-switch-label">
-                    <input type="checkbox" id="wake-lock-toggle" class="vault-toggle-input" checked />
-                    <span class="vault-switch-slider"></span>
-                  </label>
-                </div>
-              </div>
-            </section>
-
-            <!-- Section 6: Data Portability -->
-            <section class="vault-modal-section" aria-labelledby="heading-data-portability">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-data-portability">Data Management & Backups</h2>
-              </div>
-              <div class="vault-portability-row">
-                <button type="button" id="btn-export-json" class="btn btn-secondary vault-portability-btn"
-                  title="Download recipes backup JSON">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <button type="button" class="showcase-toggle-btn" data-mode="blended" id="showcase-mode-blended">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 3a9 9 0 0 1 9 9 9 9 0 0 1-9 9"></path>
                   </svg>
-                  <span>Export Full Backup (JSON)</span>
-                </button>
-
-                <button type="button" id="btn-import-trigger" class="btn btn-secondary vault-portability-btn"
-                  title="Import recipes from JSON">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                  </svg>
-                  <span>Import Backup File</span>
+                  <span>Mixed</span>
                 </button>
               </div>
-              <p class="vault-export-reminder" id="account-export-reminder">never exported</p>
-            </section>
+            </div>
 
-            <!-- Section 7: Session & Danger Zone -->
-            <section class="vault-modal-section" aria-labelledby="heading-danger-zone">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-danger-zone">Account Session & Danger Zone</h2>
+            <div class="showcase-stats-row" id="showcase-stats-row">
+              <!-- Volume and ABV -->
+            </div>
+          </div>
+
+          <div class="showcase-content">
+            <h2 id="showcase-heading">Drink ingredients rendered in layers.</h2>
+            <p>
+              Cocktails are built on ratios. Speakeasy shows the layers that make up each cocktail, complete with
+              garnishes. Build your recipe in a coupe, rocks, or even tiki glass.
+            </p>
+            <div class="showcase-recipe-editorial">
+              <div class="editorial-section-header">
+                <h3 class="editorial-section-title">Ingredients</h3>
               </div>
-              <div class="vault-session-actions">
-                <button type="button" id="btn-danger-sign-out" class="btn btn-secondary vault-signout-btn"
-                  style="display: none;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                  <span>Sign Out of Account</span>
-                </button>
+              <div class="specs-list" id="showcase-specs-list" role="list" aria-label="Cocktail Recipe Specs">
+                <!-- Injected via JS -->
               </div>
+            </div>
 
-              <div class="vault-danger-zone">
-                <div class="danger-zone-title">Danger Zone</div>
-                <div class="danger-zone-body">
-                  <div class="danger-action-row">
-                    <div class="danger-action-text">
-                      <strong>Reset Local Bar Data</strong>
-                      <span>Restores recipes and backbar to default library. Custom recipes not backed up will be
-                        lost.</span>
-                    </div>
-                    <button type="button" id="btn-danger-reset-local" class="btn btn-danger btn-sm">
-                      Reset Local Data
-                    </button>
-                  </div>
-                  <div class="danger-action-row" id="danger-row-delete-cloud" style="display: none;">
-                    <div class="danger-action-text">
-                      <strong>Delete Cloud Account</strong>
-                      <span>Permanently purges your cloud profile, synchronized bars, custom cocktails, and drink
-                        history.</span>
-                    </div>
-                    <button type="button" id="btn-danger-delete-account" class="btn btn-danger btn-sm">
-                      Delete Cloud Account
-                    </button>
-                  </div>
-                  <div class="danger-confirm-row" id="danger-delete-confirm-row" style="display: none;">
-                    <p class="danger-confirm-prompt">
-                      Type <strong id="danger-confirm-bar-name"></strong> to permanently delete your cloud account.
-                      This cannot be undone.
-                    </p>
-                    <div class="danger-confirm-controls">
-                      <input type="text" id="danger-confirm-input" class="danger-confirm-input" autocomplete="off"
-                        autocorrect="off" autocapitalize="off" spellcheck="false" data-1p-ignore="true"
-                        data-lpignore="true" placeholder="Bar profile name" aria-label="Type the bar profile name to confirm deletion" />
-                      <button type="button" id="btn-danger-delete-cancel" class="btn btn-secondary btn-sm">Cancel</button>
-                      <button type="button" id="btn-danger-delete-confirm" class="btn btn-danger btn-sm" disabled>
-                        Permanently Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Retain legacy trigger for test suite compatibility -->
-              <button type="button" id="btn-reset-defaults" style="display: none;"></button>
-            </section>
+            <div class="showcase-actions">
+              <a href="/app#negroni" id="showcase-inspect-link" class="spec-link">Mix this in Speakeasy
+                &rarr;</a>
+            </div>
           </div>
-
-          <div class="account-page-footer">
-            <span class="vault-modal-footer-status" id="vault-footer-status-text">Speakeasy Vault</span>
-          </div>
-        </div>
-
-        <!-- Shared Recipe (Public Link) View Container (Hidden initially) -->
-        <div id="shared-recipe-view-container" class="shared-recipe-view" style="display: none;">
-          <!-- Rendered dynamically -->
-        </div>
-      </section>
-    </main>
-
-    <!-- Backbar Inventory Modal -->
-    <dialog id="backbar-modal" class="backbar-dialog" closedby="any" aria-labelledby="backbar-modal-title">
-      <div class="backbar-dialog-container">
-        <div class="backbar-dialog-header">
-          <div>
-            <h2 id="backbar-modal-title" class="backbar-dialog-title">Personal Backbar</h2>
-            <p class="backbar-dialog-subtitle" id="backbar-dialog-subtitle">Select the bottles and bar staples you keep
-              in stock.</p>
-          </div>
-          <button id="btn-close-backbar" class="btn btn-ghost btn-sm close-modal-btn"
-            aria-label="Close modal">✕</button>
-        </div>
-
-        <!-- Backbar View Switcher: My Bar vs Shopping List -->
-        <div class="backbar-view-switcher" id="backbar-view-switcher" role="tablist" aria-label="Backbar views">
-          <button type="button" class="backbar-view-tab active" id="tab-backbar-my-bar" data-view="inventory" role="tab"
-            aria-selected="true">My Bar</button>
-          <button type="button" class="backbar-view-tab" id="tab-backbar-shopping-list" data-view="shopping" role="tab"
-            aria-selected="false">Shopping List</button>
-        </div>
-
-        <div class="backbar-toolbar" id="backbar-inventory-toolbar">
-          <div class="search-input-wrapper backbar-search-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input type="search" id="backbar-search-input" class="search-input"
-              placeholder="Search bottles or ingredients..." aria-label="Search backbar items">
-          </div>
-          <div class="backbar-quick-actions">
-            <button id="btn-starter-bar" class="btn btn-secondary btn-sm" title="Add essential bar staples">Starter
-              Bar</button>
-            <button id="btn-clear-bar" class="btn btn-ghost btn-sm" title="Clear all inventory bottles">Clear
-              All</button>
-          </div>
-        </div>
-
-        <!-- Category & Storage Filter Tabs -->
-        <div class="backbar-nav-tabs" id="backbar-nav-tabs" role="tablist" aria-label="Filter backbar by category">
-          <button type="button" class="backbar-nav-tab active" data-cat-filter="all" role="tab"
-            aria-selected="true">All</button>
-          <button type="button" class="backbar-nav-tab" data-cat-filter="spirits" role="tab"
-            aria-selected="false">Spirits</button>
-          <button type="button" class="backbar-nav-tab" data-cat-filter="fortified_wine" role="tab"
-            aria-selected="false">Vermouth & Wines</button>
-          <button type="button" class="backbar-nav-tab" data-cat-filter="liqueurs" role="tab"
-            aria-selected="false">Liqueurs & Amari</button>
-          <button type="button" class="backbar-nav-tab" data-cat-filter="bitters" role="tab"
-            aria-selected="false">Bitters</button>
-          <button type="button" class="backbar-nav-tab" data-cat-filter="sweeteners" role="tab"
-            aria-selected="false">Syrups</button>
-          <button type="button" class="backbar-nav-tab" data-cat-filter="produce" role="tab"
-            aria-selected="false">Produce & Juices</button>
-          <button type="button" class="backbar-nav-tab" data-cat-filter="mixers" role="tab"
-            aria-selected="false">Mixers</button>
-          <button type="button" class="backbar-nav-tab backbar-nav-tab-fridge" data-cat-filter="fridge" role="tab"
-            aria-selected="false">
-            <span class="fridge-icon">❄️</span> Refrigerated
-          </button>
-        </div>
-
-        <div class="backbar-categories-container" id="backbar-categories-container">
-          <!-- Dynamically populated taxonomy categories and bottle pills -->
-        </div>
-
-        <div class="backbar-shopping-container" id="backbar-shopping-container" style="display: none;">
-          <!-- Dynamically populated ranked unlock shopping list -->
-        </div>
-
-        <div class="backbar-dialog-footer">
-          <span class="backbar-summary-text" id="backbar-summary-text">0 bottles in your backbar</span>
-          <button id="btn-done-backbar" class="btn btn-primary btn-sm">Done</button>
         </div>
       </div>
-    </dialog>
+    </section>
 
-    <!-- Hidden Recipes Management Modal Dialog -->
-    <dialog id="hidden-recipes-modal" class="backbar-dialog hidden-recipes-dialog" aria-labelledby="hidden-modal-title">
-      <div class="backbar-dialog-container">
-        <div class="backbar-dialog-header">
-          <div class="backbar-header-info">
-            <h2 class="backbar-dialog-title" id="hidden-modal-title">Hidden Cocktails</h2>
-            <p class="backbar-dialog-subtitle">Manage default recipes you've hidden from your library. Unhide anytime to
-              restore.</p>
+    <!-- Features Section -->
+    <section class="features-section" id="features" aria-labelledby="features-heading">
+      <div class="section-header">
+        <h2 class="section-title" id="features-heading">Everything for Your Home Bar</h2>
+        <p class="section-subtitle">
+          Add your bottles, find drinks to mix, and host with ease.
+        </p>
+      </div>
+
+      <div class="craft-grid">
+        <article class="craft-card">
+          <div class="craft-card-header">
+            <!-- <span class="craft-card-tag">Inventory</span> -->
+            <h3 class="craft-card-title">What Can I Make?</h3>
           </div>
-          <button id="btn-close-hidden-modal" class="btn btn-ghost btn-modal-close" aria-label="Close dialog">✕</button>
+          <p class="craft-card-desc">
+            Add the bottles and ingredients you own. Speakeasy shows the cocktails you can pour right now, and
+            which bottles unlock the most new drinks.
+          </p>
+        </article>
+
+        <article class="craft-card">
+          <div class="craft-card-header">
+            <!-- <span class="craft-card-tag">Preparation</span> -->
+            <h3 class="craft-card-title">Smart Substitutions</h3>
+          </div>
+          <p class="craft-card-desc">
+            Speakeasy suggests smart substitutions from your shelves that preserve the drink's balance, helping you
+            explore variations with confidence.
+          </p>
+        </article>
+
+        <article class="craft-card">
+          <div class="craft-card-header">
+            <!-- <span class="craft-card-tag">Hosting</span> -->
+            <h3 class="craft-card-title">Party Menus &amp; Prep</h3>
+          </div>
+          <p class="craft-card-desc">
+            Build curated cocktail menus for dinner parties and gatherings. Generate shopping lists and see how much
+            glassware you'll need.
+          </p>
+        </article>
+
+        <article class="craft-card">
+          <div class="craft-card-header">
+            <!-- <span class="craft-card-tag">Counter Mode</span> -->
+            <h3 class="craft-card-title">Designed for the Counter</h3>
+          </div>
+          <p class="craft-card-desc">
+            Keeps recipes lit while you mix. Big readable numbers make measurements easy. Inline timers tell you how
+            long to shake or stir.
+          </p>
+        </article>
+
+        <article class="craft-card">
+          <div class="craft-card-header">
+            <!-- <span class="craft-card-tag">Offline First</span> -->
+            <h3 class="craft-card-title">Your Personal Cellar</h3>
+          </div>
+          <p class="craft-card-desc">
+            Riff on existing recipes, and save tasting notes. Create custom cocktails and share with friends.
+          </p>
+        </article>
+
+        <article class="craft-card">
+          <div class="craft-card-header">
+            <!-- <span class="craft-card-tag">Sharing</span> -->
+            <h3 class="craft-card-title">Mix Anywhere</h3>
+          </div>
+          <p class="craft-card-desc">
+            Your library is available on all your devices, so you always have the up-to-date list of recents, cocktail
+            logs, and recipes. No tracking, no ads, no BS.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Closing Callout -->
+    <section class="cta-banner-section">
+      <div class="cta-banner-box">
+        <h2 class="cta-banner-title">Ready to mix?</h2>
+        <p class="cta-banner-subtitle">
+          180+ verified specs, backbar management, custom recipe creation, and more available right in
+          your browser.
+        </p>
+        <a href="/app" class="btn-hero-primary">
+          <span>Open Speakeasy</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Universal Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-brand-title">Speakeasy</div>
+        <p class="footer-brand-desc">
+          Crafted for cocktail enthusiasts, home bartenders, and mixology enthusiasts.
+        </p>
+      </div>
+
+      <div class="footer-links-group">
+        <div class="footer-col">
+          <div class="footer-col-heading">Application</div>
+          <a href="/app" class="footer-link">Cocktail Library</a>
+          <a href="/app#menus" class="footer-link">Menu Builder</a>
+          <a href="/app#account" class="footer-link">Vault Settings</a>
         </div>
 
-        <div class="hidden-recipes-body" id="hidden-recipes-container">
-          <!-- Dynamically populated hidden recipe list -->
+        <div class="footer-col">
+          <div class="footer-col-heading">Legal &amp; Trust</div>
+          <a href="/terms" class="footer-link">Terms of Service</a>
+          <a href="/terms#privacy" class="footer-link">Privacy Policy</a>
+          <a href="/terms#responsible-drinking" class="footer-link">Responsible Drinking</a>
         </div>
 
-        <div class="backbar-dialog-footer">
-          <button id="btn-unhide-all" class="btn btn-secondary btn-sm">Unhide All</button>
-          <button id="btn-done-hidden-modal" class="btn btn-primary btn-sm">Done</button>
+        <div class="footer-col">
+          <div class="footer-col-heading">Author</div>
+          <a href="https://ryanmarch.me" class="footer-link" target="_blank" rel="noopener">ryanmarch.me</a>
+          <a href="https://github.com/RyanMarch/speakeasy" class="footer-link" target="_blank" rel="noopener">GitHub</a>
         </div>
       </div>
-    </dialog>
+    </div>
 
-    <!-- Smart Counter Timer Toast (Non-modal floating widget) -->
-    <div id="timer-modal" class="timer-toast" role="status" aria-live="polite" style="display: none;"></div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 Ryan March. All rights reserved.</div>
+      <div>Drink responsibly. Must be of legal drinking age.</div>
+    </div>
+  </footer>
+  <script type="module">
+    import { FEATURED_COCKTAILS } from "./js/data/featured-cocktails.js";
+    import { formatFraction } from "./js/modules/parser.js";
 
-    <!-- Passwordless Authentication Modal Dialog -->
-    <dialog id="auth-modal" class="auth-dialog" aria-labelledby="auth-modal-title">
-      <div class="auth-dialog-container">
-        <div class="auth-dialog-header">
-          <h2 class="auth-dialog-title" id="auth-modal-title">Account & Cloud Sync</h2>
-          <button id="btn-close-auth-modal" class="btn btn-ghost btn-sm close-modal-btn"
-            aria-label="Close dialog">✕</button>
-        </div>
+    (function () {
+      if (!FEATURED_COCKTAILS || FEATURED_COCKTAILS.length === 0) return;
 
-        <!-- Step 1: Email Input Form -->
-        <div id="auth-step-email" class="auth-step">
-          <p class="auth-prompt">Enter your email for a passwordless sign-in code.</p>
-          <form id="auth-form-email" class="auth-form" novalidate>
-            <div class="auth-form-field">
-              <input type="email" id="auth-email-input" class="auth-input" required placeholder="bartender@example.com"
-                autocomplete="email" />
-              <div id="auth-email-error" class="auth-error" style="display: none;"></div>
+      const randomIndex = Math.floor(Math.random() * FEATURED_COCKTAILS.length);
+      const cocktail = FEATURED_COCKTAILS[randomIndex];
+
+      const nameEl = document.getElementById("showcase-drink-name");
+      const subEl = document.getElementById("showcase-drink-sub");
+      const glassMount = document.getElementById("showcase-glass-mount");
+      const statsRow = document.getElementById("showcase-stats-row");
+      const specsList = document.getElementById("showcase-specs-list");
+      const inspectLink = document.getElementById("showcase-inspect-link");
+      const btnLayered = document.getElementById("showcase-mode-layered");
+      const btnBlended = document.getElementById("showcase-mode-blended");
+
+      if (nameEl) nameEl.textContent = cocktail.name;
+      if (subEl) subEl.textContent = cocktail.sub;
+
+      if (glassMount) {
+        glassMount.innerHTML =  /*html*/cocktail.svg;
+      }
+
+      if (statsRow) {
+        statsRow.innerHTML =  /*html*/`
+          <span><strong>${cocktail.totalDisplay}</strong></span>
+          <span class="showcase-stats-divider">&bull;</span>
+          <span><strong>${cocktail.abvDisplay}</strong></span>
+        `;
+      }
+
+      if (specsList) {
+        let rowsHtml = cocktail.specs.map(spec => {
+          const amountText = (spec.amount !== null && spec.amount !== undefined) ? formatFraction(spec.amount) : '';
+          return /*html*/`
+            <div class="spec-row" role="listitem">
+              <div class="spec-amount">
+                ${amountText}<span class="spec-unit">${spec.unit || ""}</span>
+              </div>
+              <div class="spec-ingredient">
+                <div class="spec-ingredient-name-row">
+                  <span class="spec-name">${spec.name}</span>
+                </div>
+              </div>
             </div>
-            <div class="auth-actions">
-              <button type="submit" id="btn-send-code" class="btn btn-primary">Send 6-Digit Code</button>
-            </div>
-          </form>
-        </div>
+          `;
+        }).join("");
 
-        <!-- Step 2: OTP Verification Form -->
-        <div id="auth-step-otp" class="auth-step" style="display: none;">
-          <p class="auth-prompt">Check your email for the 6-digit code sent to <strong
-              id="auth-email-display"></strong>.</p>
-          <form id="auth-form-otp" class="auth-form" novalidate>
-            <div class="auth-form-field">
-              <input type="text" id="auth-otp-input" class="auth-input auth-input-otp" required maxlength="6"
-                inputmode="numeric" autocomplete="one-time-code" placeholder="······" />
-              <div id="auth-otp-error" class="auth-error" style="display: none;"></div>
+        if (cocktail.garnish) {
+          rowsHtml += /*html*/`
+            <div class="spec-row spec-garnish-row" role="listitem">
+              <div class="spec-amount">
+                <span class="spec-unit">Garnish</span>
+              </div>
+              <div class="spec-ingredient">
+                <div class="spec-ingredient-name-row">
+                  <span class="spec-garnish-name">${cocktail.garnish}</span>
+                </div>
+              </div>
             </div>
-            <div class="auth-actions">
-              <button type="submit" id="btn-verify-code" class="btn btn-primary">Verify & Sign In</button>
-              <button type="button" id="btn-auth-back" class="auth-btn-back">Change email address</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </dialog>
+          `;
+        }
 
-    <!-- Toast Notifications Area -->
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-  </div>
+        specsList.innerHTML =  /*html*/rowsHtml;
+      }
 
-  <script type="module" src="app.js?v=32"></script>
+      if (inspectLink) {
+        inspectLink.href = "/app#" + cocktail.id;
+      }
+
+      function setMode(mode) {
+        const fluidStack = glassMount ? glassMount.querySelector(".fluid-stack") : null;
+        if (!fluidStack) return;
+
+        if (mode === "layered") {
+          btnLayered && btnLayered.classList.add("active");
+          btnBlended && btnBlended.classList.remove("active");
+          fluidStack.setAttribute("data-mode", "layered");
+        } else {
+          btnBlended && btnBlended.classList.add("active");
+          btnLayered && btnLayered.classList.remove("active");
+          fluidStack.setAttribute("data-mode", "blended");
+        }
+      }
+
+      btnLayered && btnLayered.addEventListener("click", () => setMode("layered"));
+      btnBlended && btnBlended.addEventListener("click", () => setMode("blended"));
+    })();
+  </script>
 </body>
 
 </html>

@@ -21,10 +21,14 @@ Speakeasy is a local-first web application for cocktail enthusiasts and bartende
 
 ```
 speakeasy/
-├── index.html                 # Semantic single-page layout, modals, SVG symbol defs
+├── index.html                 # Dedicated marketing landing page
+├── app.html                   # Cocktail counter application shell, modals, and SVG defs
+├── terms.html                 # Combined Terms of Service & Privacy Policy
 ├── app.js                     # Application lifecycle, routing, and coordinator (~310 lines)
 ├── css/
 │   ├── base.css               # Design tokens, typography variables, color palette
+│   ├── theme-deco.css         # Art Deco navy (#020f20) and gold (#ebbc72) palette & fonts
+│   ├── marketing.css          # Editorial styling for marketing landing page & legal document
 │   ├── layout.css             # App shell, header, top-bar, vault popover
 │   ├── recipe-list.css        # Sidebar list, search, sort, pack pills, segmented filter
 │   ├── counter-view.css       # Recipe spread, vector glass, specs table, servings, riffs

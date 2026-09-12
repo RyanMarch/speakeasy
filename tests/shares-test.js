@@ -96,7 +96,7 @@ let firstShareId;
   const data = await res.json();
   assert.equal(data.success, true);
   assert.match(data.shareId, SHARE_ID_PATTERN, `Expected a 10-char share id, got ${data.shareId}`);
-  assert.equal(data.url, `https://example.com/#share/${data.shareId}`);
+  assert.equal(data.url, `https://example.com/app#share/${data.shareId}`);
 
   firstShareId = data.shareId;
   const stored = JSON.parse(db.shares.get(firstShareId).recipe);

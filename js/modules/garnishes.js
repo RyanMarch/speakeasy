@@ -136,7 +136,7 @@ function renderRimCrust(glassware, isSugar = false) {
 /**
  * Render citrus wheel (lime, lemon, orange)
  */
-function renderCitrusWheel(x, y, type = 'lime', angle = 14) {
+function renderCitrusWheel(x, y, type = 'lime', angle = 4) {
   const themes = {
     lime: { rind: '#2e7d32', pith: '#dcedc8', pulp: '#7cb342', pulpDark: '#558b2f', mem: '#f1f8e9' },
     lemon: { rind: '#fbc02d', pith: '#fff9c4', pulp: '#fdd835', pulpDark: '#f57f17', mem: '#fffde7' },
