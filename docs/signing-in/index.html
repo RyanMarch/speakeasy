@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="../../assets/icon-192.png?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="../../manifest.webmanifest?v=2">
+    <meta name="apple-mobile-web-app-title" content="Speakeasy" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="google" content="notranslate">
+    <script src="../docs-theme-loader.js"></script>
+
+    <!-- Preconnect Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Josefin+Sans:ital,wght@0,300..700;1,300..700&family=Jost:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+
+    <title>Signing In &amp; Cloud Sync — Speakeasy Docs</title>
+    <meta name="description" content="Learn how passwordless email sign-in works, how to sync inventory and drinks, and how guest data transfers seamlessly.">
+    <meta name="category" content="Basics">
+    <meta name="doc-id" content="signing-in">
+    <link rel="canonical" href="https://speakeasy.ryanmarch.me/docs/signing-in/">
+
+    <!-- Docs Style Sheet -->
+    <link rel="stylesheet" href="../style.css">
+    <script src="../docs-components.js" type="module"></script>
+</head>
+
+<body class="user-docs-page">
+    <div class="app-container">
+        <!-- Mobile Navigation Overlay -->
+        <div id="mobile-overlay" class="mobile-overlay"></div>
+
+        <main class="page-container-sidebar user-docs">
+            <!-- Sidebar Navigation -->
+            <docs-sidebar></docs-sidebar>
+
+            <!-- Right-side Content & Header Wrapper -->
+            <div class="page-content-wrapper">
+                <docs-header></docs-header>
+
+                <!-- Content Area -->
+                <docs-anchor-helper>
+                    <section class="page-content" aria-label="Signing In &amp; Cloud Sync Content">
+
+                        <!-- Overview -->
+                        <article id="overview" class="doc-section">
+                            <h1>Signing In &amp; Cloud Sync</h1>
+                            <p class="lead">
+                                Keep your cocktail library, custom recipes, and home inventory seamlessly synced across your devices with password-free security.
+                            </p>
+                            <p>
+                                Speakeasy runs completely offline and in private guest mode out of the box. When you are ready to access your recipes anywhere, signing in creates an automatic cloud backup without cumbersome passwords.
+                            </p>
+                        </article>
+
+                        <!-- Table of Contents -->
+                        <docs-table-of-contents></docs-table-of-contents>
+
+                        <hr class="section-divider">
+
+                        <!-- Passwordless Authentication -->
+                        <article id="passwordless-authentication" class="doc-section">
+                            <h2>Passwordless Email Sign-In</h2>
+                            <p>
+                                Instead of making you memorize another password that can get compromised, Speakeasy relies on secure one-time verification codes sent to your inbox:
+                            </p>
+                            <ol>
+                                <li>Tap <strong>Sign In</strong> in the top header, or select <em>Sign In to Sync</em> inside Vault Settings.</li>
+                                <li>Enter your email address and submit.</li>
+                                <li>Check your email for a crisp 6-digit verification code.</li>
+                                <li>Enter the code in the verification modal. Once verified, your session remains securely authenticated for 30 days.</li>
+                            </ol>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Effortless Guest Migration -->
+                        <article id="effortless-guest-migration" class="doc-section">
+                            <h2>Effortless Guest Migration</h2>
+                            <p>
+                                If you built a bottle list or customized cocktails before creating an account, none of that effort is lost:
+                            </p>
+                            <ul>
+                                <li><strong>First Sign-In Merge:</strong> Speakeasy identifies all local bottles, custom riffs, event menus, and pour records on your device and uploads them directly to your new cloud vault.</li>
+                                <li><strong>No Overwrites:</strong> Existing cloud data blends together intelligently so you can pick up right where you left off on either phone or desktop.</li>
+                            </ul>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Cloud Sync Status & Multi-Device Use -->
+                        <article id="cloud-sync-status" class="doc-section">
+                            <h2>Cloud Sync Status &amp; Multi-Device Access</h2>
+                            <p>
+                                Once authenticated, the header profile pill displays your current sync health:
+                            </p>
+                            <ul>
+                                <li><strong>Green Dot:</strong> All recent edits, stock changes, and notes are fully saved to the secure cloud.</li>
+                                <li><strong>Yellow Dot:</strong> Local updates are queued and will automatically sync as soon as network connectivity is restored.</li>
+                                <li><strong>Manual Sync:</strong> Open Settings anytime and tap <strong>Sync Now</strong> to immediately fetch recent changes made on your other devices.</li>
+                            </ul>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Signing Out & Privacy -->
+                        <article id="signing-out-and-privacy" class="doc-section">
+                            <h2>Signing Out &amp; Account Control</h2>
+                            <p>
+                                You always retain absolute control over your personal data:
+                            </p>
+                            <ul>
+                                <li><strong>Signing Out:</strong> Clearing your session removes cached personal data from the current browser while preserving everything safely in your cloud vault.</li>
+                                <li><strong>Account Deletion:</strong> If you ever choose to delete your account, you can permanently purge your cloud profile and synchronized data under the Settings Danger Zone.</li>
+                            </ul>
+                        </article>
+
+                    </section>
+                </docs-anchor-helper>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <docs-footer></docs-footer>
+
+        <!-- Lightbox Modal -->
+        <div id="lightbox-modal" class="lightbox-modal" aria-hidden="true" role="dialog" aria-label="Image Viewer">
+            <button class="lightbox-close" aria-label="Close image viewer">&times;</button>
+            <img class="lightbox-content" id="lightbox-img" alt="">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+    </div>
+</body>
+
+</html>
