@@ -471,7 +471,7 @@ export function renderCounterView() {
   const currentServings = state.servings || 1;
   const scaledTotalOz = baseTotalOz * currentServings;
   const totalDisplay = state.unitSystem === 'ml'
-    ? `${Math.round(scaledTotalOz * 29.5735)} ml`
+    ? `${Math.round(scaledTotalOz * 30)} ml`
     : `${scaledTotalOz.toFixed(2)} oz`;
 
   const abvInfo = calculateCocktailAbv(effectiveSpecs, recipe.method);
@@ -492,7 +492,7 @@ export function renderCounterView() {
     if (spec.amount !== null && spec.amount !== undefined) {
       const scaledAmount = spec.amount * currentServings;
       if (state.unitSystem === 'ml' && (spec.unit === 'oz' || !spec.unit)) {
-        amountText = `${Math.round(scaledAmount * 29.5735)}`;
+        amountText = `${Math.round(scaledAmount * 30)}`;
         unitText = 'ml';
       } else {
         amountText = formatFraction(scaledAmount);
