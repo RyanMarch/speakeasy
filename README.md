@@ -2,7 +2,7 @@
 
 Speakeasy is a personal cocktail library and digital bar companion designed for use directly on your kitchen or bar counter. It combines visual glassware, instant recipe parsing, and inventory tracking to help you mix better drinks with the bottles you have on hand.
 
-Everything runs locally in your browser. There are no accounts to create, no tracking scripts, and no internet connection required after loading.
+Everything runs locally in your browser by default. You can use it completely offline with no tracking scripts. Optionally, you can sign in to sync your library across devices, manage multiple bars, and share your custom cocktails with friends.
 
 ---
 
@@ -43,9 +43,16 @@ Everything runs locally in your browser. There are no accounts to create, no tra
 - Hide drinks you do not plan to serve to keep your collection curated.
 
 ### Private, Portable & Shareable
-- All data stays on your machine using standard browser storage.
-- Share deep links to canonical seed recipes with guests and friends.
-- Back up or transfer your library anytime with unified JSON export and import.
+- **Cloud Sync & Multiple Bars**: Optionally sign in to sync your data across devices and manage multiple distinct bar locations (e.g., "Home Bar" and "Office Bar").
+- **Share Any Drink**: Share deep links to canonical seed recipes, or generate public read-only links for your own custom creations.
+- **Drink History**: Log drinks as you make them to keep a running history of what you've mixed and when.
+- **Unified Export**: Back up or transfer your library anytime with unified JSON export and import.
+
+### Admin Dashboard & Product Analytics
+- **Privacy-First Analytics**: Local-first event telemetry tracks cocktail views, user discovery searches, and feature utilization without capturing IP addresses or personal identifiers.
+- **Insight Dashboards**: Monitor most/least viewed cocktails, top poured drinks ("I Made This"), search query gaps, and device category splits.
+- **Ingredient & Spirit Trends**: Analyze frequently stocked bottles across user bars alongside most/least called-for ingredients and base spirit family distributions across catalog cocktails.
+- **Global Recipe Management**: Review and promote custom cocktails into the global catalog, or hide canonical recipes across all users.
 
 ---
 

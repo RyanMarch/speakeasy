@@ -1,3 +1,11 @@
 name = "speakeasy"
 compatibility_date = "2026-07-16"
 pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "speakeasy_db"
+database_name = "speakeasy-db"
+database_id = "f2d9b43a-5936-4df9-bbf3-7fb119d45eb1"
+
+[vars]
+EMAIL_RELAY_URL = "https://speakeasy-email-relay.marchryan.workers.dev"

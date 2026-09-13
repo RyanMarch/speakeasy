@@ -2,7 +2,8 @@
  * Speakeasy Recipe List & Sidebar View
  */
 
-import { state, elements, getCachedInventoryAnalysis } from '../state.js';
+import { state, elements, getCachedInventoryAnalysis, SEED_RECIPE_IDS } from '../state.js';
+import { isAuthenticated } from '../modules/auth.js';
 import { recipeMatchesQuery } from '../modules/taxonomy.js';
 import { escapeHtml, showToast } from '../components/toast.js';
 import { formatIngredientName } from '../modules/parser.js';
@@ -18,12 +19,44 @@ export function setRecipeListCallbacks({ openEditor, updateVaultStats, showDrink
 }
 
 /**
+ * Updates visibility of the Custom pack filter button based on authentication
+ * and whether the user has custom cocktails.
+ */
+export function updateCustomFilterVisibility() {
+  const btn = elements.packPillCustom || (typeof document !== 'undefined' ? document.getElementById('pack-pill-custom') : null);
+  if (!btn) return;
+
+  const loggedIn = isAuthenticated();
+  const customCount = Array.isArray(state.recipes)
+    ? state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length
+    : 0;
+  const shouldShow = loggedIn && customCount > 0;
+
+  btn.style.display = shouldShow ? 'inline-flex' : 'none';
+
+  if (!shouldShow && state.packFilter === 'custom') {
+    state.packFilter = 'all';
+    const container = elements.sidebarPackFilter || (typeof document !== 'undefined' ? document.getElementById('sidebar-pack-filter') : null);
+    container?.querySelectorAll('.pack-pill').forEach(b => {
+      const isAll = b.getAttribute('data-pack') === 'all';
+      b.classList.toggle('active', isAll);
+      b.setAttribute('aria-selected', isAll ? 'true' : 'false');
+    });
+  }
+}
+
+/**
  * Filter and render recipe list in sidebar with inventory counts and status badges
  */
 export function renderRecipeList() {
+  updateCustomFilterVisibility();
+
   const queryMatched = state.recipes.map(recipe => {
     const matchesSearch = !state.searchQuery || recipeMatchesQuery(recipe, state.searchQuery);
-    const matchesPack = state.packFilter === 'all' || (Array.isArray(recipe.tags) && recipe.tags.includes(state.packFilter));
+    const matchesPack = state.packFilter === 'all'
+      || (state.packFilter === 'custom'
+        ? !SEED_RECIPE_IDS.has(recipe.id)
+        : (Array.isArray(recipe.tags) && recipe.tags.includes(state.packFilter)));
     const invAnalysis = getCachedInventoryAnalysis(recipe);
     return { recipe, matchesSearch, matchesPack, invAnalysis };
   });
@@ -122,38 +155,40 @@ export function renderRecipeList() {
     return;
   }
 
-  elements.recipeList.innerHTML =  /*html*/filtered.map(({ recipe, invAnalysis }) => {
-    const isActive = state.viewMode === 'counter' && recipe.id === state.activeRecipeId;
-    const specsPreview = (recipe.specs || []).map(s => formatIngredientName(s.name)).slice(0, 3).join(', ');
+  if (elements.recipeList) {
+    elements.recipeList.innerHTML = /*html*/filtered.map(({ recipe, invAnalysis }) => {
+      const isActive = state.viewMode === 'counter' && recipe.id === state.activeRecipeId;
+      const specsPreview = (recipe.specs || []).map(s => formatIngredientName(s.name)).slice(0, 3).join(', ');
 
-    let inventoryStatusHtml = '';
-    if (invAnalysis.canMake) {
-      inventoryStatusHtml = `
-        <div class="recipe-item-status status-ready" title="All ingredients in your backbar">
-          <span class="status-dot"></span>
-          <span>Ready to make</span>
-        </div>`;
-    } else if (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0) {
-      inventoryStatusHtml = `
-        <div class="recipe-item-status status-next" title="Missing: ${escapeHtml(invAnalysis.missingItems[0].name)}">
-          <span class="status-dot"></span>
-          <span>Needs ${escapeHtml(invAnalysis.missingItems[0].name)}</span>
-        </div>`;
-    }
+      let inventoryStatusHtml = '';
+      if (invAnalysis.canMake) {
+        inventoryStatusHtml = `
+          <div class="recipe-item-status status-ready" title="All ingredients in your backbar">
+            <span class="status-dot"></span>
+            <span>Ready to make</span>
+          </div>`;
+      } else if (invAnalysis.isBottleNext && invAnalysis.missingItems.length > 0) {
+        inventoryStatusHtml = `
+          <div class="recipe-item-status status-next" title="Missing: ${escapeHtml(invAnalysis.missingItems[0].name)}">
+            <span class="status-dot"></span>
+            <span>Needs ${escapeHtml(invAnalysis.missingItems[0].name)}</span>
+          </div>`;
+      }
 
-    return `
-      <li class="recipe-list-item ${isActive ? 'active' : ''}" data-id="${recipe.id}">
-        <button type="button" class="recipe-card-btn" data-action="select" data-id="${recipe.id}">
-          <div class="recipe-item-header">
-            <span class="recipe-item-name">${escapeHtml(recipe.name)}</span>
-            ${recipe.glassware ? `<span class="recipe-item-glass">${escapeHtml(recipe.glassware)}</span>` : ''}
-          </div>
-          ${specsPreview ? `<div class="recipe-item-ingredients">${escapeHtml(specsPreview)}</div>` : ''}
-          ${inventoryStatusHtml}
-        </button>
-      </li>
-    `;
-  }).join('');
+      return `
+        <li class="recipe-list-item ${isActive ? 'active' : ''}" data-id="${recipe.id}">
+          <button type="button" class="recipe-card-btn" data-action="select" data-id="${recipe.id}">
+            <div class="recipe-item-header">
+              <span class="recipe-item-name">${escapeHtml(recipe.name)}</span>
+              ${recipe.glassware ? `<span class="recipe-item-glass">${escapeHtml(recipe.glassware)}</span>` : ''}
+            </div>
+            ${specsPreview ? `<div class="recipe-item-ingredients">${escapeHtml(specsPreview)}</div>` : ''}
+            ${inventoryStatusHtml}
+          </button>
+        </li>
+      `;
+    }).join('');
+  }
 }
 
 /**

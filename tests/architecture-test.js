@@ -32,7 +32,9 @@ async function runTests() {
 
   assert(Array.isArray(directSeeds), 'seed-recipes.js exports an array');
   assert(directSeeds.length === 181, `seed-recipes.js has 181 recipes (found: ${directSeeds.length})`);
-  assert(storageSeeds === directSeeds, 'storage.js re-exports the exact same SEED_RECIPES array');
+  const storageMod = await import('../js/modules/storage.js');
+  assert(typeof storageMod.clearUserDataOnSignOut === 'function', 'storage.js exports clearUserDataOnSignOut()');
+  assert(storageMod.SEED_RECIPES === directSeeds, 'storage.js re-exports the exact same SEED_RECIPES array');
 
   const seenIds = new Set();
   let validSpecsCount = 0;
@@ -65,6 +67,7 @@ async function runTests() {
   assert(typeof homeViewMod.renderHomeView === 'function', 'home-view.js exports renderHomeView()');
   assert(typeof homeViewMod.renderHomeShelf === 'function', 'home-view.js exports renderHomeShelf()');
   assert(typeof homeViewMod.renderHomeCard === 'function', 'home-view.js exports renderHomeCard()');
+  assert(typeof homeViewMod.formatRelativeTime === 'function', 'home-view.js exports formatRelativeTime()');
   assert(typeof homeViewMod.setHomeViewCallbacks === 'function', 'home-view.js exports setHomeViewCallbacks()');
 
   const counterViewMod = await import('../js/views/counter-view.js');
@@ -78,6 +81,7 @@ async function runTests() {
 
   const recipeListViewMod = await import('../js/views/recipe-list-view.js');
   assert(typeof recipeListViewMod.renderRecipeList === 'function', 'recipe-list-view.js exports renderRecipeList()');
+  assert(typeof recipeListViewMod.updateCustomFilterVisibility === 'function', 'recipe-list-view.js exports updateCustomFilterVisibility()');
   assert(typeof recipeListViewMod.filterByTag === 'function', 'recipe-list-view.js exports filterByTag()');
   assert(typeof recipeListViewMod.setupTagAutocomplete === 'function', 'recipe-list-view.js exports setupTagAutocomplete()');
   assert(typeof recipeListViewMod.setRecipeListCallbacks === 'function', 'recipe-list-view.js exports setRecipeListCallbacks()');
@@ -134,40 +138,57 @@ async function runTests() {
   assert(typeof counterViewMod.formatPalateMatchLabel === 'function', 'counter-view.js exports formatPalateMatchLabel()');
   assert(typeof backbarModalMod.renderShoppingListContent === 'function', 'backbar-modal.js exports renderShoppingListContent()');
 
+  const historyMod = await import('../js/modules/history.js');
+  assert(typeof historyMod.logDrinkMade === 'function', 'history.js exports logDrinkMade()');
+  assert(typeof historyMod.getDrinkHistory === 'function', 'history.js exports getDrinkHistory()');
+  assert(typeof historyMod.syncLocalHistoryToCloud === 'function', 'history.js exports syncLocalHistoryToCloud()');
+
+  assert(typeof topBarMod.updateAuthIndicator === 'function', 'top-bar.js exports updateAuthIndicator()');
+
+  const authModalMod = await import('../js/components/auth-modal.js');
+  assert(typeof authModalMod.setupAuthModalEventListeners === 'function', 'auth-modal.js exports setupAuthModalEventListeners()');
+  assert(typeof authModalMod.openAuthModal === 'function', 'auth-modal.js exports openAuthModal()');
+  assert(typeof authModalMod.closeAuthModal === 'function', 'auth-modal.js exports closeAuthModal()');
 
   const appMod = await import('../app.js');
   assert(typeof appMod === 'object', 'app.js imports and evaluates successfully');
 
   console.log('\n--- 3. Testing HTML Preload & Asset Consistency ---');
+  const appHtml = fs.readFileSync(path.join(rootDir, 'app.html'), 'utf8');
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
+  const termsHtml = fs.readFileSync(path.join(rootDir, 'terms.html'), 'utf8');
 
-  // Check modulepreloads
+  // Check app.html modulepreloads
   const preloadRegex = /<link\s+rel="modulepreload"\s+href="([^"?]+)(?:\?[^"]*)?"/g;
   let match;
   const preloadedPaths = [];
-  while ((match = preloadRegex.exec(indexHtml)) !== null) {
+  while ((match = preloadRegex.exec(appHtml)) !== null) {
     preloadedPaths.push(match[1]);
   }
-  assert(preloadedPaths.length > 0, `Found ${preloadedPaths.length} modulepreload links in index.html`);
+  assert(preloadedPaths.length > 0, `Found ${preloadedPaths.length} modulepreload links in app.html`);
   for (const relPath of preloadedPaths) {
     const fullPath = path.join(rootDir, relPath);
     assert(fs.existsSync(fullPath), `Preloaded file exists: ${relPath}`);
   }
 
-  // Check stylesheet links
+  // Check stylesheet links across app.html, index.html, and terms.html
   const cssRegex = /<link\s+rel="stylesheet"\s+href="([^"?]+)(?:\?[^"]*)?"/g;
-  const cssLinks = [];
-  while ((match = cssRegex.exec(indexHtml)) !== null) {
-    cssLinks.push(match[1]);
-  }
-  for (const relPath of cssLinks) {
-    const fullPath = path.join(rootDir, relPath);
-    assert(fs.existsSync(fullPath), `Stylesheet file exists: ${relPath}`);
+  for (const [docName, docHtml] of [['app.html', appHtml], ['index.html', indexHtml], ['terms.html', termsHtml]]) {
+    const cssLinks = [];
+    cssRegex.lastIndex = 0;
+    while ((match = cssRegex.exec(docHtml)) !== null) {
+      cssLinks.push(match[1]);
+    }
+    assert(cssLinks.length > 0, `Found stylesheet links in ${docName}`);
+    for (const relPath of cssLinks) {
+      const fullPath = path.join(rootDir, relPath);
+      assert(fs.existsSync(fullPath), `Stylesheet file exists for ${docName}: ${relPath}`);
+    }
   }
 
-  // Check main module script tag
-  const scriptMatch = indexHtml.match(/<script\s+type="module"\s+src="([^"?]+)(?:\?[^"]*)?"/);
-  assert(scriptMatch !== null, 'Found type="module" script in index.html');
+  // Check app.html main module script tag
+  const scriptMatch = appHtml.match(/<script\s+type="module"\s+src="([^"?]+)(?:\?[^"]*)?"/);
+  assert(scriptMatch !== null, 'Found type="module" script in app.html');
   if (scriptMatch) {
     const scriptPath = path.join(rootDir, scriptMatch[1]);
     assert(fs.existsSync(scriptPath), `Main script file exists: ${scriptMatch[1]}`);
@@ -204,6 +225,43 @@ async function runTests() {
   assert(stateMod.inventoryVersion === v1 + 1, 'invalidateInventoryCache increments inventoryVersion');
   const res3 = stateMod.getCachedInventoryAnalysis(testRecipe);
   assert(typeof res3 === 'object' && res3.canMake !== undefined, 'getCachedInventoryAnalysis re-evaluates after cache invalidation');
+
+  console.log('\n--- 6. Testing Custom Pack Filter Visibility & Filter Logic ---');
+  const authMod = await import('../js/modules/auth.js');
+  const mockButton = { style: { display: 'none' } };
+  stateMod.elements.packPillCustom = mockButton;
+
+  // Case 1: Guest (not authenticated), with custom recipes -> hidden
+  stateMod.state.recipes = [...directSeeds, { id: 'custom-cocktail-1', name: 'My Own Cocktail', specs: [] }];
+  recipeListViewMod.updateCustomFilterVisibility();
+  assert(mockButton.style.display === 'none', 'Custom filter button is hidden when user is not authenticated');
+
+  // Case 2: Signed in, but 0 custom recipes -> hidden
+  globalThis.localStorage = {
+    getItem: (k) => k === 'speakeasy_auth_token' ? 'fake-token-123' : (k === 'speakeasy_user' ? JSON.stringify({ id: 'u1', email: 'test@example.com' }) : null),
+    setItem: () => {},
+    removeItem: () => {}
+  };
+  stateMod.state.recipes = [...directSeeds];
+  recipeListViewMod.updateCustomFilterVisibility();
+  assert(mockButton.style.display === 'none', 'Custom filter button is hidden when user has no custom recipes');
+
+  // Case 3: Signed in AND has custom recipes -> displayed
+  stateMod.state.recipes = [...directSeeds, { id: 'custom-cocktail-1', name: 'My Own Cocktail', specs: [] }];
+  recipeListViewMod.updateCustomFilterVisibility();
+  assert(mockButton.style.display === 'inline-flex', 'Custom filter button is shown when signed in and user has custom cocktails');
+
+  // Case 4: Pack filter set to custom filters properly
+  stateMod.state.packFilter = 'custom';
+  stateMod.state.searchQuery = '';
+  stateMod.state.inventoryFilter = 'all';
+  stateMod.elements.countAll = { _t: '', get textContent() { return this._t; }, set textContent(v) { this._t = String(v); } };
+  recipeListViewMod.renderRecipeList();
+  // Ensure the count reflects custom recipes
+  assert(stateMod.elements.countAll?.textContent === '1', 'Custom pack filter only includes non-seed recipes');
+
+  // Clean up mock localStorage
+  delete globalThis.localStorage;
 
   console.log(`\nAll Architecture Tests Complete! Passed: ${passedTests} / ${totalTests}`);
 }

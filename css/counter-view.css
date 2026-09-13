@@ -1094,6 +1094,50 @@
   color: var(--color-accent-light);
 }
 
+/* "I Made This" Action Button (Below Method section) */
+.method-actions-row {
+  margin-top: 1.15rem;
+  display: flex;
+  align-items: center;
+}
+
+.btn-made-this {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.95rem;
+  background: rgba(212, 163, 89, 0.08);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-light, #e2ba78);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-made-this svg {
+  color: var(--color-accent, #d4a359);
+  transition: transform var(--transition-fast);
+}
+
+.btn-made-this:hover {
+  background: rgba(212, 163, 89, 0.16);
+  border-color: rgba(212, 163, 89, 0.55);
+  color: #fff;
+}
+
+.btn-made-this:hover svg {
+  transform: scale(1.15);
+}
+
+.btn-made-this:active {
+  transform: scale(0.97);
+}
+
 /* Riff Status Bar — appears directly above the ingredient rows once a riff
    is in progress or has unsaved changes, so Save/Reset/Done sit right next
    to the rows they affect instead of in the page header. */
@@ -1126,26 +1170,24 @@
    Duplicate/Edit/Hide/Delete don't need standing icon-row prominence, so
    they're tucked behind one entry point instead. Two triggers exist (this
    one in the title row for desktop/tablet, #btn-counter-more-mobile in the
-   sticky bar for mobile — see responsive.css) sharing one popover, so each
-   needs its OWN anchor-name: if two elements declare the same anchor-name,
-   anchor() can't resolve which one to use and silently falls back to
-   position: auto, which is what made the popover render at 0×0 before this
-   was split out. */
+   sticky bar for mobile — see responsive.css) sharing one popover.
+   Positioning is done in JS (counter-view.js, on the popover's 'toggle'
+   event) from the actual visible trigger's getBoundingClientRect() — CSS
+   anchor positioning (anchor-name/position-anchor/anchor()) doesn't resolve
+   consistently across every Chromium build in the wild, and a hardcoded CSS
+   fallback offset only lines up with the trigger at one specific viewport
+   size. The values below are just the pre-JS/no-JS default. */
 .counter-more-btn {
   position: relative;
-  anchor-name: --btn-counter-more;
 }
 
 /* Hidden by default (desktop/tablet keep the trigger in the title row); shown
    only at the mobile breakpoint, where it moves into the sticky back-button
-   bar instead — see responsive.css. Both buttons share #counter-more-popover,
-   so whichever is actually visible is what the popover anchors to (its own
-   anchor-name, and responsive.css repoints position-anchor at the mobile
-   breakpoint). */
+   bar instead — see responsive.css. Both buttons share #counter-more-popover;
+   the JS positioning logic picks whichever one is actually visible. */
 .mobile-only-more-btn {
   display: none;
   position: relative;
-  anchor-name: --btn-counter-more-mobile;
 }
 
 .counter-more-popover {
@@ -1179,15 +1221,6 @@
   .counter-more-popover:popover-open {
     opacity: 0;
     transform: translateY(-8px) scale(0.98);
-  }
-}
-
-@supports (position-anchor: --btn-counter-more) {
-  .counter-more-popover {
-    position-anchor: --btn-counter-more;
-    top: anchor(bottom);
-    right: anchor(right);
-    margin-top: 8px;
   }
 }
 
@@ -1400,7 +1433,7 @@
 }
 
 .spec-amount {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: var(--color-text);
   letter-spacing: -0.01em;
@@ -1520,8 +1553,8 @@
 }
 
 .spec-unit {
-  font-size: 0.82rem;
-  font-weight: 400;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--color-text-muted);
   margin-left: 0.25rem;
 }
@@ -2046,6 +2079,12 @@
 .similar-relation-badge.badge-ready {
   background: rgba(77, 131, 99, 0.15);
   color: var(--color-success);
+}
+
+.similar-relation-badge.badge-made {
+  background: rgba(212, 163, 89, 0.15);
+  color: var(--color-accent-light, #e2ba78);
+  border: 1px solid rgba(212, 163, 89, 0.25);
 }
 
 .similar-relation-badge.badge-hidden {

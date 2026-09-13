@@ -592,7 +592,27 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   box-shadow: var(--shadow-lg);
   font-size: 0.85rem;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
   animation: slideIn 200ms ease;
+}
+
+.toast-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.toast-prominent {
+  padding: 0.85rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 1px solid var(--color-accent);
+  background: var(--color-surface);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 16px var(--color-accent-glow);
 }
 
 @keyframes slideIn {
@@ -637,4 +657,134 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   ::view-transition-new(root) {
     animation: none;
   }
+}
+
+/* Top Bar Auth Indicator */
+.auth-signin-btn {
+  border-color: rgba(212, 163, 89, 0.45);
+  color: var(--color-accent);
+  gap: 0.35rem;
+}
+
+.auth-signin-btn:hover {
+  border-color: var(--color-accent);
+  background: rgba(212, 163, 89, 0.12);
+  color: var(--color-accent-light, #e09f3e);
+}
+
+.auth-user-pill {
+  position: relative;
+  gap: 0.45rem;
+}
+
+.auth-pill-icon {
+  color: var(--color-accent);
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.auth-user-name {
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.auth-status-badge {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: #2ec4b6;
+  box-shadow: 0 0 5px rgba(46, 196, 182, 0.6);
+  flex-shrink: 0;
+  margin-left: -0.1rem;
+}
+
+/* User Profile Popover */
+.auth-user-popover {
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(28, 26, 23, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--color-text);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  width: 250px;
+  z-index: 1000;
+  overflow: hidden;
+
+  /* Placement: tethered beneath top bar */
+  inset: auto;
+  top: 56px;
+  right: 1.5rem;
+
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  transition: opacity var(--transition-fast), transform var(--transition-fast), display var(--transition-fast) allow-discrete, overlay var(--transition-fast) allow-discrete;
+}
+
+.auth-user-popover:popover-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@starting-style {
+  .auth-user-popover:popover-open {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+.auth-popover-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-popover-header {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.auth-popover-email {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.auth-popover-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: #2ec4b6;
+}
+
+.auth-popover-actions {
+  padding: 0.5rem;
+}
+
+.auth-signout-btn {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--color-crimson, #e63946);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.auth-signout-btn:hover {
+  background: rgba(230, 57, 70, 0.1);
 }
