@@ -110,6 +110,6 @@ export async function onRequestPost(context) {
   return jsonResponse({
     success: true,
     shareId,
-    url: `${origin}/#share/${shareId}`,
+    url: `${origin}/app#share/${shareId}`,
   });
 }

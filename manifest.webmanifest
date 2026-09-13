@@ -2,7 +2,7 @@
   "name": "Speakeasy",
   "short_name": "Speakeasy",
   "description": "Local-first cocktail recipe library and vault.",
-  "start_url": "./",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#121110",
   "theme_color": "#121110",
