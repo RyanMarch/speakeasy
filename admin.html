@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speakeasy: Global Recipe Manager</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/x-icon" href="favicon.ico?v=2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css">
+  <style>
+    :root {
+      --admin-max-width: 1240px;
+    }
+
+    html,
+    body {
+      height: auto !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-sans);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .admin-header {
+      background-color: var(--color-bg-alt);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .admin-brand h1 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      margin: 0;
+      color: var(--color-accent);
+      letter-spacing: 0.02em;
+    }
+
+    .admin-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(212, 163, 89, 0.15);
+      color: var(--color-accent);
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(212, 163, 89, 0.3);
+    }
+
+    .admin-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--color-text-secondary);
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-link:hover {
+      color: var(--color-text-bright);
+    }
+
+    .btn-danger-link {
+      color: var(--color-crimson);
+    }
+
+    .btn-danger-link:hover {
+      color: #ff8580;
+    }
+
+    .admin-container {
+      max-width: var(--admin-max-width);
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      box-sizing: border-box;
+      flex: 1;
+    }
+
+    /* Auth Gate Card */
+    .auth-gate {
+      max-width: 420px;
+      margin: 5rem auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .auth-gate h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin: 0 0 0.5rem;
+      color: var(--color-accent);
+    }
+
+    .auth-gate p {
+      color: var(--color-text-secondary);
+      font-size: 0.85rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      text-align: left;
+    }
+
+    .form-label {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+    }
+
+    .form-input {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text-bright);
+      padding: 0.65rem 0.85rem;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color var(--transition-fast);
+    }
+
+    .form-input:focus {
+      border-color: var(--color-accent);
+    }
+
+    .btn-primary {
+      background: var(--color-accent);
+      color: var(--color-on-accent);
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.7rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color var(--transition-fast);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent-light);
+    }
+
+    /* Dashboard Layout */
+    .tabs-nav {
+      display: flex;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--color-text-secondary);
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      position: relative;
+      transition: color var(--transition-fast);
+    }
+
+    .tab-btn:hover {
+      color: var(--color-text-bright);
+    }
+
+    .tab-btn.active {
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--color-accent);
+    }
+
+    .tab-count {
+      display: inline-block;
+      font-size: 0.72rem;
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      border-radius: 999px;
+      padding: 1px 7px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+      font-weight: 500;
+    }
+
+    .tab-btn.active .tab-count {
+      background: rgba(212, 163, 89, 0.15);
+      border-color: rgba(212, 163, 89, 0.3);
+      color: var(--color-accent);
+    }
+
+    .panel-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+      font-size: 0.78rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .filter-pill:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border-active);
+      color: var(--color-text-bright);
+    }
+
+    .filter-pill.active {
+      background: rgba(199, 98, 94, 0.15);
+      border-color: rgba(199, 98, 94, 0.5);
+      color: var(--color-crimson);
+      font-weight: 600;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      margin: 0;
+    }
+
+    .search-box-wrap {
+      position: relative;
+      width: 320px;
+      max-width: 100%;
+    }
+
+    .search-box-wrap input {
+      width: 100%;
+      box-sizing: border-box;
+      padding-left: 2.25rem;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--color-text-muted);
+      pointer-events: none;
+    }
+
+    /* Cards Grid */
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .recipe-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: border-color var(--transition-fast);
+    }
+
+    .recipe-card:hover {
+      border-color: var(--color-border-active);
+    }
+
+    .recipe-card.is-hidden {
+      opacity: 0.55;
+      border-style: dashed;
+    }
+
+    .recipe-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .recipe-name {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      margin: 0 0 0.25rem;
+      color: var(--color-text-bright);
+    }
+
+    .recipe-meta {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .recipe-specs-preview {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      line-height: 1.4;
+      background: var(--color-surface-card);
+      padding: 0.6rem 0.75rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .recipe-specs-preview ul {
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    .recipe-instructions-preview {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 0.6rem;
+      line-height: 1.45;
+    }
+
+    .recipe-instructions-preview ol,
+    .recipe-instructions-preview ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    .recipe-instructions-preview li {
+      margin-bottom: 0.25rem;
+    }
+
+    .recipe-instructions-preview li:last-child {
+      margin-bottom: 0;
+    }
+
+    .recipe-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--color-border-subtle);
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .status-badge.global {
+      background: rgba(77, 131, 99, 0.2);
+      color: var(--color-success);
+      border: 1px solid rgba(77, 131, 99, 0.4);
+    }
+
+    .status-badge.seed {
+      background: rgba(212, 163, 89, 0.15);
+      color: var(--color-accent);
+      border: 1px solid rgba(212, 163, 89, 0.3);
+    }
+
+    .status-badge.hidden {
+      background: rgba(199, 98, 94, 0.2);
+      color: var(--color-crimson);
+      border: 1px solid rgba(199, 98, 94, 0.4);
+    }
+
+    .status-badge.custom {
+      background: rgba(196, 139, 89, 0.15);
+      color: var(--color-sky);
+      border: 1px solid rgba(196, 139, 89, 0.3);
+    }
+
+    .btn-action {
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .btn-action:hover {
+      background: var(--color-surface-hover);
+      border-color: var(--color-border-active);
+      color: var(--color-text-bright);
+    }
+
+    .btn-action.btn-promote {
+      background: var(--color-accent);
+      color: var(--color-on-accent);
+      border-color: var(--color-accent);
+      font-weight: 600;
+    }
+
+    .btn-action.btn-promote:hover {
+      background: var(--color-accent-light);
+    }
+
+    .btn-action.btn-unhide {
+      border-color: var(--color-success);
+      color: var(--color-success);
+    }
+
+    .btn-action.btn-hide {
+      border-color: rgba(199, 98, 94, 0.5);
+      color: var(--color-crimson);
+    }
+
+    /* Toast */
+    .admin-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-accent);
+      color: var(--color-text-bright);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 0.85rem;
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all var(--transition-normal);
+      pointer-events: none;
+    }
+
+    .admin-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Analytics Dashboard Styles */
+    .time-selector {
+      display: inline-flex;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .time-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-text-secondary);
+      font-size: 0.78rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all var(--transition-fast);
+    }
+
+    .time-btn:hover {
+      color: var(--color-text-bright);
+    }
+
+    .time-btn.active {
+      background: var(--color-surface-hover);
+      color: var(--color-accent);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .tile-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.15rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100px;
+    }
+
+    .tile-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .tile-value {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--color-text-bright);
+      font-family: var(--font-sans);
+      letter-spacing: -0.02em;
+    }
+
+    .tile-subtext {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 0.35rem;
+    }
+
+    .analytics-section-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+
+    @media (max-width: 600px) {
+      .analytics-section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .analytics-box {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .analytics-box-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--color-text-bright);
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .analytics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .analytics-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      color: var(--color-text-muted);
+      border-bottom: 1px solid var(--color-border);
+      font-weight: 600;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .analytics-table td {
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--color-border-subtle);
+      color: var(--color-text);
+    }
+
+    .analytics-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .metric-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .metric-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: var(--color-bg);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      background: var(--color-accent);
+      border-radius: 999px;
+    }
+
+    .metric-bar-fill.secondary {
+      background: var(--color-sky, #75b8d4);
+    }
+
+    .metric-bar-num {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-text-bright);
+      min-width: 2.2rem;
+      text-align: right;
+    }
+
+    .device-bar-container {
+      display: flex;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0.8rem 0;
+      background: var(--color-bg);
+    }
+
+    .device-segment {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .device-legend {
+      display: flex;
+      gap: 1.25rem;
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      margin-top: 0.5rem;
+    }
+
+    .device-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .legend-color-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Pie / Donut Chart Styles */
+    .donut-chart-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .donut-svg-wrap {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      flex-shrink: 0;
+    }
+
+    .donut-svg-wrap svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .donut-hole-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .donut-hole-total {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--color-text-bright);
+      line-height: 1;
+    }
+
+    .donut-hole-sub {
+      font-size: 0.68rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 3px;
+    }
+
+    .donut-legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.6rem 1.25rem;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .donut-legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .donut-legend-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--color-text);
+    }
+
+    .donut-legend-right {
+      font-weight: 600;
+      color: var(--color-text-bright);
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="admin-header">
+    <div class="admin-brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-accent)">
+        <path d="M8 22h8" />
+        <path d="M12 11v11" />
+        <path d="m19 3-7 8-7-8Z" />
+      </svg>
+      <h1>Speakeasy</h1>
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="admin-nav-actions" id="header-actions" style="display:none;">
+      <a href="/" class="btn-link" target="_blank" rel="noopener">Open App &rarr;</a>
+      <button type="button" class="btn-link btn-danger-link" id="btn-admin-logout">Sign Out</button>
+    </div>
+  </header>
+
+  <main class="admin-container">
+    <!-- Auth Gate -->
+    <div id="auth-gate-section" class="auth-gate" style="display:none;">
+      <h2>Admin Sign In</h2>
+      <p>Enter the admin password to access the global recipe management tools.</p>
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label class="form-label" for="admin-pass">Password</label>
+          <input type="password" id="admin-pass" class="form-input" required autofocus placeholder="Admin password">
+        </div>
+        <button type="submit" class="btn-primary" id="btn-login-submit">Authenticate</button>
+      </form>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-section" style="display:none;">
+      <div class="tabs-nav">
+        <button type="button" class="tab-btn active" id="tab-btn-analytics">
+          Analytics &amp; Insights
+        </button>
+        <button type="button" class="tab-btn" id="tab-btn-personal">
+          Personal Library (Add to Global)
+          <span class="tab-count" id="count-personal">0</span>
+        </button>
+        <button type="button" class="tab-btn" id="tab-btn-catalog">
+          Global Catalog &amp; Visibility
+          <span class="tab-count" id="count-catalog">0</span>
+        </button>
+      </div>
+
+      <!-- Tab 0: Analytics & Insights -->
+      <section id="panel-analytics" class="admin-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Product &amp; Usage Analytics</h2>
+            <div style="font-size:0.8rem; color:var(--color-text-muted); margin-top:0.25rem;">
+              Privacy-first telemetry tracking recipe discovery, searches, bar inventory, and feature engagement.
+            </div>
+          </div>
+          <div class="panel-controls">
+            <div class="time-selector" id="analytics-time-range">
+              <button type="button" class="time-btn" data-days="7">7 Days</button>
+              <button type="button" class="time-btn active" data-days="30">30 Days</button>
+              <button type="button" class="time-btn" data-days="all">All Time</button>
+            </div>
+            <button type="button" class="filter-pill" id="btn-refresh-analytics">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+              </svg>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Top Overview Tiles -->
+        <div class="tiles-grid" id="analytics-tiles">
+          <div class="tile-card">
+            <div class="tile-label">Registered Accounts</div>
+            <div class="tile-value" id="kpi-users">-</div>
+            <div class="tile-subtext" id="kpi-users-subtext">Active recently</div>
+          </div>
+          <div class="tile-card">
+            <div class="tile-label">Cocktails Poured</div>
+            <div class="tile-value" id="kpi-pours">-</div>
+            <div class="tile-subtext">"I Made This" drink logs</div>
+          </div>
+          <div class="tile-card">
+            <div class="tile-label">Custom Recipes</div>
+            <div class="tile-value" id="kpi-custom">-</div>
+            <div class="tile-subtext" id="kpi-custom-subtext">Riffs &amp; creations</div>
+          </div>
+          <div class="tile-card">
+            <div class="tile-label">Total Bars Saved</div>
+            <div class="tile-value" id="kpi-bars">-</div>
+            <div class="tile-subtext">User inventory vaults</div>
+          </div>
+        </div>
+
+        <!-- Dual Column Grids -->
+        <div class="analytics-section-grid">
+          <!-- Most Viewed Cocktails -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Most Viewed Cocktails</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);" id="badge-top-views">Views</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Cocktail</th>
+                  <th style="width:130px; text-align:right;">Views</th>
+                </tr>
+              </thead>
+              <tbody id="table-top-views">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading recipe views...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Most Poured Cocktails (I Made This) -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Most Poured Cocktails</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Drink History</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Cocktail</th>
+                  <th style="width:130px; text-align:right;">Pours</th>
+                </tr>
+              </thead>
+              <tbody id="table-top-pours">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading drink pours...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="analytics-section-grid">
+          <!-- Popular Searches -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Search Queries</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Discovery Trends</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Query</th>
+                  <th style="width:130px; text-align:right;">Searches</th>
+                </tr>
+              </thead>
+              <tbody id="table-searches">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading search trends...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Most Stocked Ingredients in Bars -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Frequently Stocked Bottles</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">User Backbars</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="width:130px; text-align:right;">Bars</th>
+                </tr>
+              </thead>
+              <tbody id="table-stocked-ingredients">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading inventory data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="analytics-section-grid">
+          <!-- Most Called-For Ingredients Across Recipes -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Most Called-For Ingredients</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Catalog Recipes</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="width:130px; text-align:right;">Recipes</th>
+                </tr>
+              </thead>
+              <tbody id="table-most-called-ingredients">
+                <tr>
+                  <td colspan="2" class="empty-state">Calculating recipe ingredients...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Least Called-For Ingredients Across Recipes -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Least Called-For Ingredients</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Catalog Recipes</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th style="width:130px; text-align:right;">Recipes</th>
+                </tr>
+              </thead>
+              <tbody id="table-least-called-ingredients">
+                <tr>
+                  <td colspan="2" class="empty-state">Calculating recipe ingredients...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        <!-- Most Called-For Base Spirits (Pie/Donut Chart) -->
+        <div class="analytics-box" style="margin-bottom:1.75rem;">
+          <div class="analytics-box-title">
+            <span>Base Spirit Breakdown</span>
+            <span style="font-size:0.75rem; color:var(--color-text-muted);">Catalog Cocktails</span>
+          </div>
+          <div class="donut-chart-container" id="base-spirits-container">
+            <div class="donut-svg-wrap">
+              <svg viewBox="0 0 100 100" id="base-spirits-donut-svg">
+                <circle cx="50" cy="50" r="38" fill="transparent" stroke="var(--color-surface-hover)" stroke-width="14" />
+              </svg>
+              <div class="donut-hole-text">
+                <div class="donut-hole-total" id="donut-total-val">-</div>
+                <div class="donut-hole-sub">Cocktails</div>
+              </div>
+            </div>
+            <div class="donut-legend-grid" id="base-spirits-legend">
+              <div class="empty-state" style="padding:1rem;">Calculating base spirits...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-section-grid">
+          <!-- Devices: Desktop vs Mobile -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Device Distribution</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);" id="device-total-label">0 visits</span>
+            </div>
+            <div style="padding:0.5rem 0;">
+              <div class="device-bar-container">
+                <div class="device-segment" id="bar-segment-mobile" style="width:50%; background:var(--color-accent);"
+                  title="Mobile"></div>
+                <div class="device-segment" id="bar-segment-desktop"
+                  style="width:50%; background:var(--color-sky, #75b8d4);" title="Desktop"></div>
+              </div>
+              <div class="device-legend">
+                <div class="device-legend-item">
+                  <span class="legend-color-dot" style="background:var(--color-accent);"></span>
+                  <span>Mobile: <strong id="val-mobile-pct">0%</strong> (<span id="val-mobile-count">0</span>)</span>
+                </div>
+                <div class="device-legend-item">
+                  <span class="legend-color-dot" style="background:var(--color-sky, #75b8d4);"></span>
+                  <span>Desktop: <strong id="val-desktop-pct">0%</strong> (<span id="val-desktop-count">0</span>)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Engagement -->
+          <div class="analytics-box">
+            <div class="analytics-box-title">
+              <span>Feature Engagement</span>
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">Clicks &amp; Nav</span>
+            </div>
+            <table class="analytics-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th style="width:130px; text-align:right;">Interactions</th>
+                </tr>
+              </thead>
+              <tbody id="table-features">
+                <tr>
+                  <td colspan="2" class="empty-state">Loading feature engagement...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Least Discovered Cocktails -->
+        <div class="analytics-box" style="margin-bottom:1.5rem;">
+          <div class="analytics-box-title">
+            <span>Least Viewed Cocktails</span>
+            <span style="font-size:0.75rem; color:var(--color-text-muted);">surfacing candidates</span>
+          </div>
+          <table class="analytics-table">
+            <thead>
+              <tr>
+                <th>Cocktail</th>
+                <th style="width:130px; text-align:right;">Views</th>
+              </tr>
+            </thead>
+            <tbody id="table-least-views">
+              <tr>
+                <td colspan="2" class="empty-state">Loading recipe view stats...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tab 1: Personal Library Promotion -->
+      <section id="panel-personal" class="admin-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Add to Global Library</h2>
+            <div style="font-size:0.8rem; color:var(--color-text-muted); margin-top:0.25rem;">
+              Search your personal cocktails and promote them into the global catalog for all users.
+            </div>
+          </div>
+          <div class="search-box-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input type="text" id="personal-search" class="form-input" placeholder="Filter custom cocktails...">
+          </div>
+        </div>
+
+        <div id="personal-recipes-grid" class="recipe-grid">
+          <div class="empty-state">Loading custom recipes...</div>
+        </div>
+      </section>
+
+      <!-- Tab 2: Global Catalog & Visibility -->
+      <section id="panel-catalog" class="admin-panel" style="display:none;">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Global Library Catalog</h2>
+            <div style="font-size:0.8rem; color:var(--color-text-muted); margin-top:0.25rem;">
+              Manage visibility across all seed recipes and promoted cocktails.
+            </div>
+          </div>
+          <div class="panel-controls">
+            <button type="button" class="filter-pill" id="filter-hidden-only" aria-pressed="false">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+              <span>Hidden Only (<span id="count-hidden-badge">0</span>)</span>
+            </button>
+            <div class="search-box-wrap">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+              </svg>
+              <input type="text" id="catalog-search" class="form-input" placeholder="Search global catalog...">
+            </div>
+          </div>
+        </div>
+
+        <div id="catalog-recipes-grid" class="recipe-grid">
+          <div class="empty-state">Loading global catalog...</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="admin-toast" class="admin-toast" role="status"></div>
+
+  <script type="module">
+    import { SEED_RECIPES } from './js/data/seed-recipes.js';
+    import { parseMethodContent } from './js/modules/parser.js';
+    import { TAXONOMY, findIngredient } from './js/modules/taxonomy.js';
+
+    let globalRecipes = [];
+    let globallyHiddenIds = new Set();
+    let customRecipes = [];
+    let showHiddenOnly = false;
+
+    const authGateSection = document.getElementById('auth-gate-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+    const headerActions = document.getElementById('header-actions');
+    const toastEl = document.getElementById('admin-toast');
+
+    function formatInstructionsHtml(text) {
+      if (!text || typeof text !== 'string' || !text.trim()) return '';
+      const parsed = parseMethodContent(text);
+      if (parsed.type === 'ordered' && parsed.items.length > 0) {
+        return /*html*/ `
+          <div class="recipe-instructions-preview">
+            <ol>
+              ${parsed.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+            </ol>
+          </div>
+        `;
+      }
+      if (parsed.type === 'unordered' && parsed.items.length > 0) {
+        return /*html*/ `
+          <div class="recipe-instructions-preview">
+            <ul>
+              ${parsed.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+      return /*html*/ `
+        <div class="recipe-instructions-preview" style="white-space: pre-line;">${escapeHtml(text.trim())}</div>
+      `;
+    }
+
+    function toast(msg) {
+      if (!toastEl) return;
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 3500);
+    }
+
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/admin/me');
+        if (res.ok) {
+          showDashboard();
+          await loadData();
+        } else {
+          showAuthGate();
+        }
+      } catch {
+        showAuthGate();
+      }
+    }
+
+    function showAuthGate() {
+      authGateSection.style.display = 'block';
+      dashboardSection.style.display = 'none';
+      headerActions.style.display = 'none';
+    }
+
+    function showDashboard() {
+      authGateSection.style.display = 'none';
+      dashboardSection.style.display = 'block';
+      headerActions.style.display = 'flex';
+    }
+
+    // Login Form
+    document.getElementById('admin-login-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const passInput = document.getElementById('admin-pass');
+      const pass = passInput.value.trim();
+      if (!pass) return;
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pass }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          toast('Authenticated successfully');
+          showDashboard();
+          await loadData();
+        } else {
+          toast(data.message || 'Invalid admin password');
+        }
+      } catch (err) {
+        toast('Authentication request failed');
+      }
+    });
+
+    // Logout
+    document.getElementById('btn-admin-logout')?.addEventListener('click', async () => {
+      try {
+        await fetch('/api/admin/logout', { method: 'POST' });
+      } catch { }
+      showAuthGate();
+      toast('Signed out');
+    });
+
+    // Tab Switching
+    const tabBtnAnalytics = document.getElementById('tab-btn-analytics');
+    const tabBtnPersonal = document.getElementById('tab-btn-personal');
+    const tabBtnCatalog = document.getElementById('tab-btn-catalog');
+    const panelAnalytics = document.getElementById('panel-analytics');
+    const panelPersonal = document.getElementById('panel-personal');
+    const panelCatalog = document.getElementById('panel-catalog');
+
+    function setActiveTab(tab) {
+      tabBtnAnalytics?.classList.toggle('active', tab === 'analytics');
+      tabBtnPersonal?.classList.toggle('active', tab === 'personal');
+      tabBtnCatalog?.classList.toggle('active', tab === 'catalog');
+
+      if (panelAnalytics) panelAnalytics.style.display = tab === 'analytics' ? 'block' : 'none';
+      if (panelPersonal) panelPersonal.style.display = tab === 'personal' ? 'block' : 'none';
+      if (panelCatalog) panelCatalog.style.display = tab === 'catalog' ? 'block' : 'none';
+
+      if (tab === 'analytics') {
+        loadAnalytics();
+      }
+    }
+
+    tabBtnAnalytics?.addEventListener('click', () => setActiveTab('analytics'));
+    tabBtnPersonal?.addEventListener('click', () => setActiveTab('personal'));
+    tabBtnCatalog?.addEventListener('click', () => setActiveTab('catalog'));
+
+    // Load Data from /api/admin/recipes
+    async function loadData() {
+      try {
+        const res = await fetch('/api/admin/recipes');
+        if (!res.ok) {
+          if (res.status === 401) {
+            showAuthGate();
+            return;
+          }
+          throw new Error('Failed to load data');
+        }
+        const data = await res.json();
+        globalRecipes = data.globalRecipes || [];
+        globallyHiddenIds = new Set((data.globallyHidden || []).map(h => h.recipeId));
+        const seedIdSet = new Set(SEED_RECIPES.map(s => s.id));
+        customRecipes = (data.customRecipes || []).filter(c => !seedIdSet.has(c.id));
+
+        // Also check if user has local custom recipes in localStorage to merge into customRecipes list
+        try {
+          const localRaw = localStorage.getItem('speakeasy_recipes');
+          if (localRaw) {
+            const localRecipes = JSON.parse(localRaw);
+            if (Array.isArray(localRecipes)) {
+              const existingCustomIds = new Set(customRecipes.map(c => c.id));
+              localRecipes.forEach(lr => {
+                if (!seedIdSet.has(lr.id) && !existingCustomIds.has(lr.id)) {
+                  customRecipes.push(lr);
+                }
+              });
+            }
+          }
+        } catch { }
+
+        updateBadges();
+        renderPersonalGrid();
+        renderCatalogGrid();
+      } catch (err) {
+        toast('Error loading library: ' + err.message);
+      }
+    }
+
+    function updateBadges() {
+      const personalEl = document.getElementById('count-personal');
+      if (personalEl) personalEl.textContent = customRecipes.length;
+
+      const totalCatalog = SEED_RECIPES.length + globalRecipes.length;
+      const catalogEl = document.getElementById('count-catalog');
+      if (catalogEl) catalogEl.textContent = totalCatalog;
+
+      const hiddenBadge = document.getElementById('count-hidden-badge');
+      if (hiddenBadge) hiddenBadge.textContent = globallyHiddenIds.size;
+    }
+
+    // Render Personal Grid
+    function renderPersonalGrid() {
+      const grid = document.getElementById('personal-recipes-grid');
+      const query = (document.getElementById('personal-search')?.value || '').toLowerCase().trim();
+
+      const filtered = customRecipes.filter(r => {
+        if (!query) return true;
+        return (r.name || '').toLowerCase().includes(query) ||
+          (r.description || '').toLowerCase().includes(query) ||
+          (r.tags || []).some(t => t.toLowerCase().includes(query));
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = /*html*/ `<div class="empty-state">No custom cocktails found. Create one in the Speakeasy app first!</div>`;
+        return;
+      }
+
+      const globalIdSet = new Set(globalRecipes.map(g => g.id));
+
+      grid.innerHTML = /*html*/ filtered.map(r => {
+        const isAlreadyGlobal = globalIdSet.has(r.id);
+        const specList = (r.specs || []).map(s => `<li>${s.amount ? s.amount + ' ' : ''}${s.unit || ''} ${s.name}</li>`).join('');
+
+        return /*html*/ `
+          <div class="recipe-card">
+            <div>
+              <div class="recipe-card-header">
+                <div>
+                  <h3 class="recipe-name">${escapeHtml(r.name)}</h3>
+                  <div class="recipe-meta">
+                    <span>${escapeHtml(r.glassware || 'Coupe')}</span> &bull;
+                    <span>${escapeHtml(r.method || 'Shaken')}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="recipe-specs-preview" style="margin-top:0.75rem;">
+                <ul>${specList || '<li>No ingredients listed</li>'}</ul>
+              </div>
+              ${formatInstructionsHtml(r.instructions)}
+            </div>
+            <div class="recipe-card-footer">
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">
+                ${r.tags && r.tags.length ? r.tags.map(t => `#${escapeHtml(t)}`).join(' ') : 'No tags'}
+              </span>
+              <button type="button" class="btn-action ${isAlreadyGlobal ? '' : 'btn-promote'}" data-action="promote" data-id="${escapeHtml(r.id)}">
+                ${isAlreadyGlobal ? 'Update Global Specs' : 'Add to Global Library'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Global Catalog Grid
+    function renderCatalogGrid() {
+      const grid = document.getElementById('catalog-recipes-grid');
+      const query = (document.getElementById('catalog-search')?.value || '').toLowerCase().trim();
+
+      // Combine canonical seed recipes + published D1 global recipes
+      const globalIdSet = new Set(globalRecipes.map(g => g.id));
+      const catalog = [
+        ...SEED_RECIPES.map(s => ({ ...s, isSeed: true })),
+        ...globalRecipes.map(g => ({ ...g, isCustomGlobal: true })),
+      ];
+
+      const filtered = catalog.filter(r => {
+        if (showHiddenOnly && !globallyHiddenIds.has(r.id)) {
+          return false;
+        }
+        if (!query) return true;
+        return (r.name || '').toLowerCase().includes(query) ||
+          (r.tags || []).some(t => t.toLowerCase().includes(query));
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML =  /*html*/ `<div class="empty-state">${showHiddenOnly ? 'No globally hidden recipes found.' : 'No recipes matched your search query.'}</div>`;
+        return;
+      }
+
+      grid.innerHTML = /*html*/ filtered.map(r => {
+        const isHidden = globallyHiddenIds.has(r.id);
+        const specList = (r.specs || []).map(s => `<li>${s.amount ? s.amount + ' ' : ''}${s.unit || ''} ${s.name}</li>`).join('');
+
+        return /*html*/ `
+          <div class="recipe-card ${isHidden ? 'is-hidden' : ''}">
+            <div>
+              <div class="recipe-card-header">
+                <div>
+                  <h3 class="recipe-name">${escapeHtml(r.name)}</h3>
+                  <div class="recipe-meta">
+                    <span>${escapeHtml(r.glassware || 'Coupe')}</span> &bull;
+                    <span>${escapeHtml(r.method || 'Shaken')}</span>
+                  </div>
+                </div>
+                <div>
+                  ${isHidden
+            ? `<span class="status-badge hidden">Globally Hidden</span>`
+            : (r.isCustomGlobal ? `<span class="status-badge global">Custom Global</span>` : '')}
+                </div>
+              </div>
+              <div class="recipe-specs-preview" style="margin-top:0.75rem;">
+                <ul>${specList}</ul>
+              </div>
+              ${formatInstructionsHtml(r.instructions)}
+            </div>
+            <div class="recipe-card-footer">
+              <span style="font-size:0.75rem; color:var(--color-text-muted);">
+                ${r.tags && r.tags.length ? r.tags.map(t => `#${escapeHtml(t)}`).join(' ') : ''}
+              </span>
+              <div style="display:flex; gap:0.5rem;">
+                <button type="button" class="btn-action ${isHidden ? 'btn-unhide' : 'btn-hide'}" data-action="toggle-hide" data-id="${escapeHtml(r.id)}" data-hidden="${isHidden ? '1' : '0'}">
+                  ${isHidden ? 'Unhide Global' : 'Hide from Global'}
+                </button>
+                ${r.isCustomGlobal ? `
+                  <button type="button" class="btn-action btn-hide" data-action="delete-global" data-id="${escapeHtml(r.id)}" title="Delete from global table">
+                    Delete
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Event Delegation for Buttons
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+
+      if (action === 'promote') {
+        const recipe = customRecipes.find(c => c.id === id);
+        if (!recipe) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Publishing...';
+
+        try {
+          const res = await fetch('/api/admin/recipes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(recipe),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            toast(`Published "${recipe.name}" to global library`);
+            await loadData();
+          } else {
+            toast(data.error || 'Failed to publish');
+            btn.disabled = false;
+            btn.textContent = 'Add to Global Library';
+          }
+        } catch (err) {
+          toast('Network error publishing recipe');
+          btn.disabled = false;
+          btn.textContent = 'Add to Global Library';
+        }
+      } else if (action === 'toggle-hide') {
+        const isHidden = btn.dataset.hidden === '1';
+        btn.disabled = true;
+
+        try {
+          const res = await fetch('/api/admin/hide', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipeId: id,
+              hide: !isHidden,
+            }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            toast(data.message);
+            await loadData();
+          } else {
+            toast(data.error || 'Failed to update visibility');
+            btn.disabled = false;
+          }
+        } catch {
+          toast('Network error updating visibility');
+          btn.disabled = false;
+        }
+      } else if (action === 'delete-global') {
+        if (!confirm(`Are you sure you want to remove this recipe from the global library?`)) return;
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(`/api/admin/recipes?id=${encodeURIComponent(id)}`, {
+            method: 'DELETE',
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            toast(data.message);
+            await loadData();
+          } else {
+            toast(data.error || 'Failed to delete');
+            btn.disabled = false;
+          }
+        } catch {
+          toast('Network error deleting recipe');
+          btn.disabled = false;
+        }
+      }
+    });
+
+    // Search inputs and filters
+    document.getElementById('personal-search')?.addEventListener('input', renderPersonalGrid);
+    document.getElementById('catalog-search')?.addEventListener('input', renderCatalogGrid);
+
+    const filterHiddenBtn = document.getElementById('filter-hidden-only');
+    filterHiddenBtn?.addEventListener('click', () => {
+      showHiddenOnly = !showHiddenOnly;
+      filterHiddenBtn.classList.toggle('active', showHiddenOnly);
+      filterHiddenBtn.setAttribute('aria-pressed', showHiddenOnly ? 'true' : 'false');
+      renderCatalogGrid();
+    });
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // --- Analytics Implementation ---
+    let analyticsDays = '30';
+
+    async function loadAnalytics() {
+      try {
+        const res = await fetch(`/api/admin/analytics?days=${analyticsDays}`);
+        if (!res.ok) {
+          if (res.status === 401) {
+            showAuthGate();
+            return;
+          }
+          throw new Error('Analytics request failed');
+        }
+        const data = await res.json();
+        renderAnalytics(data);
+      } catch (err) {
+        toast('Error loading analytics: ' + err.message);
+      }
+    }
+
+    function renderAnalytics(data) {
+      if (!data) return;
+
+      // 1. Overview KPIs
+      const ov = data.overview || {};
+      const elUsers = document.getElementById('kpi-users');
+      const elUsersSub = document.getElementById('kpi-users-subtext');
+      const elPours = document.getElementById('kpi-pours');
+      const elCustom = document.getElementById('kpi-custom');
+      const elCustomSub = document.getElementById('kpi-custom-subtext');
+      const elBars = document.getElementById('kpi-bars');
+
+      if (elUsers) elUsers.textContent = (ov.total_users || 0).toLocaleString();
+      if (elUsersSub) elUsersSub.textContent = `${ov.users_7d || 0} in last 7d • ${ov.users_30d || 0} in 30d`;
+      if (elPours) elPours.textContent = (ov.total_pours || 0).toLocaleString();
+      if (elCustom) elCustom.textContent = (ov.total_custom_recipes || 0).toLocaleString();
+      if (elCustomSub) elCustomSub.textContent = `${ov.total_riffs || 0} riffs • ${ov.total_public_recipes || 0} public`;
+      if (elBars) elBars.textContent = (ov.total_bars || 0).toLocaleString();
+
+      // Helper to find cocktail name by ID
+      const allRecipesMap = new Map();
+      SEED_RECIPES.forEach(r => allRecipesMap.set(r.id, r.name));
+      globalRecipes.forEach(r => allRecipesMap.set(r.id, r.name));
+      customRecipes.forEach(r => allRecipesMap.set(r.id, r.name));
+
+      const getRecipeName = (id) => allRecipesMap.get(id) || id || 'Unknown Recipe';
+
+      // 2. Most Viewed Cocktails
+      const topViews = data.cocktails?.top_views || [];
+      const tbodyTopViews = document.getElementById('table-top-views');
+      if (tbodyTopViews) {
+        if (topViews.length === 0) {
+          tbodyTopViews.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No recipe views recorded yet in this window.</td></tr>`;
+        } else {
+          const maxView = Math.max(...topViews.map(v => v.views || 0), 1);
+          tbodyTopViews.innerHTML = topViews.map(v => {
+            const pct = Math.round((v.views / maxView) * 100);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(getRecipeName(v.target_id))}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${v.views}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 3. Most Poured Cocktails (Drink History)
+      const topPours = data.cocktails?.top_pours || [];
+      const tbodyTopPours = document.getElementById('table-top-pours');
+      if (tbodyTopPours) {
+        if (topPours.length === 0) {
+          tbodyTopPours.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No drinks recorded with "I Made This" yet.</td></tr>`;
+        } else {
+          const maxPour = Math.max(...topPours.map(p => p.pour_count || 0), 1);
+          tbodyTopPours.innerHTML = topPours.map(p => {
+            const pct = Math.round((p.pour_count / maxPour) * 100);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(getRecipeName(p.recipe_id))}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill secondary" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${p.pour_count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 4. Search Queries
+      const searches = data.searches || [];
+      const tbodySearches = document.getElementById('table-searches');
+      if (tbodySearches) {
+        if (searches.length === 0) {
+          tbodySearches.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No searches logged in this window.</td></tr>`;
+        } else {
+          const maxSearch = Math.max(...searches.map(s => s.search_count || 0), 1);
+          tbodySearches.innerHTML = searches.map(s => {
+            const pct = Math.round((s.search_count / maxSearch) * 100);
+            return /*html*/`
+              <tr>
+                <td><code>${escapeHtml(s.query)}</code></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${s.search_count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 5. Frequently Stocked Bottles
+      const rawStocked = data.stocked_ingredients || [];
+      // Sort primarily by bar_count DESC, secondarily by friendly ingredient name ASC
+      const getIngredientDisplayName = (id) => TAXONOMY[id]?.name || id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+      const stocked = [...rawStocked].sort((a, b) => {
+        if (b.bar_count !== a.bar_count) return b.bar_count - a.bar_count;
+        const nameA = getIngredientDisplayName(a.ingredient_id);
+        const nameB = getIngredientDisplayName(b.ingredient_id);
+        return nameA.localeCompare(nameB);
+      });
+
+      const tbodyStocked = document.getElementById('table-stocked-ingredients');
+      if (tbodyStocked) {
+        if (stocked.length === 0) {
+          tbodyStocked.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No bar inventory items recorded yet.</td></tr>`;
+        } else {
+          const maxStocked = Math.max(...stocked.map(s => s.bar_count || 0), 1);
+          tbodyStocked.innerHTML = stocked.map(s => {
+            const pct = Math.round((s.bar_count / maxStocked) * 100);
+            const displayName = getIngredientDisplayName(s.ingredient_id);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(displayName)}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill secondary" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${s.bar_count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 5b. Most & Least Called-For Ingredients Across All Recipes
+      const allActiveRecipes = [...SEED_RECIPES, ...globalRecipes, ...customRecipes];
+      const ingredientRecipeCount = new Map(); // ingredientName -> count
+
+      allActiveRecipes.forEach(recipe => {
+        if (Array.isArray(recipe.specs)) {
+          // Count each distinct ingredient name at most once per cocktail
+          const seenInRecipe = new Set();
+          recipe.specs.forEach(spec => {
+            const rawName = (spec.name || '').trim();
+            if (!rawName) return;
+            // Clean up garnish / optional notes if present
+            const cleanName = rawName.replace(/\s*\([^)]*\)/g, '').trim();
+            if (cleanName && !seenInRecipe.has(cleanName.toLowerCase())) {
+              seenInRecipe.add(cleanName.toLowerCase());
+              ingredientRecipeCount.set(cleanName, (ingredientRecipeCount.get(cleanName) || 0) + 1);
+            }
+          });
+        }
+      });
+
+      const sortedIngredientCalls = Array.from(ingredientRecipeCount.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+      const topCalled = sortedIngredientCalls.slice(0, 15);
+      const leastCalled = [...sortedIngredientCalls].reverse().slice(0, 15);
+
+      // Render Most Called-For
+      const tbodyMostCalled = document.getElementById('table-most-called-ingredients');
+      if (tbodyMostCalled) {
+        if (topCalled.length === 0) {
+          tbodyMostCalled.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No recipe ingredients found.</td></tr>`;
+        } else {
+          const maxCall = Math.max(...topCalled.map(c => c.count), 1);
+          tbodyMostCalled.innerHTML = topCalled.map(item => {
+            const pct = Math.round((item.count / maxCall) * 100);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(item.name)}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${item.count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // Render Least Called-For
+      const tbodyLeastCalled = document.getElementById('table-least-called-ingredients');
+      if (tbodyLeastCalled) {
+        if (leastCalled.length === 0) {
+          tbodyLeastCalled.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No recipe ingredients found.</td></tr>`;
+        } else {
+          tbodyLeastCalled.innerHTML = leastCalled.map(item => {
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(item.name)}</strong></td>
+                <td style="text-align:right;">
+                  <span class="metric-bar-num">${item.count}</span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 5c. Most Called-For Base Spirits (Pie/Donut Chart Calculation & Render)
+      const baseSpiritFamilies = {
+        whiskey: { label: 'Whiskey', color: '#d48b38' },
+        gin: { label: 'Gin', color: '#5eb5a6' },
+        rum: { label: 'Rum', color: '#c9593a' },
+        tequila: { label: 'Agave (Tequila/Mezcal)', color: '#88a825' },
+        brandy: { label: 'Brandy / Cognac', color: '#a04374' },
+        vodka: { label: 'Vodka', color: '#5b9dff' },
+        liqueurs: { label: 'Aperitif / Liqueur Base', color: '#d95926' },
+        other: { label: 'Other Spirits', color: '#8a97a8' },
+      };
+
+      const baseSpiritCounts = new Map();
+      Object.keys(baseSpiritFamilies).forEach(k => baseSpiritCounts.set(k, 0));
+
+      let totalBaseSpiritCalls = 0;
+
+      allActiveRecipes.forEach(recipe => {
+        if (Array.isArray(recipe.specs)) {
+          // Identify spirits called in this recipe
+          const detectedFamilies = new Set();
+          recipe.specs.forEach(spec => {
+            const rawName = (spec.name || '').trim();
+            if (!rawName) return;
+            const item = findIngredient(rawName);
+            if (item && (item.parent === 'spirits' || item.family === 'liqueurs')) {
+              let fam = item.family || 'other';
+              if (fam === 'tequila' || fam === 'mezcal' || fam === 'agave') fam = 'tequila';
+              if (fam === 'brandy' || fam === 'cognac' || fam === 'pisco' || fam === 'apple_brandy') fam = 'brandy';
+              if (baseSpiritFamilies[fam]) {
+                detectedFamilies.add(fam);
+              } else if (item.parent === 'spirits') {
+                detectedFamilies.add('other');
+              }
+            }
+          });
+
+          detectedFamilies.forEach(fam => {
+            baseSpiritCounts.set(fam, (baseSpiritCounts.get(fam) || 0) + 1);
+            totalBaseSpiritCalls++;
+          });
+        }
+      });
+
+      const donutTotalEl = document.getElementById('donut-total-val');
+      if (donutTotalEl) {
+        donutTotalEl.textContent = allActiveRecipes.length.toLocaleString();
+      }
+
+      // Build SVG donut segments and legend
+      const donutSvg = document.getElementById('base-spirits-donut-svg');
+      const legendGrid = document.getElementById('base-spirits-legend');
+
+      if (donutSvg && legendGrid) {
+        // Circumference for r=38 is 2 * PI * 38 = ~238.761
+        const radius = 38;
+        const circumference = 2 * Math.PI * radius;
+
+        const sortedSpirits = Array.from(baseSpiritCounts.entries())
+          .filter(([, count]) => count > 0)
+          .sort((a, b) => b[1] - a[1]);
+
+        if (sortedSpirits.length === 0) {
+          legendGrid.innerHTML = /*html*/`<div class="empty-state">No spirits detected in recipes.</div>`;
+        } else {
+          let accumulatedOffset = 0;
+          const svgCircles = [];
+          const legendItems = [];
+
+          sortedSpirits.forEach(([key, count]) => {
+            const config = baseSpiritFamilies[key] || { label: key, color: '#8a97a8' };
+            const pct = count / Math.max(totalBaseSpiritCalls, 1);
+            const dashLength = pct * circumference;
+            const remainingSpace = circumference - dashLength;
+            const strokeDashoffset = -accumulatedOffset;
+            accumulatedOffset += dashLength;
+
+            svgCircles.push(/*html*/`
+              <circle cx="50" cy="50" r="${radius}" fill="transparent"
+                stroke="${config.color}" stroke-width="14"
+                stroke-dasharray="${dashLength.toFixed(2)} ${remainingSpace.toFixed(2)}"
+                stroke-dashoffset="${strokeDashoffset.toFixed(2)}" />
+            `);
+
+            const pctLabel = Math.round(pct * 100);
+            legendItems.push(/*html*/`
+              <div class="donut-legend-item">
+                <div class="donut-legend-left">
+                  <span class="legend-color-dot" style="background:${config.color};"></span>
+                  <span>${escapeHtml(config.label)}</span>
+                </div>
+                <div class="donut-legend-right">
+                  ${count} <span style="font-weight:400; color:var(--color-text-muted); font-size:0.75rem;">(${pctLabel}%)</span>
+                </div>
+              </div>
+            `);
+          });
+
+          donutSvg.innerHTML = svgCircles.join('');
+          legendGrid.innerHTML = legendItems.join('');
+        }
+      }
+
+      // 6. Device Distribution
+      const devices = data.devices || { mobile: 0, desktop: 0, total: 0 };
+      const totalDev = devices.total || 0;
+      const mobCount = devices.mobile || 0;
+      const deskCount = devices.desktop || 0;
+      const mobPct = totalDev > 0 ? Math.round((mobCount / totalDev) * 100) : 50;
+      const deskPct = totalDev > 0 ? (100 - mobPct) : 50;
+
+      const segMob = document.getElementById('bar-segment-mobile');
+      const segDesk = document.getElementById('bar-segment-desktop');
+      const lblMobPct = document.getElementById('val-mobile-pct');
+      const lblMobCount = document.getElementById('val-mobile-count');
+      const lblDeskPct = document.getElementById('val-desktop-pct');
+      const lblDeskCount = document.getElementById('val-desktop-count');
+      const lblDevTotal = document.getElementById('device-total-label');
+
+      if (segMob) segMob.style.width = `${mobPct}%`;
+      if (segDesk) segDesk.style.width = `${deskPct}%`;
+      if (lblMobPct) lblMobPct.textContent = `${totalDev > 0 ? mobPct : 0}%`;
+      if (lblMobCount) lblMobCount.textContent = mobCount.toLocaleString();
+      if (lblDeskPct) lblDeskPct.textContent = `${totalDev > 0 ? deskPct : 0}%`;
+      if (lblDeskCount) lblDeskCount.textContent = deskCount.toLocaleString();
+      if (lblDevTotal) lblDevTotal.textContent = `${totalDev.toLocaleString()} total visits`;
+
+      // 7. Feature Usage
+      const features = data.features || [];
+      const tbodyFeatures = document.getElementById('table-features');
+      if (tbodyFeatures) {
+        if (features.length === 0) {
+          tbodyFeatures.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No feature interactions recorded.</td></tr>`;
+        } else {
+          const maxFeat = Math.max(...features.map(f => f.count || 0), 1);
+          tbodyFeatures.innerHTML = features.map(f => {
+            const pct = Math.round((f.count / maxFeat) * 100);
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(f.feature_name)}</strong></td>
+                <td>
+                  <div class="metric-bar-wrap">
+                    <div class="metric-bar-bg">
+                      <div class="metric-bar-fill" style="width:${pct}%;"></div>
+                    </div>
+                    <span class="metric-bar-num">${f.count}</span>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // 8. Least Discovered / Hidden Gems
+      const leastViews = data.cocktails?.least_views || [];
+      const tbodyLeastViews = document.getElementById('table-least-views');
+      if (tbodyLeastViews) {
+        // Exclude recipes that already appear in top views to avoid mirroring identical small datasets
+        const topViewIds = new Set((topViews || []).map(t => t.target_id));
+        const filteredLeast = leastViews.filter(v => !topViewIds.has(v.target_id));
+
+        if (filteredLeast.length === 0) {
+          if (leastViews.length > 0 && topViews.length > 0) {
+            tbodyLeastViews.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">All viewed cocktails currently appear in Most Viewed. As more drinks are explored, lower-viewed gems will appear here.</td></tr>`;
+          } else {
+            tbodyLeastViews.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No view stats recorded yet.</td></tr>`;
+          }
+        } else {
+          tbodyLeastViews.innerHTML = filteredLeast.map(v => {
+            return /*html*/`
+              <tr>
+                <td><strong>${escapeHtml(getRecipeName(v.target_id))}</strong></td>
+                <td style="text-align:right;">
+                  <span class="metric-bar-num">${v.views}</span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    // Time selector event handlers
+    const timeSelector = document.getElementById('analytics-time-range');
+    timeSelector?.querySelectorAll('.time-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        timeSelector.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        analyticsDays = btn.getAttribute('data-days') || '30';
+        loadAnalytics();
+      });
+    });
+
+    document.getElementById('btn-refresh-analytics')?.addEventListener('click', () => {
+      toast('Refreshing analytics...');
+      loadAnalytics();
+    });
+
+    // Init
+    async function init() {
+      await checkAuth();
+      if (dashboardSection.style.display !== 'none') {
+        setActiveTab('analytics');
+      }
+    }
+    init();
+  </script>
+</body>
+
+</html>

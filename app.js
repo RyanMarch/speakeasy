@@ -9,6 +9,7 @@ import {
   selectRecipe,
   goHome,
   goToMenuBuilder,
+  goToAccount,
   renderCurrentView,
   showDrinksListMobile,
 } from './js/router.js';
@@ -38,7 +39,11 @@ import {
   setUnitSystem,
   setGlassViewMode,
   setLibrarySort,
+  openVaultSettingsModal,
+  renderVaultSettingsModal,
+  updateAuthIndicator,
 } from './js/components/top-bar.js';
+import { trackEvent } from './js/modules/telemetry.js';
 
 import {
   setupBackbarEventListeners,
@@ -66,6 +71,14 @@ import {
 
 import { setupTimerModalEventListeners } from './js/components/timer-modal.js';
 
+import {
+  setupAuthModalEventListeners,
+  openAuthModal,
+  closeAuthModal,
+} from './js/components/auth-modal.js';
+
+import { checkSession, pullRemoteData } from './js/modules/auth.js';
+
 /**
  * Initialize application
  */
@@ -90,15 +103,20 @@ function init() {
     }
   }
 
-  const deepLinkedToRecipe = Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
-  const deepLinkedToMenuBuilder = urlHash === 'menus' || urlHash.startsWith('menus/');
+  const deepLinkedToShare = urlHash === 'share' || urlHash.startsWith('share/');
+  const deepLinkedToRecipe = !deepLinkedToShare && Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
+  const deepLinkedToMenuBuilder = !deepLinkedToShare && (urlHash === 'menus' || urlHash.startsWith('menus/'));
+  const deepLinkedToAccount = !deepLinkedToShare && (urlHash === 'account' || urlHash === 'vault');
 
   if (!initialId && state.recipes.length > 0) {
     initialId = state.recipes[0].id;
   }
 
   state.activeRecipeId = initialId;
-  state.viewMode = deepLinkedToRecipe ? 'counter' : (deepLinkedToMenuBuilder ? 'menu-builder' : 'home');
+  state.viewMode = deepLinkedToShare ? 'shared-recipe' : (deepLinkedToRecipe ? 'counter' : (deepLinkedToMenuBuilder ? 'menu-builder' : (deepLinkedToAccount ? 'account' : 'home')));
+  if (deepLinkedToShare) {
+    state.pendingShareId = urlHash === 'share' ? null : urlHash.slice('share/'.length);
+  }
   if (urlHash && initialId && deepLinkedToRecipe) {
     history.replaceState(null, '', `#${initialId}`);
   }
@@ -137,6 +155,8 @@ function init() {
     renderRecipeList,
     openBackbarModal,
     updateBackbarActionButtons,
+    openAuthModal,
+    goToAccount,
   });
   setBackbarModalCallbacks({
     updateMyBarBadge,
@@ -162,9 +182,32 @@ function init() {
   setupBackbarEventListeners();
   setupHiddenModalEventListeners();
   setupTimerModalEventListeners();
+  setupAuthModalEventListeners();
   updateMyBarBadge();
   renderRecipeList();
   renderCurrentView();
+
+  // Validate stored session token against backend and sync state
+  checkSession().then(async result => {
+    updateAuthIndicator();
+    if (result && result.authenticated) {
+      try {
+        await pullRemoteData();
+        renderRecipeList();
+      } catch (err) {
+        console.warn('Initial session pull error:', err);
+      }
+    }
+    if (state.viewMode === 'account') {
+      renderVaultSettingsModal();
+    }
+  }).catch(err => {
+    console.warn('Initial session check error:', err);
+    updateAuthIndicator();
+    if (state.viewMode === 'account') {
+      renderVaultSettingsModal();
+    }
+  });
 
   // Initialize Vault Settings Popover values
   if (elements.popoverUnitOz && elements.popoverUnitMl) {
@@ -191,14 +234,23 @@ function init() {
  * Global Event Listeners
  */
 function setupGlobalEventListeners() {
-  // Search
+  // Search with debounced telemetry
+  let searchDebounceTimer = null;
   elements.searchInput?.addEventListener('input', (e) => {
     state.searchQuery = e.target.value.trim().toLowerCase();
     elements.searchClearBtn?.classList.toggle('visible', state.searchQuery.length > 0);
     renderRecipeList();
+
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+    if (state.searchQuery.length >= 2) {
+      searchDebounceTimer = setTimeout(() => {
+        trackEvent('search', { query: state.searchQuery });
+      }, 1500);
+    }
   });
 
   elements.searchClearBtn?.addEventListener('click', () => {
+    if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
     if (elements.searchInput) elements.searchInput.value = '';
     state.searchQuery = '';
     elements.searchClearBtn?.classList.remove('visible');
@@ -230,6 +282,23 @@ function setupGlobalEventListeners() {
         renderRecipeList();
         renderCurrentView();
       }
+      elements.sidebar?.classList.add('mobile-hidden');
+      elements.mainStage?.classList.remove('mobile-hidden');
+      return;
+    }
+    if (rawHash === 'vault' || rawHash === 'account') {
+      if (state.viewMode !== 'account') {
+        state.viewMode = 'account';
+        renderCurrentView();
+      }
+      elements.sidebar?.classList.add('mobile-hidden');
+      elements.mainStage?.classList.remove('mobile-hidden');
+      return;
+    }
+    if (rawHash === 'share' || rawHash.startsWith('share/')) {
+      state.pendingShareId = rawHash === 'share' ? null : rawHash.slice('share/'.length);
+      state.viewMode = 'shared-recipe';
+      renderCurrentView();
       elements.sidebar?.classList.add('mobile-hidden');
       elements.mainStage?.classList.remove('mobile-hidden');
       return;
