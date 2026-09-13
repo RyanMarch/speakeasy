@@ -154,35 +154,41 @@ async function runTests() {
   assert(typeof appMod === 'object', 'app.js imports and evaluates successfully');
 
   console.log('\n--- 3. Testing HTML Preload & Asset Consistency ---');
+  const appHtml = fs.readFileSync(path.join(rootDir, 'app.html'), 'utf8');
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
+  const termsHtml = fs.readFileSync(path.join(rootDir, 'terms.html'), 'utf8');
 
-  // Check modulepreloads
+  // Check app.html modulepreloads
   const preloadRegex = /<link\s+rel="modulepreload"\s+href="([^"?]+)(?:\?[^"]*)?"/g;
   let match;
   const preloadedPaths = [];
-  while ((match = preloadRegex.exec(indexHtml)) !== null) {
+  while ((match = preloadRegex.exec(appHtml)) !== null) {
     preloadedPaths.push(match[1]);
   }
-  assert(preloadedPaths.length > 0, `Found ${preloadedPaths.length} modulepreload links in index.html`);
+  assert(preloadedPaths.length > 0, `Found ${preloadedPaths.length} modulepreload links in app.html`);
   for (const relPath of preloadedPaths) {
     const fullPath = path.join(rootDir, relPath);
     assert(fs.existsSync(fullPath), `Preloaded file exists: ${relPath}`);
   }
 
-  // Check stylesheet links
+  // Check stylesheet links across app.html, index.html, and terms.html
   const cssRegex = /<link\s+rel="stylesheet"\s+href="([^"?]+)(?:\?[^"]*)?"/g;
-  const cssLinks = [];
-  while ((match = cssRegex.exec(indexHtml)) !== null) {
-    cssLinks.push(match[1]);
-  }
-  for (const relPath of cssLinks) {
-    const fullPath = path.join(rootDir, relPath);
-    assert(fs.existsSync(fullPath), `Stylesheet file exists: ${relPath}`);
+  for (const [docName, docHtml] of [['app.html', appHtml], ['index.html', indexHtml], ['terms.html', termsHtml]]) {
+    const cssLinks = [];
+    cssRegex.lastIndex = 0;
+    while ((match = cssRegex.exec(docHtml)) !== null) {
+      cssLinks.push(match[1]);
+    }
+    assert(cssLinks.length > 0, `Found stylesheet links in ${docName}`);
+    for (const relPath of cssLinks) {
+      const fullPath = path.join(rootDir, relPath);
+      assert(fs.existsSync(fullPath), `Stylesheet file exists for ${docName}: ${relPath}`);
+    }
   }
 
-  // Check main module script tag
-  const scriptMatch = indexHtml.match(/<script\s+type="module"\s+src="([^"?]+)(?:\?[^"]*)?"/);
-  assert(scriptMatch !== null, 'Found type="module" script in index.html');
+  // Check app.html main module script tag
+  const scriptMatch = appHtml.match(/<script\s+type="module"\s+src="([^"?]+)(?:\?[^"]*)?"/);
+  assert(scriptMatch !== null, 'Found type="module" script in app.html');
   if (scriptMatch) {
     const scriptPath = path.join(rootDir, scriptMatch[1]);
     assert(fs.existsSync(scriptPath), `Main script file exists: ${scriptMatch[1]}`);
