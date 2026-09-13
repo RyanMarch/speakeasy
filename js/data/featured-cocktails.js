@@ -4,7 +4,7 @@ export const FEATURED_COCKTAILS = [
     "name": "Negroni",
     "sub": "Count Camillo Negroni, Florence, 1919",
     "glassware": "Rocks",
-    "totalDisplay": "3.00 oz &bull; 89 ml",
+    "totalDisplay": "3.00 oz &bull; 90 ml",
     "abvDisplay": "23% ABV",
     "garnish": "Orange peel",
     "specs": [
@@ -31,7 +31,7 @@ export const FEATURED_COCKTAILS = [
     "name": "Daiquiri",
     "sub": "Jennings Cox, Cuba, c. 1898",
     "glassware": "Coupe",
-    "totalDisplay": "3.50 oz &bull; 104 ml",
+    "totalDisplay": "3.50 oz &bull; 105 ml",
     "abvDisplay": "17% ABV",
     "garnish": "Lime wheel",
     "specs": [
@@ -58,7 +58,7 @@ export const FEATURED_COCKTAILS = [
     "name": "Dry Martini",
     "sub": "Classic, c. 1900",
     "glassware": "Martini",
-    "totalDisplay": "3.00 oz &bull; 89 ml",
+    "totalDisplay": "3.00 oz &bull; 90 ml",
     "abvDisplay": "32% ABV",
     "garnish": "Castelvetrano olive",
     "specs": [
@@ -80,7 +80,7 @@ export const FEATURED_COCKTAILS = [
     "name": "Aperol Spritz",
     "sub": "Veneto, Italy, 1950s",
     "glassware": "Wine",
-    "totalDisplay": "6.00 oz &bull; 177 ml",
+    "totalDisplay": "6.00 oz &bull; 180 ml",
     "abvDisplay": "13% ABV",
     "garnish": "Orange slice",
     "specs": [
@@ -107,7 +107,7 @@ export const FEATURED_COCKTAILS = [
     "name": "Tom Collins",
     "sub": "Jerry Thomas, 1876",
     "glassware": "Highball",
-    "totalDisplay": "6.50 oz &bull; 192 ml",
+    "totalDisplay": "6.50 oz &bull; 195 ml",
     "abvDisplay": "13% ABV",
     "garnish": "Lemon wheel",
     "specs": [

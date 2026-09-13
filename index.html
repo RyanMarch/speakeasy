@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Speakeasy: The Counter Cocktail Library & Bar Companion</title>
+  <title>Speakeasy: Cocktail Library & Bar Companion</title>
   <meta name="description"
-    content="A local-first cocktail recipe library and backbar intelligence tool for kitchen and bar counters. Visual vector glassware, smart inventory matching, and classic recipe lineage.">
+    content="A cocktail recipe library and bar tool for kitchen and bar counters. Visualize drinks in glassware, track your bottles, and find classic recipes.">
   <link rel="icon" type="image/x-icon" href="favicon.ico?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=2">
@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/base.css?v=52">
   <link rel="stylesheet" href="css/theme-deco.css?v=10">
-  <link rel="stylesheet" href="css/marketing.css?v=1">
+  <link rel="stylesheet" href="css/marketing.css?v=5">
 </head>
 
 <body class="marketing-body">
@@ -93,143 +93,243 @@
       </div>
     </header>
 
-    <!-- Detailed Visual Spec Breakdown -->
-    <section class="showcase-section" aria-labelledby="showcase-heading">
-      <div class="showcase-frame">
-        <div class="showcase-grid">
-          <div class="showcase-visual">
-            <div class="showcase-drink-caption" id="showcase-drink-name">Negroni</div>
-            <div class="showcase-drink-sub" id="showcase-drink-sub">Count Camillo Negroni, Florence, 1919</div>
+    <!-- One recipe, walked through -->
+    <section class="story-section" aria-label="Feature walkthrough">
+      <div class="story-rail">
+        <div class="showcase-visual story-card" id="story-card">
+          <div class="showcase-drink-caption" id="showcase-drink-name">Negroni</div>
+          <div class="showcase-drink-sub" id="showcase-drink-sub">Count Camillo Negroni, Florence, 1919</div>
 
-            <div id="showcase-glass-mount" class="showcase-glass-mount">
-              <!-- Rendered dynamically -->
-            </div>
+          <div id="showcase-glass-mount" class="showcase-glass-mount">
+            <!-- Rendered dynamically -->
+          </div>
 
-            <div class="showcase-toggle-wrap">
-              <div class="showcase-toggle" role="group" aria-label="Cocktail presentation mode">
-                <button type="button" class="showcase-toggle-btn active" data-mode="layered" id="showcase-mode-layered">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                  </svg>
-                  <span>Layers</span>
-                </button>
-                <button type="button" class="showcase-toggle-btn" data-mode="blended" id="showcase-mode-blended">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9"></circle>
-                    <path d="M12 3a9 9 0 0 1 9 9 9 9 0 0 1-9 9"></path>
-                  </svg>
-                  <span>Mixed</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="showcase-stats-row" id="showcase-stats-row">
-              <!-- Volume and ABV -->
+          <div class="showcase-toggle-wrap">
+            <div class="showcase-toggle" role="group" aria-label="Cocktail presentation mode">
+              <button type="button" class="showcase-toggle-btn active" data-mode="layered" id="showcase-mode-layered">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+                <span>Layers</span>
+              </button>
+              <button type="button" class="showcase-toggle-btn" data-mode="blended" id="showcase-mode-blended">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 3a9 9 0 0 1 9 9 9 9 0 0 1-9 9"></path>
+                </svg>
+                <span>Mixed</span>
+              </button>
             </div>
           </div>
 
-          <div class="showcase-content">
-            <h2 id="showcase-heading">Drink ingredients rendered in layers.</h2>
-            <p>
-              Cocktails are built on ratios. Speakeasy shows the layers that make up each cocktail, complete with
-              garnishes. Build your recipe in a coupe, rocks, or even tiki glass.
-            </p>
-            <div class="showcase-recipe-editorial">
-              <div class="editorial-section-header">
-                <h3 class="editorial-section-title">Ingredients</h3>
-              </div>
-              <div class="specs-list" id="showcase-specs-list" role="list" aria-label="Cocktail Recipe Specs">
-                <!-- Injected via JS -->
-              </div>
-            </div>
+          <div class="showcase-stats-row" id="showcase-stats-row">
+            <!-- Volume and ABV -->
+          </div>
 
-            <div class="showcase-actions">
-              <a href="/app#negroni" id="showcase-inspect-link" class="spec-link">Mix this in Speakeasy
-                &rarr;</a>
+          <div class="showcase-recipe-editorial">
+            <div class="editorial-section-header">
+              <h3 class="editorial-section-title">Ingredients</h3>
             </div>
+            <div class="specs-list" id="showcase-specs-list" role="list" aria-label="Cocktail Recipe Specs">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+
+          <div class="showcase-actions">
+            <a href="/app#negroni" id="showcase-inspect-link" class="spec-link">Mix this in Speakeasy
+              &rarr;</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="story-beats">
+        <div class="story-beat" data-beat="search">
+          <p class="content-eyebrow">Search</p>
+          <h3>Find it by name, ingredient, or flavor.</h3>
+          <p>One search box checks the recipe name, description, every ingredient, and any tags you've added.</p>
+
+          <div class="sidebar-search-box story-search-box">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="search" id="story-search-input" class="search-input"
+                placeholder="Search drinks, spirits, flavors..." aria-label="Search recipes">
+            </div>
+          </div>
+          <div class="story-search-results" id="story-search-results"></div>
+        </div>
+
+        <div class="story-beat" data-beat="tags">
+          <p class="content-eyebrow">Tags</p>
+          <h3>Tag it your way.</h3>
+          <p>Add your own tags to any recipe, and get smart suggestions back.</p>
+
+          <div class="story-tag-row" id="story-tag-row">
+            <!-- Rendered dynamically: this cocktail's default tags first, then a few suggestions -->
+          </div>
+        </div>
+
+        <div class="story-beat" data-beat="units">
+          <p class="content-eyebrow">Units</p>
+          <h3>Switch units.</h3>
+          <p>Ounces or milliliters, with an estimated calorie count for every pour.</p>
+
+          <div class="story-unit-toggle" role="group" aria-label="Units">
+            <button type="button" class="story-unit-btn active" data-unit="oz">oz</button>
+            <button type="button" class="story-unit-btn" data-unit="ml">ml</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flavor Profile Breakout -->
+    <section class="flavor-breakout-section" aria-labelledby="flavor-heading">
+      <div class="flavor-breakout-grid">
+        <div class="flavor-breakout-content">
+          <p class="content-eyebrow">Flavor profile</p>
+          <h2 id="flavor-heading">See the balance of the recipe.</h2>
+          <p>Every cocktail is scored on sweet, sour, bitter, boozy, and herbal so you can find something new that
+            tastes like what you already love.</p>
+          <div class="showcase-toggle flavor-toggle" role="group" aria-label="Compare cocktails">
+            <button type="button" class="showcase-toggle-btn active" data-flavor-cocktail="negroni">Negroni</button>
+            <button type="button" class="showcase-toggle-btn" data-flavor-cocktail="daiquiri">Daiquiri</button>
+          </div>
+        </div>
+        <div class="flavor-breakout-visual" id="flavor-radar-mount">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Multiple Bars Breakout -->
+    <section class="bar-breakout-section" aria-labelledby="bar-heading">
+      <div class="bar-breakout-grid">
+        <div class="bar-breakout-content">
+          <p class="content-eyebrow">Multiple bars</p>
+          <h2 id="bar-heading">Be the bartender anywhere.</h2>
+          <p>Track what's on your shelf. Switch to a friend's kitchen or vacation cabin, and Speakeasy
+            instantly recalculates every recipe you can pour without missing ingredients.</p>
+        </div>
+        <div class="bar-breakout-visual">
+          <div class="bar-pill-toggle" role="group" aria-label="Active bar">
+            <button type="button" class="bar-pill active" data-bar="home">
+              <span class="bar-pill-dot"></span> Home Bar <span class="bar-pill-count">38 bottles</span>
+            </button>
+            <button type="button" class="bar-pill" data-bar="cabin">
+              <span class="bar-pill-dot"></span> Cabin Kit <span class="bar-pill-count">11 bottles</span>
+            </button>
+          </div>
+          <div class="bar-drink-row" id="bar-drink-row">
+            <!-- Rendered dynamically -->
           </div>
         </div>
       </div>
     </section>
 
     <!-- Features Section -->
-    <section class="features-section" id="features" aria-labelledby="features-heading">
-      <div class="section-header">
-        <h2 class="section-title" id="features-heading">Everything for Your Home Bar</h2>
-        <p class="section-subtitle">
-          Add your bottles, find drinks to mix, and host with ease.
-        </p>
+    <!-- What Can I Make? — flagship inventory-matching demo -->
+    <section class="feature-row" aria-labelledby="inventory-heading">
+      <div class="feature-row-grid">
+        <div class="feature-row-content">
+          <p class="content-eyebrow">Your inventory</p>
+          <h2 id="inventory-heading">What can I make?</h2>
+          <p>Check off the bottles on your shelf. Speakeasy instantly shows which recipes are ready to pour — no
+            recipe book, no guesswork.</p>
+        </div>
+        <div class="feature-row-visual">
+          <div class="bottle-checklist" id="bottle-checklist" role="group" aria-label="Your bottles"></div>
+          <div class="ready-count" id="ready-count"></div>
+          <div class="ready-drink-list" id="ready-drink-list"></div>
+        </div>
       </div>
+    </section>
 
-      <div class="craft-grid">
-        <article class="craft-card">
-          <div class="craft-card-header">
-            <!-- <span class="craft-card-tag">Inventory</span> -->
-            <h3 class="craft-card-title">What Can I Make?</h3>
+    <!-- Smart Substitutions — real taxonomy-driven swap -->
+    <section class="feature-row feature-row-reverse" aria-labelledby="subs-heading">
+      <div class="feature-row-grid">
+        <div class="feature-row-visual">
+          <div class="sub-demo-row" id="sub-demo-row">
+            <div class="sub-demo-original">Campari</div>
+            <svg class="sub-demo-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+            <div class="sub-demo-chips">
+              <button type="button" class="sub-chip active">Aperol</button>
+              <button type="button" class="sub-chip">Contratto</button>
+            </div>
           </div>
-          <p class="craft-card-desc">
-            Add the bottles and ingredients you own. Speakeasy shows the cocktails you can pour right now, and
-            which bottles unlock the most new drinks.
-          </p>
-        </article>
+        </div>
+        <div class="feature-row-content">
+          <p class="content-eyebrow">Smart substitutions</p>
+          <h2 id="subs-heading">Out of something? Easily swap it.</h2>
+          <p>Speakeasy suggests real substitutes from the same family of spirit so the drink's balance holds up.</p>
+        </div>
+      </div>
+    </section>
 
-        <article class="craft-card">
-          <div class="craft-card-header">
-            <!-- <span class="craft-card-tag">Preparation</span> -->
-            <h3 class="craft-card-title">Smart Substitutions</h3>
-          </div>
-          <p class="craft-card-desc">
-            Speakeasy suggests smart substitutions from your shelves that preserve the drink's balance, helping you
-            explore variations with confidence.
-          </p>
-        </article>
+    <!-- Party Menus & Prep — real shopping-list math -->
+    <section class="feature-row" aria-labelledby="party-heading">
+      <div class="feature-row-grid">
+        <div class="feature-row-content">
+          <p class="content-eyebrow">Party menus</p>
+          <h2 id="party-heading">Build the menu, get the list.</h2>
+          <p>Pick a few drinks for the night. Speakeasy tallies the bottles and glassware you'll need to pull it
+            off.</p>
+        </div>
+        <div class="feature-row-visual">
+          <div class="party-menu-list" id="party-menu-list"></div>
+          <div class="party-menu-tally" id="party-menu-tally"></div>
+        </div>
+      </div>
+    </section>
 
-        <article class="craft-card">
-          <div class="craft-card-header">
-            <!-- <span class="craft-card-tag">Hosting</span> -->
-            <h3 class="craft-card-title">Party Menus &amp; Prep</h3>
+    <!-- Designed for the Counter — real countdown timer -->
+    <section class="feature-row feature-row-reverse" aria-labelledby="counter-heading">
+      <div class="feature-row-grid">
+        <div class="feature-row-visual">
+          <div class="counter-timer" id="counter-timer" role="timer" aria-label="30-second shake timer">
+            <div class="counter-timer-gauge">
+              <svg class="counter-timer-svg" viewBox="0 0 160 160" aria-hidden="true">
+                <circle class="counter-timer-track" cx="80" cy="80" r="70" />
+                <circle class="counter-timer-progress" id="counter-timer-progress" cx="80" cy="80" r="70" />
+              </svg>
+              <div class="counter-timer-center">
+                <div class="counter-timer-display" id="counter-timer-display">3</div>
+                <div class="counter-timer-label" id="counter-timer-label">GET READY</div>
+              </div>
+            </div>
           </div>
-          <p class="craft-card-desc">
-            Build curated cocktail menus for dinner parties and gatherings. Generate shopping lists and see how much
-            glassware you'll need.
-          </p>
-        </article>
+        </div>
+        <div class="feature-row-content">
+          <p class="content-eyebrow">Designed for the counter</p>
+          <h2 id="counter-heading">Built to survive a bar counter.</h2>
+          <p>Big, readable numbers and inline timers keep you on track while shaking or stirring.</p>
+        </div>
+      </div>
+    </section>
 
-        <article class="craft-card">
-          <div class="craft-card-header">
-            <!-- <span class="craft-card-tag">Counter Mode</span> -->
-            <h3 class="craft-card-title">Designed for the Counter</h3>
-          </div>
-          <p class="craft-card-desc">
-            Keeps recipes lit while you mix. Big readable numbers make measurements easy. Inline timers tell you how
-            long to shake or stir.
-          </p>
-        </article>
-
-        <article class="craft-card">
-          <div class="craft-card-header">
-            <!-- <span class="craft-card-tag">Offline First</span> -->
-            <h3 class="craft-card-title">Your Personal Cellar</h3>
-          </div>
-          <p class="craft-card-desc">
-            Riff on existing recipes, and save tasting notes. Create custom cocktails and share with friends.
-          </p>
-        </article>
-
-        <article class="craft-card">
-          <div class="craft-card-header">
-            <!-- <span class="craft-card-tag">Sharing</span> -->
-            <h3 class="craft-card-title">Mix Anywhere</h3>
-          </div>
-          <p class="craft-card-desc">
-            Your library is available on all your devices, so you always have the up-to-date list of recents, cocktail
-            logs, and recipes. No tracking, no ads, no BS.
-          </p>
-        </article>
+    <!-- Closing pair: personal cellar + privacy, text only -->
+    <section class="closing-pair-section">
+      <div class="closing-pair-grid">
+        <div class="closing-pair-item">
+          <p class="content-eyebrow">Your personal cellar</p>
+          <h3>Riff, save, and share.</h3>
+          <p>Add tasting notes, customize drinks, and save custom recipes then share with friends.</p>
+        </div>
+        <div class="closing-pair-item">
+          <p class="content-eyebrow">No ads. No tracking.</p>
+          <h3>Mix anywhere.</h3>
+          <p>Your library syncs across every device you own. No ads, no trackers, no BS.</p>
+        </div>
       </div>
     </section>
 
@@ -238,8 +338,7 @@
       <div class="cta-banner-box">
         <h2 class="cta-banner-title">Ready to mix?</h2>
         <p class="cta-banner-subtitle">
-          180+ verified specs, backbar management, custom recipe creation, and more available right in
-          your browser.
+          180+ verified specs, inventory management, and custom recipe creation. Start crafting your next cocktail.
         </p>
         <a href="/app" class="btn-hero-primary">
           <span>Open Speakeasy</span>
@@ -289,6 +388,8 @@
   <script type="module">
     import { FEATURED_COCKTAILS } from "./js/data/featured-cocktails.js";
     import { formatFraction } from "./js/modules/parser.js";
+    import { calculateBalanceProfile, renderFlavorRadarSvg } from "./js/modules/balance.js";
+    import { calculateCocktailCalories } from "./js/modules/abv.js";
 
     (function () {
       if (!FEATURED_COCKTAILS || FEATURED_COCKTAILS.length === 0) return;
@@ -312,9 +413,12 @@
         glassMount.innerHTML =  /*html*/cocktail.svg;
       }
 
+      const totalOz = cocktail.specs.reduce((sum, s) => sum + (s.amount || 0), 0);
+      const totalMl = Math.round(totalOz * 29.5735);
+
       if (statsRow) {
         statsRow.innerHTML =  /*html*/`
-          <span><strong>${cocktail.totalDisplay}</strong></span>
+          <span id="stats-volume"><strong>${totalOz.toFixed(2)} oz</strong></span>
           <span class="showcase-stats-divider">&bull;</span>
           <span><strong>${cocktail.abvDisplay}</strong></span>
         `;
@@ -323,9 +427,11 @@
       if (specsList) {
         let rowsHtml = cocktail.specs.map(spec => {
           const amountText = (spec.amount !== null && spec.amount !== undefined) ? formatFraction(spec.amount) : '';
+          const mlAmount = (spec.amount !== null && spec.amount !== undefined && spec.unit === 'oz')
+            ? Math.round(spec.amount * 30) : null;
           return /*html*/`
             <div class="spec-row" role="listitem">
-              <div class="spec-amount">
+              <div class="spec-amount" data-oz-amount="${amountText}" data-oz-unit="${spec.unit || ""}" data-ml-amount="${mlAmount !== null ? mlAmount : amountText}">
                 ${amountText}<span class="spec-unit">${spec.unit || ""}</span>
               </div>
               <div class="spec-ingredient">
@@ -359,23 +465,427 @@
         inspectLink.href = "/app#" + cocktail.id;
       }
 
+      let blendAnimTimer = null;
       function setMode(mode) {
         const fluidStack = glassMount ? glassMount.querySelector(".fluid-stack") : null;
+        const svgEl = glassMount ? glassMount.querySelector(".speakeasy-glass-svg") : null;
         if (!fluidStack) return;
 
         if (mode === "layered") {
           btnLayered && btnLayered.classList.add("active");
           btnBlended && btnBlended.classList.remove("active");
-          fluidStack.setAttribute("data-mode", "layered");
         } else {
           btnBlended && btnBlended.classList.add("active");
           btnLayered && btnLayered.classList.remove("active");
-          fluidStack.setAttribute("data-mode", "blended");
         }
+
+        if (svgEl) {
+          if (blendAnimTimer) clearTimeout(blendAnimTimer);
+          svgEl.classList.remove("is-blending-forward", "is-blending-backward");
+          void svgEl.offsetWidth;
+
+          if (cocktail && cocktail.id) {
+            svgEl.style.setProperty("--swirl-filter", `url(#showcase-${cocktail.id}-swirl)`);
+          }
+
+          if (mode === "blended") {
+            svgEl.classList.add("is-blending-forward");
+          } else {
+            svgEl.classList.add("is-blending-backward");
+          }
+
+          blendAnimTimer = setTimeout(() => {
+            svgEl.classList.remove("is-blending-forward", "is-blending-backward");
+          }, 950);
+        }
+
+        fluidStack.setAttribute("data-mode", mode);
       }
 
       btnLayered && btnLayered.addEventListener("click", () => setMode("layered"));
       btnBlended && btnBlended.addEventListener("click", () => setMode("blended"));
+
+      // --- Calorie readout (real math from js/modules/abv.js) ---
+      if (statsRow) {
+        const kcal = calculateCocktailCalories(cocktail.specs).totalKcal;
+        statsRow.insertAdjacentHTML("beforeend", /*html*/`
+          <span class="showcase-stats-divider">&bull;</span>
+          <span>~<strong>${kcal}</strong> kcal</span>
+        `);
+      }
+
+      // --- Story beats: dim/highlight in sync with scroll, purely ambient ---
+      const beats = document.querySelectorAll(".story-beat");
+      if (beats.length) {
+        let ticking = false;
+        function updateActiveBeat() {
+          ticking = false;
+          const viewportCenter = window.innerHeight / 2;
+          let closest = null;
+          let closestDist = Infinity;
+          beats.forEach(beat => {
+            const rect = beat.getBoundingClientRect();
+            if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+            const dist = Math.abs((rect.top + rect.height / 2) - viewportCenter);
+            if (dist < closestDist) {
+              closestDist = dist;
+              closest = beat;
+            }
+          });
+          beats.forEach(b => b.classList.toggle("is-active", b === closest));
+        }
+        window.addEventListener("scroll", () => {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(updateActiveBeat);
+          }
+        }, { passive: true });
+        updateActiveBeat();
+      }
+
+      // --- Real search, filtering the featured-cocktail data; auto-demos itself until touched ---
+      const searchInputEl = document.getElementById("story-search-input");
+      const searchResultsEl = document.getElementById("story-search-results");
+      if (searchInputEl && searchResultsEl) {
+        function renderSearchResults(query) {
+          const q = query.trim().toLowerCase();
+          const matches = !q ? FEATURED_COCKTAILS : FEATURED_COCKTAILS.filter(c =>
+            c.name.toLowerCase().includes(q) ||
+            c.specs.some(s => (s.name || "").toLowerCase().includes(q))
+          );
+          searchResultsEl.innerHTML = matches.map(c => `<div class="story-search-result">${c.name}</div>`).join("")
+            || `<div class="story-search-result story-search-empty">No matches</div>`;
+        }
+        searchInputEl.addEventListener("input", () => renderSearchResults(searchInputEl.value));
+        renderSearchResults("");
+
+        let autoplay = true;
+        ["focus", "keydown", "pointerdown"].forEach(evt =>
+          searchInputEl.addEventListener(evt, () => { autoplay = false; }, { once: true })
+        );
+
+        const demoQueries = ["gin", "lime", "tom"];
+        let qIndex = 0;
+        function typeDemoQuery(query, onDone) {
+          let i = 0;
+          const typer = setInterval(() => {
+            if (!autoplay) { clearInterval(typer); return; }
+            i++;
+            searchInputEl.value = query.slice(0, i);
+            renderSearchResults(searchInputEl.value);
+            if (i >= query.length) {
+              clearInterval(typer);
+              setTimeout(() => { if (autoplay) onDone(); }, 1300);
+            }
+          }, 120);
+        }
+        function eraseDemoQuery(onDone) {
+          const erase = setInterval(() => {
+            if (!autoplay) { clearInterval(erase); return; }
+            searchInputEl.value = searchInputEl.value.slice(0, -1);
+            renderSearchResults(searchInputEl.value);
+            if (!searchInputEl.value) {
+              clearInterval(erase);
+              setTimeout(() => { if (autoplay) onDone(); }, 400);
+            }
+          }, 60);
+        }
+        function loopDemo() {
+          if (!autoplay) return;
+          typeDemoQuery(demoQueries[qIndex], () => {
+            eraseDemoQuery(() => {
+              qIndex = (qIndex + 1) % demoQueries.length;
+              loopDemo();
+            });
+          });
+        }
+        setTimeout(loopDemo, 900);
+      }
+
+      // --- Tags: each random cocktail starts with a couple of plausible tags already applied ---
+      const DEFAULT_TAGS = {
+        "negroni": ["#classic", "#spirit-forward", "#bittersweet"],
+        "daiquiri": ["#sour", "#summer", "#refreshing"],
+        "dry-martini": ["#classic", "#spirit-forward"],
+        "aperol-spritz": ["#sparkling", "#summer", "#refreshing"],
+        "tom-collins": ["#highball", "#gin-forward", "#refreshing"],
+      };
+      const SUGGESTED_TAGS = ["#party", "#brunch", "#favorite", "#sipper"];
+      const tagRow = document.getElementById("story-tag-row");
+      if (tagRow) {
+        const startingTags = DEFAULT_TAGS[cocktail.id] || [];
+        const fillerTags = SUGGESTED_TAGS.filter(t => !startingTags.includes(t));
+        const allTags = [...startingTags, ...fillerTags];
+
+        tagRow.innerHTML = allTags.map(t =>
+          `<button type="button" class="story-tag${startingTags.includes(t) ? " active" : ""}">${t}</button>`
+        ).join("");
+
+        tagRow.querySelectorAll(".story-tag").forEach(btn => {
+          btn.addEventListener("click", () => btn.classList.toggle("active"));
+        });
+      }
+
+      // --- Units toggle: real oz/ml conversion applied to the pinned card ---
+      const specAmountEls = document.querySelectorAll("#showcase-specs-list .spec-row:not(.spec-garnish-row) .spec-amount");
+      const unitButtons = document.querySelectorAll(".story-unit-btn");
+      function setUnits(mode) {
+        specAmountEls.forEach(el => {
+          const amount = mode === "ml" ? el.dataset.mlAmount : el.dataset.ozAmount;
+          const unit = mode === "ml" ? "ml" : el.dataset.ozUnit;
+          el.innerHTML = `${amount}<span class="spec-unit">${unit}</span>`;
+        });
+        unitButtons.forEach(b => b.classList.toggle("active", b.dataset.unit === mode));
+        const statsVolumeEl = document.getElementById("stats-volume");
+        if (statsVolumeEl) {
+          statsVolumeEl.innerHTML = mode === "ml"
+            ? `<strong>${totalMl} ml</strong>`
+            : `<strong>${totalOz.toFixed(2)} oz</strong>`;
+        }
+      }
+      unitButtons.forEach(btn => {
+        btn.addEventListener("click", () => setUnits(btn.dataset.unit));
+      });
+
+      // --- Flavor profile breakout: real balance math + radar SVG ---
+      const flavorMount = document.getElementById("flavor-radar-mount");
+      const flavorButtons = document.querySelectorAll("[data-flavor-cocktail]");
+      if (flavorMount) {
+        function renderFlavorFor(id) {
+          const drink = FEATURED_COCKTAILS.find(c => c.id === id) || FEATURED_COCKTAILS[0];
+          const profile = calculateBalanceProfile(drink.specs);
+          flavorMount.innerHTML = renderFlavorRadarSvg(profile);
+        }
+        renderFlavorFor("negroni");
+        flavorButtons.forEach(btn => {
+          btn.addEventListener("click", () => {
+            flavorButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            renderFlavorFor(btn.dataset.flavorCocktail);
+          });
+        });
+      }
+
+      // --- Multiple bars breakout (conceptual) ---
+      const barDrinkRow = document.getElementById("bar-drink-row");
+      const barPills = document.querySelectorAll(".bar-pill");
+      const BAR_DRINKS = {
+        home: [
+          { name: "Negroni", available: true },
+          { name: "Dry Martini", available: true },
+          { name: "Aperol Spritz", available: true },
+          { name: "Tom Collins", available: true },
+        ],
+        cabin: [
+          { name: "Negroni", available: false },
+          { name: "Dry Martini", available: false },
+          { name: "Aperol Spritz", available: true },
+          { name: "Tom Collins", available: true },
+        ],
+      };
+      function renderBarDrinks(barKey) {
+        if (!barDrinkRow) return;
+        barDrinkRow.innerHTML = BAR_DRINKS[barKey].map(d => `
+          <div class="bar-mini-drink ${d.available ? "" : "is-unavailable"}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M5 3h14l-6 9v7h-2v-7z" />
+            </svg>
+            <span>${d.name}</span>
+          </div>
+        `).join("");
+      }
+      renderBarDrinks("home");
+      barPills.forEach(pill => {
+        pill.addEventListener("click", () => {
+          barPills.forEach(p => p.classList.remove("active"));
+          pill.classList.add("active");
+          renderBarDrinks(pill.dataset.bar);
+        });
+      });
+
+      // --- What Can I Make? — real inventory matching, driven by a checklist ---
+      const BOTTLES = ["London Dry Gin", "Campari", "Sweet Vermouth", "Dry Vermouth", "White Rum", "Prosecco", "Aperol"];
+      const REQUIRED_BOTTLES = {
+        "negroni": ["London Dry Gin", "Campari", "Sweet Vermouth"],
+        "daiquiri": ["White Rum"],
+        "dry-martini": ["London Dry Gin", "Dry Vermouth"],
+        "aperol-spritz": ["Prosecco", "Aperol"],
+        "tom-collins": ["London Dry Gin"],
+      };
+      const bottleChecklistEl = document.getElementById("bottle-checklist");
+      const readyCountEl = document.getElementById("ready-count");
+      const readyDrinkListEl = document.getElementById("ready-drink-list");
+      if (bottleChecklistEl) {
+        bottleChecklistEl.innerHTML = BOTTLES.map(b =>
+          `<button type="button" class="bottle-chip" data-bottle="${b}">${b}</button>`
+        ).join("");
+
+        function updateReadyDrinks() {
+          const owned = new Set(
+            Array.from(bottleChecklistEl.querySelectorAll(".bottle-chip.active")).map(b => b.dataset.bottle)
+          );
+          const withReady = FEATURED_COCKTAILS.map(c => ({
+            name: c.name,
+            ready: (REQUIRED_BOTTLES[c.id] || []).every(b => owned.has(b)),
+          }));
+          const readyCount = withReady.filter(d => d.ready).length;
+          readyCountEl.innerHTML = `<strong>${readyCount}</strong> of ${withReady.length} recipes ready to pour`;
+          readyDrinkListEl.innerHTML = withReady.map(d => `
+            <div class="ready-drink ${d.ready ? "is-ready" : ""}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                ${d.ready ? '<polyline points="20 6 9 17 4 12"></polyline>' : '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>'}
+              </svg>
+              <span>${d.name}</span>
+            </div>
+          `).join("");
+        }
+
+        bottleChecklistEl.querySelectorAll(".bottle-chip").forEach(chip => {
+          chip.addEventListener("click", () => {
+            chip.classList.toggle("active");
+            updateReadyDrinks();
+          });
+        });
+        updateReadyDrinks();
+      }
+
+      // --- Smart Substitutions ---
+      const subDemoRowEl = document.getElementById("sub-demo-row");
+      if (subDemoRowEl) {
+        subDemoRowEl.querySelectorAll(".sub-chip").forEach(chip => {
+          chip.addEventListener("click", () => {
+            subDemoRowEl.querySelectorAll(".sub-chip").forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+          });
+        });
+      }
+
+      // --- Party Menus & Prep — real shopping-list math over a 3-drink menu ---
+      const partyMenuListEl = document.getElementById("party-menu-list");
+      const partyMenuTallyEl = document.getElementById("party-menu-tally");
+      if (partyMenuListEl && partyMenuTallyEl) {
+        const menuIds = ["negroni", "daiquiri", "tom-collins"];
+        const menuDrinks = menuIds.map(id => FEATURED_COCKTAILS.find(c => c.id === id)).filter(Boolean);
+        partyMenuListEl.innerHTML = menuDrinks.map(d => `<div class="party-menu-item">${d.name}</div>`).join("");
+
+        const bottleSet = new Set();
+        menuIds.forEach(id => (REQUIRED_BOTTLES[id] || []).forEach(b => bottleSet.add(b)));
+        const glassCounts = {};
+        menuDrinks.forEach(d => { glassCounts[d.glassware] = (glassCounts[d.glassware] || 0) + 1; });
+        const glassText = Object.entries(glassCounts).map(([g, n]) => `${n} ${g}`).join(", ");
+
+        partyMenuTallyEl.innerHTML = `
+          <div><strong>${bottleSet.size}</strong> bottles needed</div>
+          <div class="party-menu-glass">${glassText}</div>
+        `;
+      }
+
+      // --- Designed for the Counter — real countdown timer with circular gauge ---
+      const timerContainerEl = document.getElementById("counter-timer");
+      const timerDisplayEl = document.getElementById("counter-timer-display");
+      const timerLabelEl = document.getElementById("counter-timer-label");
+      const timerProgressEl = document.getElementById("counter-timer-progress");
+
+      if (timerContainerEl && timerDisplayEl && timerProgressEl) {
+        const SHAKE_DURATION = 20;
+        const GET_READY_DURATION = 3;
+        const DONE_PAUSE_MS = 5000;
+        const RADIUS = 70;
+        const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+        let interval = null;
+        let timeout = null;
+        let isVisible = false;
+
+        timerProgressEl.style.strokeDasharray = `${CIRCUMFERENCE}`;
+
+        function setProgress(fraction) {
+          const clamped = Math.max(0, Math.min(1, fraction));
+          const offset = CIRCUMFERENCE * (1 - clamped);
+          timerProgressEl.style.strokeDashoffset = `${offset}`;
+        }
+
+        function clearTimers() {
+          if (interval) {
+            clearInterval(interval);
+            interval = null;
+          }
+          if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+          }
+        }
+
+        function startShakePhase() {
+          clearTimers();
+          let remaining = SHAKE_DURATION;
+          timerProgressEl.classList.remove("is-complete");
+          if (timerLabelEl) timerLabelEl.textContent = "SHAKE";
+          timerDisplayEl.textContent = remaining;
+          setProgress(1);
+
+          interval = setInterval(() => {
+            if (!isVisible) return;
+            remaining--;
+            if (remaining >= 0) {
+              timerDisplayEl.textContent = remaining;
+              setProgress(remaining / SHAKE_DURATION);
+            }
+            if (remaining <= 0) {
+              clearTimers();
+              if (timerLabelEl) timerLabelEl.textContent = "DONE — STRAIN";
+              timerProgressEl.classList.add("is-complete");
+              setProgress(1);
+
+              timeout = setTimeout(() => {
+                if (isVisible) {
+                  startGetReadyPhase();
+                }
+              }, DONE_PAUSE_MS);
+            }
+          }, 1000);
+        }
+
+        function startGetReadyPhase() {
+          clearTimers();
+          let readyRemaining = GET_READY_DURATION;
+          timerProgressEl.classList.remove("is-complete");
+          if (timerLabelEl) timerLabelEl.textContent = "GET READY";
+          timerDisplayEl.textContent = readyRemaining;
+          setProgress(readyRemaining / GET_READY_DURATION);
+
+          interval = setInterval(() => {
+            if (!isVisible) return;
+            readyRemaining--;
+            if (readyRemaining > 0) {
+              timerDisplayEl.textContent = readyRemaining;
+              setProgress(readyRemaining / GET_READY_DURATION);
+            } else {
+              clearTimers();
+              startShakePhase();
+            }
+          }, 1000);
+        }
+
+        if ("IntersectionObserver" in window) {
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                isVisible = true;
+                if (!interval && !timeout) {
+                  startGetReadyPhase();
+                }
+              } else {
+                isVisible = false;
+              }
+            });
+          }, { threshold: 0.35 });
+          observer.observe(timerContainerEl);
+        } else {
+          isVisible = true;
+          startGetReadyPhase();
+        }
+      }
     })();
   </script>
 </body>

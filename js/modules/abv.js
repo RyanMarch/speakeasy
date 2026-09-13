@@ -254,11 +254,11 @@ export function calculateCocktailCalories(specs = []) {
     sugarKcal += volOz * sugarKcalPerOz;
   }
 
-  const totalKcal = Math.round(alcoholKcal + sugarKcal);
+  const totalKcal = Math.round((alcoholKcal + sugarKcal) / 10) * 10;
 
   return {
     totalKcal,
-    alcoholKcal: Math.round(alcoholKcal),
-    sugarKcal: Math.round(sugarKcal),
+    alcoholKcal: Math.round(alcoholKcal / 10) * 10,
+    sugarKcal: Math.round(sugarKcal / 10) * 10,
   };
 }
