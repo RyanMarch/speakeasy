@@ -231,9 +231,93 @@ function init() {
 }
 
 /**
+ * Reads the amount+unit out of a spec row's `.spec-amount` cell as two
+ * separate values (an editable riff-mode input, or plain text with a nested
+ * `.spec-unit` span) so a copy handler can lay them out with a space between
+ * ("2 oz", not the display's unspaced "2oz") — unambiguous for our own
+ * Quick Paste parser without it having to guess where the number ends.
+ */
+function readSpecAmountText(row) {
+  const amountEl = row.querySelector('.spec-amount');
+  if (!amountEl) return '';
+
+  const amountInput = amountEl.querySelector('.spec-amount-input');
+  const unitText = amountEl.querySelector('.spec-unit')?.textContent.trim() || '';
+
+  let amountText;
+  if (amountInput) {
+    amountText = amountInput.value.trim();
+  } else {
+    const clone = amountEl.cloneNode(true);
+    clone.querySelector('.spec-unit')?.remove();
+    amountText = clone.textContent.trim();
+  }
+
+  return [amountText, unitText].filter(Boolean).join(' ');
+}
+
+/**
+ * Builds a clean, Quick-Paste-friendly plain-text version of whichever
+ * ingredient rows the current selection touches — one "amount unit name"
+ * line per ingredient, a "Garnish: ..." line for the garnish row — with none
+ * of the surrounding UI chrome (the "✓ In Bar" toggle, the fridge/riff/sub
+ * badges, substitution suggestions). Returns null when the selection doesn't
+ * touch any ingredient rows, so the native copy is left alone for everything
+ * else on the page.
+ */
+function buildCleanSpecsClipboardText(selection) {
+  const rows = document.querySelectorAll('.specs-list .spec-row');
+  const lines = [];
+
+  rows.forEach((row) => {
+    if (!selection.containsNode(row, true)) return;
+
+    if (row.classList.contains('spec-garnish-row')) {
+      const garnishText = row.querySelector('.spec-garnish-name')?.textContent.trim();
+      if (garnishText) lines.push(`Garnish: ${garnishText}`);
+      return;
+    }
+
+    const nameEl = row.querySelector('.spec-name-input, .spec-name');
+    const name = (nameEl?.value ?? nameEl?.textContent ?? '').trim();
+    if (!name) return;
+
+    const amountText = readSpecAmountText(row);
+    lines.push(amountText ? `${amountText} ${name}` : name);
+  });
+
+  return lines.length > 0 ? lines.join('\n') : null;
+}
+
+/**
+ * Overrides the system copy for a selection that touches the ingredient
+ * list, replacing it with buildCleanSpecsClipboardText's output. Selection-
+ * to-plain-text serialization (what a native copy would otherwise produce)
+ * doesn't reliably honor `user-select: none` on nested badges/controls the
+ * same way across browsers, so — rather than depend on that — this builds
+ * the clipboard text itself from the underlying amount/unit/name/garnish
+ * values, guaranteeing the "✓ In Bar" toggle, fridge/riff/sub badges, and
+ * substitution suggestions never end up in a pasted ingredient list.
+ */
+function setupIngredientListCopyHandler() {
+  document.addEventListener('copy', (event) => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
+
+    const cleanText = buildCleanSpecsClipboardText(selection);
+    if (cleanText === null) return;
+
+    event.clipboardData.setData('text/plain', cleanText);
+    event.preventDefault();
+  });
+}
+
+/**
  * Global Event Listeners
  */
 function setupGlobalEventListeners() {
+  setupIngredientListCopyHandler();
+
   // Search with debounced telemetry
   let searchDebounceTimer = null;
   elements.searchInput?.addEventListener('input', (e) => {

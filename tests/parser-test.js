@@ -1,4 +1,5 @@
-import { parseIngredientLine, parseSpecsBlock, formatFraction, parseMethodContent } from '../js/modules/parser.js';
+import { parseIngredientLine, parseSpecsBlock, extractGarnishLine, formatFraction, parseMethodContent } from '../js/modules/parser.js';
+import assert from 'node:assert/strict';
 import { calculateFluidLayers, normalizeVolumeToOz } from '../js/modules/colors.js';
 import { resolveGlassware } from '../js/modules/glassware.js';
 import { calculateCocktailAbv, estimateIngredientAbv, calculateCocktailCalories } from '../js/modules/abv.js';
@@ -38,6 +39,36 @@ const block = `
 `;
 const specs = parseSpecsBlock(block);
 console.log('Parsed block count:', specs.length);
+
+console.log('--- Testing Quick Paste of Our Own Copied Ingredient Table ---');
+// Copying our own ingredient list (amount+unit and name are separate table
+// cells, plus "✓ In Bar"/fridge-tag/etc. badges the CSS now excludes from
+// selection) used to paste as junk — see counter-view.css's user-select:none
+// additions and parseSpecsBlock's line-merging above.
+const copiedTableText = [
+  '2oz', 'Vodka',
+  '3/4oz', 'Dry Vermouth',
+  '1dash', 'Celery Bitters',
+  '1/2oz', 'Pickle Brine',
+  '1/2oz', 'Olive Brine',
+  'Garnish',
+  'Pickle slices, garlic-stuffed green olive, cocktail onion',
+].join('\n');
+
+const copiedSpecs = parseSpecsBlock(copiedTableText);
+assert.equal(copiedSpecs.length, 5, `Expected 5 clean ingredient specs, got ${JSON.stringify(copiedSpecs)}`);
+assert.deepEqual(
+  copiedSpecs.map(s => [s.amount, s.unit, s.name]),
+  [
+    [2, 'oz', 'Vodka'],
+    [0.75, 'oz', 'Dry Vermouth'],
+    [1, 'dash', 'Celery Bitters'],
+    [0.5, 'oz', 'Pickle Brine'],
+    [0.5, 'oz', 'Olive Brine'],
+  ],
+);
+assert.equal(extractGarnishLine(copiedTableText), 'Pickle slices, garlic-stuffed green olive, cocktail onion');
+console.log('Quick Paste of copied ingredient table parses cleanly.');
 
 console.log('--- Testing Fluid Calculation ---');
 const layers = calculateFluidLayers(specs);
