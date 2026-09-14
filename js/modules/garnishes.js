@@ -18,6 +18,11 @@ export function resolveGarnishTypes(garnishString = '') {
   // it's the whole point of a Bloody Mary, not an afterthought.
   const hasCelery = text.includes('celery');
 
+  // Smoke (a smoked glass, or a smoking gun finish) hangs as its own cloud
+  // over the drink rather than perching on the rim, so it doesn't compete for
+  // a rim slot either — same treatment as celery.
+  const hasSmoke = text.includes('smoke');
+
   // Salt or sugar rim
   if (text.includes('salt rim') || text.includes('salt') && text.includes('rim')) {
     garnishes.push('saltRim');
@@ -34,22 +39,22 @@ export function resolveGarnishTypes(garnishString = '') {
   // 2-garnish cap below on drinks that list several — it's the whole point
   // of a Pickletini, not an afterthought.
   if (text.includes('pickle')) {
-    garnishes.push('pickleSpear');
+    pushGarnishRepeated(garnishes, 'pickleSpear', detectGarnishCount(text, 'pickles?(?:\\s+spears?)?'));
   }
 
   // Olive
   if (text.includes('olive')) {
-    garnishes.push('olive');
+    pushGarnishRepeated(garnishes, 'olive', detectGarnishCount(text, 'olives?'));
   }
 
   // Cocktail Onion
   if (text.includes('onion') || text.includes('gibson onion') || text.includes('cocktail onion') || text.includes('pearl onion')) {
-    garnishes.push('cocktailOnion');
+    pushGarnishRepeated(garnishes, 'cocktailOnion', detectGarnishCount(text, '(?:gibson |cocktail |pearl )?onions?'));
   }
 
   // Cherry
   if (text.includes('cherry') || text.includes('cherries') || text.includes('maraschino')) {
-    garnishes.push('cherry');
+    pushGarnishRepeated(garnishes, 'cherry', detectGarnishCount(text, '(?:maraschino\\s+)?cherr(?:y|ies)|maraschino'));
   }
 
   // Mint
@@ -113,10 +118,69 @@ export function resolveGarnishTypes(garnishString = '') {
     else if (text.includes('orange')) garnishes.push('orangeTwist');
   }
 
-  // Cap at 2 distinct rim-slot garnishes to preserve visual balance. Celery
-  // isn't part of that cap (see above) — it's always included when present.
-  const capped = Array.from(new Set(garnishes)).slice(0, 2);
-  return hasCelery ? ['celeryStalk', ...capped] : capped;
+  // Cocktail-pick garnishes (olive, onion, cherry, pickle) all share a single
+  // physical pick (see renderCombinedPick below) instead of each claiming a
+  // rim slot of their own, so they don't compete against wheels/wedges/twists
+  // for the 2-slot visual cap — a martini calling for both an olive and an
+  // onion should show both, speared together, not lose one to the cap. Pick
+  // garnishes also keep their repeat count (e.g. "three cherries" pushed
+  // 'cherry' three times above) rather than being deduped like everything
+  // else, so all three end up threaded onto the pick.
+  let otherSlotCount = 0;
+  const seenOther = new Set();
+  const capped = [];
+  for (const g of garnishes) {
+    if (PICK_GARNISH_TYPES.has(g)) {
+      capped.push(g);
+    } else if (!seenOther.has(g)) {
+      seenOther.add(g);
+      if (otherSlotCount < 2) {
+        capped.push(g);
+        otherSlotCount++;
+      }
+    }
+  }
+
+  // Celery and smoke aren't part of that cap (see above) — they're always
+  // included when present.
+  const result = [];
+  if (hasCelery) result.push('celeryStalk');
+  if (hasSmoke) result.push('smokeCloud');
+  result.push(...capped);
+  return result;
+}
+
+// Garnishes that ride on a cocktail pick rather than perching directly on the
+// rim — combined onto a single shared pick by renderCombinedPick instead of
+// each rendering its own separate pick.
+const PICK_GARNISH_TYPES = new Set(['cherry', 'olive', 'cocktailOnion', 'pickleSpear']);
+
+// Number words a recipe might use ahead of a pick garnish's name ("three
+// cherries", "double olive") so its count can carry through to the pick.
+const GARNISH_COUNT_WORDS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, double: 2, triple: 3 };
+// However many the recipe calls for, this many end up threaded on the shared
+// pick at most — past this it reads as clutter rather than a garnish choice.
+const MAX_GARNISH_REPEAT = 4;
+
+/**
+ * Looks for a quantity word/digit sitting just before a garnish noun (e.g.
+ * "three cherries", "2 olives", "double onion") and returns how many of that
+ * garnish the recipe is calling for. Defaults to 1 when no quantity is found.
+ */
+function detectGarnishCount(text, nounPattern) {
+  const countWord = Object.keys(GARNISH_COUNT_WORDS).join('|');
+  const re = new RegExp(`\\b(\\d+|${countWord})\\b(?:\\s+\\w+)?\\s+(?:${nounPattern})`, 'i');
+  const match = text.match(re);
+  if (!match) return 1;
+  const token = match[1].toLowerCase();
+  if (GARNISH_COUNT_WORDS[token] !== undefined) return GARNISH_COUNT_WORDS[token];
+  const n = parseInt(token, 10);
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+function pushGarnishRepeated(garnishes, type, count) {
+  const clamped = Math.min(Math.max(count, 1), MAX_GARNISH_REPEAT);
+  for (let i = 0; i < clamped; i++) garnishes.push(type);
 }
 
 /**
@@ -305,209 +369,148 @@ function renderPeelTwist(x, y, type = 'lemon', isLeft = false) {
 }
 
 /**
- * Render cherry on pick collinear with rim contact, fruit resting inside bowl
+ * Local-origin fruit/veg shapes for the items threaded onto a shared cocktail
+ * pick (see renderCombinedPick) — the same artwork as the standalone
+ * render*OnPick functions above, minus their own shaft/knob, since a combined
+ * pick draws one shaft for every item strung on it.
  */
-function renderCherryOnPick(rimX, rimY, isLeft = false) {
-  const sx = isLeft ? 1 : -1;
-  const contactX = rimX + (2 * sx);
-  const contactY = rimY;
-
-  const knobX = contactX - (15 * sx);
-  const knobY = contactY - 9.5;
-  const cherryX = contactX + (24 * sx);
-  const cherryY = contactY + 15.5;
-  const tipX = contactX + (46 * sx);
-  const tipY = contactY + 29;
-
+function cherryPickShape() {
   return `
-    <g class="garnish garnish-cherry" pointer-events="none">
-      <!-- Cocktail pick shaft -->
-      <line
-        x1="${knobX.toFixed(1)}"
-        y1="${knobY.toFixed(1)}"
-        x2="${tipX.toFixed(1)}"
-        y2="${tipY.toFixed(1)}"
-        stroke="#d7ccc8"
-        stroke-width="1.8"
-        stroke-linecap="round"
-      />
-      <circle cx="${knobX.toFixed(1)}" cy="${knobY.toFixed(1)}" r="2.6" fill="#90a4ae" stroke="#607d8b" stroke-width="0.7" />
-
-      <!-- Delicate cherry stem -->
-      <path
-        d="M ${cherryX.toFixed(1)} ${(cherryY - 8).toFixed(1)} C ${(cherryX - (3 * sx)).toFixed(1)} ${(cherryY - 16).toFixed(1)}, ${(cherryX - (2 * sx)).toFixed(1)} ${(cherryY - 22).toFixed(1)}, ${(cherryX - (8 * sx)).toFixed(1)} ${(cherryY - 25).toFixed(1)}"
-        stroke="#4e342e"
-        stroke-width="1.2"
-        fill="none"
-        stroke-linecap="round"
-      />
-
-      <!-- Deep red cocktail cherry nestled inside drink -->
-      <circle cx="${cherryX.toFixed(1)}" cy="${cherryY.toFixed(1)}" r="10.5" fill="#7b112b" />
-      <ellipse cx="${(cherryX - (1 * sx)).toFixed(1)}" cy="${(cherryY + 3).toFixed(1)}" rx="7" ry="5" fill="#4a0014" opacity="0.6" />
-      <ellipse cx="${(cherryX + (3 * sx)).toFixed(1)}" cy="${(cherryY - 3).toFixed(1)}" rx="3.2" ry="1.8" fill="rgba(255, 255, 255, 0.65)" transform="rotate(${-20 * sx} ${cherryX + (3 * sx)} ${cherryY - 3})" />
-      <circle cx="${(cherryX + (1 * sx)).toFixed(1)}" cy="${(cherryY - 4).toFixed(1)}" r="1" fill="rgba(255, 255, 255, 0.45)" />
-    </g>
+    <path d="M 0 -8 C -3 -16, -2 -22, -8 -25" stroke="#4e342e" stroke-width="1.2" fill="none" stroke-linecap="round" />
+    <circle cx="0" cy="0" r="10.5" fill="#7b112b" />
+    <ellipse cx="-1" cy="3" rx="7" ry="5" fill="#4a0014" opacity="0.6" />
+    <ellipse cx="3" cy="-3" rx="3.2" ry="1.8" fill="rgba(255, 255, 255, 0.65)" transform="rotate(-20 3 -3)" />
+    <circle cx="1" cy="-4" r="1" fill="rgba(255, 255, 255, 0.45)" />
   `;
 }
 
+function olivePickShape() {
+  return `
+    <ellipse cx="0" cy="0" rx="12" ry="17.5" fill="#2e4215" opacity="0.6" />
+    <ellipse cx="-0.5" cy="0" rx="11.2" ry="16.5" fill="#689f38" />
+    <path d="M -6.5 3 C -8 8, -5 12, -2 13.5" stroke="rgba(255, 255, 255, 0.62)" stroke-width="1.8" stroke-linecap="round" fill="none" />
+    <ellipse cx="0" cy="-4.5" rx="4.8" ry="3.5" fill="#b71c1c" />
+    <ellipse cx="0" cy="-4.5" rx="3" ry="2" fill="#d32f2f" />
+    <circle cx="1" cy="-5.2" r="0.8" fill="#ffffff" opacity="0.8" />
+  `;
+}
+
+function onionPickShape() {
+  return `
+    <circle cx="0" cy="0" r="13" fill="#37474f" opacity="0.35" />
+    <circle cx="-0.5" cy="0" r="12" fill="#f8fafc" />
+    <ellipse cx="0" cy="0" rx="10" ry="11.5" fill="#f1f5f9" />
+    <ellipse cx="-0.5" cy="0" rx="7.5" ry="9" fill="none" stroke="#e2e8f0" stroke-width="1.2" opacity="0.9" />
+    <ellipse cx="-0.5" cy="0" rx="4.5" ry="6" fill="none" stroke="#cbd5e1" stroke-width="1" opacity="0.85" />
+    <ellipse cx="-0.5" cy="0" rx="2" ry="3.2" fill="#94a3b8" opacity="0.7" />
+    <path d="M -2 11.5 Q 0 13.5 2 11.5" stroke="#94a3b8" stroke-width="1.2" fill="none" stroke-linecap="round" />
+    <path d="M -6 -5 C -7 -1, -5 4, -2 6" stroke="rgba(255, 255, 255, 0.85)" stroke-width="1.8" stroke-linecap="round" fill="none" />
+    <circle cx="3" cy="-5" r="1.2" fill="#ffffff" opacity="0.9" />
+  `;
+}
+
+function picklePickShape() {
+  return `
+    <ellipse cx="0" cy="3" rx="11" ry="28" fill="#2e4215" opacity="0.5" />
+    <rect x="-9.5" y="-25" width="19" height="50" rx="9.5" fill="#4c7a1f" />
+    <rect x="-9.5" y="-25" width="19" height="50" rx="9.5" fill="none" stroke="#33500f" stroke-width="1" />
+    <circle cx="-4.5" cy="-15" r="1.5" fill="#33500f" opacity="0.55" />
+    <circle cx="5" cy="-6" r="1.5" fill="#33500f" opacity="0.55" />
+    <circle cx="-5" cy="4" r="1.5" fill="#33500f" opacity="0.55" />
+    <circle cx="4.5" cy="14" r="1.5" fill="#33500f" opacity="0.55" />
+    <circle cx="-3" cy="20" r="1.3" fill="#33500f" opacity="0.55" />
+    <ellipse cx="0" cy="-24" rx="8.5" ry="3.4" fill="#8bc34a" />
+    <ellipse cx="0" cy="-24" rx="5.2" ry="2" fill="#c5e1a5" opacity="0.85" />
+    <path d="M -5.5 -16 C -7.5 -5, -7 8, -5 19" stroke="rgba(255, 255, 255, 0.4)" stroke-width="2" stroke-linecap="round" fill="none" />
+  `;
+}
+
+// Roughly half the along-shaft length of each item's artwork, used to space
+// items on a shared pick — a pickle spear needs much more berth than a
+// cherry or a pearl onion. Items sit touching (no gap), like fruit actually
+// pressed together on a real cocktail pick.
+const PICK_ITEM_HALF_LENGTH = { cherry: 12, olive: 18, cocktailOnion: 13, pickleSpear: 27 };
+const PICK_ITEM_SHAPE_RENDERERS = {
+  cherry: cherryPickShape,
+  olive: olivePickShape,
+  cocktailOnion: onionPickShape,
+  pickleSpear: picklePickShape,
+};
+
+// How far from the rim contact point the first item starts, and the shaft's
+// tail past the last item.
+const PICK_START_DISTANCE = 14;
+const PICK_TAIL_DISTANCE = 6;
+// The shaft can reach this far into the glass before it starts crossing out
+// through the glass's own sloped walls (a martini's V narrows fast — this
+// matches how far a single pickle spear, the longest single item, already
+// reached safely). Stacking more items shrinks them to fit within this same
+// reach rather than pushing the pick further in.
+const PICK_MAX_REACH = 88;
+const PICK_MIN_SCALE = 0.45;
+
 /**
- * Render green olive on pick collinear with rim contact, olive safely inside bowl
+ * Render every pick-riding garnish (olive, cocktail onion, cherry, pickle
+ * spear) threaded onto a single shared cocktail pick, rather than each type
+ * getting its own separate pick — a Gibson's onion and a Dirty Martini's
+ * olive read as one garnish choice on one pick, not two picks competing for
+ * rim space. Items are packed touching each other and shrunk just enough
+ * (never below PICK_MIN_SCALE) that the whole pick still fits inside the
+ * glass no matter how many garnishes are threaded onto it.
  */
-function renderOliveOnPick(rimX, rimY, isLeft = false) {
+function renderCombinedPick(rimX, rimY, isLeft, itemTypes) {
   const sx = isLeft ? 1 : -1;
   const contactX = rimX + (2 * sx);
   const contactY = rimY;
 
-  // Exact collinear shaft tilted 32 degrees inward into the drink
-  const knobX = contactX - (16 * sx);
-  const knobY = contactY - 10;
-  const oliveX = contactX + (28 * sx);
-  const oliveY = contactY + 17.5;
-  const tipX = contactX + (56 * sx);
-  const tipY = contactY + 35;
-  const oliveRot = 32 * sx;
+  // Same ~32-degree insertion angle the individual pick garnishes used, so a
+  // combined pick reads identically to the single-item ones it replaces.
+  const angle = (32 * Math.PI) / 180;
+  const dirX = Math.cos(angle) * sx;
+  const dirY = Math.sin(angle);
+  const pointAt = (d) => ({ x: contactX + dirX * d, y: contactY + dirY * d });
+
+  const rawSpan = itemTypes.reduce((sum, type) => sum + 2 * (PICK_ITEM_HALF_LENGTH[type] ?? 15), 0);
+  const available = PICK_MAX_REACH - PICK_START_DISTANCE - PICK_TAIL_DISTANCE;
+  const scale = rawSpan > 0 ? Math.max(PICK_MIN_SCALE, Math.min(1, available / rawSpan)) : 1;
+
+  let cursor = PICK_START_DISTANCE;
+  const itemDistances = itemTypes.map((type) => {
+    const half = (PICK_ITEM_HALF_LENGTH[type] ?? 15) * scale;
+    const d = cursor + half;
+    cursor += 2 * half;
+    return d;
+  });
+
+  const knob = pointAt(-18);
+  const tip = pointAt(cursor + PICK_TAIL_DISTANCE);
+  const rot = 32 * sx;
+
+  const itemsSvg = itemTypes.map((type, i) => {
+    const p = pointAt(itemDistances[i]);
+    const shapeFn = PICK_ITEM_SHAPE_RENDERERS[type];
+    if (!shapeFn) return '';
+    return `<g transform="translate(${p.x.toFixed(1)}, ${p.y.toFixed(1)}) rotate(${rot}) scale(${scale.toFixed(2)})">${shapeFn()}</g>`;
+  }).join('');
 
   return `
-    <g class="garnish garnish-olive" pointer-events="none">
-      <!-- Cocktail pick shaft resting across rim -->
+    <g class="garnish garnish-combined-pick" pointer-events="none">
+      <!-- Shared cocktail pick shaft resting across rim -->
       <line
-        x1="${knobX.toFixed(1)}"
-        y1="${knobY.toFixed(1)}"
-        x2="${tipX.toFixed(1)}"
-        y2="${tipY.toFixed(1)}"
+        x1="${knob.x.toFixed(1)}"
+        y1="${knob.y.toFixed(1)}"
+        x2="${tip.x.toFixed(1)}"
+        y2="${tip.y.toFixed(1)}"
         stroke="#cfd8dc"
-        stroke-width="2"
+        stroke-width="2.1"
         stroke-linecap="round"
       />
       <!-- Pick top knob handle -->
-      <circle cx="${knobX.toFixed(1)}" cy="${knobY.toFixed(1)}" r="3.2" fill="#90a4ae" stroke="#607d8b" stroke-width="0.8" />
-
-      <!-- Olive submerged inside glass bowl -->
-      <g transform="translate(${oliveX.toFixed(1)}, ${oliveY.toFixed(1)}) rotate(${oliveRot})">
-        <!-- Cast shadow -->
-        <ellipse cx="0" cy="0" rx="12" ry="17.5" fill="#2e4215" opacity="0.6" />
-        <!-- Spanish / Castelvetrano green olive body -->
-        <ellipse cx="-0.5" cy="0" rx="11.2" ry="16.5" fill="#689f38" />
-        <!-- Glossy surface sheen highlight -->
-        <path d="M -6.5 3 C -8 8, -5 12, -2 13.5" stroke="rgba(255, 255, 255, 0.62)" stroke-width="1.8" stroke-linecap="round" fill="none" />
-        <!-- Red pimento slice center -->
-        <ellipse cx="0" cy="-4.5" rx="4.8" ry="3.5" fill="#b71c1c" />
-        <ellipse cx="0" cy="-4.5" rx="3" ry="2" fill="#d32f2f" />
-        <!-- Specular shine pip on pimento -->
-        <circle cx="1" cy="-5.2" r="0.8" fill="#ffffff" opacity="0.8" />
-      </g>
+      <circle cx="${knob.x.toFixed(1)}" cy="${knob.y.toFixed(1)}" r="3.4" fill="#90a4ae" stroke="#607d8b" stroke-width="0.8" />
+      ${itemsSvg}
     </g>
   `;
 }
-
-/**
- * Render cocktail onion (pearl onion) on pick collinear with rim contact
- */
-function renderCocktailOnionOnPick(rimX, rimY, isLeft = false) {
-  const sx = isLeft ? 1 : -1;
-  const contactX = rimX + (2 * sx);
-  const contactY = rimY;
-
-  const knobX = contactX - (16 * sx);
-  const knobY = contactY - 10;
-  const onionX = contactX + (28 * sx);
-  const oliveY = contactY + 17.5;
-  const tipX = contactX + (56 * sx);
-  const tipY = contactY + 35;
-  const onionRot = 32 * sx;
-
-  return `
-    <g class="garnish garnish-cocktail-onion" pointer-events="none">
-      <!-- Cocktail pick shaft resting across rim -->
-      <line
-        x1="${knobX.toFixed(1)}"
-        y1="${knobY.toFixed(1)}"
-        x2="${tipX.toFixed(1)}"
-        y2="${tipY.toFixed(1)}"
-        stroke="#cfd8dc"
-        stroke-width="2"
-        stroke-linecap="round"
-      />
-      <!-- Pick top knob handle -->
-      <circle cx="${knobX.toFixed(1)}" cy="${knobY.toFixed(1)}" r="3.2" fill="#90a4ae" stroke="#607d8b" stroke-width="0.8" />
-
-      <!-- Pearl cocktail onion nestled on pick -->
-      <g transform="translate(${onionX.toFixed(1)}, ${oliveY.toFixed(1)}) rotate(${onionRot})">
-        <!-- Soft shadow -->
-        <circle cx="0" cy="0" r="13" fill="#37474f" opacity="0.35" />
-        <!-- Pearlescent translucent outer body -->
-        <circle cx="-0.5" cy="0" r="12" fill="#f8fafc" />
-        <ellipse cx="0" cy="0" rx="10" ry="11.5" fill="#f1f5f9" />
-        <!-- Concentric onion rings / layers -->
-        <ellipse cx="-0.5" cy="0" rx="7.5" ry="9" fill="none" stroke="#e2e8f0" stroke-width="1.2" opacity="0.9" />
-        <ellipse cx="-0.5" cy="0" rx="4.5" ry="6" fill="none" stroke="#cbd5e1" stroke-width="1" opacity="0.85" />
-        <ellipse cx="-0.5" cy="0" rx="2" ry="3.2" fill="#94a3b8" opacity="0.7" />
-        <!-- Subtle root tip indentation -->
-        <path d="M -2 11.5 Q 0 13.5 2 11.5" stroke="#94a3b8" stroke-width="1.2" fill="none" stroke-linecap="round" />
-        <!-- Specular glossy sheen -->
-        <path d="M -6 -5 C -7 -1, -5 4, -2 6" stroke="rgba(255, 255, 255, 0.85)" stroke-width="1.8" stroke-linecap="round" fill="none" />
-        <circle cx="3" cy="-5" r="1.2" fill="#ffffff" opacity="0.9" />
-      </g>
-    </g>
-  `;
-}
-
-/**
- * Render pickle spear on pick collinear with rim contact, mirroring the
- * olive/onion pick geometry but with an elongated spear body
- */
-function renderPickleOnPick(rimX, rimY, isLeft = false) {
-  const sx = isLeft ? 1 : -1;
-  const contactX = rimX + (2 * sx);
-  const contactY = rimY;
-
-  const knobX = contactX - (18 * sx);
-  const knobY = contactY - 11;
-  const pickleX = contactX + (36 * sx);
-  const pickleY = contactY + 22;
-  const tipX = contactX + (70 * sx);
-  const tipY = contactY + 42;
-  const pickleRot = 32 * sx;
-
-  return `
-    <g class="garnish garnish-pickle" pointer-events="none">
-      <!-- Cocktail pick shaft resting across rim -->
-      <line
-        x1="${knobX.toFixed(1)}"
-        y1="${knobY.toFixed(1)}"
-        x2="${tipX.toFixed(1)}"
-        y2="${tipY.toFixed(1)}"
-        stroke="#cfd8dc"
-        stroke-width="2.2"
-        stroke-linecap="round"
-      />
-      <!-- Pick top knob handle -->
-      <circle cx="${knobX.toFixed(1)}" cy="${knobY.toFixed(1)}" r="3.6" fill="#90a4ae" stroke="#607d8b" stroke-width="0.8" />
-
-      <!-- Pickle spear submerged inside glass bowl -->
-      <g transform="translate(${pickleX.toFixed(1)}, ${pickleY.toFixed(1)}) rotate(${pickleRot})">
-        <!-- Cast shadow -->
-        <ellipse cx="0" cy="3" rx="11" ry="28" fill="#2e4215" opacity="0.5" />
-        <!-- Spear body -->
-        <rect x="-9.5" y="-25" width="19" height="50" rx="9.5" fill="#4c7a1f" />
-        <rect x="-9.5" y="-25" width="19" height="50" rx="9.5" fill="none" stroke="#33500f" stroke-width="1" />
-        <!-- Bumpy skin texture -->
-        <circle cx="-4.5" cy="-15" r="1.5" fill="#33500f" opacity="0.55" />
-        <circle cx="5" cy="-6" r="1.5" fill="#33500f" opacity="0.55" />
-        <circle cx="-5" cy="4" r="1.5" fill="#33500f" opacity="0.55" />
-        <circle cx="4.5" cy="14" r="1.5" fill="#33500f" opacity="0.55" />
-        <circle cx="-3" cy="20" r="1.3" fill="#33500f" opacity="0.55" />
-        <!-- Seed-flecked cut end -->
-        <ellipse cx="0" cy="-24" rx="8.5" ry="3.4" fill="#8bc34a" />
-        <ellipse cx="0" cy="-24" rx="5.2" ry="2" fill="#c5e1a5" opacity="0.85" />
-        <!-- Glossy sheen -->
-        <path d="M -5.5 -16 C -7.5 -5, -7 8, -5 19" stroke="rgba(255, 255, 255, 0.4)" stroke-width="2" stroke-linecap="round" fill="none" />
-      </g>
-    </g>
-  `;
-}
-
 
 /**
  * Render fresh mint sprig with generous bouquet
@@ -631,6 +634,59 @@ function renderCoffeeBeans(cx, cy) {
           <ellipse cx="0" cy="-1.4" rx="2.5" ry="0.8" fill="rgba(255, 255, 255, 0.16)" />
         </g>
       `).join('')}
+    </g>
+  `;
+}
+
+let smokeInstanceCounter = 0;
+
+/**
+ * Render a hazy, gently shimmering cloud of smoke hanging over the drink
+ * (a smoked glass or torched finish). Several soft, blurred wisps drift and
+ * fade at slightly different rhythms — see the .garnish-smoke-wisp keyframes
+ * in counter-view.css — so the cloud reads as alive rather than a static
+ * sticker; each wisp keeps drifting whether or not prefers-reduced-motion is
+ * set, since the animation is decorative rather than something a user needs
+ * to track.
+ */
+function renderSmokeCloud(cx, rimY) {
+  const filterId = `smoke-blur-${smokeInstanceCounter++}`;
+  const baseY = rimY - 16;
+  const wisps = [
+    { dx: -20, dy: 5, r: 19, opacity: 0.5, variant: 1 },
+    { dx: 15, dy: -8, r: 24, opacity: 0.4, variant: 2 },
+    { dx: -4, dy: -20, r: 18, opacity: 0.36, variant: 3 },
+    { dx: 21, dy: 11, r: 15, opacity: 0.32, variant: 2 },
+  ];
+
+  return `
+    <g class="garnish garnish-smoke" pointer-events="none">
+      <defs>
+        <filter id="${filterId}" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="4.5" />
+        </filter>
+      </defs>
+      <g transform="translate(${cx.toFixed(1)}, ${baseY.toFixed(1)})" filter="url(#${filterId})">
+        ${wisps.map(w => `
+          <circle
+            class="garnish-smoke-wisp garnish-smoke-wisp-${w.variant}"
+            cx="${w.dx}"
+            cy="${w.dy}"
+            r="${w.r}"
+            fill="rgba(224, 224, 230, ${w.opacity})"
+          />
+        `).join('')}
+      </g>
+      <!-- Faint shimmer highlight sweeping through the cloud -->
+      <ellipse
+        class="garnish-smoke-shimmer"
+        cx="${cx.toFixed(1)}"
+        cy="${(baseY - 2).toFixed(1)}"
+        rx="30"
+        ry="16"
+        fill="rgba(255, 255, 255, 0.55)"
+        filter="url(#${filterId})"
+      />
     </g>
   `;
 }
@@ -775,6 +831,7 @@ const GARNISH_HEADROOM = {
   limeWedge: 24, lemonWedge: 24, orangeWedge: 24, appleSlice: 24,
   lemonTwist: 14, orangeTwist: 14, limeTwist: 14,
   cherry: 15, olive: 15, cocktailOnion: 15, pickleSpear: 15,
+  smokeCloud: 78, // cloud sits ~16 above the rim, wisps (larger now) drift another ~60 higher
 };
 // Rim highlight stroke + a touch of breathing room — the floor for any drink,
 // garnished or not.
@@ -830,8 +887,14 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
 
   // Celery (and the swizzle stick, added separately below) stands planted in
   // the drink rather than perched on a rim corner, so it's excluded from the
-  // left/right rim-slot rotation the rest of these garnishes share.
-  const slotTypes = types.filter(t => t !== 'celeryStalk' && !t.includes('Rim') && t !== 'coffeeBeans');
+  // left/right rim-slot rotation the rest of these garnishes share. Pick-riding
+  // garnishes (olive/onion/cherry/pickle) are excluded too — however many of
+  // them the recipe calls for, they all thread onto one shared pick (see
+  // renderCombinedPick) which claims a single rim slot of its own, represented
+  // here by the '__pickGroup__' placeholder.
+  const pickTypes = types.filter(t => PICK_GARNISH_TYPES.has(t));
+  const otherSlotTypes = types.filter(t => t !== 'celeryStalk' && t !== 'smokeCloud' && !t.includes('Rim') && t !== 'coffeeBeans' && !PICK_GARNISH_TYPES.has(t));
+  const slotTypes = pickTypes.length > 0 ? [...otherSlotTypes, '__pickGroup__'] : otherSlotTypes;
 
   const glassBottomY = glassware.fluidBounds?.bottomY ?? 300;
 
@@ -840,6 +903,12 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
       rendered.push(renderCeleryStalk(centerX, floatY, -4, glassBottomY));
       return;
     }
+    if (type === 'smokeCloud') {
+      rendered.push(renderSmokeCloud(centerX, rim.y));
+      return;
+    }
+    // Pick-riding garnishes are rendered once as a group after this loop.
+    if (PICK_GARNISH_TYPES.has(type)) return;
 
     const slotIndex = slotTypes.indexOf(type);
     // Positioning slot: if two garnishes, place first on left, second on right
@@ -884,18 +953,6 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
       case 'limeTwist':
         rendered.push(renderPeelTwist(posX, posY, 'lime', isSlotLeft));
         break;
-      case 'cherry':
-        rendered.push(renderCherryOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
-        break;
-      case 'olive':
-        rendered.push(renderOliveOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
-        break;
-      case 'cocktailOnion':
-        rendered.push(renderCocktailOnionOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
-        break;
-      case 'pickleSpear':
-        rendered.push(renderPickleOnPick(isSlotLeft ? rim.leftX : rim.rightX, posY, isSlotLeft));
-        break;
       case 'mintSprig':
         rendered.push(renderMintSprig(isSlotLeft ? rim.leftX + 4 : rim.rightX - 4, posY + 2, isSlotLeft ? 14 : -14));
         break;
@@ -910,6 +967,12 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
         break;
     }
   });
+
+  if (pickTypes.length > 0) {
+    const pickSlotIndex = slotTypes.indexOf('__pickGroup__');
+    const isPickSlotLeft = slotTypes.length > 1 && pickSlotIndex === 0;
+    rendered.push(renderCombinedPick(isPickSlotLeft ? rim.leftX : rim.rightX, rim.y, isPickSlotLeft, pickTypes));
+  }
 
   if (hasSwizzleStick) {
     rendered.push(renderSwizzleStick(centerX, floatY, 5, glassBottomY));
