@@ -1,86 +1,84 @@
-# Speakeasy
+<p align="center">
+  <img src="assets/icon-round.png" width="120" alt="Speakeasy logo">
+</p>
 
-Speakeasy is a personal cocktail library and digital bar companion designed for use directly on your kitchen or bar counter. It combines visual glassware, instant recipe parsing, and inventory tracking to help you mix better drinks with the bottles you have on hand.
+<h1 align="center">Speakeasy</h1>
+<p align="center"><em>Cocktail library and bar companion.</em></p>
 
-Everything runs locally in your browser by default. You can use it completely offline with no tracking scripts. Optionally, you can sign in to sync your library across devices, manage multiple bars, and share your custom cocktails with friends.
+<p align="center">
+  <a href="https://speakeasy.ryanmarch.me"><strong>Try Speakeasy now → speakeasy.ryanmarch.me</strong></a>
+</p>
 
----
+<p align="center">
+  <img src="assets/images/speakeasy-cocktail-recipe-library-device-shots.png" alt="Menu builder showing a cocktail lineup with combined glassware and ingredient checklist" width="850">
+</p>
 
-## Highlights
+Speakeasy is a cocktail recipe library built to live on your kitchen counter or bar cart. Browse 180+ recipes depicted as real glassware with fluid ingredient layers, track the bottles you actually own, and find out exactly what to pour or what to buy next.
 
-### Visual Glassware & Live Fluid Layers
-- See your drink come together before pouring: recipes render inside glassware silhouettes such as Coupes, Highballs, Rocks glasses, Nick & Noras, and Tiki Mugs.
-- Hover over an ingredient to highlight its corresponding layer in the glass, or hover over the glass to identify the ingredient.
-- Toggle between layered pours and blended views for drinks that shake or blend into a uniform color.
-- Accurate garnishes (citrus wheels, twists, cherries, and sprigs) anchor automatically to the glass rim and liquid level.
+## Features
 
-### Smart Backbar Inventory & Bottle-Next
-- Check off the spirits, liqueurs, bitters, and mixers in your collection.
-- Instantly see which recipes you can make right now.
-- Discover drinks where you are only one bottle away, helping you decide what to pick up next.
-- Understand bottle storage requirements, including which fortified wines and vermouths belong in the refrigerator once opened.
+### See the drink before you pour it
+Every recipe renders inside its own glass — Coupes, Highballs, Rocks glasses, Nick & Noras, and even Tiki Mugs — with ingredients stacked as real fluid layers in proportion to the pour. Hover an ingredient to see its layer light up, or toggle to a blended view for shaken and stirred drinks that come out one uniform color. Garnishes land right where they belong: citrus wheels and twists on the rim, cherries and picks over the edge.
 
-### Menu Builder & Event Planning
-- Curate custom drink menus for dinner parties, gatherings, or seasonal rotations.
-- Automatically calculates total glassware requirements across your chosen drink lineup.
-- Generates a consolidated checklist categorized by bar, refrigerator, and pantry locations, highlighting exactly which bottles you need to purchase.
+When recipes show how long to shake or stir, you'll see an inline button to immediately start a timer so you always get the perfect dilution. Drinks get their own flavor profile radar charts (sweet/sour/bitter/boozy) and are tagged with everything that makes them tick: bourbon, gin, smoky, tropical, you name it.
 
-### Riff Engine & Lineage
-- Explore cocktail family trees to learn how modern drinks evolved from classics.
-- Missing a bottle? Use built-in substitution recommendations to swap ingredients without ruining drink balance.
-- Discover similar drinks through flavor radar palate matching.
+<p align="center">
+  <img src="assets/screenshots/cocktail-recipe-manhattan.png" alt="Manhattan recipe page with glass visualization, ingredients, method, and a flavor radar chart" width="850">
+</p>
 
-### Counter View
-- High-contrast typography designed to stay readable across a dimly lit bar counter.
-- One-tap conversions between fluid ounces (`oz`) and milliliters (`ml`).
-- Dynamic serving multipliers to scale recipes up or down for guests.
-- Sticky drink titles and screen wake-lock ensure you never lose your place while mixing.
-- Inline smart timers detected directly from recipe instructions with haptic alerts.
+### Understand your bar ingredients
+Check off the bottles you actually have: spirits, liqueurs, bitters, mixers. Speakeasy instantly shows which of its 180+ recipes you're ready to make. No guesswork, no digging through a recipe box to find out you're missing one ingredient.
 
-### Quick Paste & Recipe Notes
-- Paste raw cocktail specs from recipe books, websites, or personal notes. The parser interprets vulgar unicode fractions, decimals, barspoons, dashes, and standard units automatically.
-- Automatic detection identifies preparation methods, glassware types, and suggested flavor tags.
-- Hide drinks you do not plan to serve to keep your collection curated.
+<p align="center">
+  <img src="assets/screenshots/backbar-my-bar.png" alt="Personal backbar screen for checking off the bottles you own" width="850">
+</p>
 
-### Private, Portable & Shareable
-- **Cloud Sync & Multiple Bars**: Optionally sign in to sync your data across devices and manage multiple distinct bar locations (e.g., "Home Bar" and "Office Bar").
-- **Share Any Drink**: Share deep links to canonical seed recipes, or generate public read-only links for your own custom creations.
-- **Drink History**: Log drinks as you make them to keep a running history of what you've mixed and when.
-- **Unified Export**: Back up or transfer your library anytime with unified JSON export and import.
+### Find out what to buy next
+Speakeasy quietly does the math on your shelf and surfaces the next bottles to expand your home bar by showing which cocktails each bottle unlocks. It's the best way to grow your home bar with intention.
 
-### Admin Dashboard & Product Analytics
-- **Privacy-First Analytics**: Local-first event telemetry tracks cocktail views, user discovery searches, and feature utilization without capturing IP addresses or personal identifiers.
-- **Insight Dashboards**: Monitor most/least viewed cocktails, top poured drinks ("I Made This"), search query gaps, and device category splits.
-- **Ingredient & Spirit Trends**: Analyze frequently stocked bottles across user bars alongside most/least called-for ingredients and base spirit family distributions across catalog cocktails.
-- **Global Recipe Management**: Review and promote custom cocktails into the global catalog, or hide canonical recipes across all users.
+<p align="center">
+  <img src="assets/screenshots/backbar-shopping-list.png" alt="Shopping list showing how many cocktails each new bottle would unlock" width="850">
+</p>
 
----
+### Riff, substitute, and explore
+Out of Campari? Get a real substitution that keeps the drink balanced instead of ruining it. Find your next favorite drink through flavor-profile matching. If you make a riff on an existing cocktail, you can see how it compares to the original.
 
-## Technical Details
+### Lightning-fast recipe creation
+Find a recipe on a blog, in a book, or scrawled on a napkin and paste the ingredient list in. Speakeasy parses amounts, fractions, and units automatically, then guesses the glass, method, and garnish for you.
 
-Speakeasy is built with vanilla HTML5, modern CSS, and ES6 JavaScript modules with zero external runtime dependencies or build steps.
+<p align="center">
+  <img src="assets/screenshots/quick-paste-ingredients.png" alt="Quick Paste box turning a pasted ingredient list into a parsed recipe" width="600">
+</p>
 
-For complete developer specifications, module hierarchies, and architectural decisions, see the [Architecture & Decision Guide](ARCHITECTURE_AND_DECISION_GUIDE.md).
+### Plan the whole night's menu
+Building a menu for a party? Pick a handful of cocktails and Speakeasy tallies every bottle and every glass you'll need across the whole lineup, sorted into what's already on your shelf and what you still need to grab.
 
----
+<p align="center">
+  <img src="assets/screenshots/menu-builder-detail.png" alt="Menu builder showing a cocktail lineup with combined glassware and ingredient checklist" width="850">
+</p>
 
-## Getting Started
+### Private and yours wherever you go
+Everything works in your browser, and even better when added to your home screen. Sign in to sync your bar and custom recipes across every device, keep separate setups for a home bar and an office bar, log the drinks you've made, and share a link to any creation you're proud of. Back up your whole library anytime with one export.
 
-### Local Development
+<p align="center">
+  <img src="assets/screenshots/app-home-screen.png" alt="Speakeasy home screen, showing a browsable library of classic and modern cocktails" width="850">
+</p>
 
-1. Start the local server:
-   ```bash
-   npm run dev
-   ```
-2. Open `http://localhost:8789` in your browser.
+### The little things
 
-### Run Tests
+- Switch from ounces to milliliters at any time
+- Keep the recipe screen awake while you're prepping ingredients
+- View (and add) recipe histories to understand their origins
+- Search by _anything_ including flavor profiles, ingredients, or glassware types
+- Get kcal estimates for recipes
+- Easily scale recipe servings up or down
+- Includes all kinds of garnishes: citrus twists, peels, wheels, olives, sugar rims, and more
+- User guides included to answer common questions
 
-Verify recipe data, taxonomy logic, and parsing mechanics:
-```bash
-npm test
-```
+## How it's built
+
+Speakeasy is built with plain HTML, modern CSS, and vanilla JavaScript — no frameworks, no build step, no external runtime dependencies. Every glass, every fluid layer, and every garnish is drawn as live vector art rather than a static image, which is what lets it react instantly as you tweak a recipe or swap a bottle.
 
 ---
 
-*Last updated: September 10, 2026*
+<p align="center">© 2026 Ryan March · <a href="https://ryanmarch.me">ryanmarch.me</a></p>

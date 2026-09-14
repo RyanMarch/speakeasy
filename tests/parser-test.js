@@ -1,4 +1,5 @@
-import { parseIngredientLine, parseSpecsBlock, formatFraction, parseMethodContent } from '../js/modules/parser.js';
+import { parseIngredientLine, parseSpecsBlock, extractGarnishLine, formatFraction, parseMethodContent } from '../js/modules/parser.js';
+import assert from 'node:assert/strict';
 import { calculateFluidLayers, normalizeVolumeToOz } from '../js/modules/colors.js';
 import { resolveGlassware } from '../js/modules/glassware.js';
 import { calculateCocktailAbv, estimateIngredientAbv, calculateCocktailCalories } from '../js/modules/abv.js';
@@ -38,6 +39,36 @@ const block = `
 `;
 const specs = parseSpecsBlock(block);
 console.log('Parsed block count:', specs.length);
+
+console.log('--- Testing Quick Paste of Our Own Copied Ingredient Table ---');
+// Copying our own ingredient list (amount+unit and name are separate table
+// cells, plus "✓ In Bar"/fridge-tag/etc. badges the CSS now excludes from
+// selection) used to paste as junk — see counter-view.css's user-select:none
+// additions and parseSpecsBlock's line-merging above.
+const copiedTableText = [
+  '2oz', 'Vodka',
+  '3/4oz', 'Dry Vermouth',
+  '1dash', 'Celery Bitters',
+  '1/2oz', 'Pickle Brine',
+  '1/2oz', 'Olive Brine',
+  'Garnish',
+  'Pickle slices, garlic-stuffed green olive, cocktail onion',
+].join('\n');
+
+const copiedSpecs = parseSpecsBlock(copiedTableText);
+assert.equal(copiedSpecs.length, 5, `Expected 5 clean ingredient specs, got ${JSON.stringify(copiedSpecs)}`);
+assert.deepEqual(
+  copiedSpecs.map(s => [s.amount, s.unit, s.name]),
+  [
+    [2, 'oz', 'Vodka'],
+    [0.75, 'oz', 'Dry Vermouth'],
+    [1, 'dash', 'Celery Bitters'],
+    [0.5, 'oz', 'Pickle Brine'],
+    [0.5, 'oz', 'Olive Brine'],
+  ],
+);
+assert.equal(extractGarnishLine(copiedTableText), 'Pickle slices, garlic-stuffed green olive, cocktail onion');
+console.log('Quick Paste of copied ingredient table parses cleanly.');
 
 console.log('--- Testing Fluid Calculation ---');
 const layers = calculateFluidLayers(specs);
@@ -670,6 +701,15 @@ const garnishCases = [
   { input: '3 coffee beans', expected: ['coffeeBeans'] },
   { input: 'Fresh mint bouquet', expected: ['mintSprig'] },
   { input: 'Pineapple wedge & maraschino cherry', expected: ['cherry', 'pineappleWedge'] },
+  // Pick-riding garnishes (olive/onion/cherry/pickle) share a single physical
+  // pick, so a recipe naming several of them isn't squeezed by the 2-slot
+  // rim cap the way wheels/wedges/twists are — all of them should survive.
+  { input: 'Pickle slices, garlic-stuffed green olive, cocktail onion', expected: ['pickleSpear', 'olive', 'cocktailOnion'] },
+  { input: 'Infuse with smoke and garnish with a cocktail cherry', expected: ['smokeCloud', 'cherry'] },
+  // A quantity word ahead of a pick garnish's name carries through as a
+  // repeat count, so "three cherries" threads three cherries onto the pick.
+  { input: 'Garnish with three cherries', expected: ['cherry', 'cherry', 'cherry'] },
+  { input: '2 olives', expected: ['olive', 'olive'] },
 ];
 
 for (const tc of garnishCases) {
@@ -680,9 +720,37 @@ for (const tc of garnishCases) {
 }
 
 const renderedSvg = renderGarnishesSvg({ garnish: 'Orange twist & cocktail cherry' }, GLASS_TYPES.rocks, 120);
-if (!renderedSvg.includes('garnish-cherry') || !renderedSvg.includes('garnish-orange-twist')) {
-  throw new Error(`Expected rendered SVG to contain cherry and twist garnishes: ${renderedSvg}`);
+// The cherry (a pick-riding garnish) renders as part of the shared combined
+// pick rather than its own standalone element — see renderCombinedPick.
+if (!renderedSvg.includes('garnish-combined-pick') || !renderedSvg.includes('garnish-orange-twist')) {
+  throw new Error(`Expected rendered SVG to contain a combined pick and twist garnishes: ${renderedSvg}`);
 }
+
+// Three pick-riding garnishes should thread onto ONE shared pick, not three
+// separate picks competing for rim space, and the whole pick must stay
+// within the martini glass's narrow V — it should never reach further than
+// a single pickle spear (the longest individual item) already safely did.
+const pickletiniSvg = renderGarnishesSvg({ garnish: 'Pickle slices, garlic-stuffed green olive, cocktail onion' }, GLASS_TYPES.martini, 120);
+const combinedPickCount = (pickletiniSvg.match(/garnish-combined-pick/g) || []).length;
+if (combinedPickCount !== 1) {
+  throw new Error(`Expected exactly one combined pick for a 3-item garnish, got ${combinedPickCount}: ${pickletiniSvg}`);
+}
+const pickLineMatch = pickletiniSvg.match(/<line[^>]*x1="([-\d.]+)"[^>]*y1="([-\d.]+)"[^>]*x2="([-\d.]+)"[^>]*y2="([-\d.]+)"/);
+if (!pickLineMatch) {
+  throw new Error(`Expected a pick shaft <line> in the combined pick SVG: ${pickletiniSvg}`);
+}
+const [, x1, y1, x2, y2] = pickLineMatch.map(Number);
+const shaftLength = Math.hypot(x2 - x1, y2 - y1);
+if (shaftLength > 115) {
+  throw new Error(`Combined pick shaft is too long (${shaftLength.toFixed(1)}) and risks poking through the glass wall: ${pickletiniSvg}`);
+}
+
+// Smoke renders as its own hovering cloud, separate from whatever else is garnishing the drink.
+const smokedSvg = renderGarnishesSvg({ garnish: 'Infuse with smoke and garnish with a cocktail cherry' }, GLASS_TYPES.rocks, 120);
+if (!smokedSvg.includes('garnish-smoke') || !smokedSvg.includes('garnish-combined-pick')) {
+  throw new Error(`Expected rendered SVG to contain a smoke cloud and a pick for the cherry: ${smokedSvg}`);
+}
+
 console.log('Garnish resolution and vector SVG rendering tests passed.');
 
 console.log('--- Testing Blue Curaçao Taxonomy & Blended Color Calculation ---');
