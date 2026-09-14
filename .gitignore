@@ -40,3 +40,4 @@ certs/
 
 # Ad-hoc agent scratch notes
 .agents/
+.claude/
