@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS custom_recipes (
     instructions TEXT,
     description TEXT,
     notes TEXT,
+    garnish TEXT,
     riff_of_id TEXT,
     riff_of_name TEXT,
     tags TEXT,                   -- JSON array of tag strings
@@ -81,6 +82,7 @@ CREATE TABLE IF NOT EXISTS global_recipes (
     instructions TEXT,
     description TEXT,
     notes TEXT,
+    garnish TEXT,
     riff_of_id TEXT,
     riff_of_name TEXT,
     tags TEXT,

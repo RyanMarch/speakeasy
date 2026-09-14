@@ -146,7 +146,7 @@ class MockD1PreparedStatement {
     if (sql.startsWith('INSERT INTO custom_recipes')) {
       const [
         id, userId, name, glassware, method, specs, instructions,
-        description, notes, riffOfId, riffOfName, tags, isPublic
+        description, notes, garnish, riffOfId, riffOfName, tags, isPublic
       ] = params;
       const recipe = {
         id,
@@ -158,6 +158,7 @@ class MockD1PreparedStatement {
         instructions,
         description,
         notes,
+        garnish,
         riff_of_id: riffOfId,
         riff_of_name: riffOfName,
         tags,
@@ -291,6 +292,7 @@ db.tables.sessions.set('expired-token', {
         method: 'Stirred',
         specs: [{ amount: 2, unit: 'oz', name: 'Gin' }],
         instructions: 'Stir with ice and strain into a chilled coupe.',
+        garnish: 'Lemon twist',
         tags: ['classic', 'gin'],
       },
     ],
@@ -328,6 +330,10 @@ db.tables.sessions.set('expired-token', {
   assert.ok(customRecipe);
   assert.equal(customRecipe.name, 'House Martini');
   assert.equal(customRecipe.user_id, 'user-123');
+  // Regression: garnish used to be silently dropped on push (no column, no
+  // bind param), which meant a signed-in user's garnish edit would vanish
+  // the moment the app auto-pulled the cloud copy back down on next load.
+  assert.equal(customRecipe.garnish, 'Lemon twist');
 
   // User settings updated
   const user = db.tables.users.get('user-123');
@@ -364,6 +370,7 @@ db.tables.sessions.set('expired-token', {
   assert.equal(data.backup.customRecipes.length, 1);
   assert.equal(data.backup.customRecipes[0].name, 'House Martini');
   assert.equal(data.backup.customRecipes[0].glassware, 'Coupe');
+  assert.equal(data.backup.customRecipes[0].garnish, 'Lemon twist');
   assert.equal(data.backup.settings.unitPref, 'ml');
   assert.equal(data.backup.settings.sortPref, 'name-asc');
   assert.equal(data.backup.settings.glassViewMode, 'blended');
