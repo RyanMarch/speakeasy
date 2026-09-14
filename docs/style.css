@@ -143,6 +143,22 @@ a:hover {
     align-items: start;
     min-height: calc(100vh - 140px);
     width: 100%;
+    position: relative;
+}
+
+/* Fills the gutter between the sidebar and the header so the top bar
+   reads as one continuous full-width strip instead of two separate boxes. */
+.page-container-sidebar::before {
+    content: "";
+    grid-column: 1 / -1;
+    grid-row: 1;
+    position: sticky;
+    top: 0;
+    height: 64px;
+    background: var(--bg-color);
+    border-bottom: 1px solid var(--panel-border);
+    z-index: 90;
+    pointer-events: none;
 }
 
 .page-container-fullwidth {
@@ -187,6 +203,9 @@ a:hover {
     top: 1.5rem;
     height: calc(100vh - 1rem);
     overflow-y: auto;
+    z-index: 95;
+    grid-row: 1;
+    grid-column: 1;
     display: flex;
     flex-direction: column;
     padding-right: 1rem;
@@ -302,7 +321,6 @@ a:hover {
 .sidebar-link.active:visited {
     color: var(--text-main);
     background: var(--control-bg-hover);
-    border-left: 3px solid var(--accent);
     padding-left: 0.5625rem;
     font-weight: 600;
 }
@@ -438,6 +456,41 @@ a:hover {
     color: var(--text-main);
 }
 
+.page-content ul:not(.toc-list),
+.page-content ol:not(.toc-list) {
+    margin: 1rem 0 1.5rem 0;
+    padding-left: 1.5rem;
+    color: var(--text-main);
+}
+
+.page-content ul:not(.toc-list) {
+    list-style-type: disc;
+}
+
+.page-content ol:not(.toc-list) {
+    list-style-type: decimal;
+}
+
+.page-content ul:not(.toc-list)>li,
+.page-content ol:not(.toc-list)>li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+    color: var(--text-main);
+}
+
+.page-content ul:not(.toc-list)>li:last-child,
+.page-content ol:not(.toc-list)>li:last-child {
+    margin-bottom: 0;
+}
+
+.page-content ul:not(.toc-list) ul,
+.page-content ol:not(.toc-list) ol,
+.page-content ul:not(.toc-list) ol,
+.page-content ol:not(.toc-list) ul {
+    margin: 0.5rem 0 0.5rem 0;
+    padding-left: 1.25rem;
+}
+
 .lead {
     font-size: 1.15rem !important;
     line-height: 1.6;
@@ -463,7 +516,8 @@ a:hover {
 }
 
 .toc-list {
-    list-style: none;
+    list-style: none !important;
+    list-style-type: none !important;
     padding: 0;
     margin: 0;
     display: flex;
@@ -472,6 +526,8 @@ a:hover {
 }
 
 .toc-list li {
+    list-style: none !important;
+    list-style-type: none !important;
     position: relative;
     padding-left: 1.25rem;
 }
@@ -965,6 +1021,16 @@ kbd {
         min-height: auto;
     }
 
+    .page-container-sidebar::before {
+        display: none;
+    }
+
+    .page-sidebar,
+    .page-content-wrapper {
+        grid-row: auto;
+        grid-column: auto;
+    }
+
     .page-content {
         padding: 0 1rem;
     }
@@ -1094,6 +1160,7 @@ kbd {
     .page-container-sidebar .header-logo {
         display: none !important;
     }
+
     .page-container-sidebar .app-header {
         justify-content: flex-end !important;
     }
@@ -1515,8 +1582,8 @@ kbd {
     justify-content: space-between;
     height: 64px;
     padding: 0 1.5rem;
-    /* border-bottom: 1px solid var(--panel-border);
-    background: var(--bg-color); */
+    border-bottom: 1px solid var(--panel-border);
+    background: var(--bg-color);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -1656,7 +1723,6 @@ kbd {
     position: absolute;
     top: 115%;
     right: 0;
-    width: 450px;
     max-height: 350px;
     overflow-y: auto;
     background-color: var(--panel-bg);
@@ -1702,7 +1768,8 @@ kbd {
 /* Mobile specific styling */
 @media (max-width: 1024px) {
     .app-header {
-        position: relative;
+        position: sticky;
+        top: 0;
         z-index: 101;
     }
 
@@ -2092,6 +2159,8 @@ a.doc-page-category:hover {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    grid-row: 1;
+    grid-column: 2;
 }
 
 .search-dropdown {
@@ -2114,7 +2183,6 @@ a.doc-page-category:hover {
     position: absolute;
     top: 115%;
     right: 0;
-    width: 450px;
     max-height: 350px;
     overflow-y: auto;
     background-color: var(--panel-bg);
@@ -2223,15 +2291,18 @@ docs-logo svg {
         align-items: center;
         gap: 0;
     }
+
     .footer-copyright {
         flex: 1;
         text-align: left;
     }
+
     .footer-nav-links {
         flex: 1;
         display: flex;
         justify-content: center;
     }
+
     .footer-theme-selector {
         flex: 1;
         display: flex;
