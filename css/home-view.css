@@ -339,12 +339,53 @@
   margin: 0 0 0.45rem;
 }
 
+.account-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.account-header-info {
+  flex: 1;
+  min-width: 260px;
+}
+
 .account-page-subtitle {
   font-size: 0.95rem;
   color: var(--color-text-secondary);
   margin: 0;
   line-height: 1.5;
   max-width: 680px;
+}
+
+.account-header-docs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(212, 163, 89, 0.08);
+  color: var(--color-accent);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  margin-top: 0.25rem;
+}
+
+.account-header-docs-btn:hover,
+.account-header-docs-btn:focus-visible {
+  background: rgba(212, 163, 89, 0.18);
+  color: var(--color-accent-light);
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  outline: none;
 }
 
 .account-page-body {
