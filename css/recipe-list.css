@@ -429,6 +429,12 @@
   background: rgba(18, 16, 14, 0.75);
 }
 
+.sidebar-footer-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .footer-nav-btn {
   background: transparent;
   border: 1px solid rgba(245, 240, 230, 0.08);
