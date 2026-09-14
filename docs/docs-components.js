@@ -158,7 +158,7 @@ class DocsHeader extends HTMLElement {
             <div class="header-search-backdrop"></div>
             <header class="app-header">
                 ${showLogo ? `
-                <a href="/" class="header-logo">
+                <a href="/app" class="header-logo">
                     <docs-logo></docs-logo>
                     <h1>${projectName}</h1>
                 </a>
