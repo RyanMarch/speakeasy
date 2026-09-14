@@ -138,6 +138,22 @@ function stripRedundantConversion(name, amount, unit) {
   return (leading ? name.slice(match[0].length) : name.slice(0, match.index)).trim();
 }
 
+// Unit words recognized in an ingredient line — spelled-out/pluralized/two-word
+// variants included ("ounces", "fl oz", "bar spoon"), normalized to their
+// canonical short form via UNIT_ALIASES once matched. "bar\s?spoon" (space
+// optional) covers both "barspoon" and "bar spoon" with one pattern rather
+// than four separate ones. Shared between parseIngredientLine's regex below
+// and AMOUNT_UNIT_ONLY_REGEX (which needs the identical unit vocabulary to
+// recognize a bare "2 oz" line with no ingredient name yet on it) so the two
+// can't drift apart.
+const UNIT_WORD_PATTERN = 'dashes|dash|bar\\s?spoons?|tbsp|tablespoons?|tsps?|tsp|teaspoons?|drops?|drop|fl\\.?\\s?oz\\.?|fluid\\s?ounces?|ounces?|oz|milliliters?|millilitres?|ml|cc|cl|splashes?|parts?|part|leaves|leaf|pinche?s?|cups?|shots?|rinse';
+
+// Matches a line that is ONLY an amount, optionally with a unit — "2 oz",
+// "3/4", "1 dash" — and nothing else. Used by parseSpecsBlock to recognize a
+// pasted amount that landed on its own line, split from the ingredient name
+// that should follow it (see the comment there).
+const AMOUNT_UNIT_ONLY_REGEX = new RegExp(`^[\\d\\s\\/\\.]+\\s*(?:${UNIT_WORD_PATTERN})?$`, 'i');
+
 export function parseIngredientLine(line) {
   if (!line) {
     return null;
@@ -147,12 +163,8 @@ export function parseIngredientLine(line) {
     return null;
   }
 
-  // Matches "0.75 oz Bourbon", "1 1/2 oz Gin", "2 dashes Angostura", "Rinse Absinthe" —
-  // also spelled-out/pluralized/two-word words ("2 ounces Scotch", "1 fl oz Gin",
-  // "1 bar spoon Demerara", "1 teaspoon syrup"), normalized to their canonical
-  // short form below via UNIT_ALIASES. "bar\s?spoon" (space optional) covers both
-  // "barspoon" and "bar spoon" with one pattern rather than four separate ones.
-  const regex = /^([\d\s\/\.]+)?\s*(dashes|dash|bar\s?spoons?|tbsp|tablespoons?|tsps?|tsp|teaspoons?|drops?|drop|fl\.?\s?oz\.?|fluid\s?ounces?|ounces?|oz|milliliters?|millilitres?|ml|cc|cl|splashes?|parts?|part|leaves|leaf|pinche?s?|cups?|shots?|rinse)?\s*(.+)$/i;
+  // Matches "0.75 oz Bourbon", "1 1/2 oz Gin", "2 dashes Angostura", "Rinse Absinthe".
+  const regex = new RegExp(`^([\\d\\s\\/\\.]+)?\\s*(${UNIT_WORD_PATTERN})?\\s*(.+)$`, 'i');
   const match = trimmed.match(regex);
 
   if (!match) {
@@ -205,20 +217,31 @@ function isNonIngredientLine(line) {
   return false;
 }
 
+// A "Garnish" label with nothing after it on the same line — as our own
+// ingredient table renders it (the label is one table cell, the actual
+// garnish text the next). Its value lives on the following line instead of
+// inline, unlike a typed "Garnish: lime wheel".
+const BARE_GARNISH_LABEL_REGEX = /^garnish(?:ed with)?:?\s*$/i;
+
 /**
  * Pulls the content of a pasted "Garnish: lime wheel" line back out, so a
  * Quick Paste can route it into the Garnish field instead of just dropping it
  * (parseSpecsBlock excludes these lines from the ingredient specs entirely —
- * see isNonIngredientLine). Returns the trimmed garnish text, or null if no
- * such line is present.
+ * see isNonIngredientLine). Also handles a bare "Garnish" label followed by
+ * the text on its own next line. Returns the trimmed garnish text, or null
+ * if no such line is present.
  */
 export function extractGarnishLine(text) {
   if (!text || typeof text !== 'string') return null;
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.trim();
+  const lines = text.split(/\r?\n/).map(l => l.trim());
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const match = line.match(/^garnish(?:ed with)?:?\s*(.+)$/i);
     if (match && match[1].trim()) {
       return match[1].trim();
+    }
+    if (BARE_GARNISH_LABEL_REGEX.test(line) && lines[i + 1]) {
+      return lines[i + 1].trim();
     }
   }
   return null;
@@ -229,10 +252,43 @@ export function parseSpecsBlock(text) {
     return [];
   }
 
-  return text
+  const rawLines = text
     .split(/\r?\n/)
     .map(line => line.trim())
-    .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('//') && !isNonIngredientLine(line))
+    .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
+
+  const lines = [];
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i];
+    if (isNonIngredientLine(line)) {
+      // A bare "Garnish" label's actual value sits on the next line (see
+      // BARE_GARNISH_LABEL_REGEX) — skip that too, so it isn't parsed as a
+      // bogus, amount-less ingredient row.
+      if (BARE_GARNISH_LABEL_REGEX.test(line)) i++;
+      continue;
+    }
+    lines.push(line);
+  }
+
+  // A list copied straight out of our own ingredient table lands with each
+  // row's amount+unit and its ingredient name as separate lines (they're
+  // separate table cells in the DOM) rather than "2 oz Vodka" on one line —
+  // without this, a bare "2 oz" line parses as its own bogus ingredient named
+  // "oz" and the following "Vodka" line as a second, amount-less one. Stitch
+  // a bare amount(+unit) line back together with whatever line follows it.
+  const merged = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const next = lines[i + 1];
+    if (next && AMOUNT_UNIT_ONLY_REGEX.test(normalizeFractions(line))) {
+      merged.push(`${line} ${next}`);
+      i++;
+    } else {
+      merged.push(line);
+    }
+  }
+
+  return merged
     .map(parseIngredientLine)
     .filter(item => item !== null && item.name.length > 0);
 }

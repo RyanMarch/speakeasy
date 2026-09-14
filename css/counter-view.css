@@ -1635,6 +1635,9 @@
   align-items: center;
   gap: 0.35rem;
   margin-top: 0.2rem;
+  /* A substitution suggestion, not part of the ingredient itself — excluded
+     from selection so it doesn't land in a copied ingredient line. */
+  user-select: none;
 }
 
 .btn-sub-chip {
@@ -1663,6 +1666,7 @@
   font-size: 0.68rem;
   color: var(--color-text-faint);
   cursor: help;
+  user-select: none;
 }
 
 .spec-riff-badge {
@@ -1675,6 +1679,7 @@
   background: rgba(212, 163, 89, 0.15);
   border: 1px solid rgba(212, 163, 89, 0.35);
   color: var(--color-accent);
+  user-select: none;
 }
 
 .spec-riff-orig-note {
@@ -1688,6 +1693,11 @@
   align-items: center;
   gap: 0.65rem;
   justify-content: flex-end;
+  /* The "✓ In Bar" / "+ In Bar" toggle (and the remove button in riff mode)
+     are controls, not ingredient data — excluded from selection so a select-
+     all-and-copy of the ingredient list doesn't drag "In Bar" and a stray
+     checkmark glyph into the clipboard along with the amount and name. */
+  user-select: none;
 }
 
 .btn-stock-toggle {
@@ -2224,6 +2234,9 @@
   color: #7dd3fc;
   vertical-align: middle;
   flex-shrink: 0;
+  /* A decorative badge, not ingredient data — excluded from selection so it
+     doesn't land in the middle of a copied ingredient line. */
+  user-select: none;
 }
 
 .spec-fridge-tag .fridge-icon {

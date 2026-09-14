@@ -86,7 +86,14 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/api/')) return;
 
   event.respondWith(
-    fetch(request)
+    // cache: 'no-store' forces this past the browser's own HTTP cache — this
+    // handler's whole point is "genuinely fresh whenever online," but the
+    // default fetch() cache mode would otherwise let a heuristically-cached
+    // response (an update-in-place asset like this app's own CSS/JS, with no
+    // `?v=` on its @import/import specifiers) satisfy the request without
+    // ever reaching the network. Cache Storage below still carries the
+    // offline fallback, so this doesn't cost the offline story anything.
+    fetch(request, { cache: 'no-store' })
       .then((response) => {
         if (response && response.ok) {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
