@@ -129,7 +129,7 @@ export function setupAuthModalEventListeners() {
         }
       }
 
-      showToast('Welcome back!');
+      showToast('Signed in. Cheers!');
       closeAuthModal();
     } catch (err) {
       setErrorMessage(_authOtpError, err.message || 'Invalid or expired code.');

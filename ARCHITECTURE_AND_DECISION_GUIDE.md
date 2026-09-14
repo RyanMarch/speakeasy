@@ -24,7 +24,8 @@ speakeasy/
 ├── index.html                 # Dedicated marketing landing page
 ├── app.html                   # Cocktail counter application shell, modals, and SVG defs
 ├── terms.html                 # Combined Terms of Service & Privacy Policy
-├── app.js                     # Application lifecycle, routing, and coordinator (~310 lines)
+├── admin.html                 # Admin Dashboard: Analytics, Global Recipe Manager & Visibility
+├── app.js                     # Application lifecycle, routing, and coordinator
 ├── css/
 │   ├── base.css               # Design tokens, typography variables, color palette
 │   ├── theme-deco.css         # Art Deco navy (#020f20) and gold (#ebbc72) palette & fonts
@@ -38,16 +39,29 @@ speakeasy/
 │   ├── modals.css             # Backbar inventory drawer, hidden recipes modal, low-stock badges
 │   ├── responsive.css         # Bottom mobile nav, mobile sheets, breakpoints
 │   └── index.css              # Master aggregator importing 8 modular stylesheets
+├── docs/                      # User Guides & Documentation Hub
+│   ├── index.html             # Documentation entry point & guide hub
+│   ├── list.html              # Searchable guide directory
+│   ├── style.css              # Editorial docs stylesheet
+│   ├── docs-components.js     # Custom element layout & navigation
+│   ├── search-index.json      # Client-side documentation search index
+│   └── */index.html           # Individual guide topics (Getting Started, Inventory, etc.)
+├── scripts/                   # Documentation tooling & build helpers
+│   ├── init-docs.js           # Initialize docs scaffold
+│   ├── add-new-doc.js         # Interactive CLI to create a new guide
+│   └── generate-docs-index.js # Compiles search index from doc headings & meta
 ├── js/
 │   ├── state.js               # Shared application state, DOM cache, inventory cache
 │   ├── router.js              # Application routing and View Transitions API coordinator
 │   ├── data/
-│   │   └── seed-recipes.js    # 181 canonical seed recipes
+│   │   ├── seed-recipes.js    # 181 canonical seed recipes
+│   │   └── featured-cocktails.js # Curated featured drinks for landing page showcase
 │   ├── views/
 │   │   ├── home-view.js       # Home view shelves, carousels, pin-a-tag bar
 │   │   ├── counter-view.js    # Single recipe view, glassware sync, radar, servings, riffs, sharing
 │   │   ├── menu-builder-view.js# Saved event menus, recipe picker, bar/fridge/pantry checklist
-│   │   └── recipe-list-view.js# Sidebar list, search, sort select, pack pills, tag autocomplete
+│   │   ├── recipe-list-view.js# Sidebar list, search, sort select, pack pills, tag autocomplete
+│   │   └── shared-recipe-view.js # Snapshot view for shared cocktail links
 │   ├── components/
 │   │   ├── top-bar.js         # Header brand navigation, desktop sticky title, vault popover
 │   │   ├── editor-modal.js    # Quick-paste recipe editor, natural language spec parser
@@ -69,7 +83,6 @@ speakeasy/
 │       ├── colors.js          # Color calculation, hex blending, and volume normalization
 │       ├── balance.js         # Flavor balance radar calculation, SVG renderer, palate distance similarity
 │       └── abv.js             # Proof heuristics, method-based dilution (stir/shake/build/blend)
-├── admin.html                 # Admin Dashboard: Analytics, Global Recipe Manager & Visibility
 ├── functions/
 │   └── api/                   # Cloudflare Pages Functions (Serverless Backend)
 │       ├── admin/             # Endpoints for admin session, analytics aggregation, recipes, and visibility
@@ -89,7 +102,12 @@ speakeasy/
 ├── assets/                    # Favicons, web app icons, and graphics
 ├── tests/
 │   ├── architecture-test.js   # Structural integrity, module exports, CSS imports, preload checks
-│   └── parser-test.js         # Headless test runner covering parsing, taxonomy, ABV, seeds, and backups
+│   ├── parser-test.js         # Headless test runner covering parsing, taxonomy, ABV, seeds, and backups
+│   ├── sync-test.js           # Cloud sync, hydration, and multi-bar persistence tests
+│   ├── auth-test.js           # Passwordless OTP, session, and account deletion tests
+│   ├── history-test.js        # Drink history logging and guest-to-cloud migration tests
+│   ├── shares-test.js         # Recipe sharing and snapshot endpoint tests
+│   └── admin-test.js          # Admin dashboard, analytics, and recipe moderation tests
 ├── manifest.webmanifest       # PWA manifest (standalone mode)
 └── wrangler.toml              # Cloudflare Pages deployment configuration
 ```
@@ -260,4 +278,4 @@ Before committing any alterations:
 
 ---
 
-*Last updated: September 12, 2026*
+*Last updated: September 14, 2026*
