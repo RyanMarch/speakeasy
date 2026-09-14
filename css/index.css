@@ -3,12 +3,21 @@
  * Aggregates component and view stylesheets.
  */
 
-@import url('./layout.css');
-@import url('./recipe-list.css');
-@import url('./counter-view.css');
-@import url('./home-view.css');
-@import url('./menu-builder-view.css');
-@import url('./editor.css');
-@import url('./modals.css');
-@import url('./responsive.css');
+/*
+ * Each import below carries its own `?v=` — bumping index.css's own query
+ * string in app.html/index.html does NOT cache-bust these: browsers cache
+ * an @import target by its own exact URL, independent of the file that
+ * imported it, so an unversioned './counter-view.css' can keep serving a
+ * stale cached copy forever after an edit, no matter how many times the
+ * *outer* index.css?v=NN is bumped or how hard the page is refreshed.
+ * Bump a file's own number here whenever you edit it.
+ */
+@import url('./layout.css?v=1');
+@import url('./recipe-list.css?v=1');
+@import url('./counter-view.css?v=2');
+@import url('./home-view.css?v=1');
+@import url('./menu-builder-view.css?v=1');
+@import url('./editor.css?v=1');
+@import url('./modals.css?v=1');
+@import url('./responsive.css?v=1');
 

@@ -202,7 +202,11 @@ async function runTests() {
     importedCss.push(match[1]);
   }
   assert(importedCss.length === 8, `index.css imports 8 modular stylesheets (found: ${importedCss.length})`);
-  for (const cssFile of importedCss) {
+  for (const rawCssFile of importedCss) {
+    // Each @import carries a `?v=N` cache-busting query string (see the
+    // comment above the imports in index.css) — strip it back off to get an
+    // actual filesystem path.
+    const cssFile = rawCssFile.split('?')[0];
     const fullPath = path.join(rootDir, 'css', cssFile);
     assert(fs.existsSync(fullPath), `CSS module file exists: css/${cssFile}`);
     const content = fs.readFileSync(fullPath, 'utf8');
