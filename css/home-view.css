@@ -1,9 +1,17 @@
 /* Home Landing Page */
 .home-view {
-  /* Matches .counter-view's cap exactly so Home and a recipe page share the same
-     margins at every desktop width — see the shared --shelf-bleed rule below,
-     which relies on both containers using this same 980px. */
-  max-width: 980px;
+  /* Unlike .counter-view (a recipe page — glass art + a column of ingredient/
+     method text, where a wide line length actively hurts readability), Home
+     is all cards, shelves, and stats with no long-form reading — so its cap
+     grows with the viewport instead of sitting at a flat width forever. The
+     980px floor keeps it identical to .counter-view up to that point (so the
+     two don't visibly diverge right at the point they stop being capped);
+     85vw tracks available width past that; 1450px stops it going edge-to-edge
+     on very wide monitors. --view-max-width is what the shared --shelf-bleed
+     rule in responsive.css actually reads — see the comment there — so this
+     can change without that formula silently going stale for Home's shelves. */
+  --view-max-width: clamp(980px, 85vw, 1450px);
+  max-width: var(--view-max-width);
   width: 100%;
   margin: 0 auto 7rem;
   min-width: 0;
@@ -16,9 +24,11 @@
 
 .home-stats-name {
   /* Identical styling to .drink-name (recipe title) by design — these are the
-     two "page title" positions or the app, and should read as the same thing. */
+     two "page title" positions or the app, and should read as the same thing —
+     including growing together on wide screens via the shared
+     --fluid-page-title-size token (theme-deco.css). */
   font-family: var(--font-display);
-  font-size: 2.35rem;
+  font-size: var(--fluid-page-title-size);
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--color-text);
@@ -41,7 +51,7 @@
 
 .home-stat strong {
   font-family: var(--font-sans);
-  font-size: 1.3rem;
+  font-size: var(--fluid-stat-number-size);
   font-weight: 700;
   color: var(--color-accent-light);
   font-variant-numeric: tabular-nums;
