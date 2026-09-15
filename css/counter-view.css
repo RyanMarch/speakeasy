@@ -768,55 +768,235 @@
   animation: cocktailSwirlBackward 750ms cubic-bezier(0.25, 1, 0.3, 1) forwards;
 }
 
-/* Smoke Garnish: drifting, shimmering cloud hanging over the drink */
-@keyframes smokeWispDrift1 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.55; }
-  50% { transform: translate(-4px, -7px) scale(1.12); opacity: 0.3; }
+/* Smoke Garnish: waves of smoke swirling and emanating from the liquid level up and out */
+@keyframes smokeWaveUndulate1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.33;
+  }
+  33% {
+    transform: translate(-3px, -4px) scale(1.03, 1.04) rotate(-1deg);
+    opacity: 0.40;
+  }
+  66% {
+    transform: translate(2px, -7px) scale(0.98, 1.05) rotate(0.8deg);
+    opacity: 0.26;
+  }
 }
 
-@keyframes smokeWispDrift2 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.45; }
-  50% { transform: translate(5px, -9px) scale(1.08); opacity: 0.22; }
+@keyframes smokeWaveUndulate2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.38;
+  }
+  40% {
+    transform: translate(3px, -5px) scale(1.04, 1.04) rotate(1.2deg);
+    opacity: 0.45;
+  }
+  75% {
+    transform: translate(-2px, -8px) scale(1.01, 1.06) rotate(-0.8deg);
+    opacity: 0.29;
+  }
 }
 
-@keyframes smokeWispDrift3 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-  50% { transform: translate(-3px, -5px) scale(1.16); opacity: 0.18; }
+@keyframes smokeWaveUndulate3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.30;
+  }
+  50% {
+    transform: translate(-3px, -5px) scale(1.04, 1.03) rotate(-1.4deg);
+    opacity: 0.39;
+  }
+  80% {
+    transform: translate(2px, -8px) scale(0.97, 1.05) rotate(1deg);
+    opacity: 0.21;
+  }
+}
+
+@keyframes smokePuffDrift1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.27;
+  }
+  50% {
+    transform: translate(-4px, -5px) scale(1.08);
+    opacity: 0.36;
+  }
+}
+
+@keyframes smokePuffDrift2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.32;
+  }
+  50% {
+    transform: translate(4px, -6px) scale(1.1);
+    opacity: 0.20;
+  }
+}
+
+@keyframes smokePuffDrift3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.29;
+  }
+  50% {
+    transform: translate(-3px, -5px) scale(1.12);
+    opacity: 0.17;
+  }
 }
 
 @keyframes smokeShimmerSweep {
-  0%, 100% { opacity: 0.15; transform: translateX(-6px); }
-  50% { opacity: 0.5; transform: translateX(6px); }
+  0%, 100% {
+    opacity: 0.14;
+    transform: translate(-7px, 1px) scale(0.96);
+  }
+  50% {
+    opacity: 0.39;
+    transform: translate(7px, -3px) scale(1.06);
+  }
 }
 
-.garnish-smoke-wisp {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-.garnish-smoke-wisp-1 {
-  animation: smokeWispDrift1 4.5s ease-in-out infinite;
-}
-
-.garnish-smoke-wisp-2 {
-  animation: smokeWispDrift2 5.2s ease-in-out infinite;
-  animation-delay: -1.6s;
-}
-
-.garnish-smoke-wisp-3 {
-  animation: smokeWispDrift3 6s ease-in-out infinite;
-  animation-delay: -3s;
-}
-
+.garnish-smoke-wave,
+.garnish-smoke-puff,
 .garnish-smoke-shimmer {
   transform-box: fill-box;
   transform-origin: center;
-  animation: smokeShimmerSweep 3.4s ease-in-out infinite;
+}
+
+.garnish-smoke-wave-1 {
+  animation: smokeWaveUndulate1 5.4s ease-in-out infinite;
+}
+
+.garnish-smoke-wave-2 {
+  animation: smokeWaveUndulate2 6.2s ease-in-out infinite;
+  animation-delay: -1.8s;
+}
+
+.garnish-smoke-wave-3 {
+  animation: smokeWaveUndulate3 5.8s ease-in-out infinite;
+  animation-delay: -3.2s;
+}
+
+.garnish-smoke-puff-1 {
+  animation: smokePuffDrift1 4.6s ease-in-out infinite;
+}
+
+.garnish-smoke-puff-2 {
+  animation: smokePuffDrift2 5.6s ease-in-out infinite;
+  animation-delay: -1.4s;
+}
+
+.garnish-smoke-puff-3 {
+  animation: smokePuffDrift3 6.4s ease-in-out infinite;
+  animation-delay: -2.8s;
+}
+
+.garnish-smoke-shimmer {
+  animation: smokeShimmerSweep 3.8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .garnish-smoke-wisp,
+  .garnish-smoke-wave,
+  .garnish-smoke-puff,
   .garnish-smoke-shimmer {
+    animation: none;
+  }
+}
+
+/* Ambient Effervescence: micro-bubbles rising gently and popping at liquid surface */
+@keyframes effervescenceRise1 {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.75;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-44px);
+    opacity: 0;
+  }
+}
+
+@keyframes effervescenceRise2 {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(-56px);
+    opacity: 0;
+  }
+}
+
+@keyframes effervescenceRise3 {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+}
+
+.fluid-bubble {
+  transform-box: fill-box;
+}
+
+.fluid-bubble-1 {
+  animation: effervescenceRise1 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.fluid-bubble-2 {
+  animation: effervescenceRise2 4.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -1.2s;
+}
+
+.fluid-bubble-3 {
+  animation: effervescenceRise3 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -2.4s;
+}
+
+.fluid-bubble-4 {
+  animation: effervescenceRise1 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -0.7s;
+}
+
+.fluid-bubble-5 {
+  animation: effervescenceRise2 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -2.9s;
+}
+
+.fluid-bubble-6 {
+  animation: effervescenceRise3 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -1.8s;
+}
+
+.fluid-bubble-7 {
+  animation: effervescenceRise1 3.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -3.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluid-bubble {
     animation: none;
   }
 }

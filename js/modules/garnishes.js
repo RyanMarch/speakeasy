@@ -641,22 +641,50 @@ function renderCoffeeBeans(cx, cy) {
 let smokeInstanceCounter = 0;
 
 /**
- * Render a hazy, gently shimmering cloud of smoke hanging over the drink
- * (a smoked glass or torched finish). Several soft, blurred wisps drift and
- * fade at slightly different rhythms — see the .garnish-smoke-wisp keyframes
- * in counter-view.css — so the cloud reads as alive rather than a static
- * sticker; each wisp keeps drifting whether or not prefers-reduced-motion is
- * set, since the animation is decorative rather than something a user needs
- * to track.
+ * Render swirling waves and clouds of smoke emanating from the liquid level
+ * and rising up out of the glass before fading away.
  */
-function renderSmokeCloud(cx, rimY) {
+function renderSmokeCloud(cx, rimY, liquidY) {
   const filterId = `smoke-blur-${smokeInstanceCounter++}`;
-  const baseY = rimY - 16;
-  const wisps = [
-    { dx: -20, dy: 5, r: 19, opacity: 0.5, variant: 1 },
-    { dx: 15, dy: -8, r: 24, opacity: 0.4, variant: 2 },
-    { dx: -4, dy: -20, r: 18, opacity: 0.36, variant: 3 },
-    { dx: 21, dy: 11, r: 15, opacity: 0.32, variant: 2 },
+  const maskId = `smoke-fade-mask-${smokeInstanceCounter}`;
+  const startY = typeof liquidY === 'number' && !isNaN(liquidY) ? liquidY : rimY + 10;
+
+  // Wave ribbons rising up from liquid surface and curling gracefully past rim
+  // Kept within rimY - 58 so they naturally dissipate well below the viewBox boundary
+  const waveRibbons = [
+    {
+      d: `M ${cx - 20} ${startY} C ${cx - 34} ${startY - 14}, ${cx - 8} ${rimY - 10}, ${cx - 22} ${rimY - 32} S ${cx - 10} ${rimY - 48}, ${cx - 18} ${rimY - 56}`,
+      width: 11.5,
+      opacity: 0.33,
+      variant: 1,
+    },
+    {
+      d: `M ${cx} ${startY + 2} C ${cx + 15} ${startY - 12}, ${cx - 16} ${rimY - 14}, ${cx + 8} ${rimY - 36} S ${cx - 4} ${rimY - 50}, ${cx + 4} ${rimY - 58}`,
+      width: 13.5,
+      opacity: 0.38,
+      variant: 2,
+    },
+    {
+      d: `M ${cx + 18} ${startY} C ${cx + 30} ${startY - 14}, ${cx + 4} ${rimY - 8}, ${cx + 20} ${rimY - 30} S ${cx + 10} ${rimY - 46}, ${cx + 16} ${rimY - 54}`,
+      width: 11,
+      opacity: 0.31,
+      variant: 3,
+    },
+  ];
+
+  // Billowing cloud puffs floating, diffusing, and fading away gently as they ascend
+  const clouds = [
+    // Low mist settling right above liquid level
+    { cx: cx - 14, cy: startY - 4, rx: 21, ry: 8, opacity: 0.27, variant: 1 },
+    { cx: cx + 12, cy: startY - 2, rx: 23, ry: 9, opacity: 0.30, variant: 2 },
+    // Mid-level swirls around and above the rim
+    { cx: cx - 12, cy: rimY - 12, rx: 25, ry: 11, opacity: 0.36, variant: 2 },
+    { cx: cx + 14, cy: rimY - 18, rx: 28, ry: 12, opacity: 0.34, variant: 3 },
+    { cx: cx - 2, cy: rimY - 28, rx: 26, ry: 11, opacity: 0.29, variant: 1 },
+    // Upper puffs dissipating cleanly before reaching the top
+    { cx: cx + 8, cy: rimY - 40, rx: 27, ry: 12, opacity: 0.22, variant: 2 },
+    { cx: cx - 8, cy: rimY - 48, rx: 23, ry: 10, opacity: 0.14, variant: 3 },
+    { cx: cx + 2, cy: rimY - 54, rx: 19, ry: 8, opacity: 0.08, variant: 1 },
   ];
 
   return `
@@ -665,26 +693,53 @@ function renderSmokeCloud(cx, rimY) {
         <filter id="${filterId}" x="-80%" y="-80%" width="260%" height="260%">
           <feGaussianBlur stdDeviation="4.5" />
         </filter>
+        <!-- Soft vertical fade mask ensuring the smoke feather-fades to 0% at the top with no hard crop -->
+        <linearGradient id="${maskId}" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#fff" stop-opacity="1" />
+          <stop offset="75%" stop-color="#fff" stop-opacity="0.9" />
+          <stop offset="90%" stop-color="#fff" stop-opacity="0.35" />
+          <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+        </linearGradient>
+        <mask id="${maskId}-apply">
+          <rect x="${cx - 80}" y="${rimY - 80}" width="160" height="${startY - (rimY - 80) + 20}" fill="url(#${maskId})" />
+        </mask>
       </defs>
-      <g transform="translate(${cx.toFixed(1)}, ${baseY.toFixed(1)})" filter="url(#${filterId})">
-        ${wisps.map(w => `
-          <circle
-            class="garnish-smoke-wisp garnish-smoke-wisp-${w.variant}"
-            cx="${w.dx}"
-            cy="${w.dy}"
-            r="${w.r}"
-            fill="rgba(224, 224, 230, ${w.opacity})"
+
+      <!-- Smoke mass with soft blur and gradual upward fade mask -->
+      <g mask="url(#${maskId}-apply)" filter="url(#${filterId})">
+        <!-- Rising wave ribbons -->
+        ${waveRibbons.map(w => `
+          <path
+            class="garnish-smoke-wave garnish-smoke-wave-${w.variant}"
+            d="${w.d}"
+            fill="none"
+            stroke="rgba(226, 230, 240, ${w.opacity})"
+            stroke-width="${w.width}"
+            stroke-linecap="round"
+          />
+        `).join('')}
+
+        <!-- Billowing cloud puffs -->
+        ${clouds.map(c => `
+          <ellipse
+            class="garnish-smoke-puff garnish-smoke-puff-${c.variant}"
+            cx="${c.cx.toFixed(1)}"
+            cy="${c.cy.toFixed(1)}"
+            rx="${c.rx}"
+            ry="${c.ry}"
+            fill="rgba(230, 234, 245, ${c.opacity})"
           />
         `).join('')}
       </g>
-      <!-- Faint shimmer highlight sweeping through the cloud -->
+
+      <!-- Subtle shimmering highlight wafting across the smoke crest -->
       <ellipse
         class="garnish-smoke-shimmer"
         cx="${cx.toFixed(1)}"
-        cy="${(baseY - 2).toFixed(1)}"
-        rx="30"
-        ry="16"
-        fill="rgba(255, 255, 255, 0.55)"
+        cy="${(rimY - 20).toFixed(1)}"
+        rx="28"
+        ry="14"
+        fill="rgba(255, 255, 255, 0.32)"
         filter="url(#${filterId})"
       />
     </g>
@@ -831,7 +886,7 @@ const GARNISH_HEADROOM = {
   limeWedge: 24, lemonWedge: 24, orangeWedge: 24, appleSlice: 24,
   lemonTwist: 14, orangeTwist: 14, limeTwist: 14,
   cherry: 15, olive: 15, cocktailOnion: 15, pickleSpear: 15,
-  smokeCloud: 78, // cloud sits ~16 above the rim, wisps (larger now) drift another ~60 higher
+  smokeCloud: 96, // rising waves and dissipated puffs extend up out of the glass
 };
 // Rim highlight stroke + a touch of breathing room — the floor for any drink,
 // garnished or not.
@@ -857,7 +912,8 @@ export function getGarnishHeadroom(recipe) {
 
   let headroom = BASE_HEADROOM;
   for (const type of types) {
-    headroom = Math.max(headroom, GARNISH_HEADROOM[type] ?? BASE_HEADROOM);
+    const typeHeadroom = GARNISH_HEADROOM[type] ?? BASE_HEADROOM;
+    headroom = Math.max(headroom, typeHeadroom);
   }
   return headroom;
 }
@@ -904,7 +960,7 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
       return;
     }
     if (type === 'smokeCloud') {
-      rendered.push(renderSmokeCloud(centerX, rim.y));
+      rendered.push(renderSmokeCloud(centerX, rim.y, floatY));
       return;
     }
     // Pick-riding garnishes are rendered once as a group after this loop.
