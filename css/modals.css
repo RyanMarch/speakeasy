@@ -1571,6 +1571,11 @@
   background: rgba(26, 36, 51, 0.5);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
+  /* Grid items default to a content-based min-width, so a long, unbreakable
+     go-to-drink name (e.g. "Smoked Old Fashioned") would otherwise force
+     this tile wider than its 1fr share and push the row past the viewport
+     on mobile instead of letting .vault-stat-value-text's ellipsis do its job. */
+  min-width: 0;
 }
 
 .vault-stat-value {
@@ -1578,6 +1583,8 @@
   align-items: center;
   justify-content: center;
   height: 1.76rem;
+  min-width: 0;
+  width: 100%;
   font-family: var(--font-display);
   font-size: 1.6rem;
   font-weight: 700;

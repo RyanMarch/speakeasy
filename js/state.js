@@ -189,6 +189,11 @@ export function initElements() {
   elements.userPopover = document.getElementById('user-popover');
   elements.userPopoverEmail = document.getElementById('user-popover-email');
   elements.btnSignOut = document.getElementById('btn-sign-out');
+  elements.headerQuickPopover = document.getElementById('header-quick-popover');
+  elements.quickPopoverNewDrink = document.getElementById('quick-popover-new-drink');
+  elements.quickPopoverMenus = document.getElementById('quick-popover-menus');
+  elements.quickPopoverSignIn = document.getElementById('quick-popover-sign-in');
+  elements.quickPopoverAccount = document.getElementById('quick-popover-account');
   elements.authModal = document.getElementById('auth-modal');
 
   // Unified User Account & Vault Settings Page / View Elements
@@ -204,6 +209,7 @@ export function initElements() {
   elements.accountSyncTime = document.getElementById('account-sync-time');
   elements.btnSyncNow = document.getElementById('btn-sync-now');
   elements.btnGuestSignIn = document.getElementById('btn-guest-sign-in');
+  elements.newDrinkShortcut = document.getElementById('shortcut-new-drink');
   elements.customRiffsShortcut = document.getElementById('shortcut-custom-riffs');
   elements.hiddenCocktailsShortcut = document.getElementById('shortcut-hidden-cocktails');
   elements.menusShortcut = document.getElementById('shortcut-menus');
