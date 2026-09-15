@@ -90,6 +90,8 @@ export function renderCurrentView() {
       }
       if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
       if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
+      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
+      if (elements.accountViewContainer) elements.accountViewContainer.style.display = 'none';
       if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'block';
       if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
       if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';

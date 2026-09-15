@@ -12,12 +12,12 @@
  * *outer* index.css?v=NN is bumped or how hard the page is refreshed.
  * Bump a file's own number here whenever you edit it.
  */
-@import url('./layout.css?v=1');
+@import url('./layout.css?v=2');
 @import url('./recipe-list.css?v=1');
-@import url('./counter-view.css?v=2');
-@import url('./home-view.css?v=1');
+@import url('./counter-view.css?v=3');
+@import url('./home-view.css?v=2');
 @import url('./menu-builder-view.css?v=1');
 @import url('./editor.css?v=1');
-@import url('./modals.css?v=1');
-@import url('./responsive.css?v=1');
+@import url('./modals.css?v=2');
+@import url('./responsive.css?v=3');
 
