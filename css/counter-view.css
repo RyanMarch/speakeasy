@@ -11,11 +11,29 @@
 
 /* Counter View: Editorial Cocktail Book Spread */
 .counter-view {
-  max-width: 980px;
+  /* Fluid, same shape as .home-view's cap — but unlike Home, the extra room
+     here does NOT go to the ingredient/method text column (see .specs-column's
+     own max-width below): a wider text column is worse to read, not better.
+     Instead it flows into .glass-column (--glass-column-width, growing the
+     illustration itself) and the gap between the two columns (see the
+     min-width:1300px rule on .counter-grid) — the parts of this page where
+     "more room" reads as more breathing room instead of a longer line length.
+     --view-max-width is what the shared --shelf-bleed rule in responsive.css
+     reads for this container's own shelves (its "Similar Cocktails" row). */
+  --view-max-width: clamp(980px, 85vw, 1450px);
+  max-width: var(--view-max-width);
   width: 100%;
   margin: 0 auto 2rem;
   min-width: 0;
   animation: fadeIn 200ms ease;
+
+  /* Read by .counter-grid's first column and everything sized to match it
+     (.glass-wrapper, .glass-meta-card, .flavor-radar-card) — the glass
+     illustration itself grows on wide screens instead of just sitting in a
+     bigger empty gutter. 260px is the original fixed size (matches every
+     glassware viewBox's authored proportions); 360px is generous without
+     making the glass so large it overpowers the text column beside it. */
+  --glass-column-width: clamp(260px, calc(260px + (100vw - 980px) * 0.09), 360px);
 }
 
 .counter-mobile-bar {
@@ -49,8 +67,14 @@
 }
 
 .drink-name {
+  /* Identical styling to .home-stats-name (Home's page title) by design — see
+     the comment there — including growing together on wide screens via the
+     shared --fluid-page-title-size token (theme-deco.css). Deliberately grows
+     even though .specs-column stays capped (see the comment on .counter-view):
+     a single large heading doesn't hurt line length the way a wider
+     ingredient/method text column would. */
   font-family: var(--font-sans);
-  font-size: 2.35rem;
+  font-size: var(--fluid-page-title-size);
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--color-text);
@@ -587,11 +611,23 @@
 /* Stage Split: Glass on Left, Specs on Right */
 .counter-grid {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: var(--glass-column-width) minmax(0, 1fr);
   gap: 3.5rem;
   align-items: start;
   min-width: 0;
   width: 100%;
+}
+
+/* Past 1300px there's reliably enough room for --glass-column-width to have
+   grown past its 260px floor (see .counter-view) — widen the gap between the
+   two columns to match, so the extra space this page's cap now allows reads
+   as intentional breathing room around a bigger glass, not just a wider gutter
+   between the same two elements. Declared after the base rule above (not
+   !important) so plain cascade order does the overriding. */
+@media (min-width: 1300px) {
+  .counter-grid {
+    gap: 6rem;
+  }
 }
 
 /* Vector Glass Column */
@@ -601,13 +637,13 @@
   position: sticky;
   top: 0;
   align-items: center;
-  width: 260px;
+  width: var(--glass-column-width);
   min-width: 0;
 }
 
 .glass-wrapper {
   width: 100%;
-  max-width: 260px;
+  max-width: var(--glass-column-width);
   /* Height is set per-glass by GlassView (aspect-ratio, from the glassware's
      own cropped viewBox) so a short glass like a coupe doesn't reserve the
      same vertical space as a tall one like a highball. This is just a sane
@@ -1059,7 +1095,7 @@
 
 .glass-meta-card {
   width: 100%;
-  max-width: 260px;
+  max-width: var(--glass-column-width);
   margin-top: -0.65rem;
   background: transparent;
   border: none;
@@ -1209,6 +1245,16 @@
   flex-direction: column;
   gap: 0;
   min-width: 0;
+  /* Capped independent of .counter-grid's own (now fluid) track width — a
+     wider ingredient/method text column reads worse, not better, on a big
+     screen (see the comment on .counter-view). 700px is a deliberate, modest
+     bump over this column's natural ~664px width at the 980px floor, matching
+     the ingredient text's own slightly larger sizing rather than a dramatic
+     widening. Past that, this column simply doesn't stretch to fill its grid
+     track — the extra space reads as intentional whitespace to its right,
+     the same way a lot of editorial layouts leave a fixed-width text column
+     short of a wider page. */
+  max-width: 700px;
 }
 
 .counter-card {
@@ -1951,7 +1997,7 @@
    is ever visible at a time; see the breakpoint rules further down. */
 .flavor-radar-card {
   width: 100%;
-  max-width: 260px;
+  max-width: var(--glass-column-width);
   margin-top: 1.25rem;
   padding: 0.5rem 1.8rem 0.1rem;
   background: var(--color-surface-card);

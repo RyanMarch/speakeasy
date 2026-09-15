@@ -74,6 +74,22 @@
 
   /* Fluid — see the matching declaration/comment in base.css. */
   --sidebar-width: clamp(295px, calc(295px + (100vw - 860px) * 0.125), 350px);
+
+  /* Fluid Typography — grows past the 980px width where .home-view/.counter-view
+     stop being flat-capped (see --view-max-width in home-view.css/counter-view.css)
+     up to a ceiling at 1500px, past which a bigger window is just more page, not
+     a reason for bigger type. Same clamp()-of-a-calc() shape as --sidebar-width
+     above, so both scale in lockstep rather than on independent, driftable curves.
+     Shared by .home-stats-name and .drink-name specifically because those two are
+     designed to always look identical (see the comment on .home-stats-name) — a
+     shared token is what keeps that true as this grows, rather than two separate
+     clamp() expressions that could drift apart on a future edit to only one.
+     Compounds with the flat root-font-size step above 1440px (also this file) —
+     that step scales every rem value on the page uniformly as a baseline "go
+     wild" gesture, while this adds extra emphasis specifically to the two page
+     titles and the stat numbers on top of it. */
+  --fluid-page-title-size: clamp(2.35rem, calc(2.35rem + (100vw - 980px) * 0.0123), 2.75rem);
+  --fluid-stat-number-size: clamp(1.3rem, calc(1.3rem + (100vw - 980px) * 0.00615), 1.5rem);
 }
 
 *,
@@ -89,6 +105,26 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   touch-action: manipulation;
+}
+
+/* Every font-size in the component stylesheets is a rem value against this
+   root, so scaling the root is the one lever that grows all of them together
+   — a new rule written in rem (already the convention here) picks this up
+   automatically, with no per-component opt-in to remember or come back to
+   later. Only above 1440px (a 13"-15" laptop, not just a wider window on the
+   same size screen) does 16px start reading small for how much room there
+   actually is. A flat step rather than a vw-driven clamp() deliberately —
+   --sidebar-width and --shelf-bleed (responsive.css) already recompute live
+   off vw during a resize, and this touches every rem value on the page (every
+   font-size, gap, padding, margin), so making it a third live vw source here
+   was the single biggest contributor to resize-time layout cost, including
+   surfacing a Safari bug where those custom properties stop being
+   re-evaluated mid-drag. A fixed jump at one breakpoint only recomputes once,
+   on crossing it, not continuously on every resize frame. */
+@media (min-width: 1440px) {
+  html {
+    font-size: 18px;
+  }
 }
 
 body {
