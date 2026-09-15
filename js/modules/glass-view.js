@@ -147,6 +147,26 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
     />
   ` : '';
 
+  // Detect effervescence / sparkling ingredients (club soda, tonic, prosecco, champagne, sparkling wine, ginger beer, cola)
+  const sparklingKeywords = ['soda', 'tonic', 'prosecco', 'champagne', 'sparkling', 'seltzer', 'ginger beer', 'ginger ale', 'cola'];
+  const hasSparkle = (recipe?.specs || []).some(s => {
+    const n = (s?.name || '').toLowerCase();
+    return sparklingKeywords.some(kw => n.includes(kw));
+  });
+
+  const effervescenceHtml = (hasSparkle && layers.length > 0) ? `
+    <!-- Ambient Effervescence: streams of micro-bubbles rising from depths to surface -->
+    <g class="fluid-effervescence" pointer-events="none">
+      <circle class="fluid-bubble fluid-bubble-1" cx="108" cy="${(fluidBottomY - 14).toFixed(1)}" r="1.3" fill="rgba(255, 255, 255, 0.65)" />
+      <circle class="fluid-bubble fluid-bubble-2" cx="126" cy="${(fluidBottomY - 8).toFixed(1)}" r="1.6" fill="rgba(255, 255, 255, 0.6)" />
+      <circle class="fluid-bubble fluid-bubble-3" cx="114" cy="${(fluidBottomY - 24).toFixed(1)}" r="1.2" fill="rgba(255, 255, 255, 0.68)" />
+      <circle class="fluid-bubble fluid-bubble-4" cx="132" cy="${(fluidBottomY - 18).toFixed(1)}" r="1.5" fill="rgba(255, 255, 255, 0.62)" />
+      <circle class="fluid-bubble fluid-bubble-5" cx="102" cy="${(fluidBottomY - 32).toFixed(1)}" r="1.1" fill="rgba(255, 255, 255, 0.58)" />
+      <circle class="fluid-bubble fluid-bubble-6" cx="120" cy="${(fluidBottomY - 40).toFixed(1)}" r="1.4" fill="rgba(255, 255, 255, 0.65)" />
+      <circle class="fluid-bubble fluid-bubble-7" cx="138" cy="${(fluidBottomY - 28).toFixed(1)}" r="1.2" fill="rgba(255, 255, 255, 0.6)" />
+    </g>
+  ` : '';
+
   // Glass reflections and sheen
   const glassSheen = `
     <!-- Specular reflection along left wall (tailored to glassware geometry) -->
@@ -219,6 +239,9 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
         <g class="fluid-blended-group">
           ${blendedLiquidHtml}
         </g>
+
+        <!-- Ambient Effervescence -->
+        ${effervescenceHtml}
 
         <!-- Common Surface Meniscus -->
         ${surfaceMeniscus}
