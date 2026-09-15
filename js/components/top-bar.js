@@ -606,6 +606,23 @@ export function handleFileImport(e) {
 }
 
 /**
+ * True when the header is in its mobile layout — i.e. Sign In / the profile
+ * pill are the only way left to reach the header's actions, since there's no
+ * room for #btn-new-drink there too. Can't test #btn-new-drink's own
+ * computed display for this: several view modes (account, edit, menu-builder,
+ * shared-recipe) hide it with an inline style for reasons that have nothing
+ * to do with viewport width, which would make this true at any width while
+ * one of those views is open. .brand-subtitle is a plain CSS-only, JS-untouched
+ * responsive rule (see responsive.css), so its computed display reflects
+ * viewport width alone — reading it here instead of duplicating responsive.css's
+ * breakpoint as a number keeps the two from drifting out of sync.
+ */
+function isMobileHeaderLayout() {
+  const brandSubtitle = document.querySelector('.brand-subtitle');
+  return !!brandSubtitle && getComputedStyle(brandSubtitle).display === 'none';
+}
+
+/**
  * Set up top bar and vault settings modal event listeners
  */
 export function setupTopBarEventListeners() {
@@ -626,8 +643,59 @@ export function setupTopBarEventListeners() {
     openVaultSettingsModal();
   });
 
+  // On mobile, the profile pill opens the same quick-actions popover as Sign
+  // In above rather than jumping straight into the full Settings page — see
+  // isMobileHeaderLayout(). Desktop keeps going straight to Settings, since
+  // New Drink already has its own always-visible button there.
   elements.btnUserPill?.addEventListener('click', () => {
+    if (isMobileHeaderLayout()) {
+      elements.headerQuickPopover?.togglePopover();
+      return;
+    }
     openVaultSettingsModal();
+  });
+
+  // Mobile Header Quick Actions Popover
+  elements.quickPopoverNewDrink?.addEventListener('click', () => {
+    elements.headerQuickPopover?.hidePopover();
+    if (_openEditorFn) _openEditorFn(null);
+  });
+
+  elements.quickPopoverMenus?.addEventListener('click', () => {
+    elements.headerQuickPopover?.hidePopover();
+    window.location.hash = '#menus';
+  });
+
+  elements.quickPopoverSignIn?.addEventListener('click', () => {
+    elements.headerQuickPopover?.hidePopover();
+    if (_openAuthModalFn) _openAuthModalFn();
+  });
+
+  elements.quickPopoverAccount?.addEventListener('click', () => {
+    elements.headerQuickPopover?.hidePopover();
+    openVaultSettingsModal();
+  });
+
+  // CSS anchor positioning isn't reliably supported everywhere yet (see the
+  // identical comment on #counter-more-popover) — position from whichever
+  // trigger is actually visible (Sign In for a guest, the profile pill once
+  // signed in) instead.
+  elements.headerQuickPopover?.addEventListener('toggle', (e) => {
+    if (e.newState !== 'open') return;
+    const trigger = elements.btnUserPill?.offsetParent ? elements.btnUserPill : elements.btnSignIn;
+    if (!trigger) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const popoverRect = elements.headerQuickPopover.getBoundingClientRect();
+    const margin = 8;
+
+    let left = triggerRect.right - popoverRect.width;
+    left = Math.max(margin, Math.min(left, window.innerWidth - popoverRect.width - margin));
+    const top = Math.min(triggerRect.bottom + margin, window.innerHeight - popoverRect.height - margin);
+
+    elements.headerQuickPopover.style.top = `${Math.max(margin, top)}px`;
+    elements.headerQuickPopover.style.left = `${left}px`;
+    elements.headerQuickPopover.style.right = 'auto';
   });
 
   elements.btnAccountBack?.addEventListener('click', () => {
@@ -754,6 +822,11 @@ export function setupTopBarEventListeners() {
   });
 
   // Library & Custom Recipe Shortcuts
+  elements.newDrinkShortcut?.addEventListener('click', () => {
+    closeVaultSettingsModal();
+    if (_openEditorFn) _openEditorFn(null);
+  });
+
   elements.customRiffsShortcut?.addEventListener('click', () => {
     closeVaultSettingsModal();
     state.packFilter = 'riff';
@@ -1070,8 +1143,15 @@ export function setupTopBarEventListeners() {
     if (_openBackbarModalFn) _openBackbarModalFn();
   });
 
-  // Header Sign In button
+  // Header Sign In button — on mobile (where #btn-new-drink is hidden and
+  // there's otherwise no way to reach "New Drink" without first landing in
+  // the Sign In flow), open the quick-actions popover instead of jumping
+  // straight into auth.
   elements.btnSignIn?.addEventListener('click', () => {
+    if (isMobileHeaderLayout()) {
+      elements.headerQuickPopover?.togglePopover();
+      return;
+    }
     if (_openAuthModalFn) _openAuthModalFn();
   });
 
@@ -1111,6 +1191,14 @@ export function updateAuthIndicator() {
 
   if (elements.btnUserPill) {
     elements.btnUserPill.style.display = loggedIn ? 'inline-flex' : 'none';
+  }
+
+  if (elements.quickPopoverSignIn) {
+    elements.quickPopoverSignIn.style.display = loggedIn ? 'none' : 'flex';
+  }
+
+  if (elements.quickPopoverAccount) {
+    elements.quickPopoverAccount.style.display = loggedIn ? 'flex' : 'none';
   }
 
   if (loggedIn && user) {

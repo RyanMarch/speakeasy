@@ -701,6 +701,44 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
   margin-left: -0.1rem;
 }
 
+/* Mobile Header Quick Actions Popover (New Drink / Sign In / Account) —
+   same native-popover recipe as .counter-more-popover: JS positions it from
+   the actual trigger's rect on the popover's own `toggle` event (see
+   top-bar.js) rather than relying on CSS anchor-positioning support. */
+.header-quick-popover {
+  margin: 0;
+  padding: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(28, 26, 23, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--color-text);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  width: 240px;
+  z-index: 1000;
+
+  inset: auto;
+  top: 3.5rem;
+  right: 0.75rem;
+
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  transition: opacity var(--transition-fast), transform var(--transition-fast), display var(--transition-fast) allow-discrete, overlay var(--transition-fast) allow-discrete;
+}
+
+.header-quick-popover:popover-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@starting-style {
+  .header-quick-popover:popover-open {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
 /* User Profile Popover */
 .auth-user-popover {
   margin: 0;
