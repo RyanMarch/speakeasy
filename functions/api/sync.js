@@ -151,6 +151,8 @@ export async function onRequestPost(context) {
       const description = typeof r.description === 'string' ? r.description : null;
       const notes = typeof r.notes === 'string' ? r.notes : null;
       const garnish = typeof r.garnish === 'string' ? r.garnish : null;
+      const source = typeof r.source === 'string' ? r.source : null;
+      const sourceUrl = typeof r.sourceUrl === 'string' ? r.sourceUrl : null;
       const riffOfId = r.riffOfId || r.riff_of_id || null;
       const riffOfName = r.riffOfName || r.riff_of_name || null;
       const tags = JSON.stringify(Array.isArray(r.tags) ? r.tags : []);
@@ -160,8 +162,8 @@ export async function onRequestPost(context) {
         env.speakeasy_db.prepare(
           `INSERT INTO custom_recipes (
              id, user_id, name, glassware, method, specs, instructions,
-             description, notes, garnish, riff_of_id, riff_of_name, tags, is_public, updated_at
-           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+             description, notes, garnish, source, source_url, riff_of_id, riff_of_name, tags, is_public, updated_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
            ON CONFLICT(id) DO UPDATE SET
              name = excluded.name,
              glassware = excluded.glassware,
@@ -171,6 +173,8 @@ export async function onRequestPost(context) {
              description = excluded.description,
              notes = excluded.notes,
              garnish = excluded.garnish,
+             source = excluded.source,
+             source_url = excluded.source_url,
              riff_of_id = excluded.riff_of_id,
              riff_of_name = excluded.riff_of_name,
              tags = excluded.tags,
@@ -188,6 +192,8 @@ export async function onRequestPost(context) {
           description,
           notes,
           garnish,
+          source,
+          sourceUrl,
           riffOfId,
           riffOfName,
           tags,
@@ -314,7 +320,7 @@ export async function onRequestGet(context) {
 
   // 3. Query custom recipes
   const recipeRows = await env.speakeasy_db.prepare(
-    `SELECT id, name, glassware, method, specs, instructions, description, notes, garnish, riff_of_id, riff_of_name, tags, is_public
+    `SELECT id, name, glassware, method, specs, instructions, description, notes, garnish, source, source_url, riff_of_id, riff_of_name, tags, is_public
      FROM custom_recipes WHERE user_id = ?`
   ).bind(userId).all();
 
@@ -341,6 +347,8 @@ export async function onRequestGet(context) {
       description: r.description || '',
       notes: r.notes || '',
       garnish: r.garnish || '',
+      source: r.source || '',
+      sourceUrl: r.source_url || '',
       riffOfId: r.riff_of_id || null,
       riffOfName: r.riff_of_name || '',
       tags,
@@ -368,7 +376,7 @@ export async function onRequestGet(context) {
 
   try {
     const globalRows = await env.speakeasy_db.prepare(
-      `SELECT id, name, glassware, method, specs, instructions, description, notes, garnish, riff_of_id, riff_of_name, tags
+      `SELECT id, name, glassware, method, specs, instructions, description, notes, garnish, source, source_url, riff_of_id, riff_of_name, tags
        FROM global_recipes`
     ).all();
 
@@ -387,6 +395,8 @@ export async function onRequestGet(context) {
         description: r.description || '',
         notes: r.notes || '',
         garnish: r.garnish || '',
+        source: r.source || '',
+        sourceUrl: r.source_url || '',
         riffOfId: r.riff_of_id || null,
         riffOfName: r.riff_of_name || '',
         tags,

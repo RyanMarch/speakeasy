@@ -89,9 +89,9 @@ class MockD1PreparedStatement {
 
     // INSERT INTO global_recipes
     if (sql.includes('INSERT INTO global_recipes')) {
-      const [id, name, glassware, method, specs, instructions, description, notes, riff_of_id, riff_of_name, tags, published_by] = params;
+      const [id, name, glassware, method, specs, instructions, description, notes, garnish, source, source_url, riff_of_id, riff_of_name, tags, published_by] = params;
       this.db.tables.global_recipes.set(id, {
-        id, name, glassware, method, specs, instructions, description, notes, riff_of_id, riff_of_name, tags, published_by,
+        id, name, glassware, method, specs, instructions, description, notes, garnish, source, source_url, riff_of_id, riff_of_name, tags, published_by,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
