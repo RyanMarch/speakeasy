@@ -4,8 +4,11 @@
 
 import {
   getPinnedTags,
+  getHomeCollectionsOrder,
+  getHiddenHomeCollections,
   getUnitPreference,
   getGlassViewPreference,
+  getFunPreference,
   getInventory,
   getSortPreference,
   getBars,
@@ -49,8 +52,11 @@ export const state = {
   viewMode: 'counter', // 'home' | 'counter' | 'edit' | 'menu-builder' | 'account' | 'shared-recipe'
   pendingShareId: null, // share id to render when viewMode === 'shared-recipe'
   pinnedTags: getPinnedTags(),
+  homeCollectionsOrder: getHomeCollectionsOrder(),
+  hiddenHomeCollections: new Set(getHiddenHomeCollections()),
   unitSystem: getUnitPreference(), // 'oz' | 'ml'
   glassViewMode: getGlassViewPreference(), // 'layered' | 'blended'
+  funAnimations: getFunPreference(), // boolean (default true)
   servings: 1, // Serving multiplier (default 1, increments by 0.5)
   editorSpecs: [],
   editorTags: [],
@@ -217,6 +223,7 @@ export function initElements() {
   elements.countHiddenCocktails = document.getElementById('count-hidden-cocktails');
   elements.countSavedMenus = document.getElementById('count-saved-menus');
   elements.btnWakeLockToggle = document.getElementById('wake-lock-toggle');
+  elements.btnFunToggle = document.getElementById('fun-toggle');
   elements.btnAccountSignOut = document.getElementById('btn-account-sign-out');
   elements.btnDangerResetLocal = document.getElementById('btn-danger-reset-local');
   elements.btnDangerDeleteAccount = document.getElementById('btn-danger-delete-account');

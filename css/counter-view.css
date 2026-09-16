@@ -948,10 +948,10 @@
     opacity: 0;
   }
   15% {
-    opacity: 0.75;
+    opacity: 0.95;
   }
   85% {
-    opacity: 0.7;
+    opacity: 0.9;
   }
   100% {
     transform: translateY(-44px);
@@ -965,10 +965,10 @@
     opacity: 0;
   }
   20% {
-    opacity: 0.7;
+    opacity: 0.9;
   }
   80% {
-    opacity: 0.65;
+    opacity: 0.85;
   }
   100% {
     transform: translateY(-56px);
@@ -982,10 +982,10 @@
     opacity: 0;
   }
   10% {
-    opacity: 0.8;
+    opacity: 0.95;
   }
   90% {
-    opacity: 0.6;
+    opacity: 0.85;
   }
   100% {
     transform: translateY(-50px);
@@ -995,6 +995,7 @@
 
 .fluid-bubble {
   transform-box: fill-box;
+  filter: drop-shadow(0 1px 1.5px rgba(10, 20, 35, 0.4));
 }
 
 .fluid-bubble-1 {
@@ -1034,6 +1035,115 @@
 @media (prefers-reduced-motion: reduce) {
   .fluid-bubble {
     animation: none;
+  }
+}
+
+/* Ambient Flamed Citrus Peel Embers & Micro-Sparks
+   Charred aromatic warmth glow and occasional micro-spark spurts.
+-------------------------------------------------------------------------- */
+
+@keyframes flamedEmberGlow {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+}
+
+@keyframes flamedSparkDrift1 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-1px, -4px) scale(1);
+  }
+  70% {
+    opacity: 0.8;
+    transform: translate(-3px, -14px) scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-4px, -20px) scale(0);
+  }
+}
+
+@keyframes flamedSparkDrift2 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.95;
+    transform: translate(2px, -5px) scale(1);
+  }
+  75% {
+    opacity: 0.7;
+    transform: translate(4px, -15px) scale(0.75);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(5px, -22px) scale(0);
+  }
+}
+
+@keyframes flamedSparkDrift3 {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+    transform: translate(0, -6px) scale(1.1);
+  }
+  80% {
+    opacity: 0.75;
+    transform: translate(-1px, -18px) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-2px, -26px) scale(0);
+  }
+}
+
+.peel-ember-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: flamedEmberGlow 4.2s ease-in-out infinite;
+}
+
+.peel-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.peel-spark-1 {
+  animation: flamedSparkDrift1 6.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  animation-delay: -1.2s;
+}
+
+.peel-spark-2 {
+  animation: flamedSparkDrift2 7.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  animation-delay: -3.8s;
+}
+
+.peel-spark-3 {
+  animation: flamedSparkDrift3 8.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  animation-delay: -5.9s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peel-ember-glow,
+  .peel-spark {
+    animation: none !important;
   }
 }
 
@@ -2563,4 +2673,20 @@
   transform: translateY(0);
   background: rgba(212, 163, 89, 0.3);
   box-shadow: 0 0 6px rgba(212, 163, 89, 0.4);
+}
+
+/* "More Fun" Preference Disabled / Static Mode
+   Disables infinite ambient animations, effervescence bubbles, smoke, embers,
+   sparks, and swirl transitions across glassware.
+-------------------------------------------------------------------------- */
+.animations-disabled .fluid-bubble,
+.animations-disabled .garnish-smoke-wave,
+.animations-disabled .garnish-smoke-puff,
+.animations-disabled .garnish-smoke-shimmer,
+.animations-disabled .peel-ember-glow,
+.animations-disabled .peel-spark,
+.animations-disabled .speakeasy-glass-svg.is-blending-forward,
+.animations-disabled .speakeasy-glass-svg.is-blending-forward .fluid-stack,
+.animations-disabled .speakeasy-glass-svg.is-blending-backward {
+  animation: none !important;
 }

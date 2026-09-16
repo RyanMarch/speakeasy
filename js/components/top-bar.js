@@ -2,7 +2,7 @@
  * Speakeasy Top Bar & Vault Settings Popover Component
  */
 
-import { state, elements, SEED_RECIPE_IDS, resyncBarState, switchActiveBar } from '../state.js';
+import { state, elements, SEED_RECIPE_IDS, HOME_DEFAULT_COLLECTIONS, resyncBarState, switchActiveBar } from '../state.js';
 import {
   saveUnitPreference,
   saveGlassViewPreference,
@@ -20,6 +20,8 @@ import {
   getGlassViewPreference,
   getWakeLockPreference,
   saveWakeLockPreference,
+  getFunPreference,
+  saveFunPreference,
   getMenus,
   exportData,
   importData,
@@ -33,6 +35,8 @@ import {
   saveAvatarRecipeId,
   getAllUniqueTags,
   savePinnedTags,
+  saveHomeCollectionsOrder,
+  saveHiddenHomeCollections,
   normalizeTagName,
 } from '../modules/storage.js';
 import { renderGlassSvg } from '../modules/glass-view.js';
@@ -50,26 +54,95 @@ import {
   updateDisplayName,
   AUTH_EVENT_NAME,
 } from '../modules/auth.js';
-import { getDrinkHistory } from '../modules/history.js';
+import { getDrinkHistory, HISTORY_UPDATED_EVENT } from '../modules/history.js';
 import { openHiddenModal, closeHiddenModal } from './hidden-modal.js';
 import { closeBackbarModal } from './backbar-modal.js';
 import { closeAuthModal } from './auth-modal.js';
-import { showToast, escapeHtml } from './toast.js';
+import { showToast, showLevelUpCelebration, escapeHtml } from './toast.js';
+
+export const MIXOLOGIST_RANKS = [
+  { threshold: 1000, title: 'Living Legend' },
+  { threshold: 890, title: 'Grand Conservator' },
+  { threshold: 780, title: 'Blind-Tasting Savant' },
+  { threshold: 680, title: 'Copper & Oak' },
+  { threshold: 590, title: 'Cellar Master' },
+  { threshold: 510, title: 'Speakeasy Proprietor' },
+  { threshold: 440, title: 'The Maestro' },
+  { threshold: 380, title: 'Master Distiller' },
+  { threshold: 325, title: 'Liquid Architect' },
+  { threshold: 275, title: 'The Alchemist' },
+  { threshold: 230, title: 'Spirits Connoisseur' },
+  { threshold: 190, title: 'Head Mixologist' },
+  { threshold: 155, title: 'Palate Detective' },
+  { threshold: 125, title: 'The House Host' },
+  { threshold: 100, title: 'Tin Shaker' },
+  { threshold: 78, title: 'Bartender' },
+  { threshold: 60, title: 'Day-Shift Pourer' },
+  { threshold: 45, title: 'Rum Runner' },
+  { threshold: 32, title: 'Bootlegger' },
+  { threshold: 20, title: 'Barback' },
+  { threshold: 12, title: 'Apprentice' },
+  { threshold: 5, title: 'Soda Jerk' },
+  { threshold: 0, title: 'Cocktail Curious' }
+];
+
+const LAST_SEEN_RANK_KEY = 'speakeasy_last_seen_rank_score';
 
 /**
- * Calculates mixologist rank based on drinks poured and custom riffs created.
+ * Returns detailed mixologist rank metrics including score and next threshold.
  */
-function getMixologistRank() {
+export function getMixologistRankDetails() {
   const historyEntries = Array.isArray(getDrinkHistory()) ? getDrinkHistory() : [];
   const drinksPoured = historyEntries.length;
-  const customRiffs = state.recipes.filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
-  const totalScore = drinksPoured + (customRiffs * 2);
+  const customRiffs = (state.recipes || []).filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
+  const uniquePoured = new Set(historyEntries.map(h => h.recipeId || h.id).filter(Boolean)).size;
 
-  if (totalScore >= 50) return 'Master Distiller';
-  if (totalScore >= 20) return 'Head Mixologist';
-  if (totalScore >= 8) return 'Bartender';
-  if (totalScore >= 3) return 'Barback';
-  return 'Apprentice';
+  const totalScore = (drinksPoured * 2)
+    + (uniquePoured * 3)
+    + Math.min(customRiffs * 3, 30)
+    + Math.min(state.inventory ? state.inventory.size : 0, 25);
+
+  const currentIndex = MIXOLOGIST_RANKS.findIndex(r => totalScore >= r.threshold);
+  const currentRank = MIXOLOGIST_RANKS[currentIndex] || MIXOLOGIST_RANKS[MIXOLOGIST_RANKS.length - 1];
+  const nextRank = currentIndex > 0 ? MIXOLOGIST_RANKS[currentIndex - 1] : null;
+
+  return {
+    title: currentRank.title,
+    threshold: currentRank.threshold,
+    score: totalScore,
+    nextRank: nextRank ? nextRank.title : null,
+    pointsToNext: nextRank ? nextRank.threshold - totalScore : 0,
+  };
+}
+
+/**
+ * Checks whether user has leveled up since last recorded rank threshold.
+ * Shows celebration toast if level increased.
+ */
+export function checkMixologistRankPromotion() {
+  const details = getMixologistRankDetails();
+  try {
+    const rawPrev = localStorage.getItem(LAST_SEEN_RANK_KEY);
+    if (rawPrev !== null) {
+      const prevThreshold = Number(rawPrev);
+      if (!isNaN(prevThreshold) && details.threshold > prevThreshold) {
+        const prevRank = MIXOLOGIST_RANKS.find(r => r.threshold === prevThreshold);
+        showLevelUpCelebration(details.title, {
+          previousRankTitle: prevRank ? prevRank.title : null,
+        });
+      }
+    }
+    localStorage.setItem(LAST_SEEN_RANK_KEY, String(details.threshold));
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+/**
+ * Calculates mixologist rank title based on drinks poured, variety, and custom riffs created.
+ */
+export function getMixologistRank() {
+  return getMixologistRankDetails().title;
 }
 
 let _goHomeFn = null;
@@ -187,32 +260,147 @@ export function closeVaultSettingsModal() {
 /**
  * Populates and refreshes all 6 sections of the User Account & Vault Settings modal
  */
+export function getUnifiedHomeCollectionsList() {
+  const pinnedSet = new Set(state.pinnedTags);
+  const defaultKeys = new Set(HOME_DEFAULT_COLLECTIONS.map(c => c.key));
+
+  let order = state.homeCollectionsOrder;
+  if (!Array.isArray(order) || order.length === 0) {
+    order = [
+      '__recently-viewed__',
+      '__recently-made__',
+      ...state.pinnedTags,
+      ...HOME_DEFAULT_COLLECTIONS.map(c => c.key),
+    ];
+  } else {
+    // Ensure all known items exist in order array
+    const existing = new Set(order);
+    const missing = [];
+    if (!existing.has('__recently-viewed__')) missing.push('__recently-viewed__');
+    if (!existing.has('__recently-made__')) missing.push('__recently-made__');
+    for (const t of state.pinnedTags) {
+      if (!existing.has(t)) missing.push(t);
+    }
+    for (const c of HOME_DEFAULT_COLLECTIONS) {
+      if (!existing.has(c.key)) missing.push(c.key);
+    }
+    if (missing.length > 0) {
+      order = [...order, ...missing];
+    }
+  }
+
+  const items = [];
+  const processed = new Set();
+
+  for (const key of order) {
+    if (processed.has(key)) continue;
+    processed.add(key);
+
+    if (key === '__recently-viewed__') {
+      items.push({
+        key,
+        title: 'Recently Viewed',
+        type: 'history',
+        badge: 'History',
+        canRemove: false,
+        canToggle: true,
+        canReorder: false,
+        isHidden: state.hiddenHomeCollections.has(key),
+      });
+    } else if (key === '__recently-made__') {
+      items.push({
+        key,
+        title: 'Recently Made',
+        type: 'history',
+        badge: 'History',
+        canRemove: false,
+        canToggle: true,
+        canReorder: false,
+        isHidden: state.hiddenHomeCollections.has(key),
+      });
+    } else if (defaultKeys.has(key)) {
+      const def = HOME_DEFAULT_COLLECTIONS.find(c => c.key === key);
+      items.push({
+        key,
+        title: def ? def.title : formatTagTitle(key),
+        type: 'default',
+        badge: 'Default',
+        canRemove: false,
+        canToggle: true,
+        canReorder: true,
+        isHidden: state.hiddenHomeCollections.has(key),
+      });
+    } else if (pinnedSet.has(key)) {
+      items.push({
+        key,
+        title: formatTagTitle(key),
+        type: 'pinned',
+        badge: 'Tag',
+        canRemove: true,
+        canToggle: false,
+        canReorder: true,
+        isHidden: false,
+      });
+    }
+  }
+
+  return items;
+}
+
 /**
- * Renders the "Pinned Home Collections" list in the Account & Vault Settings
- * modal: one row per pinned tag with up/down reorder and remove controls,
- * matching state.pinnedTags order (the same order Home renders its shelves in).
+ * Renders the "Pinned Home Collections" list in the Account & Vault Settings modal
  */
 function renderPinnedTagsList() {
   const listEl = document.getElementById('vault-pinned-tags-list');
   if (!listEl) return;
 
-  if (state.pinnedTags.length === 0) {
-    listEl.innerHTML = /*html*/`<li class="vault-pinned-tags-empty">No pinned collections yet — pin a tag below to add one.</li>`;
+  const items = getUnifiedHomeCollectionsList();
+  if (items.length === 0) {
+    listEl.innerHTML = /*html*/`<li class="vault-pinned-tags-empty">No collections available.</li>`;
     return;
   }
 
-  listEl.innerHTML = state.pinnedTags.map((tag, idx) => {
-    const title = formatTagTitle(tag);
+  const reorderableItems = items.filter(it => it.canReorder);
+
+  listEl.innerHTML = items.map((item) => {
+    const title = item.title;
+    const reorderIdx = reorderableItems.findIndex(it => it.key === item.key);
+    const isFirstReorderable = reorderIdx === 0;
+    const isLastReorderable = reorderIdx === reorderableItems.length - 1;
+
     return /*html*/`
-    <li class="vault-pinned-tag-row" data-tag="${escapeHtml(tag)}">
-      <span class="vault-pinned-tag-name">${escapeHtml(title)}</span>
+    <li class="vault-pinned-tag-row ${item.isHidden ? 'is-hidden' : ''}" data-key="${escapeHtml(item.key)}" data-type="${escapeHtml(item.type)}">
+      <div class="vault-pinned-tag-meta">
+        <span class="vault-pinned-tag-name" title="${escapeHtml(title)}">${escapeHtml(title)}</span>
+        <span class="vault-pinned-tag-badge ${item.type === 'default' ? 'badge-default' : ''}">${escapeHtml(item.badge)}</span>
+      </div>
       <div class="vault-pinned-tag-actions">
-        <button type="button" class="vault-reorder-btn" data-action="pin-move-up" data-tag="${escapeHtml(tag)}"
-          aria-label="Move ${escapeHtml(title)} up" ${idx === 0 ? 'disabled' : ''}>&uarr;</button>
-        <button type="button" class="vault-reorder-btn" data-action="pin-move-down" data-tag="${escapeHtml(tag)}"
-          aria-label="Move ${escapeHtml(title)} down" ${idx === state.pinnedTags.length - 1 ? 'disabled' : ''}>&darr;</button>
-        <button type="button" class="vault-pinned-tag-remove" data-action="pin-remove" data-tag="${escapeHtml(tag)}"
-          aria-label="Unpin ${escapeHtml(title)}">&times;</button>
+        ${item.canReorder ? `
+          <button type="button" class="vault-reorder-btn" data-action="collection-move-up" data-key="${escapeHtml(item.key)}"
+            aria-label="Move ${escapeHtml(title)} up" ${isFirstReorderable ? 'disabled' : ''}>&uarr;</button>
+          <button type="button" class="vault-reorder-btn" data-action="collection-move-down" data-key="${escapeHtml(item.key)}"
+            aria-label="Move ${escapeHtml(title)} down" ${isLastReorderable ? 'disabled' : ''}>&darr;</button>
+        ` : ''}
+        ${item.canToggle ? `
+          <button type="button" class="vault-pinned-tag-toggle" data-action="collection-toggle-hide" data-key="${escapeHtml(item.key)}"
+            aria-label="${item.isHidden ? 'Show' : 'Hide'} ${escapeHtml(title)}" title="${item.isHidden ? 'Show on Home' : 'Hide from Home'}">
+            ${item.isHidden ? `
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            ` : `
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            `}
+          </button>
+        ` : ''}
+        ${item.canRemove ? `
+          <button type="button" class="vault-pinned-tag-remove" data-action="collection-remove" data-key="${escapeHtml(item.key)}"
+            aria-label="Unpin ${escapeHtml(title)}">&times;</button>
+        ` : ''}
       </div>
     </li>
   `;
@@ -352,6 +540,10 @@ export function renderVaultSettingsModal() {
 
   if (elements.btnWakeLockToggle) {
     elements.btnWakeLockToggle.checked = getWakeLockPreference();
+  }
+
+  if (elements.btnFunToggle) {
+    elements.btnFunToggle.checked = getFunPreference();
   }
 
   // "Your Bar at a Glance" stat strip
@@ -514,6 +706,25 @@ export function setGlassViewMode(mode) {
 }
 
 /**
+ * Set More Fun animation preference, update DOM classes, and persist choice
+ */
+export function setFunAnimations(enabled) {
+  const bool = Boolean(enabled);
+  state.funAnimations = bool;
+  saveFunPreference(bool);
+
+  if (elements.btnFunToggle) {
+    elements.btnFunToggle.checked = bool;
+  }
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.toggle('animations-disabled', !bool);
+  }
+
+  showToast(bool ? 'Animations enabled' : 'Animations disabled');
+}
+
+/**
  * Set library list sort preference, persist to storage, and re-render sidebar
  */
 export function setLibrarySort(sortOption) {
@@ -550,6 +761,7 @@ export function updateMyBarBadge() {
   }
   if (_updateBackbarActionButtonsFn) _updateBackbarActionButtonsFn();
   updateVaultStats();
+  checkMixologistRankPromotion();
 }
 
 /**
@@ -869,6 +1081,11 @@ export function setupTopBarEventListeners() {
     showToast(enabled ? 'Screen wake-lock enabled' : 'Screen wake-lock disabled');
   });
 
+  // Preferences: More Fun Animation Toggle
+  elements.btnFunToggle?.addEventListener('change', (e) => {
+    setFunAnimations(e.target.checked);
+  });
+
   // Data Portability
   elements.btnExportJson?.addEventListener('click', () => {
     exportData();
@@ -1093,33 +1310,69 @@ export function setupTopBarEventListeners() {
     }
   });
 
-  // Pinned Home Collections: reorder / remove. Delegated on the list container
+  // Pinned & Default Home Collections: reorder / toggle / remove. Delegated on the list container
   // since renderPinnedTagsList() replaces its rows' innerHTML on every render.
   document.getElementById('vault-pinned-tags-list')?.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
-    const tag = btn.getAttribute('data-tag');
+    const key = btn.getAttribute('data-key') || btn.getAttribute('data-tag');
     const action = btn.getAttribute('data-action');
-    const idx = state.pinnedTags.indexOf(tag);
-    if (idx === -1) return;
+    if (!key || !action) return;
 
-    if (action === 'pin-remove') {
-      state.pinnedTags = state.pinnedTags.filter(t => t !== tag);
-    } else if (action === 'pin-move-up' && idx > 0) {
-      const reordered = [...state.pinnedTags];
-      [reordered[idx - 1], reordered[idx]] = [reordered[idx], reordered[idx - 1]];
-      state.pinnedTags = reordered;
-    } else if (action === 'pin-move-down' && idx < state.pinnedTags.length - 1) {
-      const reordered = [...state.pinnedTags];
-      [reordered[idx + 1], reordered[idx]] = [reordered[idx], reordered[idx + 1]];
-      state.pinnedTags = reordered;
-    } else {
+    if (action === 'collection-toggle-hide') {
+      if (state.hiddenHomeCollections.has(key)) {
+        state.hiddenHomeCollections.delete(key);
+      } else {
+        state.hiddenHomeCollections.add(key);
+      }
+      saveHiddenHomeCollections([...state.hiddenHomeCollections]);
+      renderPinnedTagsList();
+      if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
       return;
     }
 
-    savePinnedTags(state.pinnedTags);
-    renderPinnedTagsList();
-    if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+    if (action === 'collection-remove' || action === 'pin-remove') {
+      state.pinnedTags = state.pinnedTags.filter(t => t !== key);
+      savePinnedTags(state.pinnedTags);
+
+      if (Array.isArray(state.homeCollectionsOrder)) {
+        state.homeCollectionsOrder = state.homeCollectionsOrder.filter(k => k !== key);
+        saveHomeCollectionsOrder(state.homeCollectionsOrder);
+      }
+
+      renderPinnedTagsList();
+      if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+      return;
+    }
+
+    if (action === 'collection-move-up' || action === 'collection-move-down' || action === 'pin-move-up' || action === 'pin-move-down') {
+      const items = getUnifiedHomeCollectionsList();
+      const reorderable = items.filter(it => it.canReorder).map(it => it.key);
+      const currIdx = reorderable.indexOf(key);
+      if (currIdx === -1) return;
+
+      const isUp = action === 'collection-move-up' || action === 'pin-move-up';
+      const targetIdx = isUp ? currIdx - 1 : currIdx + 1;
+      if (targetIdx < 0 || targetIdx >= reorderable.length) return;
+
+      // Swap in reorderable array
+      const targetKey = reorderable[targetIdx];
+      reorderable[currIdx] = targetKey;
+      reorderable[targetIdx] = key;
+
+      // Maintain history items at top of overall order
+      state.homeCollectionsOrder = ['__recently-viewed__', '__recently-made__', ...reorderable];
+      saveHomeCollectionsOrder(state.homeCollectionsOrder);
+
+      // Keep state.pinnedTags in synced relative order
+      const newPinnedOrder = reorderable.filter(k => state.pinnedTags.includes(k));
+      state.pinnedTags = newPinnedOrder;
+      savePinnedTags(state.pinnedTags);
+
+      renderPinnedTagsList();
+      if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
+      return;
+    }
   });
 
   // Pinned Home Collections: add a new pin via the same tag autocomplete used on Home
@@ -1132,6 +1385,17 @@ export function setupTopBarEventListeners() {
       if (!clean || state.pinnedTags.includes(clean)) return;
       state.pinnedTags = [...state.pinnedTags, clean];
       savePinnedTags(state.pinnedTags);
+
+      const currentOrder = state.homeCollectionsOrder || [
+        '__recently-viewed__',
+        '__recently-made__',
+        ...HOME_DEFAULT_COLLECTIONS.map(c => c.key),
+      ];
+      if (!currentOrder.includes(clean)) {
+        state.homeCollectionsOrder = [...currentOrder, clean];
+        saveHomeCollectionsOrder(state.homeCollectionsOrder);
+      }
+
       renderPinnedTagsList();
       if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
       showToast(`Pinned #${clean} to Home`);
@@ -1168,14 +1432,32 @@ export function setupTopBarEventListeners() {
       updateAuthIndicator();
       renderVaultSettingsModal();
       updateMyBarBadge();
+      checkMixologistRankPromotion();
       if (_renderRecipeListFn) _renderRecipeListFn();
       if (_renderHomeViewFn && state.viewMode === 'home') _renderHomeViewFn();
       if (_renderCounterViewFn && state.viewMode === 'counter') _renderCounterViewFn();
     });
+
+    window.addEventListener(HISTORY_UPDATED_EVENT, () => {
+      checkMixologistRankPromotion();
+    });
+
+    // Expose testing helpers to developer console
+    window.speakeasyLevelUp = (rankTitle = 'The Alchemist', prevTitle = 'Spirits Connoisseur') => {
+      showLevelUpCelebration(rankTitle, { previousRankTitle: prevTitle });
+    };
+    window.checkMixologistRankPromotion = checkMixologistRankPromotion;
   }
 
-  // Initial indicator sync
+  // Initial indicator sync and last seen rank threshold record
   updateAuthIndicator();
+  try {
+    if (localStorage.getItem(LAST_SEEN_RANK_KEY) === null) {
+      localStorage.setItem(LAST_SEEN_RANK_KEY, String(getMixologistRankDetails().threshold));
+    }
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 /**

@@ -44,7 +44,7 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
   const glassId = id || `glass-${nextGlassId++}`;
   const glassware = resolveGlassware(recipe?.glassware);
   const layers = calculateFluidLayers(recipe?.specs || []);
-  const blendedInfo = calculateBlendedColor(recipe?.specs || []);
+  const blendedInfo = calculateBlendedColor(recipe?.specs || [], recipe);
 
   const clipId = `${glassId}-clip`;
   const gradPrefix = `${glassId}-grad`;
@@ -82,51 +82,64 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
     </linearGradient>
   `;
 
+  // Determine perspective curve sag for liquid surface interfaces.
+  // Glasses viewed from eye level have a gentle downward dip matching the front lip of the glassware rim.
+  const rimSag = glassware.rimSag || 3.5;
+
+  // Helper to build a curved liquid slice matching the perspective curvature:
+  // Starts at left (x=-10), arcs across center (cx=120, y=topY + rimSag) to right (x=250),
+  // goes down to bottomY, arcs across bottom with same sag, and closes back on left.
+  function buildCurvedLayerPath(topY, bottomY) {
+    const t = parseFloat(topY.toFixed(2));
+    const b = parseFloat(bottomY.toFixed(2));
+    return `
+      M -10 ${t}
+      Q 120 ${t + rimSag}, 250 ${t}
+      L 250 ${b}
+      Q 120 ${b + rimSag}, -10 ${b}
+      Z
+    `;
+  }
+
   // Build liquid layers
   // Stacking starts from bottom of the glass upwards
   const fluidLayersHtml = layers.map((layer, i) => {
     const layerBottomY = fluidBottomY - (fluidTotalHeight * layer.startRatio);
     const layerTopY = fluidBottomY - (fluidTotalHeight * layer.endRatio);
-    const height = Math.max(0.8, layerBottomY - layerTopY + 0.6); // 0.6 overlap prevents subpixel seam
+    // Overlap by 0.6 prevents subpixel gaps between adjacent layers
+    const pathD = buildCurvedLayerPath(layerTopY, layerBottomY + 0.6);
 
     return `
-      <rect
+      <path
         class="fluid-layer"
         data-index="${i}"
         data-name="${escapeXml(layer.spec.name)}"
         data-amount="${layer.spec.amount ?? ''}"
         data-unit="${layer.spec.unit ?? ''}"
-        x="0"
-        y="${layerTopY.toFixed(2)}"
-        width="240"
-        height="${height.toFixed(2)}"
+        d="${pathD}"
         fill="url(#${gradPrefix}-${i})"
       >
         <title>${escapeXml(layer.spec.name)} (${(layer.ratio * 100).toFixed(0)}%)</title>
-      </rect>
+      </path>
     `;
   }).join('');
 
-  // Blended single body
-  const blendTopY = (fluidBottomY - fluidTotalHeight).toFixed(2);
+  // Blended single body with matching perspective curve
+  const blendTopY = fluidBottomY - fluidTotalHeight;
+  const blendedPathD = buildCurvedLayerPath(blendTopY, fluidBottomY + 1);
+
   const blendedLiquidHtml = layers.length > 0 ? `
     <g class="blended-fluid-body">
-      <rect
+      <path
         class="blended-fill-base"
-        x="0"
-        y="${blendTopY}"
-        width="240"
-        height="${(fluidTotalHeight + 1).toFixed(2)}"
+        d="${blendedPathD}"
         fill="url(#${blendGradId})"
       >
         <title>${escapeXml(recipe?.name || 'Blended Cocktail')} (Mixed)</title>
-      </rect>
-      <rect
+      </path>
+      <path
         class="blended-fill-shading"
-        x="0"
-        y="${blendTopY}"
-        width="240"
-        height="${(fluidTotalHeight + 1).toFixed(2)}"
+        d="${blendedPathD}"
         fill="url(#${blendGradId}-depth)"
         pointer-events="none"
       />
@@ -135,17 +148,7 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
 
   // Top surface liquid meniscus line
   const surfaceY = (fluidBottomY - fluidTotalHeight).toFixed(2);
-
-  const surfaceMeniscus = layers.length > 0 ? `
-    <ellipse
-      cx="120"
-      cy="${surfaceY}"
-      rx="${(bounds.width * 0.42).toFixed(1)}"
-      ry="3.5"
-      fill="rgba(255, 255, 255, 0.28)"
-      class="liquid-meniscus"
-    />
-  ` : '';
+  const surfaceMeniscus = '';
 
   // Detect effervescence / sparkling ingredients (club soda, tonic, prosecco, champagne, sparkling wine, ginger beer, cola)
   const sparklingKeywords = ['soda', 'tonic', 'prosecco', 'champagne', 'sparkling', 'seltzer', 'ginger beer', 'ginger ale', 'cola'];
@@ -157,13 +160,13 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
   const effervescenceHtml = (hasSparkle && layers.length > 0) ? `
     <!-- Ambient Effervescence: streams of micro-bubbles rising from depths to surface -->
     <g class="fluid-effervescence" pointer-events="none">
-      <circle class="fluid-bubble fluid-bubble-1" cx="108" cy="${(fluidBottomY - 14).toFixed(1)}" r="1.3" fill="rgba(255, 255, 255, 0.65)" />
-      <circle class="fluid-bubble fluid-bubble-2" cx="126" cy="${(fluidBottomY - 8).toFixed(1)}" r="1.6" fill="rgba(255, 255, 255, 0.6)" />
-      <circle class="fluid-bubble fluid-bubble-3" cx="114" cy="${(fluidBottomY - 24).toFixed(1)}" r="1.2" fill="rgba(255, 255, 255, 0.68)" />
-      <circle class="fluid-bubble fluid-bubble-4" cx="132" cy="${(fluidBottomY - 18).toFixed(1)}" r="1.5" fill="rgba(255, 255, 255, 0.62)" />
-      <circle class="fluid-bubble fluid-bubble-5" cx="102" cy="${(fluidBottomY - 32).toFixed(1)}" r="1.1" fill="rgba(255, 255, 255, 0.58)" />
-      <circle class="fluid-bubble fluid-bubble-6" cx="120" cy="${(fluidBottomY - 40).toFixed(1)}" r="1.4" fill="rgba(255, 255, 255, 0.65)" />
-      <circle class="fluid-bubble fluid-bubble-7" cx="138" cy="${(fluidBottomY - 28).toFixed(1)}" r="1.2" fill="rgba(255, 255, 255, 0.6)" />
+      <circle class="fluid-bubble fluid-bubble-1" cx="108" cy="${(fluidBottomY - 14).toFixed(1)}" r="1.6" fill="rgba(255, 255, 255, 0.95)" stroke="rgba(20, 30, 45, 0.45)" stroke-width="0.55" />
+      <circle class="fluid-bubble fluid-bubble-2" cx="126" cy="${(fluidBottomY - 8).toFixed(1)}" r="2.0" fill="rgba(255, 255, 255, 0.95)" stroke="rgba(20, 30, 45, 0.45)" stroke-width="0.55" />
+      <circle class="fluid-bubble fluid-bubble-3" cx="114" cy="${(fluidBottomY - 24).toFixed(1)}" r="1.5" fill="rgba(255, 255, 255, 0.95)" stroke="rgba(20, 30, 45, 0.45)" stroke-width="0.55" />
+      <circle class="fluid-bubble fluid-bubble-4" cx="132" cy="${(fluidBottomY - 18).toFixed(1)}" r="1.9" fill="rgba(255, 255, 255, 0.95)" stroke="rgba(20, 30, 45, 0.45)" stroke-width="0.55" />
+      <circle class="fluid-bubble fluid-bubble-5" cx="102" cy="${(fluidBottomY - 32).toFixed(1)}" r="1.4" fill="rgba(255, 255, 255, 0.95)" stroke="rgba(20, 30, 45, 0.45)" stroke-width="0.55" />
+      <circle class="fluid-bubble fluid-bubble-6" cx="120" cy="${(fluidBottomY - 40).toFixed(1)}" r="1.8" fill="rgba(255, 255, 255, 0.95)" stroke="rgba(20, 30, 45, 0.45)" stroke-width="0.55" />
+      <circle class="fluid-bubble fluid-bubble-7" cx="138" cy="${(fluidBottomY - 28).toFixed(1)}" r="1.5" fill="rgba(255, 255, 255, 0.95)" stroke="rgba(20, 30, 45, 0.45)" stroke-width="0.55" />
     </g>
   ` : '';
 

@@ -38,6 +38,7 @@ import {
   updateVaultStats,
   setUnitSystem,
   setGlassViewMode,
+  setFunAnimations,
   setLibrarySort,
   openVaultSettingsModal,
   renderVaultSettingsModal,
@@ -217,6 +218,12 @@ function init() {
   if (elements.popoverGlassLayered && elements.popoverGlassBlended) {
     elements.popoverGlassLayered.classList.toggle('active', state.glassViewMode === 'layered');
     elements.popoverGlassBlended.classList.toggle('active', state.glassViewMode === 'blended');
+  }
+  if (elements.btnFunToggle) {
+    elements.btnFunToggle.checked = Boolean(state.funAnimations);
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.toggle('animations-disabled', !state.funAnimations);
   }
   if (elements.vaultBarNameInput) {
     elements.vaultBarNameInput.value = getBarName();

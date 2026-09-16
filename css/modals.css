@@ -1706,12 +1706,49 @@
   background: rgba(26, 36, 51, 0.5);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-sm);
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.vault-pinned-tag-row.is-hidden {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.vault-pinned-tag-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .vault-pinned-tag-name {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vault-pinned-tag-row.is-hidden .vault-pinned-tag-name {
+  color: var(--color-text-muted);
+}
+
+.vault-pinned-tag-badge {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.12rem 0.4rem;
+  border-radius: var(--radius-xs);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-faint);
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.vault-pinned-tag-badge.badge-default {
+  background: rgba(212, 163, 89, 0.12);
+  color: var(--color-accent-light);
 }
 
 .vault-pinned-tag-actions {
@@ -1722,6 +1759,7 @@
 }
 
 .vault-reorder-btn,
+.vault-pinned-tag-toggle,
 .vault-pinned-tag-remove {
   display: inline-flex;
   align-items: center;
@@ -1737,7 +1775,8 @@
   transition: color 0.15s ease;
 }
 
-.vault-reorder-btn:hover:not(:disabled) {
+.vault-reorder-btn:hover:not(:disabled),
+.vault-pinned-tag-toggle:hover {
   color: var(--color-accent);
 }
 
@@ -2002,4 +2041,162 @@
 .vault-modal-footer-status {
   font-size: 0.74rem;
   color: var(--color-text-faint);
+}
+
+/* ==========================================================================
+   Level-Up Mixologist Celebration Toast Notification
+   ========================================================================== */
+.toast-level-up {
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 1.4rem;
+  background: radial-gradient(circle at 10% 20%, rgba(235, 188, 114, 0.22) 0%, rgba(20, 28, 42, 0.96) 65%, #0d1420 100%);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text-bright);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 24px rgba(235, 188, 114, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 290px;
+  max-width: 420px;
+  cursor: pointer;
+  animation: levelUpEntrance 480ms cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+}
+
+.toast-level-up::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  transform: skewX(-20deg);
+  animation: levelUpShimmer 2.4s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.toast-level-up-badge {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f7d498, #c99849);
+  color: #0b111c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 16px rgba(235, 188, 114, 0.65);
+  animation: badgePop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.toast-level-up-badge svg {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+.toast-level-up-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  flex: 1;
+}
+
+.toast-level-up-eyebrow {
+  font-family: var(--font-deco, var(--font-sans));
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-light, #f3cf8e);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.toast-level-up-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.toast-level-up-meta {
+  font-size: 0.76rem;
+  color: var(--color-text-secondary, #f0eae1);
+  opacity: 0.9;
+}
+
+.toast-level-up-sparkle {
+  position: absolute;
+  pointer-events: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffecb3;
+  box-shadow: 0 0 8px #f5b041;
+  animation: sparkleBurst 1.2s ease-out forwards;
+}
+
+@keyframes levelUpEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.88);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes levelUpShimmer {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 150%;
+  }
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0.3) rotate(-35deg);
+  }
+  70% {
+    transform: scale(1.18) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes sparkleBurst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx, 20px), var(--ty, -25px)) scale(0);
+  }
+}
+
+html.animations-disabled .toast-level-up,
+@media (prefers-reduced-motion: reduce) {
+  .toast-level-up {
+    animation: none;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast-level-up::before {
+    display: none;
+  }
+  .toast-level-up-badge {
+    animation: none;
+  }
+  .toast-level-up-sparkle {
+    display: none;
+  }
 }

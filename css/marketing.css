@@ -400,6 +400,102 @@ body.legal-body {
   filter: none;
 }
 
+.showcase-visual .fluid-bubble {
+  transform-box: fill-box;
+  filter: drop-shadow(0 1px 1.5px rgba(10, 20, 35, 0.4));
+}
+
+.showcase-visual .fluid-bubble-1 {
+  animation: effervescenceRise1 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.showcase-visual .fluid-bubble-2 {
+  animation: effervescenceRise2 4.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -1.2s;
+}
+
+.showcase-visual .fluid-bubble-3 {
+  animation: effervescenceRise3 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -2.4s;
+}
+
+.showcase-visual .fluid-bubble-4 {
+  animation: effervescenceRise1 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -0.7s;
+}
+
+.showcase-visual .fluid-bubble-5 {
+  animation: effervescenceRise2 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -2.9s;
+}
+
+.showcase-visual .fluid-bubble-6 {
+  animation: effervescenceRise3 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -1.8s;
+}
+
+.showcase-visual .fluid-bubble-7 {
+  animation: effervescenceRise1 3.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -3.3s;
+}
+
+@keyframes effervescenceRise1 {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.95;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-44px);
+    opacity: 0;
+  }
+}
+
+@keyframes effervescenceRise2 {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(-56px);
+    opacity: 0;
+  }
+}
+
+@keyframes effervescenceRise3 {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.95;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-visual .fluid-bubble {
+    animation: none;
+  }
+}
+
 /* Glassware swirl & vortex shake keyframes (copied from main app counter view) */
 @keyframes cocktailSwirlForward {
   0% {
