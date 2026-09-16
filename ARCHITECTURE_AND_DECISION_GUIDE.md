@@ -220,6 +220,58 @@ speakeasy/
 - **Performance Caching**: Inventory analysis results are memoized per recipe in `state.js` using an incrementing `inventoryVersion` cache key.
 - **Bottle-Next Calculation**: Identifies drinks missing exactly one ingredient and flags which single bottle purchase unlocks the highest number of new drinks.
 
+### 3.11 Mixologist Ranks & Progression Mechanics (`top-bar.js`, `toast.js`)
+- **Philosophy**: Progression is designed to occur naturally through organic home bar use rather than grinding. Points are weighted directly by effort and culinary craft, ranging from basic setup up to authoring original recipes from scratch.
+- **Activity Hierarchy & Scoring Formula**:
+  $$\begin{aligned}
+  \text{Score} = &\ \lfloor \min(\text{inventorySize} \times 0.5, 15) \rfloor \\
+  &+ \min(\text{pinnedTagsCount}, 5) \\
+  &+ \min(\text{customRiffsCount} \times 3, 24) \\
+  &+ \min(\text{customScratchCount} \times 8, 40) \\
+  &+ (\text{drinksPoured} \times 2) \\
+  &+ (\text{uniqueDrinksPoured} \times 4)
+  \end{aligned}$$
+  - **Tier 1 (Stocking the Bar, 0.5 pt each, capped at 15)**: Low-barrier setup action. A fully stocked backbar advances a new user into *Apprentice* (12 pts), but cannot reach *Barback* (20 pts) on bottles alone.
+  - **Tier 2 (App Customization, 1 pt each, capped at 5)**: Pinning preferred tags or collections to the home view.
+  - **Tier 3 (Riff Crafting, 3 pts each, capped at 24)**: Creating a customized variant of an existing recipe.
+  - **Tier 4 (Core Action, 2 pts each, uncapped)**: Pouring a repeat cocktail via "I Made This".
+  - **Tier 5 (Palate Exploration, +4 bonus pts each)**: Pouring a new unique cocktail yields 6 points total on first pour (2 pour + 4 variety bonus).
+  - **Tier 6 (Peak Craft, 8 pts each, capped at 40)**: Authoring a completely original, non-riff cocktail from scratch.
+- **High-Water Mark (Lifetime Peak)**:
+  - Users **never lose rank or points**.
+  - If a user runs out of ingredients, deletes a draft test riff, or switches to a smaller secondary bar, `speakeasy_mixologist_lifetime_score` in `localStorage` locks in their highest achieved score.
+- **Alert Debouncing & Coalescence**:
+  - Toggling bottles while the Backbar Modal is open suppresses mid-session popups.
+  - When the Backbar Modal closes, net promotions are checked and coalesced into a single celebratory banner celebrating their highest unlocked rank.
+- **Threshold Table (`MIXOLOGIST_RANKS`)**:
+  - `0`: Cocktail Curious
+  - `5`: Soda Jerk
+  - `12`: Apprentice
+  - `20`: Barback
+  - `32`: Bootlegger
+  - `45`: Rum Runner
+  - `60`: Day-Shift Pourer
+  - `78`: Bartender
+  - `100`: Tin Shaker
+  - `125`: The House Host
+  - `155`: Palate Detective
+  - `190`: Head Mixologist
+  - `230`: Spirits Connoisseur
+  - `275`: The Alchemist
+  - `325`: Liquid Architect
+  - `380`: Master Distiller
+  - `440`: The Maestro
+  - `510`: Speakeasy Proprietor
+  - `590`: Cellar Master
+  - `680`: Copper & Oak
+  - `780`: Blind-Tasting Savant
+  - `890`: Grand Conservator
+  - `1000`: Living Legend
+- **Level-Up Celebrations**:
+  - Crossing a rank threshold triggers `showLevelUpCelebration` with an Art Deco gold gradient toast, 3D badge pop, and radiating sparkle particles.
+  - **Animation Guard**: Suppressed automatically whenever the **More Fun** setting is toggled off (`animations-disabled` class) or system `prefers-reduced-motion` is active.
+  - **Developer Testing Helper**: Triggerable in console via `speakeasyLevelUp(newTitle, previousTitle)`.
+
 ---
 
 ## 4. Application Flow & Routing

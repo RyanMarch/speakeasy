@@ -87,39 +87,80 @@ export const MIXOLOGIST_RANKS = [
 ];
 
 const LAST_SEEN_RANK_KEY = 'speakeasy_last_seen_rank_score';
+const LIFETIME_MAX_SCORE_KEY = 'speakeasy_mixologist_lifetime_score';
 
 /**
  * Returns detailed mixologist rank metrics including score and next threshold.
+ * Uses high-water mark so users never lose earned rank when inventory/recipes change.
  */
 export function getMixologistRankDetails() {
   const historyEntries = Array.isArray(getDrinkHistory()) ? getDrinkHistory() : [];
   const drinksPoured = historyEntries.length;
-  const customRiffs = (state.recipes || []).filter(r => !SEED_RECIPE_IDS.has(r.id)).length;
   const uniquePoured = new Set(historyEntries.map(h => h.recipeId || h.id).filter(Boolean)).size;
 
-  const totalScore = (drinksPoured * 2)
-    + (uniquePoured * 3)
-    + Math.min(customRiffs * 3, 30)
-    + Math.min(state.inventory ? state.inventory.size : 0, 25);
+  const customRecipes = (state.recipes || []).filter(r => !SEED_RECIPE_IDS.has(r.id));
+  const customRiffs = customRecipes.filter(r => Boolean(r.riffOfId || r.riffOfName)).length;
+  const customScratch = customRecipes.length - customRiffs;
 
-  const currentIndex = MIXOLOGIST_RANKS.findIndex(r => totalScore >= r.threshold);
+  const pinnedTagsCount = Array.isArray(state.pinnedTags) ? state.pinnedTags.length : 0;
+  const inventoryCount = state.inventory ? state.inventory.size : 0;
+
+  // Activity Hierarchy scoring:
+  // 1. Stock the bar (0.5 pt each, capped at 15)
+  // 2. Pin collection / tag (1 pt each, capped at 5)
+  // 3. Create a riff (3 pts each, capped at 24)
+  // 4. Add custom non-riff scratch recipe (8 pts each, capped at 40)
+  // 5. Pour a cocktail (2 pts each)
+  // 6. Pour a new unique cocktail (4 bonus pts each = 6 pts total for first pour)
+  const calculatedScore = Math.floor(Math.min(inventoryCount * 0.5, 15))
+    + Math.min(pinnedTagsCount, 5)
+    + Math.min(customRiffs * 3, 24)
+    + Math.min(customScratch * 8, 40)
+    + (drinksPoured * 2)
+    + (uniquePoured * 4);
+
+  // High-water mark: rank score never decrements
+  let lifetimeMax = calculatedScore;
+  try {
+    const rawMax = localStorage.getItem(LIFETIME_MAX_SCORE_KEY);
+    if (rawMax !== null) {
+      const parsedMax = Number(rawMax);
+      if (!isNaN(parsedMax) && parsedMax > lifetimeMax) {
+        lifetimeMax = parsedMax;
+      }
+    }
+    localStorage.setItem(LIFETIME_MAX_SCORE_KEY, String(lifetimeMax));
+  } catch {
+    // localStorage unavailable
+  }
+
+  const effectiveScore = lifetimeMax;
+  const currentIndex = MIXOLOGIST_RANKS.findIndex(r => effectiveScore >= r.threshold);
   const currentRank = MIXOLOGIST_RANKS[currentIndex] || MIXOLOGIST_RANKS[MIXOLOGIST_RANKS.length - 1];
   const nextRank = currentIndex > 0 ? MIXOLOGIST_RANKS[currentIndex - 1] : null;
 
   return {
     title: currentRank.title,
     threshold: currentRank.threshold,
-    score: totalScore,
+    score: effectiveScore,
+    rawScore: calculatedScore,
     nextRank: nextRank ? nextRank.title : null,
-    pointsToNext: nextRank ? nextRank.threshold - totalScore : 0,
+    pointsToNext: nextRank ? nextRank.threshold - effectiveScore : 0,
   };
 }
 
 /**
  * Checks whether user has leveled up since last recorded rank threshold.
  * Shows celebration toast if level increased.
+ * @param {Object} [options]
+ * @param {boolean} [options.deferIfModalOpen=false] - If true, defers celebration until modal closes
  */
-export function checkMixologistRankPromotion() {
+export function checkMixologistRankPromotion(options = {}) {
+  // If the backbar modal is currently open and deferral is requested, do not interrupt
+  if (options.deferIfModalOpen && elements.backbarModal?.open) {
+    return;
+  }
+
   const details = getMixologistRankDetails();
   try {
     const rawPrev = localStorage.getItem(LAST_SEEN_RANK_KEY);
@@ -761,7 +802,7 @@ export function updateMyBarBadge() {
   }
   if (_updateBackbarActionButtonsFn) _updateBackbarActionButtonsFn();
   updateVaultStats();
-  checkMixologistRankPromotion();
+  checkMixologistRankPromotion({ deferIfModalOpen: true });
 }
 
 /**
@@ -1439,6 +1480,11 @@ export function setupTopBarEventListeners() {
     });
 
     window.addEventListener(HISTORY_UPDATED_EVENT, () => {
+      checkMixologistRankPromotion();
+    });
+
+    // When backbar modal closes, fire any deferred promotions earned while stocking
+    elements.backbarModal?.addEventListener('close', () => {
       checkMixologistRankPromotion();
     });
 
