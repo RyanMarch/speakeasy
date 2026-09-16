@@ -12,6 +12,8 @@ const OUTPUT_FILE = path.join(DOCS_DIR, 'search-index.json');
 const configPath = path.join(DOCS_DIR, 'docs-config.json');
 const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf-8')) : {};
 const projectName = config.projectName || 'Help Center';
+const baseUrl = (config.baseUrl || 'https://speakeasy.ryanmarch.me').replace(/\/$/, '');
+const OG_IMAGE_URL = `${baseUrl}/assets/og-home.png`;
 
 // Helper to decode HTML entities
 function unescapeHtml(text) {
@@ -29,6 +31,81 @@ function cleanText(text) {
         .replace(/<[^>]+>/g, '') // Remove HTML tags
         .replace(/\s+/g, ' ')    // Normalize spaces
         .trim();
+}
+
+// Removes any previously-written OG block (from an earlier run of this
+// script, or a hand-added one) regardless of exact formatting, so this
+// stays idempotent no matter how many times it runs.
+const OG_BLOCK_PATTERN = /[ \t]*<meta property="og:type"[\s\S]*?<meta property="og:image:height"[^>]*>\n?/;
+
+/**
+ * Keeps each doc page's OG meta tags in sync with its own <title>/
+ * <meta name="description">/canonical URL, so an author only ever edits
+ * those (already required for every page) and never has to hand-maintain a
+ * duplicate copy for link previews. This has to physically rewrite the
+ * static HTML file rather than injecting tags at runtime (e.g. from
+ * docs-components.js) — link-preview crawlers read the raw HTML response
+ * and essentially never execute JavaScript, so anything added to <head>
+ * after the page loads would be invisible to them.
+ */
+function syncOgTags(filePath, { canonicalUrl, ogType }) {
+    let html = fs.readFileSync(filePath, 'utf-8');
+
+    const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].trim() : projectName;
+
+    const descMatch = html.match(/<meta\s+name="description"\s+content="([^"]+)"/i) ||
+                       html.match(/<meta\s+content="([^"]+)"\s+name="description"/i);
+    const description = descMatch ? descMatch[1].trim() : '';
+
+    const ogBlock = `<meta property="og:type" content="${ogType}">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${canonicalUrl}">
+    <meta property="og:image" content="${OG_IMAGE_URL}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+`;
+
+    html = html.replace(OG_BLOCK_PATTERN, '');
+
+    // Anchor on the "Docs Style Sheet" comment every docs page has, right
+    // after its <title>/description/canonical block — much more stable to
+    // match than trying to find the end of a description tag that sometimes
+    // wraps across two lines in the source.
+    const anchor = '<!-- Docs Style Sheet -->';
+    if (html.includes(anchor)) {
+        html = html.replace(anchor, `${ogBlock}\n    ${anchor}`);
+    } else {
+        console.warn(`Skipped OG tag sync for ${filePath}: no "${anchor}" anchor found.`);
+        return;
+    }
+
+    fs.writeFileSync(filePath, html, 'utf-8');
+}
+
+function syncAllOgTags() {
+    syncOgTags(path.join(DOCS_DIR, 'index.html'), {
+        canonicalUrl: `${baseUrl}/docs/`,
+        ogType: 'website',
+    });
+    syncOgTags(path.join(DOCS_DIR, 'list.html'), {
+        canonicalUrl: `${baseUrl}/docs/list.html`,
+        ogType: 'website',
+    });
+
+    for (const file of fs.readdirSync(DOCS_DIR)) {
+        const fullPath = path.join(DOCS_DIR, file);
+        if (!fs.statSync(fullPath).isDirectory()) continue;
+        const indexPath = path.join(fullPath, 'index.html');
+        if (!fs.existsSync(indexPath)) continue;
+        syncOgTags(indexPath, {
+            canonicalUrl: `${baseUrl}/docs/${file}/`,
+            ogType: 'article',
+        });
+    }
+
+    console.log('Synced OG meta tags across all docs pages.');
 }
 
 function generateIndex() {
@@ -110,3 +187,4 @@ function generateIndex() {
 }
 
 generateIndex();
+syncAllOgTags();
