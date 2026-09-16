@@ -24,8 +24,9 @@ export const GLASS_TYPES = {
     // The interior cavity clip path for fluid
     fluidClipD: `
       M 38 88
-      C 42 145, 80 166, 120 166
-      C 160 166, 198 145, 202 88
+      C 70 92, 170 92, 202 88
+      C 198 145, 160 166, 120 166
+      C 80 166, 42 145, 38 88
       Z
     `,
     // The outer bowl silhouette
@@ -36,6 +37,7 @@ export const GLASS_TYPES = {
     `,
     glassRimD: 'M 36 84 C 70 88, 170 88, 204 84',
     rim: { leftX: 36, rightX: 204, y: 84 },
+    rimSag: 4,
     stemD: 'M 120 170 L 120 282',
     baseD: 'M 68 288 C 90 285, 150 285, 172 288 L 174 291 C 150 293, 90 293, 66 291 Z',
   },
@@ -55,9 +57,9 @@ export const GLASS_TYPES = {
     },
     fluidClipD: `
       M 51 104
-      L 54 216
-      C 80 219, 160 219, 186 216
-      L 189 104
+      C 80 107, 160 107, 189 104
+      L 186 216
+      C 160 219, 80 219, 54 216
       Z
     `,
     glassOutlineD: `
@@ -82,10 +84,11 @@ export const GLASS_TYPES = {
     `,
     glassRimD: 'M 46 96 C 80 100, 160 100, 194 96',
     rim: { leftX: 46, rightX: 194, y: 96 },
+    rimSag: 7,
     stemD: null,
     baseD: `
       M 49 216
-      C 80 219, 160 219, 191 216
+      C 80 223, 160 223, 191 216
       L 189 242
       C 188 247, 181 249, 170 249
       L 70 249
@@ -108,17 +111,6 @@ export const GLASS_TYPES = {
     id: 'highball',
     name: 'Highball / Collins',
     aliases: ['highball', 'collins', 'fizz', 'tall'],
-    // Every glass shares one drawing scale (240 wide), so a shared "0 0 240 320"
-    // viewBox left short, wide-mouthed glasses (coupe, rocks) with a big dead
-    // zone above the rim regardless of what garnish (if any) the recipe
-    // actually calls for. glass-view.js instead crops each render's viewBox to
-    // rim.y minus however much headroom *that recipe's own garnish* needs
-    // (a cherry needs far less clearance than a mint sprig — see
-    // garnishes.js's getGarnishHeadroom), clamped to 0, down through
-    // canvasBottom at the base. That keeps every garnish on-canvas while
-    // letting the glass-wrapper's rendered height (aspect-ratio, set in
-    // glass-view.js) shrink to fit short glasses/garnishes instead of always
-    // reserving room for the tallest possible combination.
     canvasBottom: 295,
     fluidBounds: {
       bottomY: 260,
@@ -130,9 +122,9 @@ export const GLASS_TYPES = {
     },
     fluidClipD: `
       M 74 52
-      L 77 260
-      C 95 262, 145 262, 163 260
-      L 166 52
+      C 95 58, 145 58, 166 52
+      L 163 260
+      C 145 266, 95 266, 77 260
       Z
     `,
     glassOutlineD: `
@@ -141,8 +133,9 @@ export const GLASS_TYPES = {
       C 76 284, 164 284, 166 264
       L 170 48
     `,
-    glassRimD: 'M 70 48 C 90 51, 150 51, 170 48',
+    glassRimD: 'M 70 48 C 90 54, 150 54, 170 48',
     rim: { leftX: 70, rightX: 170, y: 48 },
+    rimSag: 6.5,
     stemD: null,
     baseD: `
       M 74 264
@@ -168,8 +161,8 @@ export const GLASS_TYPES = {
     },
     fluidClipD: `
       M 40 66
+      C 70 69, 170 69, 200 66
       L 120 160
-      L 200 66
       Z
     `,
     glassOutlineD: `
@@ -179,6 +172,7 @@ export const GLASS_TYPES = {
     `,
     glassRimD: 'M 36 62 C 70 65, 170 65, 204 62',
     rim: { leftX: 36, rightX: 204, y: 62 },
+    rimSag: 3,
     stemD: 'M 120 163 L 120 282',
     baseD: 'M 68 288 C 90 285, 150 285, 172 288 L 174 291 C 150 293, 90 293, 66 291 Z',
   },
@@ -198,8 +192,9 @@ export const GLASS_TYPES = {
     },
     fluidClipD: `
       M 62 76
-      C 63 125, 78 174, 120 174
-      C 162 174, 177 125, 178 76
+      C 85 79, 155 79, 178 76
+      C 177 125, 162 174, 120 174
+      C 78 174, 63 125, 62 76
       Z
     `,
     glassOutlineD: `
@@ -209,6 +204,7 @@ export const GLASS_TYPES = {
     `,
     glassRimD: 'M 59 72 C 85 75, 155 75, 181 72',
     rim: { leftX: 59, rightX: 181, y: 72 },
+    rimSag: 3,
     stemD: 'M 120 178 L 120 282',
     baseD: 'M 72 288 C 95 285, 145 285, 168 288 L 170 291 C 145 293, 95 293, 70 291 Z',
   },
@@ -239,6 +235,7 @@ export const GLASS_TYPES = {
     `,
     glassRimD: 'M 62 56 C 85 60, 155 60, 178 56',
     rim: { leftX: 62, rightX: 178, y: 56 },
+    rimSag: 4,
     stemD: 'M 120 198 L 120 282',
     baseD: 'M 68 288 C 90 285, 150 285, 172 288 L 174 291 C 150 293, 90 293, 66 291 Z',
   },
@@ -258,11 +255,12 @@ export const GLASS_TYPES = {
     },
     fluidClipD: `
       M 66 48
-      C 58 100, 68 155, 60 210
-      C 58 238, 64 260, 66 260
-      L 174 260
-      C 176 260, 182 238, 180 210
-      C 172 155, 182 100, 174 48
+      C 85 51, 155 51, 174 48
+      C 182 100, 172 155, 180 210
+      C 182 238, 176 260, 174 260
+      L 66 260
+      C 64 260, 58 238, 60 210
+      C 68 155, 58 100, 66 48
       Z
     `,
     glassOutlineD: `
@@ -275,6 +273,7 @@ export const GLASS_TYPES = {
     `,
     glassRimD: 'M 64 45 C 85 48, 155 48, 176 45',
     rim: { leftX: 64, rightX: 176, y: 45 },
+    rimSag: 3,
     stemD: null,
     baseD: `
       M 64 266
@@ -314,9 +313,9 @@ export const GLASS_TYPES = {
     },
     fluidClipD: `
       M 100 50
-      L 104 240
-      C 110 242, 130 242, 136 240
-      L 140 50
+      C 110 52, 130 52, 140 50
+      L 136 240
+      C 130 242, 110 242, 104 240
       Z
     `,
     glassOutlineD: `
@@ -327,6 +326,7 @@ export const GLASS_TYPES = {
     `,
     glassRimD: 'M 96 46 C 110 48, 130 48, 144 46',
     rim: { leftX: 96, rightX: 144, y: 46 },
+    rimSag: 2,
     stemD: 'M 120 244 L 120 282',
     baseD: 'M 108 288 C 115 285, 125 285, 132 288 L 133 291 C 125 293, 115 293, 107 291 Z',
   },

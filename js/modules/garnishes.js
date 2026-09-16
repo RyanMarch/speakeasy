@@ -285,7 +285,7 @@ function renderCitrusWedge(x, y, type = 'lime', isLeft = false) {
 /**
  * Render corkscrew citrus twist with authentic helical spiral, zest and pith surfaces, and bias-cut ends
  */
-function renderPeelTwist(x, y, type = 'lemon', isLeft = false) {
+function renderPeelTwist(x, y, type = 'lemon', isLeft = false, isFlamed = false) {
   const isOrange = type === 'orange';
   const isLime = type === 'lime';
   const peelColor = isOrange ? '#ef6c00' : isLime ? '#2e7d32' : '#fbc02d';
@@ -295,8 +295,36 @@ function renderPeelTwist(x, y, type = 'lemon', isLeft = false) {
   const sx = isLeft ? -1 : 1;
   const rot = isLeft ? -8 : 8;
 
+  // Flamed zest char and ember sparks
+  const flamedSvg = isFlamed ? `
+    <!-- Charred caramelization along the crest -->
+    <path
+      d="M -1 -9 C 4 -12, 9 -8, 10 -1"
+      stroke="#3e1a00"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      fill="none"
+      opacity="0.85"
+    />
+    <!-- Aromatic warmth ember glow -->
+    <ellipse
+      class="peel-ember-glow"
+      cx="4"
+      cy="-6"
+      rx="9"
+      ry="6"
+      fill="rgba(255, 145, 0, 0.45)"
+    />
+    <!-- Tiny micro-spark embers drifting up from the flame -->
+    <g class="peel-sparks-group">
+      <circle class="peel-spark peel-spark-1" cx="3" cy="-11" r="1.1" fill="#ffe082" />
+      <circle class="peel-spark peel-spark-2" cx="7" cy="-8" r="0.85" fill="#ffb74d" />
+      <circle class="peel-spark peel-spark-3" cx="1" cy="-14" r="0.95" fill="#ffd54f" />
+    </g>
+  ` : '';
+
   return `
-    <g class="garnish garnish-${type}-twist" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${rot}) scale(${sx}, 1)" pointer-events="none">
+    <g class="garnish garnish-${type}-twist${isFlamed ? ' garnish-flamed-twist' : ''}" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${rot}) scale(${sx}, 1)" pointer-events="none">
       <!-- Back coils of helix corkscrew (showing inner pith) -->
       <!-- Upper back coil rising from inside glass -->
       <path
@@ -342,6 +370,9 @@ function renderPeelTwist(x, y, type = 'lemon', isLeft = false) {
         fill="none"
         opacity="0.9"
       />
+
+      <!-- Flamed peel warm glow & ember sparks (if flamed) -->
+      ${flamedSvg}
 
       <!-- Lower outer tail coil corkscrewing forward with tapered knife cut -->
       <path
@@ -891,6 +922,12 @@ const GARNISH_HEADROOM = {
 // Rim highlight stroke + a touch of breathing room — the floor for any drink,
 // garnished or not.
 const BASE_HEADROOM = 14;
+// A flamed twist's micro-sparks drift as far as ~14 (local cy) + 26 (drift
+// keyframe) units above the twist anchor — well past the 14-unit headroom a
+// plain twist needs — so they need their own reserved clearance or the
+// viewBox crops them out entirely.
+const FLAMED_TWIST_HEADROOM = 44;
+const TWIST_TYPES = new Set(['lemonTwist', 'orangeTwist', 'limeTwist']);
 // Celery and the swizzle stick are planted at the bottom of the glass and
 // rise well above the rim, same order of magnitude as mint. Both only occur
 // in practice on already-tall glasses (highball/tiki mug) that need little
@@ -910,9 +947,15 @@ export function getGarnishHeadroom(recipe) {
   const hasSwizzleStick = recipe?.method === 'Swizzled' || swizzleSignal.includes('swizzle stick');
   if (hasSwizzleStick) return TALL_PLANTED_HEADROOM;
 
+  const recipeText = `${recipe?.garnish || ''} ${recipe?.instructions || ''} ${recipe?.notes || ''}`.toLowerCase();
+  const isFlamed = recipeText.includes('flamed');
+
   let headroom = BASE_HEADROOM;
   for (const type of types) {
-    const typeHeadroom = GARNISH_HEADROOM[type] ?? BASE_HEADROOM;
+    let typeHeadroom = GARNISH_HEADROOM[type] ?? BASE_HEADROOM;
+    if (isFlamed && TWIST_TYPES.has(type)) {
+      typeHeadroom = FLAMED_TWIST_HEADROOM;
+    }
     headroom = Math.max(headroom, typeHeadroom);
   }
   return headroom;
@@ -953,6 +996,10 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
   const slotTypes = pickTypes.length > 0 ? [...otherSlotTypes, '__pickGroup__'] : otherSlotTypes;
 
   const glassBottomY = glassware.fluidBounds?.bottomY ?? 300;
+
+  // Detect flamed twist/peel instructions or garnish
+  const recipeText = `${recipe?.garnish || ''} ${recipe?.instructions || ''} ${recipe?.notes || ''}`.toLowerCase();
+  const isFlamed = recipeText.includes('flamed');
 
   types.forEach((type) => {
     if (type === 'celeryStalk') {
@@ -1001,13 +1048,13 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
         rendered.push(renderCitrusWedge(posX, posY, 'orange', isSlotLeft));
         break;
       case 'lemonTwist':
-        rendered.push(renderPeelTwist(posX, posY, 'lemon', isSlotLeft));
+        rendered.push(renderPeelTwist(posX, posY, 'lemon', isSlotLeft, isFlamed));
         break;
       case 'orangeTwist':
-        rendered.push(renderPeelTwist(posX, posY, 'orange', isSlotLeft));
+        rendered.push(renderPeelTwist(posX, posY, 'orange', isSlotLeft, isFlamed));
         break;
       case 'limeTwist':
-        rendered.push(renderPeelTwist(posX, posY, 'lime', isSlotLeft));
+        rendered.push(renderPeelTwist(posX, posY, 'lime', isSlotLeft, isFlamed));
         break;
       case 'mintSprig':
         rendered.push(renderMintSprig(isSlotLeft ? rim.leftX + 4 : rim.rightX - 4, posY + 2, isSlotLeft ? 14 : -14));

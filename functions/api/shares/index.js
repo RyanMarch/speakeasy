@@ -6,19 +6,9 @@
  * guests can share too, since the snapshot is independent of any account.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
+import { jsonResponse } from '../_lib/http.js';
+import { SHARE_ID_ALPHABET, SHARE_ID_LENGTH } from './_lib.js';
 
-// Unambiguous base58-style alphabet (no 0/O/l/I) for short, easy-to-read,
-// hard-to-guess share ids. 10 chars ~= 58.6 bits of entropy.
-const SHARE_ID_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-const SHARE_ID_LENGTH = 10;
 const MAX_RECIPE_JSON_BYTES = 50 * 1024;
 const MAX_ARRAY_ITEMS = 100;
 // The link-preview image is rendered client-side (see counter-view.js

@@ -1537,6 +1537,14 @@
     justify-content: space-between;
   }
 
+  .vault-stat-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .vault-stat-tile {
+    padding: 0.75rem 1rem;
+  }
+
   .vault-shortcuts-grid {
     grid-template-columns: 1fr;
   }

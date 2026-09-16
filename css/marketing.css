@@ -3,6 +3,8 @@
    Midnight Navy (#020f20), Warm Deco Gold (#ebbc72), Refined Typographic Geometry
    ========================================================================== */
 
+@import url('./shared-animations.css?v=1');
+
 /* Page Shell & Background Texture */
 html:has(.marketing-body),
 html:has(.legal-body) {
@@ -400,62 +402,56 @@ body.legal-body {
   filter: none;
 }
 
-/* Glassware swirl & vortex shake keyframes (copied from main app counter view) */
-@keyframes cocktailSwirlForward {
-  0% {
-    transform: rotate(0deg) scale(1);
-    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
-  }
+.showcase-visual .fluid-bubble {
+  transform-box: fill-box;
+  filter: drop-shadow(0 1px 1.5px rgba(10, 20, 35, 0.4));
+}
 
-  15% {
-    transform: rotate(-3.5deg) scale(1.025) translateY(-3px);
-  }
+.showcase-visual .fluid-bubble-1 {
+  animation: effervescenceRise1 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
 
-  30% {
-    transform: rotate(4deg) scale(1.04) translateY(-1px);
-    filter: drop-shadow(0 14px 28px rgba(0, 150, 199, 0.45));
-  }
+.showcase-visual .fluid-bubble-2 {
+  animation: effervescenceRise2 4.1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -1.2s;
+}
 
-  48% {
-    transform: rotate(-3deg) scale(1.02);
-  }
+.showcase-visual .fluid-bubble-3 {
+  animation: effervescenceRise3 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -2.4s;
+}
 
-  65% {
-    transform: rotate(2deg) scale(1.01) translateY(-1px);
-  }
+.showcase-visual .fluid-bubble-4 {
+  animation: effervescenceRise1 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -0.7s;
+}
 
-  82% {
-    transform: rotate(-1deg) scale(1.005);
-  }
+.showcase-visual .fluid-bubble-5 {
+  animation: effervescenceRise2 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -2.9s;
+}
 
-  100% {
-    transform: rotate(0deg) scale(1) translateY(0);
-    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
+.showcase-visual .fluid-bubble-6 {
+  animation: effervescenceRise3 4.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -1.8s;
+}
+
+.showcase-visual .fluid-bubble-7 {
+  animation: effervescenceRise1 3.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: -3.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-visual .fluid-bubble {
+    animation: none;
   }
 }
 
-@keyframes cocktailSwirlBackward {
-  0% {
-    transform: rotate(0deg) scale(1);
-  }
-
-  20% {
-    transform: rotate(3deg) scale(1.02) translateY(-2px);
-  }
-
-  45% {
-    transform: rotate(-3.5deg) scale(1.03);
-  }
-
-  70% {
-    transform: rotate(1.5deg) scale(1.01);
-  }
-
-  100% {
-    transform: rotate(0deg) scale(1) translateY(0);
-  }
-}
-
+/* Glassware swirl & vortex shake keyframes. effervescenceRise1/2/3,
+   cocktailSwirlForward, and cocktailSwirlBackward now live in
+   shared-animations.css (identical to the main app's counter view);
+   fluidVortexDistort stays here since it references this page's own
+   --swirl-filter rather than the app's live SVG filter. */
 @keyframes fluidVortexDistort {
   0% {
     filter: none;

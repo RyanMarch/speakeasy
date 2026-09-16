@@ -4,14 +4,8 @@
  * Logs a drink creation event to the D1 drink_history table for authenticated users.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
+import { jsonResponse } from '../_lib/http.js';
+import { requireSession } from '../_lib/auth.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -20,34 +14,10 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
-  // 1. Verify Authorization Bearer token
-  const authHeader = request.headers.get('Authorization') || '';
-  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-
-  if (!tokenMatch) {
-    return jsonResponse({ error: 'Missing or malformed Authorization header.' }, 401);
-  }
-
-  const token = tokenMatch[1].trim();
-  if (!token) {
-    return jsonResponse({ error: 'Empty bearer token.' }, 401);
-  }
-
-  // Look up active session
-  const sessionRow = await env.speakeasy_db.prepare(
-    `SELECT user_id, expires_at FROM sessions WHERE token = ?`
-  ).bind(token).first();
-
-  if (!sessionRow) {
-    return jsonResponse({ error: 'Invalid or expired session token.' }, 401);
-  }
-
-  const expiresAt = new Date(sessionRow.expires_at).getTime();
-  if (!Number.isNaN(expiresAt) && Date.now() > expiresAt) {
-    return jsonResponse({ error: 'Session token has expired.' }, 401);
-  }
-
-  const userId = sessionRow.user_id;
+  // 1. Verify session
+  const session = await requireSession(request, env);
+  if (session instanceof Response) return session;
+  const { userId } = session;
 
   // 2. Parse payload: { recipeId: string, madeAt?: string }
   let body;

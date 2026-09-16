@@ -26,7 +26,7 @@ import {
   getFamilyGroupLabel,
 } from '../modules/taxonomy.js';
 
-import { escapeHtml, showToast } from './toast.js';
+import { escapeHtml, showToast, setupDialogLightDismiss } from './toast.js';
 
 let _updateMyBarBadgeFn = null;
 let _renderRecipeListFn = null;
@@ -105,6 +105,26 @@ export function closeBackbarModal() {
 }
 
 /**
+ * Persists the current state.inventory and refreshes every surface that
+ * depends on it — the shared tail of every inventory-mutating action in this
+ * modal (toggling a bottle, loading the Starter Bar, Clear Bar), so a future
+ * mutation can't add a fifth call site that forgets one of these steps (the
+ * whole reason a earlier quick-add path once missed invalidateInventoryCache).
+ */
+function persistInventoryAndRefresh() {
+  saveInventory(Array.from(state.inventory));
+  invalidateInventoryCache();
+  if (_updateMyBarBadgeFn) _updateMyBarBadgeFn();
+  if (_renderRecipeListFn) _renderRecipeListFn();
+  if (state.viewMode === 'counter' && _renderCounterViewFn) {
+    _renderCounterViewFn();
+  } else if (state.viewMode === 'home' && _renderHomeViewFn) {
+    _renderHomeViewFn();
+  }
+  renderBackbarModalContent();
+}
+
+/**
  * Toggle an item in the user's inventory
  */
 export function toggleInventoryBottle(bottleId) {
@@ -116,16 +136,7 @@ export function toggleInventoryBottle(bottleId) {
   } else {
     state.inventory.add(bottleId);
   }
-  saveInventory(Array.from(state.inventory));
-  invalidateInventoryCache();
-  if (_updateMyBarBadgeFn) _updateMyBarBadgeFn();
-  if (_renderRecipeListFn) _renderRecipeListFn();
-  if (state.viewMode === 'counter' && _renderCounterViewFn) {
-    _renderCounterViewFn();
-  } else if (state.viewMode === 'home' && _renderHomeViewFn) {
-    _renderHomeViewFn();
-  }
-  renderBackbarModalContent();
+  persistInventoryAndRefresh();
 }
 
 /**
@@ -590,16 +601,7 @@ export function setupBackbarEventListeners() {
     const hasAllStarter = DEFAULT_STARTER_BAR.every(id => state.inventory.has(id));
     if (hasAllStarter) return;
     DEFAULT_STARTER_BAR.forEach(id => state.inventory.add(id));
-    saveInventory(Array.from(state.inventory));
-    invalidateInventoryCache();
-    if (_updateMyBarBadgeFn) _updateMyBarBadgeFn();
-    if (_renderRecipeListFn) _renderRecipeListFn();
-    if (state.viewMode === 'counter' && _renderCounterViewFn) {
-      _renderCounterViewFn();
-    } else if (state.viewMode === 'home' && _renderHomeViewFn) {
-      _renderHomeViewFn();
-    }
-    renderBackbarModalContent();
+    persistInventoryAndRefresh();
     showToast('Loaded Starter Bar essentials');
   });
 
@@ -607,36 +609,12 @@ export function setupBackbarEventListeners() {
     if (state.inventory.size === 0) return;
     if (confirm('Clear all bottles from your backbar?')) {
       state.inventory.clear();
-      saveInventory([]);
-      invalidateInventoryCache();
-      if (_updateMyBarBadgeFn) _updateMyBarBadgeFn();
-      if (_renderRecipeListFn) _renderRecipeListFn();
-      if (state.viewMode === 'counter' && _renderCounterViewFn) {
-        _renderCounterViewFn();
-      } else if (state.viewMode === 'home' && _renderHomeViewFn) {
-        _renderHomeViewFn();
-      }
-      renderBackbarModalContent();
+      persistInventoryAndRefresh();
       showToast('Cleared backbar inventory');
     }
   });
 
-  // Light dismiss fallback for browsers without closedby="any"
-  if (elements.backbarModal && !('closedBy' in HTMLDialogElement.prototype)) {
-    elements.backbarModal.addEventListener('click', (event) => {
-      if (event.target !== elements.backbarModal) return;
-      const rect = elements.backbarModal.getBoundingClientRect();
-      const isDialogContent = (
-        rect.top <= event.clientY &&
-        event.clientY <= rect.top + rect.height &&
-        rect.left <= event.clientX &&
-        event.clientX <= rect.left + rect.width
-      );
-      if (!isDialogContent) {
-        closeBackbarModal();
-      }
-    });
-  }
+  setupDialogLightDismiss(elements.backbarModal, closeBackbarModal);
 
   // Sidebar themed pack filter pills
   elements.sidebarPackFilter?.querySelectorAll('.pack-pill').forEach(btn => {

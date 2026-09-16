@@ -5,14 +5,7 @@
  * generates a 30-day session token, and removes the used OTP code.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
+import { jsonResponse } from '../_lib/http.js';
 
 function parseSettings(settingsRaw) {
   if (!settingsRaw) {
@@ -57,10 +50,24 @@ export async function onRequestPost(context) {
 
   // Look up OTP code
   const otpRow = await env.speakeasy_db.prepare(
-    `SELECT code, expires_at FROM otp_codes WHERE email = ? ORDER BY expires_at DESC LIMIT 1`
+    `SELECT code, expires_at, attempts FROM otp_codes WHERE email = ? ORDER BY expires_at DESC LIMIT 1`
   ).bind(email).first();
 
-  if (!otpRow || String(otpRow.code).trim() !== code) {
+  const MAX_ATTEMPTS = 5;
+
+  if (!otpRow) {
+    return jsonResponse({ error: 'Invalid verification code.' }, 400);
+  }
+
+  if (String(otpRow.code).trim() !== code) {
+    const attempts = (otpRow.attempts || 0) + 1;
+    if (attempts >= MAX_ATTEMPTS) {
+      // Too many wrong guesses — burn the code so further attempts (even the
+      // right code) can't succeed until the user requests a new one.
+      await env.speakeasy_db.prepare(`DELETE FROM otp_codes WHERE email = ?`).bind(email).run();
+    } else {
+      await env.speakeasy_db.prepare(`UPDATE otp_codes SET attempts = ? WHERE email = ?`).bind(attempts, email).run();
+    }
     return jsonResponse({ error: 'Invalid verification code.' }, 400);
   }
 

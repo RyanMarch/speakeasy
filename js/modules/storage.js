@@ -38,6 +38,7 @@ export function normalizeTagName(rawTag) {
 }
 
 import { SEED_RECIPES } from "../data/seed-recipes.js";
+import { normalizeUnit } from "./parser.js";
 export { SEED_RECIPES };
 
 // ==========================================
@@ -186,12 +187,16 @@ export function getRecipes() {
             Object.assign(r, { ...seed });
             updatedStorage = true;
           }
-          // Backfill all properties from seed that might be missing in older stored versions
+          // Backfill properties from seed that are genuinely missing in older stored
+          // versions (the key was never stored at all, or is null/undefined) — but
+          // NOT when it's present as an explicit '' or [], since that's how a user's
+          // deliberate clear of a field is persisted, and re-backfilling it here would
+          // silently revert their edit on the very next load.
           Object.keys(seed).forEach(key => {
-            if (r[key] === undefined || r[key] === null || r[key] === '') {
+            if (!(key in r) || r[key] === undefined || r[key] === null) {
               r[key] = Array.isArray(seed[key]) ? [...seed[key]] : seed[key];
               updatedStorage = true;
-            } else if (Array.isArray(seed[key]) && (!Array.isArray(r[key]) || r[key].length === 0)) {
+            } else if (Array.isArray(seed[key]) && !Array.isArray(r[key])) {
               r[key] = [...seed[key]];
               updatedStorage = true;
             }
@@ -452,7 +457,7 @@ export function sanitizeImportedRecipes(items) {
       : [],
     specs: Array.isArray(item.specs) ? item.specs.map(s => ({
       amount: s.amount !== null && s.amount !== undefined && !isNaN(Number(s.amount)) ? Number(s.amount) : null,
-      unit: s.unit || '',
+      unit: normalizeUnit(s.unit),
       name: s.name || '',
       abv: s.abv !== null && s.abv !== undefined && !isNaN(Number(s.abv)) ? Number(s.abv) : undefined,
     })) : [],
@@ -625,6 +630,8 @@ export function clearUserDataOnSignOut() {
       localStorage.removeItem(LAST_EXPORTED_STORAGE_KEY);
       localStorage.removeItem(AVATAR_RECIPE_STORAGE_KEY);
       localStorage.removeItem(PINNED_TAGS_STORAGE_KEY);
+      localStorage.removeItem(HOME_COLLECTIONS_ORDER_STORAGE_KEY);
+      localStorage.removeItem(HIDDEN_HOME_COLLECTIONS_STORAGE_KEY);
       localStorage.removeItem(RECENTLY_VIEWED_STORAGE_KEY);
       localStorage.removeItem(LOW_STOCK_STORAGE_KEY);
       localStorage.removeItem(MENUS_STORAGE_KEY);
@@ -1079,6 +1086,28 @@ export function saveWakeLockPreference(enabled) {
   }
 }
 
+const FUN_STORAGE_KEY = 'speakeasy_fun_animations_enabled';
+
+export function getFunPreference() {
+  try {
+    const val = localStorage.getItem(FUN_STORAGE_KEY);
+    return val === null ? true : val === 'true';
+  } catch {
+    return true;
+  }
+}
+
+export function saveFunPreference(enabled) {
+  try {
+    const bool = Boolean(enabled);
+    localStorage.setItem(FUN_STORAGE_KEY, String(bool));
+    return bool;
+  } catch (err) {
+    console.error('Failed to save fun preference:', err);
+    return enabled;
+  }
+}
+
 // Tags a user has "pinned" to appear as their own browsable collection on the Home
 // page (e.g. tagging drinks "#house-favorites" and pinning that tag as a shelf).
 const PINNED_TAGS_STORAGE_KEY = 'speakeasy_pinned_tags';
@@ -1101,6 +1130,52 @@ export function savePinnedTags(tags) {
   } catch (err) {
     console.error('Failed to save pinned tags:', err);
     return tags;
+  }
+}
+
+const HOME_COLLECTIONS_ORDER_STORAGE_KEY = 'speakeasy_home_collections_order';
+
+export function getHomeCollectionsOrder() {
+  try {
+    const raw = localStorage.getItem(HOME_COLLECTIONS_ORDER_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed.filter(k => typeof k === 'string') : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveHomeCollectionsOrder(order) {
+  try {
+    const clean = Array.isArray(order) ? order.filter(k => typeof k === 'string') : [];
+    localStorage.setItem(HOME_COLLECTIONS_ORDER_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
+  } catch (err) {
+    console.error('Failed to save home collections order:', err);
+    return order;
+  }
+}
+
+const HIDDEN_HOME_COLLECTIONS_STORAGE_KEY = 'speakeasy_hidden_home_collections';
+
+export function getHiddenHomeCollections() {
+  try {
+    const raw = localStorage.getItem(HIDDEN_HOME_COLLECTIONS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter(k => typeof k === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveHiddenHomeCollections(hiddenKeys) {
+  try {
+    const clean = Array.isArray(hiddenKeys) ? hiddenKeys.filter(k => typeof k === 'string') : [];
+    localStorage.setItem(HIDDEN_HOME_COLLECTIONS_STORAGE_KEY, JSON.stringify(clean));
+    return clean;
+  } catch (err) {
+    console.error('Failed to save hidden home collections:', err);
+    return hiddenKeys;
   }
 }
 

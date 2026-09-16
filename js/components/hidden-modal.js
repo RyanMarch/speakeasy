@@ -11,7 +11,7 @@ import {
   SEED_RECIPES,
 } from '../modules/storage.js';
 
-import { escapeHtml, showToast } from './toast.js';
+import { escapeHtml, showToast, setupDialogLightDismiss } from './toast.js';
 
 let _updateVaultStatsFn = null;
 let _renderRecipeListFn = null;
@@ -141,20 +141,5 @@ export function setupHiddenModalEventListeners() {
     showToast(`Restored all ${hiddenCount} hidden cocktails`);
   });
 
-  // Light dismiss fallback for browsers without closedby="any"
-  if (elements.hiddenRecipesModal && !('closedBy' in HTMLDialogElement.prototype)) {
-    elements.hiddenRecipesModal.addEventListener('click', (event) => {
-      if (event.target !== elements.hiddenRecipesModal) return;
-      const rect = elements.hiddenRecipesModal.getBoundingClientRect();
-      const isDialogContent = (
-        rect.top <= event.clientY &&
-        event.clientY <= rect.top + rect.height &&
-        rect.left <= event.clientX &&
-        event.clientX <= rect.left + rect.width
-      );
-      if (!isDialogContent) {
-        closeHiddenModal();
-      }
-    });
-  }
+  setupDialogLightDismiss(elements.hiddenRecipesModal, closeHiddenModal);
 }

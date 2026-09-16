@@ -82,116 +82,124 @@ export function selectRecipe(id, updateHistory = true) {
  * Render active view based on state.viewMode
  * Wrapped in the View Transitions API when available
  */
+// One entry per state.viewMode ('counter' also covers the fallback/default
+// case previously handled by the trailing `else`). Each entry fully
+// describes what renderCurrentView's shared applyView() below does for that
+// mode — which single container to show (every other container is hidden),
+// and the handful of view-specific side effects that used to be five
+// near-identical copy-pasted branches.
+const VIEW_CONFIG = {
+  edit: {
+    container: 'editorViewContainer',
+    hideSidebar: false,
+    btnNewDrinkVisible: false,
+    disconnectScrollObserver: true,
+    resetScroll: false,
+    stickyClassesToRemove: ['visible'],
+    clearMobileSticky: true,
+    render: null,
+    wakeLock: 'release',
+  },
+  home: {
+    container: 'homeViewContainer',
+    hideSidebar: false,
+    btnNewDrinkVisible: true,
+    disconnectScrollObserver: true,
+    resetScroll: false,
+    stickyClassesToRemove: ['visible', 'editor-mode'],
+    clearMobileSticky: true,
+    render: () => renderHomeView(),
+    wakeLock: 'release',
+  },
+  'menu-builder': {
+    container: 'menuBuilderViewContainer',
+    // The library sidebar navigates away on every interaction (search,
+    // click) — a poor fit next to a focused builder flow that already has
+    // its own recipe picker, so this page claims the full width instead.
+    hideSidebar: true,
+    btnNewDrinkVisible: false,
+    disconnectScrollObserver: true,
+    resetScroll: false,
+    stickyClassesToRemove: ['visible', 'editor-mode'],
+    clearMobileSticky: true,
+    render: () => renderMenuBuilderView(),
+    wakeLock: 'release',
+  },
+  account: {
+    container: 'accountViewContainer',
+    hideSidebar: true,
+    btnNewDrinkVisible: false,
+    disconnectScrollObserver: true,
+    resetScroll: true,
+    stickyClassesToRemove: ['visible', 'editor-mode'],
+    clearMobileSticky: true,
+    render: () => renderVaultSettingsModal(),
+    wakeLock: 'release',
+  },
+  'shared-recipe': {
+    container: 'sharedRecipeViewContainer',
+    hideSidebar: true,
+    btnNewDrinkVisible: false,
+    disconnectScrollObserver: true,
+    resetScroll: true,
+    stickyClassesToRemove: ['visible', 'editor-mode'],
+    clearMobileSticky: true,
+    render: () => renderSharedRecipeView(state.pendingShareId),
+    wakeLock: 'release',
+  },
+  counter: {
+    container: 'counterViewContainer',
+    hideSidebar: false,
+    btnNewDrinkVisible: true,
+    // Counter view owns and recreates window._counterScrollObserver itself
+    // inside renderCounterView() below — nothing to tear down beforehand.
+    disconnectScrollObserver: false,
+    resetScroll: false,
+    // Leaving the editor any way other than Cancel/Save (e.g. jumping straight
+    // to another recipe from the sidebar) skips editor-modal.js's own cleanup,
+    // which is what was leaving a ghost "Save Recipe" button stuck in the
+    // shared sticky header on recipe pages that were never being edited.
+    stickyClassesToRemove: ['editor-mode'],
+    clearMobileSticky: false,
+    render: () => renderCounterView(),
+    wakeLock: 'request',
+  },
+};
+
+const ALL_VIEW_CONTAINER_KEYS = [
+  'homeViewContainer', 'counterViewContainer', 'menuBuilderViewContainer',
+  'accountViewContainer', 'editorViewContainer', 'sharedRecipeViewContainer',
+];
+
 export function renderCurrentView() {
   const applyView = () => {
-    if (state.viewMode === 'edit') {
-      if (window._counterScrollObserver) {
-        window._counterScrollObserver.disconnect();
-      }
-      if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
-      if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
-      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
-      if (elements.accountViewContainer) elements.accountViewContainer.style.display = 'none';
-      if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'block';
-      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
-      if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
-      elements.appMain?.classList.remove('hide-sidebar');
-      elements.desktopStickyTitle?.classList.remove('visible');
+    const config = VIEW_CONFIG[state.viewMode] || VIEW_CONFIG.counter;
+
+    if (config.disconnectScrollObserver && window._counterScrollObserver) {
+      window._counterScrollObserver.disconnect();
+    }
+    ALL_VIEW_CONTAINER_KEYS.forEach(key => {
+      if (elements[key]) elements[key].style.display = key === config.container ? 'block' : 'none';
+    });
+    if (elements.btnNewDrink) elements.btnNewDrink.style.display = config.btnNewDrinkVisible ? '' : 'none';
+    elements.appMain?.classList.toggle('hide-sidebar', config.hideSidebar);
+    elements.desktopStickyTitle?.classList.remove(...config.stickyClassesToRemove);
+    if (config.clearMobileSticky) {
       document.getElementById('mobile-sticky-title')?.classList.remove('visible');
-      releaseWakeLock();
-    } else if (state.viewMode === 'home') {
-      if (window._counterScrollObserver) {
-        window._counterScrollObserver.disconnect();
-      }
-      if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
-      if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
-      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
-      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
-      if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'block';
-      if (elements.btnNewDrink) elements.btnNewDrink.style.display = '';
-      elements.appMain?.classList.remove('hide-sidebar');
-      elements.desktopStickyTitle?.classList.remove('visible', 'editor-mode');
-      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
-      renderHomeView();
-      releaseWakeLock();
-    } else if (state.viewMode === 'menu-builder') {
-      if (window._counterScrollObserver) {
-        window._counterScrollObserver.disconnect();
-      }
-      if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
-      if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
-      if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
-      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'block';
-      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
-      if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
-      // The library sidebar navigates away on every interaction (search,
-      // click) — a poor fit next to a focused builder flow that already has
-      // its own recipe picker, so this page claims the full width instead.
-      elements.appMain?.classList.add('hide-sidebar');
-      elements.desktopStickyTitle?.classList.remove('visible', 'editor-mode');
-      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
-      renderMenuBuilderView();
-      releaseWakeLock();
-    } else if (state.viewMode === 'account') {
-      if (window._counterScrollObserver) {
-        window._counterScrollObserver.disconnect();
-      }
-      if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
-      if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
-      if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
-      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
-      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
-      if (elements.accountViewContainer) elements.accountViewContainer.style.display = 'block';
-      if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
-      elements.appMain?.classList.add('hide-sidebar');
-      elements.desktopStickyTitle?.classList.remove('visible', 'editor-mode');
-      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
-      if (elements.mainStage) {
-        elements.mainStage.scrollTop = 0;
-      }
+    }
+    if (config.resetScroll) {
+      if (elements.mainStage) elements.mainStage.scrollTop = 0;
       window.scrollTo(0, 0);
-      renderVaultSettingsModal();
-      releaseWakeLock();
-    } else if (state.viewMode === 'shared-recipe') {
-      if (window._counterScrollObserver) {
-        window._counterScrollObserver.disconnect();
-      }
-      if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
-      if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
-      if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'none';
-      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
-      if (elements.accountViewContainer) elements.accountViewContainer.style.display = 'none';
-      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'block';
-      if (elements.btnNewDrink) elements.btnNewDrink.style.display = 'none';
-      elements.appMain?.classList.add('hide-sidebar');
-      elements.desktopStickyTitle?.classList.remove('visible', 'editor-mode');
-      document.getElementById('mobile-sticky-title')?.classList.remove('visible');
-      if (elements.mainStage) {
-        elements.mainStage.scrollTop = 0;
-      }
-      window.scrollTo(0, 0);
-      renderSharedRecipeView(state.pendingShareId);
+    }
+    if (config.render) config.render();
+    if (config.wakeLock === 'release') {
       releaseWakeLock();
     } else {
-      if (elements.homeViewContainer) elements.homeViewContainer.style.display = 'none';
-      if (elements.editorViewContainer) elements.editorViewContainer.style.display = 'none';
-      if (elements.menuBuilderViewContainer) elements.menuBuilderViewContainer.style.display = 'none';
-      if (elements.accountViewContainer) elements.accountViewContainer.style.display = 'none';
-      if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.style.display = 'none';
-      if (elements.counterViewContainer) elements.counterViewContainer.style.display = 'block';
-      if (elements.btnNewDrink) elements.btnNewDrink.style.display = '';
-      elements.appMain?.classList.remove('hide-sidebar');
-      // Leaving the editor any way other than Cancel/Save (e.g. jumping straight
-      // to another recipe from the sidebar) skips editor-modal.js's own cleanup,
-      // which is what was leaving a ghost "Save Recipe" button stuck in the
-      // shared sticky header on recipe pages that were never being edited.
-      elements.desktopStickyTitle?.classList.remove('editor-mode');
-      renderCounterView();
       requestWakeLock();
     }
   };
 
-  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !state.funAnimations;
   if (!reducedMotion && document.startViewTransition) {
     window._activeViewTransition?.skipTransition?.();
     const transition = document.startViewTransition(applyView);

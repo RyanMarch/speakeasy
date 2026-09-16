@@ -10,7 +10,7 @@
  * share with no stored image — an API-created share, or a client that
  * failed to render one — the static generic fallback card).
  */
-const SHARE_ID_PATTERN = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{1,32}$/;
+import { SHARE_ID_PATTERN } from '../../api/shares/_lib.js';
 
 // D1's BLOB column comes back as an ArrayBuffer in production, but as a
 // plain array of byte values under the local Miniflare simulation —

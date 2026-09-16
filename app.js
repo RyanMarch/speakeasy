@@ -4,7 +4,7 @@
  */
 
 import { state, elements, initElements } from './js/state.js';
-import { getRecipes, getBarName } from './js/modules/storage.js';
+import { getRecipes } from './js/modules/storage.js';
 import {
   selectRecipe,
   goHome,
@@ -38,6 +38,7 @@ import {
   updateVaultStats,
   setUnitSystem,
   setGlassViewMode,
+  setFunAnimations,
   setLibrarySort,
   openVaultSettingsModal,
   renderVaultSettingsModal,
@@ -218,8 +219,11 @@ function init() {
     elements.popoverGlassLayered.classList.toggle('active', state.glassViewMode === 'layered');
     elements.popoverGlassBlended.classList.toggle('active', state.glassViewMode === 'blended');
   }
-  if (elements.vaultBarNameInput) {
-    elements.vaultBarNameInput.value = getBarName();
+  if (elements.btnFunToggle) {
+    elements.btnFunToggle.checked = Boolean(state.funAnimations);
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.toggle('animations-disabled', !state.funAnimations);
   }
   updateVaultStats();
 
@@ -402,7 +406,18 @@ function setupGlobalEventListeners() {
       }
       elements.sidebar?.classList.add('mobile-hidden');
       elements.mainStage?.classList.remove('mobile-hidden');
+      return;
     }
+    // Stale/malformed hash (typo'd link, old bookmark, etc.) — matches none of
+    // the routes above, so fall back to Home rather than leaving the UI stuck
+    // on whatever view was showing before the hash changed.
+    if (state.viewMode !== 'home') {
+      state.viewMode = 'home';
+      renderRecipeList();
+      renderCurrentView();
+    }
+    elements.sidebar?.classList.add('mobile-hidden');
+    elements.mainStage?.classList.remove('mobile-hidden');
   });
 
   // Re-sync wake lock on tab visibility change

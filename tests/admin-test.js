@@ -4,53 +4,11 @@ import { onRequestGet as onRequestGetMe } from '../functions/api/admin/me.js';
 import { onRequestPost as onRequestPostLogout } from '../functions/api/admin/logout.js';
 import { onRequestGet as onRequestGetRecipes, onRequestPost as onRequestPostRecipes, onRequestDelete as onRequestDeleteRecipes } from '../functions/api/admin/recipes.js';
 import { onRequestPost as onRequestPostHide } from '../functions/api/admin/hide.js';
+import { MockD1PreparedStatementBase, createMockD1 } from './test-helpers.js';
 
 console.log('--- Testing /functions/api/admin/* Endpoints ---');
 
-class MockD1 {
-  constructor() {
-    this.tables = {
-      global_recipes: new Map(),
-      global_hidden_recipes: new Map(),
-      custom_recipes: new Map(),
-      users: new Map(),
-    };
-  }
-
-  prepare(sql) {
-    return new MockD1PreparedStatement(this, sql);
-  }
-
-  async batch(statements) {
-    const results = [];
-    for (const stmt of statements) {
-      results.push(await stmt.run());
-    }
-    return results;
-  }
-}
-
-class MockD1PreparedStatement {
-  constructor(db, sql) {
-    this.db = db;
-    this.sql = sql.trim();
-    this.boundParams = [];
-  }
-
-  bind(...params) {
-    this.boundParams = params;
-    return this;
-  }
-
-  async first() {
-    const res = await this.all();
-    return res.results[0] || null;
-  }
-
-  async run() {
-    return this.all();
-  }
-
+class MockD1PreparedStatement extends MockD1PreparedStatementBase {
   async all() {
     const sql = this.sql;
     const params = this.boundParams;
@@ -112,6 +70,8 @@ class MockD1PreparedStatement {
     throw new Error(`Unhandled mock query: ${sql}`);
   }
 }
+
+const MockD1 = createMockD1(['global_recipes', 'global_hidden_recipes', 'custom_recipes', 'users'], MockD1PreparedStatement);
 
 function createRequest(url, { method = 'GET', headers = {}, body = null } = {}) {
   const init = { method, headers: new Headers(headers) };

@@ -212,7 +212,8 @@
   line-height: 1.35;
 }
 
-.home-unpin-btn {
+.home-unpin-btn,
+.home-hide-btn {
   background: none;
   border: none;
   color: var(--color-text-faint);
@@ -229,7 +230,8 @@
   transition: color 0.15s ease;
 }
 
-.home-unpin-btn:hover {
+.home-unpin-btn:hover,
+.home-hide-btn:hover {
   color: var(--color-crimson);
 }
 

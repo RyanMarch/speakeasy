@@ -34,6 +34,12 @@ async function runTests() {
   assert(directSeeds.length === 181, `seed-recipes.js has 181 recipes (found: ${directSeeds.length})`);
   const storageMod = await import('../js/modules/storage.js');
   assert(typeof storageMod.clearUserDataOnSignOut === 'function', 'storage.js exports clearUserDataOnSignOut()');
+  assert(typeof storageMod.getHomeCollectionsOrder === 'function', 'storage.js exports getHomeCollectionsOrder()');
+  assert(typeof storageMod.saveHomeCollectionsOrder === 'function', 'storage.js exports saveHomeCollectionsOrder()');
+  assert(typeof storageMod.getHiddenHomeCollections === 'function', 'storage.js exports getHiddenHomeCollections()');
+  assert(typeof storageMod.saveHiddenHomeCollections === 'function', 'storage.js exports saveHiddenHomeCollections()');
+  assert(typeof storageMod.getFunPreference === 'function', 'storage.js exports getFunPreference()');
+  assert(typeof storageMod.saveFunPreference === 'function', 'storage.js exports saveFunPreference()');
   assert(storageMod.SEED_RECIPES === directSeeds, 'storage.js re-exports the exact same SEED_RECIPES array');
 
   const seenIds = new Set();
@@ -92,6 +98,7 @@ async function runTests() {
   assert(typeof topBarMod.updateVaultStats === 'function', 'top-bar.js exports updateVaultStats()');
   assert(typeof topBarMod.setUnitSystem === 'function', 'top-bar.js exports setUnitSystem()');
   assert(typeof topBarMod.setGlassViewMode === 'function', 'top-bar.js exports setGlassViewMode()');
+  assert(typeof topBarMod.setFunAnimations === 'function', 'top-bar.js exports setFunAnimations()');
   assert(typeof topBarMod.setLibrarySort === 'function', 'top-bar.js exports setLibrarySort()');
   assert(typeof topBarMod.setTopBarCallbacks === 'function', 'top-bar.js exports setTopBarCallbacks()');
 
@@ -157,6 +164,7 @@ async function runTests() {
   const appHtml = fs.readFileSync(path.join(rootDir, 'app.html'), 'utf8');
   const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
   const termsHtml = fs.readFileSync(path.join(rootDir, 'terms.html'), 'utf8');
+  const adminHtml = fs.readFileSync(path.join(rootDir, 'admin.html'), 'utf8');
 
   // Check app.html modulepreloads
   const preloadRegex = /<link\s+rel="modulepreload"\s+href="([^"?]+)(?:\?[^"]*)?"/g;
@@ -173,7 +181,7 @@ async function runTests() {
 
   // Check stylesheet links across app.html, index.html, and terms.html
   const cssRegex = /<link\s+rel="stylesheet"\s+href="([^"?]+)(?:\?[^"]*)?"/g;
-  for (const [docName, docHtml] of [['app.html', appHtml], ['index.html', indexHtml], ['terms.html', termsHtml]]) {
+  for (const [docName, docHtml] of [['app.html', appHtml], ['index.html', indexHtml], ['terms.html', termsHtml], ['admin.html', adminHtml]]) {
     const cssLinks = [];
     cssRegex.lastIndex = 0;
     while ((match = cssRegex.exec(docHtml)) !== null) {
@@ -201,7 +209,7 @@ async function runTests() {
   while ((match = importRegex.exec(indexCss)) !== null) {
     importedCss.push(match[1]);
   }
-  assert(importedCss.length === 8, `index.css imports 8 modular stylesheets (found: ${importedCss.length})`);
+  assert(importedCss.length === 9, `index.css imports 9 modular stylesheets (found: ${importedCss.length})`);
   for (const rawCssFile of importedCss) {
     // Each @import carries a `?v=N` cache-busting query string (see the
     // comment above the imports in index.css) — strip it back off to get an

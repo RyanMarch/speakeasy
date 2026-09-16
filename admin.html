@@ -12,7 +12,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/base.css?v=52">
   <style>
     :root {
       --admin-max-width: 1240px;
@@ -1988,15 +1988,27 @@
       }
 
       // 8. Least Discovered / Hidden Gems
-      const leastViews = data.cocktails?.least_views || [];
+      // Built from the full recipe catalog (allRecipesMap) diffed against every
+      // recipe that has at least one view, so cocktails with ZERO views — the
+      // most actionable "nobody has ever opened this" signal — show up first,
+      // instead of being invisible because they never produced an event row.
+      const viewedCounts = new Map((data.cocktails?.all_view_counts || []).map(v => [v.target_id, v.views]));
+      const topViewIds = new Set((topViews || []).map(t => t.target_id));
+      const zeroViewLeast = Array.from(allRecipesMap.keys())
+        .filter(id => !viewedCounts.has(id))
+        .map(id => ({ target_id: id, views: 0 }));
+      const nonZeroLeast = Array.from(viewedCounts.entries())
+        .filter(([id]) => !topViewIds.has(id))
+        .map(([target_id, views]) => ({ target_id, views }))
+        .sort((a, b) => a.views - b.views);
+      const leastViews = [...zeroViewLeast, ...nonZeroLeast];
+
       const tbodyLeastViews = document.getElementById('table-least-views');
       if (tbodyLeastViews) {
-        // Exclude recipes that already appear in top views to avoid mirroring identical small datasets
-        const topViewIds = new Set((topViews || []).map(t => t.target_id));
-        const filteredLeast = leastViews.filter(v => !topViewIds.has(v.target_id));
+        const filteredLeast = leastViews.filter(v => !topViewIds.has(v.target_id)).slice(0, 10);
 
         if (filteredLeast.length === 0) {
-          if (leastViews.length > 0 && topViews.length > 0) {
+          if (topViews.length > 0) {
             tbodyLeastViews.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">All viewed cocktails currently appear in Most Viewed. As more drinks are explored, lower-viewed gems will appear here.</td></tr>`;
           } else {
             tbodyLeastViews.innerHTML = /*html*/`<tr><td colspan="2" class="empty-state">No view stats recorded yet.</td></tr>`;

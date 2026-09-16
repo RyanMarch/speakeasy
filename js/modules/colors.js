@@ -4,6 +4,7 @@
  */
 
 import { getIngredientMetadata } from './taxonomy.js';
+import { UNIT_CONVERSIONS_TO_OZ, normalizeUnit } from './parser.js';
 
 const COLOR_MAP = [
   // Red bitters & amari
@@ -38,33 +39,6 @@ const COLOR_MAP = [
   { pattern: /\b(gin|vodka|blanco tequila|silver tequila|white rum|light rum|mezcal|pisco|dry vermouth|aquavit)\b/i, color: '#d2e2ec', light: '#e7f0f6', dark: '#a5c0d1', label: 'Clear Spirit' },
   { pattern: /\b(tonic|club soda|sparkling|seltzer|ginger beer|ginger ale|champagne|prosecco|cava)\b/i, color: '#d9eef9', light: '#edf7fc', dark: '#afd5ea', label: 'Sparkling Mixer' },
 ];
-
-const UNIT_CONVERSIONS_TO_OZ = {
-  oz: 1.0,
-  ml: 0.033,
-  cl: 0.33,
-  dash: 0.08,
-  dashes: 0.08,
-  drop: 0.05,
-  drops: 0.05,
-  barspoon: 0.15,
-  barspoons: 0.15,
-  tsp: 0.15,
-  tsps: 0.15,
-  tbsp: 0.5,
-  part: 1.0,
-  parts: 1.0,
-  splash: 0.2,
-  rinse: 0.05,
-  leaf: 0.02,
-  leaves: 0.02,
-  pinch: 0.02,
-  pinches: 0.02,
-  cup: 8.0,
-  cups: 8.0,
-  shot: 1.5,
-  shots: 1.5,
-};
 
 export function getIngredientColor(name = '') {
   const trimmed = name.trim();
@@ -110,7 +84,7 @@ export function normalizeVolumeToOz(amount, unit = 'oz') {
     return 0.05; // Visual trace amount (e.g., rinse)
   }
 
-  const cleanUnit = (unit || '').toLowerCase().trim();
+  const cleanUnit = normalizeUnit(unit);
   const factor = UNIT_CONVERSIONS_TO_OZ[cleanUnit] ?? 1.0;
   return amount * factor;
 }
@@ -269,7 +243,7 @@ export function deriveShades(baseHex) {
  * Takes into account dominant tinting (e.g. blue curacao or campari strongly tinting pale liquids)
  * and opacity/dairy body.
  */
-export function calculateBlendedColor(specs = []) {
+export function calculateBlendedColor(specs = [], recipeContext = null) {
   const layers = calculateFluidLayers(specs);
   if (layers.length === 0) {
     return {
@@ -288,6 +262,26 @@ export function calculateBlendedColor(specs = []) {
       dark: layers[0].dark,
       label: layers[0].label,
       dominantName: layers[0].spec?.name || layers[0].label,
+    };
+  }
+
+  // Special-case: Aperol Spritz signature radiant bittersweet orange
+  const recipeName = typeof recipeContext === 'string'
+    ? recipeContext
+    : (recipeContext?.name || '');
+  const isAperolSpritzByName = /aperol\s+spritz/i.test(recipeName);
+  const hasAperol = layers.some(l => /\baperol\b/i.test(l.spec?.name || ''));
+  const hasBubbles = layers.some(l => /\b(sparkling wine|prosecco|champagne|cava)\b/i.test(l.spec?.name || ''));
+  const isAperolSpritzBySpecs = hasAperol && hasBubbles && layers.length <= 4;
+
+  if (isAperolSpritzByName || isAperolSpritzBySpecs) {
+    const aperolSpritzShades = deriveShades('#f4621b');
+    return {
+      color: aperolSpritzShades.color,
+      light: aperolSpritzShades.light,
+      dark: aperolSpritzShades.dark,
+      label: 'Aperol Spritz',
+      dominantName: 'Aperol',
     };
   }
 

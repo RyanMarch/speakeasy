@@ -1,57 +1,10 @@
 import assert from 'node:assert/strict';
 import { onRequestPost, onRequestGet } from '../functions/api/sync.js';
+import { MockD1PreparedStatementBase, createMockD1 } from './test-helpers.js';
 
 console.log('--- Testing /functions/api/sync.js Endpoint ---');
 
-// In-memory mock SQLite D1 database engine
-class MockD1 {
-  constructor() {
-    this.tables = {
-      users: new Map(),
-      sessions: new Map(),
-      bars: new Map(),
-      bar_inventory: new Map(),
-      custom_recipes: new Map(),
-      drink_history: new Map(),
-      global_recipes: new Map(),
-      global_hidden_recipes: new Map(),
-    };
-  }
-
-  prepare(sql) {
-    return new MockD1PreparedStatement(this, sql);
-  }
-
-  async batch(statements) {
-    const results = [];
-    for (const stmt of statements) {
-      results.push(await stmt.run());
-    }
-    return results;
-  }
-}
-
-class MockD1PreparedStatement {
-  constructor(db, sql) {
-    this.db = db;
-    this.sql = sql.trim();
-    this.boundParams = [];
-  }
-
-  bind(...params) {
-    this.boundParams = params;
-    return this;
-  }
-
-  async first() {
-    const res = await this.all();
-    return res.results[0] || null;
-  }
-
-  async run() {
-    return this.all();
-  }
-
+class MockD1PreparedStatement extends MockD1PreparedStatementBase {
   async all() {
     const sql = this.sql;
     const params = this.boundParams;
@@ -62,6 +15,24 @@ class MockD1PreparedStatement {
       const session = this.db.tables.sessions.get(token);
       return {
         results: session ? [{ user_id: session.user_id, expires_at: session.expires_at }] : [],
+        success: true,
+      };
+    }
+
+    // DELETE FROM sessions WHERE token = ?
+    if (sql.startsWith('DELETE FROM sessions WHERE token = ?')) {
+      const [token] = params;
+      this.db.tables.sessions.delete(token);
+      return { results: [], success: true };
+    }
+
+    // SELECT id, user_id FROM bars WHERE id IN (?,?,...) — ownership check before
+    // writing bar_inventory rows for client-supplied bar ids.
+    if (sql.startsWith('SELECT id, user_id FROM bars WHERE id IN')) {
+      const ids = new Set(params);
+      const rows = Array.from(this.db.tables.bars.values()).filter(b => ids.has(b.id));
+      return {
+        results: rows.map(b => ({ id: b.id, user_id: b.user_id })),
         success: true,
       };
     }
@@ -220,6 +191,11 @@ class MockD1PreparedStatement {
     throw new Error(`Unhandled SQL query in mock: ${sql}`);
   }
 }
+
+const MockD1 = createMockD1([
+  'users', 'sessions', 'bars', 'bar_inventory', 'custom_recipes',
+  'drink_history', 'global_recipes', 'global_hidden_recipes',
+], MockD1PreparedStatement);
 
 // Helper to construct mock Request
 function createMockRequest({ method = 'POST', headers = {}, body = null }) {

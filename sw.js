@@ -27,6 +27,18 @@ const PRECACHE_URLS = [
   'css/theme-deco.css',
   'css/index.css',
   'css/marketing.css',
+  // The modular stylesheets index.css pulls in via @import — the browser
+  // fetches those separately, so without their own precache entries a cold
+  // offline-first open (no prior online visit) would render app.html unstyled.
+  'css/shared-animations.css',
+  'css/layout.css',
+  'css/recipe-list.css',
+  'css/counter-view.css',
+  'css/home-view.css',
+  'css/menu-builder-view.css',
+  'css/editor.css',
+  'css/modals.css',
+  'css/responsive.css',
   'js/modules/taxonomy.js',
   'js/modules/storage.js',
   'js/modules/parser.js',

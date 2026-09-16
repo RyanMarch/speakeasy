@@ -24,6 +24,24 @@ for (const line of testCases) {
   console.log(`Input: "${line}" =>`, parsed);
 }
 
+console.log('--- Testing Leading-Digit Brand Names (not a pour amount) ---');
+// A digit-led brand/product name ("1800 Reposado") must not be misread as an
+// absurd pour amount just because it starts with digits and no unit follows.
+// (A small digit-led brand like "7-Up" is inherently ambiguous with a real
+// bare "7" amount and isn't handled here — see the plausible-amount cap below.)
+const brandNameCases = [
+  { line: '1800 Reposado', expectName: '1800 Reposado' },
+];
+for (const { line, expectName } of brandNameCases) {
+  const parsed = parseIngredientLine(line);
+  assert.equal(parsed.amount, null, `Expected no amount parsed for "${line}", got ${parsed.amount}`);
+  assert.equal(parsed.name, expectName, `Expected name "${expectName}" for "${line}", got "${parsed.name}"`);
+}
+// Small bare numbers with no unit are still legitimate "parts"-style amounts.
+const bareAmount = parseIngredientLine('2 Campari');
+assert.equal(bareAmount.amount, 2, `Expected amount 2 for "2 Campari", got ${bareAmount.amount}`);
+assert.equal(bareAmount.name, 'Campari', `Expected name "Campari" for "2 Campari", got "${bareAmount.name}"`);
+
 console.log('--- Testing Fractions Formatting ---');
 console.log('0.75 =>', formatFraction(0.75));
 console.log('1.5 =>', formatFraction(1.5));
@@ -785,6 +803,26 @@ const blueHawaiiSvg = renderGlassSvg({
 if (!blueHawaiiSvg.includes('blended-fluid-body') || !blueHawaiiSvg.includes('data-mode="blended"')) {
   throw new Error('Expected rendered SVG to contain blended-fluid-body and data-mode="blended"');
 }
+
+const aperolSpritzSpecs = [
+  { amount: 3, unit: 'oz', name: 'Sparkling Wine' },
+  { amount: 2, unit: 'oz', name: 'Aperol' },
+  { amount: 1, unit: 'oz', name: 'Club Soda' },
+];
+const blendedAperol = calculateBlendedColor(aperolSpritzSpecs, 'Aperol Spritz');
+if (blendedAperol.color !== '#f4621b') {
+  throw new Error(`Expected Aperol Spritz mixed color to be #f4621b, got ${blendedAperol.color}`);
+}
+
+const { FEATURED_COCKTAILS } = await import('../js/data/featured-cocktails.js');
+const aperolFeatured = FEATURED_COCKTAILS.find(c => c.id === 'aperol-spritz');
+if (!aperolFeatured || !aperolFeatured.svg.includes('fluid-effervescence')) {
+  throw new Error('Expected Aperol Spritz featured cocktail SVG to include fluid-effervescence bubbles');
+}
+const tomFeatured = FEATURED_COCKTAILS.find(c => c.id === 'tom-collins');
+if (!tomFeatured || !tomFeatured.svg.includes('fluid-effervescence')) {
+  throw new Error('Expected Tom Collins featured cocktail SVG to include fluid-effervescence bubbles');
+}
 console.log('Blended cocktail color calculation and SVG generation tests passed.');
 
 console.log('--- Testing Hidden Recipe Storage & Toggles ---');
@@ -1360,6 +1398,33 @@ saveRecipes(SEED_RECIPES);
 saveInventory([]);
 console.log('Backup export/import tests passed.');
 
+console.log('\n--- Testing Flamed Peel Animations ---');
+
+// 1. Flamed Peel vs Unflamed Peel
+const flamedRecipe = {
+  name: 'Oaxaca Old Fashioned',
+  glassware: 'rocks',
+  garnish: 'Flamed orange peel',
+};
+const unflamedRecipe = {
+  name: 'Standard Old Fashioned',
+  glassware: 'rocks',
+  garnish: 'Orange twist',
+};
+
+const rocksGlass = resolveGlassware('rocks');
+const flamedSvg = renderGarnishesSvg(flamedRecipe, rocksGlass, 120);
+assert(flamedSvg.includes('peel-ember-glow'), 'Flamed recipe includes peel-ember-glow');
+assert(flamedSvg.includes('peel-sparks-group'), 'Flamed recipe includes peel-sparks-group');
+assert(flamedSvg.includes('garnish-flamed-twist'), 'Flamed recipe includes garnish-flamed-twist class');
+
+const unflamedSvg = renderGarnishesSvg(unflamedRecipe, rocksGlass, 120);
+assert(!unflamedSvg.includes('peel-ember-glow'), 'Unflamed recipe does not include peel-ember-glow');
+assert(!unflamedSvg.includes('peel-sparks-group'), 'Unflamed recipe does not include peel-sparks-group');
+assert(!unflamedSvg.includes('garnish-flamed-twist'), 'Unflamed recipe does not include garnish-flamed-twist class');
+console.log('PASS: Flamed peel glow and ember sparks only render when recipe specifies flamed');
+
 console.log('All tests completed successfully!');
+
 
 

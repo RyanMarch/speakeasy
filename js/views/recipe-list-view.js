@@ -63,18 +63,15 @@ export function renderRecipeList() {
 
   let allCount = 0;
   let canMakeCount = 0;
-  let oneMissingCount = 0;
 
   for (const item of queryMatched) {
     if (!item.matchesSearch || !item.matchesPack) continue;
     allCount++;
     if (item.invAnalysis.canMake) canMakeCount++;
-    if (item.invAnalysis.isBottleNext) oneMissingCount++;
   }
 
   if (elements.countAll) elements.countAll.textContent = allCount;
   if (elements.countCanMake) elements.countCanMake.textContent = canMakeCount;
-  if (elements.countOneMissing) elements.countOneMissing.textContent = oneMissingCount;
   if (_updateVaultStatsFn) _updateVaultStatsFn();
 
   const filtered = queryMatched.filter(item => {
@@ -110,10 +107,6 @@ export function renderRecipeList() {
       if (lenA !== lenB) return lenA - lenB;
       return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
     });
-  }
-
-  if (elements.recipeCountBadge) {
-    elements.recipeCountBadge.textContent = `${filtered.length} ${filtered.length === 1 ? 'Cocktail' : 'Cocktails'}`;
   }
 
   if (filtered.length === 0) {
