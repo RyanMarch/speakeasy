@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS custom_recipes (
 CREATE TABLE IF NOT EXISTS shares (
     share_id TEXT PRIMARY KEY,
     recipe TEXT NOT NULL,          -- JSON blob: full recipe snapshot at share-time
+    og_image BLOB,                 -- PNG bytes for the link-preview image, rendered client-side
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

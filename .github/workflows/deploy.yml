@@ -3,7 +3,7 @@ name: Deploy & Migrate
 on:
   push:
     branches:
-      - main
+      - '**'
 
 jobs:
   deploy:
@@ -32,6 +32,7 @@ jobs:
           command: d1 migrations apply speakeasy-db --remote
 
       - name: Deploy to Cloudflare Pages
+        if: github.ref == 'refs/heads/main'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
