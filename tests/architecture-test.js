@@ -34,6 +34,12 @@ async function runTests() {
   assert(directSeeds.length === 181, `seed-recipes.js has 181 recipes (found: ${directSeeds.length})`);
   const storageMod = await import('../js/modules/storage.js');
   assert(typeof storageMod.clearUserDataOnSignOut === 'function', 'storage.js exports clearUserDataOnSignOut()');
+  assert(typeof storageMod.getHomeCollectionsOrder === 'function', 'storage.js exports getHomeCollectionsOrder()');
+  assert(typeof storageMod.saveHomeCollectionsOrder === 'function', 'storage.js exports saveHomeCollectionsOrder()');
+  assert(typeof storageMod.getHiddenHomeCollections === 'function', 'storage.js exports getHiddenHomeCollections()');
+  assert(typeof storageMod.saveHiddenHomeCollections === 'function', 'storage.js exports saveHiddenHomeCollections()');
+  assert(typeof storageMod.getFunPreference === 'function', 'storage.js exports getFunPreference()');
+  assert(typeof storageMod.saveFunPreference === 'function', 'storage.js exports saveFunPreference()');
   assert(storageMod.SEED_RECIPES === directSeeds, 'storage.js re-exports the exact same SEED_RECIPES array');
 
   const seenIds = new Set();
@@ -92,6 +98,7 @@ async function runTests() {
   assert(typeof topBarMod.updateVaultStats === 'function', 'top-bar.js exports updateVaultStats()');
   assert(typeof topBarMod.setUnitSystem === 'function', 'top-bar.js exports setUnitSystem()');
   assert(typeof topBarMod.setGlassViewMode === 'function', 'top-bar.js exports setGlassViewMode()');
+  assert(typeof topBarMod.setFunAnimations === 'function', 'top-bar.js exports setFunAnimations()');
   assert(typeof topBarMod.setLibrarySort === 'function', 'top-bar.js exports setLibrarySort()');
   assert(typeof topBarMod.setTopBarCallbacks === 'function', 'top-bar.js exports setTopBarCallbacks()');
 

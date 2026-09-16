@@ -191,7 +191,7 @@ export function renderCurrentView() {
     }
   };
 
-  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !state.funAnimations;
   if (!reducedMotion && document.startViewTransition) {
     window._activeViewTransition?.skipTransition?.();
     const transition = document.startViewTransition(applyView);

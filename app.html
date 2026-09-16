@@ -10,7 +10,8 @@
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="Speakeasy: Cocktail Recipe Library">
-  <meta property="og:description" content="Cocktail recipe library with interactive fluid layers and instant spec parsing.">
+  <meta property="og:description"
+    content="Cocktail recipe library with interactive fluid layers and instant spec parsing.">
   <meta property="og:url" content="https://speakeasy.ryanmarch.me/app">
   <meta property="og:image" content="https://speakeasy.ryanmarch.me/assets/og-home.png">
   <meta property="og:image:width" content="1200">
@@ -25,7 +26,7 @@
   <meta name="theme-color" content="#121110">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/index.css?v=52">
+  <link rel="stylesheet" href="css/index.css?v=53">
   <link rel="stylesheet" href="css/theme-deco.css?v=10">
   <!--
     Import Map: cache-busts the entire internal ES module graph from ONE
@@ -57,8 +58,8 @@
       "/js/modules/balance.js": "/js/modules/balance.js?v=1",
       "/js/modules/colors.js": "/js/modules/colors.js?v=1",
       "/js/modules/garnishes.js": "/js/modules/garnishes.js?v=2",
-      "/js/modules/glass-view.js": "/js/modules/glass-view.js?v=1",
-      "/js/modules/glassware.js": "/js/modules/glassware.js?v=1",
+      "/js/modules/glass-view.js": "/js/modules/glass-view.js?v=3",
+      "/js/modules/glassware.js": "/js/modules/glassware.js?v=2",
       "/js/modules/history.js": "/js/modules/history.js?v=1",
       "/js/modules/parser.js": "/js/modules/parser.js?v=2",
       "/js/modules/storage.js": "/js/modules/storage.js?v=1",
@@ -101,9 +102,9 @@
   <link rel="modulepreload" href="/js/modules/parser.js?v=2">
   <link rel="modulepreload" href="/js/modules/colors.js?v=1">
   <link rel="modulepreload" href="/js/modules/taxonomy.js?v=1">
-  <link rel="modulepreload" href="/js/modules/glass-view.js?v=1">
+  <link rel="modulepreload" href="/js/modules/glass-view.js?v=2">
   <link rel="modulepreload" href="/js/modules/abv.js?v=1">
-  <link rel="modulepreload" href="/js/modules/glassware.js?v=1">
+  <link rel="modulepreload" href="/js/modules/glassware.js?v=2">
   <link rel="modulepreload" href="/js/modules/garnishes.js?v=2">
   <link rel="modulepreload" href="/js/modules/balance.js?v=1">
   <link rel="modulepreload" href="/js/modules/history.js?v=1">
@@ -464,48 +465,7 @@
               </div>
             </section>
 
-            <!-- Section 2: Active Bar Selector -->
-            <section class="vault-modal-section" aria-labelledby="heading-active-bar">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-active-bar">Active Bar Selection</h2>
-                <button type="button" id="btn-add-bar" class="btn btn-secondary btn-sm">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  <span>Add Bar</span>
-                </button>
-              </div>
-              <div class="vault-bar-selector-box">
-                <div class="vault-bars-list" role="radiogroup" aria-label="Active bar profile" id="vault-bars-list">
-                  <!-- rendered by renderVaultBarsList() in js/components/top-bar.js -->
-                </div>
-              </div>
-            </section>
-
-            <!-- Section 2b: Your Bar at a Glance -->
-            <section class="vault-modal-section" aria-labelledby="heading-bar-glance">
-              <div class="vault-modal-section-header">
-                <h2 class="vault-modal-section-title" id="heading-bar-glance">Your Bar at a Glance</h2>
-              </div>
-              <div class="vault-stat-strip">
-                <div class="vault-stat-tile">
-                  <span class="vault-stat-value" id="account-stat-drinks">0</span>
-                  <span class="vault-stat-label">Drinks Poured</span>
-                </div>
-                <div class="vault-stat-tile">
-                  <span class="vault-stat-value vault-stat-value-text" id="account-stat-favorite">—</span>
-                  <span class="vault-stat-label">Go-To Drink</span>
-                </div>
-                <div class="vault-stat-tile">
-                  <span class="vault-stat-value" id="account-stat-ingredients">0</span>
-                  <span class="vault-stat-label">Ingredients Stocked</span>
-                </div>
-              </div>
-            </section>
-
-            <!-- Section 3: Library & Custom Recipe Shortcuts -->
+            <!-- Library & Custom Recipe Shortcuts -->
             <section class="vault-modal-section" aria-labelledby="heading-library-shortcuts">
               <div class="vault-modal-section-header">
                 <h2 class="vault-modal-section-title" id="heading-library-shortcuts">Library & Custom Recipe Shortcuts
@@ -600,13 +560,53 @@
               <button type="button" id="btn-popover-new-drink" style="display: none;"></button>
             </section>
 
-            <!-- Section 4: Pinned Home Collections -->
+            <!-- Active Bar Selector -->
+            <section class="vault-modal-section" aria-labelledby="heading-active-bar">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-active-bar">Active Bar Selection</h2>
+                <button type="button" id="btn-add-bar" class="btn btn-secondary btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Add Bar</span>
+                </button>
+              </div>
+              <div class="vault-bar-selector-box">
+                <div class="vault-bars-list" role="radiogroup" aria-label="Active bar profile" id="vault-bars-list">
+                  <!-- rendered by renderVaultBarsList() in js/components/top-bar.js -->
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 2b: Your Bar at a Glance -->
+            <section class="vault-modal-section" aria-labelledby="heading-bar-glance">
+              <div class="vault-modal-section-header">
+                <h2 class="vault-modal-section-title" id="heading-bar-glance">Your Bar at a Glance</h2>
+              </div>
+              <div class="vault-stat-strip">
+                <div class="vault-stat-tile">
+                  <span class="vault-stat-value" id="account-stat-drinks">0</span>
+                  <span class="vault-stat-label">Drinks Poured</span>
+                </div>
+                <div class="vault-stat-tile">
+                  <span class="vault-stat-value vault-stat-value-text" id="account-stat-favorite">—</span>
+                  <span class="vault-stat-label">Go-To Drink</span>
+                </div>
+                <div class="vault-stat-tile">
+                  <span class="vault-stat-value" id="account-stat-ingredients">0</span>
+                  <span class="vault-stat-label">Ingredients Stocked</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Pinned Home Collections -->
             <section class="vault-modal-section" aria-labelledby="heading-pinned-tags">
               <div class="vault-modal-section-header">
                 <h2 class="vault-modal-section-title" id="heading-pinned-tags">Pinned Home Collections</h2>
               </div>
-              <p class="vault-section-hint">Tags pinned here show up as rows at the top of your Home screen, in this
-                order.</p>
+              <p class="vault-section-hint">Collections and tags show up as rows on your Home screen. Reorder or hide them below.</p>
               <ul class="vault-pinned-tags-list" id="vault-pinned-tags-list">
                 <!-- Populated by renderVaultSettingsModal() -->
               </ul>
@@ -661,6 +661,17 @@
                   </div>
                   <label class="vault-switch-label">
                     <input type="checkbox" id="wake-lock-toggle" class="vault-toggle-input" checked />
+                    <span class="vault-switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="vault-pref-tile">
+                  <div class="vault-pref-meta">
+                    <span class="vault-pref-label">More Fun</span>
+                    <span class="vault-pref-desc">Enable animated glassware, effervescence, and smoke effects</span>
+                  </div>
+                  <label class="vault-switch-label">
+                    <input type="checkbox" id="fun-toggle" class="vault-toggle-input" checked />
                     <span class="vault-switch-slider"></span>
                   </label>
                 </div>

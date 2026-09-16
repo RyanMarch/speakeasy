@@ -15,6 +15,7 @@ import {
   getRecentlyViewed,
   getAllUniqueTags,
   savePinnedTags,
+  saveHiddenHomeCollections,
   normalizeTagName,
 } from '../modules/storage.js';
 
@@ -84,10 +85,11 @@ export function renderHomeView() {
   const recentlyViewedRecipes = recentlyViewedIds
     .map(id => state.recipes.find(r => r.id === id))
     .filter(Boolean);
-  const recentlyViewedCollection = recentlyViewedRecipes.length > 0 ? [{
+  const recentlyViewedCollection = recentlyViewedRecipes.length > 0 && !state.hiddenHomeCollections.has('__recently-viewed__') ? [{
     key: '__recently-viewed__',
     title: 'Recently Viewed',
     pinned: false,
+    isDefault: false,
     recipes: recentlyViewedRecipes,
   }] : [];
 
@@ -103,47 +105,83 @@ export function renderHomeView() {
     }
   }
 
-  const recentlyMadeCollection = recentlyMadeRecipes.length > 0 ? [{
+  const recentlyMadeCollection = recentlyMadeRecipes.length > 0 && !state.hiddenHomeCollections.has('__recently-made__') ? [{
     key: '__recently-made__',
     title: 'Recently Made',
     pinned: false,
+    isDefault: false,
     recipes: recentlyMadeRecipes,
   }] : [];
 
-  const pinnedCollections = state.pinnedTags
-    .map(tag => ({
+  const pinnedMap = new Map();
+  state.pinnedTags.forEach(tag => {
+    pinnedMap.set(tag, {
       key: tag,
       title: formatTagTitle(tag),
       pinned: true,
+      isDefault: false,
       recipes: state.recipes.filter(r => Array.isArray(r.tags) && r.tags.includes(tag)),
-    }))
-    .filter(c => c.recipes.length > 0);
+    });
+  });
 
-  const defaultCollections = HOME_DEFAULT_COLLECTIONS
-    .map(c => ({
+  const defaultMap = new Map();
+  HOME_DEFAULT_COLLECTIONS.forEach(c => {
+    defaultMap.set(c.key, {
       ...c,
       pinned: false,
+      isDefault: true,
       recipes: state.recipes.filter(r => Array.isArray(r.tags) && r.tags.includes(c.key)),
-    }))
-    .filter(c => c.recipes.length > 0);
+    });
+  });
+
+  // Determine order of custom pinned tags + default collections
+  let orderKeys = state.homeCollectionsOrder;
+  if (!Array.isArray(orderKeys) || orderKeys.length === 0) {
+    orderKeys = [...state.pinnedTags, ...HOME_DEFAULT_COLLECTIONS.map(c => c.key)];
+  }
+
+  const orderedMiddleCollections = [];
+  const processedKeys = new Set();
+
+  for (const key of orderKeys) {
+    if (processedKeys.has(key)) continue;
+    processedKeys.add(key);
+    if (state.hiddenHomeCollections.has(key)) continue;
+
+    const col = pinnedMap.get(key) || defaultMap.get(key);
+    if (col && col.recipes.length > 0) {
+      orderedMiddleCollections.push(col);
+    }
+  }
+
+  // Any remaining pinned or default collections not in orderKeys
+  for (const [key, col] of pinnedMap) {
+    if (!processedKeys.has(key)) {
+      processedKeys.add(key);
+      if (!state.hiddenHomeCollections.has(key) && col.recipes.length > 0) {
+        orderedMiddleCollections.push(col);
+      }
+    }
+  }
+  for (const [key, col] of defaultMap) {
+    if (!processedKeys.has(key)) {
+      processedKeys.add(key);
+      if (!state.hiddenHomeCollections.has(key) && col.recipes.length > 0) {
+        orderedMiddleCollections.push(col);
+      }
+    }
+  }
 
   const allCollections = [
     ...recentlyViewedCollection,
     ...recentlyMadeCollection,
-    ...pinnedCollections,
-    ...defaultCollections,
+    ...orderedMiddleCollections,
   ];
   homeCollectionsCache = allCollections;
   const pinnableTags = getAllUniqueTags(state.recipes).filter(t => !state.pinnedTags.includes(t));
 
-  // The pin prompt is anchored to a landmark row, not a raw index, so it
-  // doesn't jump around whenever Recently Viewed/Made appear or disappear:
-  // right after the last pinned row once the user has any pins, otherwise
-  // right after the first default collection (Classic Cocktails).
-  const topRowCount = recentlyViewedCollection.length + recentlyMadeCollection.length + pinnedCollections.length;
-  const pinPromptIndex = pinnedCollections.length > 0
-    ? topRowCount
-    : topRowCount + (defaultCollections.length > 0 ? 1 : 0);
+  const topRowCount = recentlyViewedCollection.length + recentlyMadeCollection.length;
+  const pinPromptIndex = topRowCount + orderedMiddleCollections.length;
 
   // "Almost Ready" is a compact banner, not a shelf — a full row of cards here
   // would reintroduce the home-screen bulk this whole page was just decluttered
@@ -262,7 +300,10 @@ export function renderHomeShelf(col, idx) {
           ${col.pinned ? `
             <button type="button" class="home-unpin-btn" data-action="unpin-tag" data-tag="${escapeHtml(col.key)}"
               title="Remove this collection from Home" aria-label="Remove ${escapeHtml(col.title)} collection">×</button>
-          ` : ''}
+          ` : `
+            <button type="button" class="home-hide-btn" data-action="hide-collection" data-collection="${escapeHtml(col.key)}"
+              title="Hide this shelf from Home" aria-label="Hide ${escapeHtml(col.title)} shelf">×</button>
+          `}
         </div>
         <div class="shelf-scroll-controls">
           <button type="button" class="shelf-nav-btn shelf-nav-prev" aria-label="Scroll ${escapeHtml(col.title)} left" title="Scroll left">
@@ -417,6 +458,16 @@ export function setupHomeViewEvents(pinnableTags) {
       if (!tag) return;
       state.pinnedTags = state.pinnedTags.filter(t => t !== tag);
       savePinnedTags(state.pinnedTags);
+      renderHomeView();
+    });
+  });
+
+  container.querySelectorAll('[data-action="hide-collection"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-collection');
+      if (!key) return;
+      state.hiddenHomeCollections.add(key);
+      saveHiddenHomeCollections([...state.hiddenHomeCollections]);
       renderHomeView();
     });
   });

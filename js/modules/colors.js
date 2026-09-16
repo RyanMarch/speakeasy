@@ -269,7 +269,7 @@ export function deriveShades(baseHex) {
  * Takes into account dominant tinting (e.g. blue curacao or campari strongly tinting pale liquids)
  * and opacity/dairy body.
  */
-export function calculateBlendedColor(specs = []) {
+export function calculateBlendedColor(specs = [], recipeContext = null) {
   const layers = calculateFluidLayers(specs);
   if (layers.length === 0) {
     return {
@@ -288,6 +288,26 @@ export function calculateBlendedColor(specs = []) {
       dark: layers[0].dark,
       label: layers[0].label,
       dominantName: layers[0].spec?.name || layers[0].label,
+    };
+  }
+
+  // Special-case: Aperol Spritz signature radiant bittersweet orange
+  const recipeName = typeof recipeContext === 'string'
+    ? recipeContext
+    : (recipeContext?.name || '');
+  const isAperolSpritzByName = /aperol\s+spritz/i.test(recipeName);
+  const hasAperol = layers.some(l => /\baperol\b/i.test(l.spec?.name || ''));
+  const hasBubbles = layers.some(l => /\b(sparkling wine|prosecco|champagne|cava)\b/i.test(l.spec?.name || ''));
+  const isAperolSpritzBySpecs = hasAperol && hasBubbles && layers.length <= 4;
+
+  if (isAperolSpritzByName || isAperolSpritzBySpecs) {
+    const aperolSpritzShades = deriveShades('#f4621b');
+    return {
+      color: aperolSpritzShades.color,
+      light: aperolSpritzShades.light,
+      dark: aperolSpritzShades.dark,
+      label: 'Aperol Spritz',
+      dominantName: 'Aperol',
     };
   }
 
