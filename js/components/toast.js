@@ -36,6 +36,91 @@ export function showToast(message, options = {}) {
   }, duration);
 }
 
+/**
+ * Wires a <dialog>'s backdrop-click light-dismiss, as a fallback for browsers
+ * without native `closedby="any"` support — a click that lands on the
+ * backdrop (not the dialog's own content rect) closes it via `closeFn`.
+ */
+export function setupDialogLightDismiss(dialogEl, closeFn) {
+  if (!dialogEl || ('closedBy' in HTMLDialogElement.prototype)) return;
+  dialogEl.addEventListener('click', (event) => {
+    if (event.target !== dialogEl) return;
+    const rect = dialogEl.getBoundingClientRect();
+    const isDialogContent = (
+      rect.top <= event.clientY &&
+      event.clientY <= rect.top + rect.height &&
+      rect.left <= event.clientX &&
+      event.clientX <= rect.left + rect.width
+    );
+    if (!isDialogContent) {
+      closeFn();
+    }
+  });
+}
+
+/**
+ * Positions a native <popover> from its trigger's actual bounding rect on
+ * open, as a fallback for CSS anchor positioning (position-anchor/anchor()),
+ * which isn't reliably supported across every Chromium build in the wild yet
+ * — when it silently fails to resolve, the popover falls back to a hardcoded
+ * CSS offset that only happens to line up with the trigger at one specific
+ * viewport size. `getTrigger` is called fresh on each open since which
+ * element is the "real" visible trigger can change (e.g. a mobile vs.
+ * desktop button for the same popover).
+ */
+export function wirePopoverTriggerPositioning(popoverEl, getTrigger) {
+  if (!popoverEl) return;
+  popoverEl.addEventListener('toggle', (e) => {
+    if (e.newState !== 'open') return;
+    const trigger = getTrigger();
+    if (!trigger) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const popoverRect = popoverEl.getBoundingClientRect();
+    const margin = 8;
+
+    let left = triggerRect.right - popoverRect.width;
+    left = Math.max(margin, Math.min(left, window.innerWidth - popoverRect.width - margin));
+    let top = triggerRect.bottom + margin;
+    top = Math.min(top, window.innerHeight - popoverRect.height - margin);
+
+    popoverEl.style.top = `${Math.max(margin, top)}px`;
+    popoverEl.style.left = `${left}px`;
+    popoverEl.style.right = 'auto';
+  });
+}
+
+// Ids already wired by wireCalorieInfoPopover — guards against re-registering
+// a duplicate document-level listener every time a view re-renders.
+const _wiredCaloriePopovers = new Set();
+
+/**
+ * Wires a calorie-estimate info button ("ⓘ") to toggle its popover, and any
+ * click elsewhere on the page to close it. The trigger/popover elements are
+ * looked up fresh by id on every click (rather than captured once), so this
+ * survives the view re-creating them across re-renders — call it once per
+ * (triggerId, popoverId) pair; later calls for the same pair are no-ops,
+ * since a single delegated document listener already covers every render.
+ */
+export function wireCalorieInfoPopover(triggerId, popoverId) {
+  const key = `${triggerId}|${popoverId}`;
+  if (_wiredCaloriePopovers.has(key)) return;
+  _wiredCaloriePopovers.add(key);
+
+  document.addEventListener('click', (e) => {
+    const popover = document.getElementById(popoverId);
+    if (!popover) return;
+    const trigger = e.target.closest(`#${triggerId}`);
+    if (trigger) {
+      e.stopPropagation();
+      const isOpen = popover.classList.toggle('is-open');
+      popover.setAttribute('aria-hidden', String(!isOpen));
+      return;
+    }
+    popover.classList.remove('is-open');
+  });
+}
+
 export function escapeHtml(str) {
   if (!str) return '';
   return String(str)

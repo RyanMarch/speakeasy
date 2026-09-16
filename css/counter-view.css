@@ -710,61 +710,8 @@
 }
 
 /* Indulgent Over-The-Top Swirl & Vortex Shake Keyframes */
-@keyframes cocktailSwirlForward {
-  0% {
-    transform: rotate(0deg) scale(1);
-    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
-  }
-
-  15% {
-    transform: rotate(-3.5deg) scale(1.025) translateY(-3px);
-  }
-
-  30% {
-    transform: rotate(4deg) scale(1.04) translateY(-1px);
-    filter: drop-shadow(0 14px 28px rgba(0, 150, 199, 0.45));
-  }
-
-  48% {
-    transform: rotate(-3deg) scale(1.02);
-  }
-
-  65% {
-    transform: rotate(2deg) scale(1.01) translateY(-1px);
-  }
-
-  82% {
-    transform: rotate(-1deg) scale(1.005);
-  }
-
-  100% {
-    transform: rotate(0deg) scale(1) translateY(0);
-    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
-  }
-}
-
-@keyframes cocktailSwirlBackward {
-  0% {
-    transform: rotate(0deg) scale(1);
-  }
-
-  20% {
-    transform: rotate(3deg) scale(1.02) translateY(-2px);
-  }
-
-  45% {
-    transform: rotate(-3.5deg) scale(1.03);
-  }
-
-  70% {
-    transform: rotate(1.5deg) scale(1.01);
-  }
-
-  100% {
-    transform: rotate(0deg) scale(1) translateY(0);
-  }
-}
-
+/* cocktailSwirlForward / cocktailSwirlBackward now live in
+   shared-animations.css (identical to the marketing page's showcase visual). */
 @keyframes fluidVortexDistort {
   0% {
     filter: none;
@@ -941,58 +888,8 @@
   }
 }
 
-/* Ambient Effervescence: micro-bubbles rising gently and popping at liquid surface */
-@keyframes effervescenceRise1 {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.95;
-  }
-  85% {
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateY(-44px);
-    opacity: 0;
-  }
-}
-
-@keyframes effervescenceRise2 {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-  20% {
-    opacity: 0.9;
-  }
-  80% {
-    opacity: 0.85;
-  }
-  100% {
-    transform: translateY(-56px);
-    opacity: 0;
-  }
-}
-
-@keyframes effervescenceRise3 {
-  0% {
-    transform: translateY(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.95;
-  }
-  90% {
-    opacity: 0.85;
-  }
-  100% {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-}
-
+/* Ambient Effervescence: micro-bubbles rising gently and popping at liquid
+   surface. effervescenceRise1/2/3 now live in shared-animations.css. */
 .fluid-bubble {
   transform-box: fill-box;
   filter: drop-shadow(0 1px 1.5px rgba(10, 20, 35, 0.4));

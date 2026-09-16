@@ -2,52 +2,11 @@ import assert from 'node:assert/strict';
 import { onRequestPost as onRequestPostLog } from '../functions/api/history/log.js';
 import { onRequestGet as onRequestGetList } from '../functions/api/history/list.js';
 import * as historyClient from '../js/modules/history.js';
+import { MockD1PreparedStatementBase, createMockD1 } from './test-helpers.js';
 
 console.log('--- Testing /functions/api/history/* and js/modules/history.js ---');
 
-class MockD1 {
-  constructor() {
-    this.tables = {
-      users: new Map(),
-      sessions: new Map(),
-      drink_history: new Map(),
-    };
-  }
-
-  prepare(sql) {
-    return new MockD1PreparedStatement(this, sql);
-  }
-
-  async batch(statements) {
-    const results = [];
-    for (const stmt of statements) {
-      results.push(await stmt.run());
-    }
-    return results;
-  }
-}
-
-class MockD1PreparedStatement {
-  constructor(db, sql) {
-    this.db = db;
-    this.sql = sql.trim();
-    this.boundParams = [];
-  }
-
-  bind(...params) {
-    this.boundParams = params;
-    return this;
-  }
-
-  async first() {
-    const res = await this.all();
-    return res.results[0] || null;
-  }
-
-  async run() {
-    return this.all();
-  }
-
+class MockD1PreparedStatement extends MockD1PreparedStatementBase {
   async all() {
     const sql = this.sql;
     const params = this.boundParams;
@@ -60,6 +19,13 @@ class MockD1PreparedStatement {
         results: session ? [{ user_id: session.user_id, expires_at: session.expires_at }] : [],
         success: true,
       };
+    }
+
+    // DELETE FROM sessions WHERE token = ?
+    if (sql.startsWith('DELETE FROM sessions WHERE token = ?')) {
+      const [token] = params;
+      this.db.tables.sessions.delete(token);
+      return { results: [], success: true };
     }
 
     // INSERT INTO drink_history (id, user_id, recipe_id, made_at) VALUES (?, ?, ?, ?)
@@ -86,6 +52,8 @@ class MockD1PreparedStatement {
     throw new Error(`Unhandled SQL in MockD1: ${sql}`);
   }
 }
+
+const MockD1 = createMockD1(['users', 'sessions', 'drink_history'], MockD1PreparedStatement);
 
 function createMockRequest({ url = 'https://example.com/api/history', method = 'GET', headers = {}, body = null }) {
   return new Request(url, {

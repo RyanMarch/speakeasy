@@ -1,3 +1,8 @@
+-- Consolidated snapshot of the cumulative result of migrations/000N_*.sql.
+-- There is no generation step tying the two together — when you add a new
+-- numbered migration, update this file by hand in the same commit so it
+-- keeps matching a freshly-migrated database exactly.
+
 -- Users & Core Settings
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
@@ -72,7 +77,9 @@ CREATE TABLE IF NOT EXISTS drink_history (
 CREATE TABLE IF NOT EXISTS otp_codes (
     email TEXT NOT NULL,
     code TEXT NOT NULL,
-    expires_at DATETIME NOT NULL
+    expires_at DATETIME NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Global Promoted Cocktails (Available across all users)

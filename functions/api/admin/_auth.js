@@ -14,12 +14,25 @@ export function jsonResponse(body, status = 200, headers = {}) {
 }
 
 export function getAdminSecret(env) {
-  return env.ADMIN_PASSWORD || env.SESSION_SECRET || 'speakeasy_admin_local_dev_secret';
+  return env.ADMIN_PASSWORD || env.SESSION_SECRET || null;
+}
+
+function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
 }
 
 export async function checkAdminAuth(context) {
   const { request, env } = context;
   const secret = getAdminSecret(env);
+
+  if (!secret) {
+    return jsonResponse({ error: 'server_misconfigured', message: 'Admin authentication is not configured.' }, 500);
+  }
 
   // 1. Check Bearer token or header if provided
   const authHeader = request.headers.get('Authorization') || '';
@@ -35,7 +48,7 @@ export async function checkAdminAuth(context) {
   }
 
   // If the token matches ADMIN_PASSWORD directly as a header/bearer
-  if (env.ADMIN_PASSWORD && token === env.ADMIN_PASSWORD) {
+  if (env.ADMIN_PASSWORD && timingSafeEqual(token, env.ADMIN_PASSWORD)) {
     return null;
   }
 

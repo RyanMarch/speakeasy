@@ -68,16 +68,25 @@ Everything works in your browser, and even better when added to your home screen
 
 - Switch from ounces to milliliters at any time
 - Keep the recipe screen awake while you're prepping ingredients
-- View (and add) recipe histories to understand their origins
+- View and add recipe histories to understand their origins
+- Get ingredient substitutions suggestions based on what you have in stock
 - Search by _anything_ including flavor profiles, ingredients, or glassware types
 - Get kcal estimates for recipes
 - Easily scale recipe servings up or down
 - Includes all kinds of garnishes: citrus twists, peels, wheels, olives, sugar rims, and more
+- Share a link to a recipe so friends can make it at home
 - User guides included to answer common questions
+- Watch your mixologist rank grow as you explore the world of cocktails
 
 ## How it's built
 
 Speakeasy is built with plain HTML, modern CSS, and vanilla JavaScript — no frameworks, no build step, no external runtime dependencies. Every glass, every fluid layer, and every garnish is drawn as live vector art rather than a static image, which is what lets it react instantly as you tweak a recipe or swap a bottle.
+
+## Disclaimer
+
+Speakeasy is intended solely for individuals of legal drinking age in their respective jurisdiction (21 years of age or older in the United States). 
+
+Calculations for dilution, ABV, and proof are mathematical estimates and should never be used as a measure of physical impairment, blood alcohol concentration, or fitness to operate motor vehicles or heavy machinery. Recipes, serving sizes, and other suggestions are for informational purposes only and do not constitute medical or professional advice. Always drink responsibly.
 
 ---
 

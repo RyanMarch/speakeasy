@@ -24,6 +24,24 @@ for (const line of testCases) {
   console.log(`Input: "${line}" =>`, parsed);
 }
 
+console.log('--- Testing Leading-Digit Brand Names (not a pour amount) ---');
+// A digit-led brand/product name ("1800 Reposado") must not be misread as an
+// absurd pour amount just because it starts with digits and no unit follows.
+// (A small digit-led brand like "7-Up" is inherently ambiguous with a real
+// bare "7" amount and isn't handled here — see the plausible-amount cap below.)
+const brandNameCases = [
+  { line: '1800 Reposado', expectName: '1800 Reposado' },
+];
+for (const { line, expectName } of brandNameCases) {
+  const parsed = parseIngredientLine(line);
+  assert.equal(parsed.amount, null, `Expected no amount parsed for "${line}", got ${parsed.amount}`);
+  assert.equal(parsed.name, expectName, `Expected name "${expectName}" for "${line}", got "${parsed.name}"`);
+}
+// Small bare numbers with no unit are still legitimate "parts"-style amounts.
+const bareAmount = parseIngredientLine('2 Campari');
+assert.equal(bareAmount.amount, 2, `Expected amount 2 for "2 Campari", got ${bareAmount.amount}`);
+assert.equal(bareAmount.name, 'Campari', `Expected name "Campari" for "2 Campari", got "${bareAmount.name}"`);
+
 console.log('--- Testing Fractions Formatting ---');
 console.log('0.75 =>', formatFraction(0.75));
 console.log('1.5 =>', formatFraction(1.5));

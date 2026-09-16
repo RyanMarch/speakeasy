@@ -79,8 +79,11 @@ export async function onRequestGet(context) {
     const viewRows = viewsResult.results || [];
 
     const topViews = viewRows.slice(0, 15);
-    // Reverse for least viewed with at least 1 view, or tail end
-    const leastViews = [...viewRows].reverse().slice(0, 10);
+    // Full view-count list (not just a least-10 slice) so the admin client can
+    // diff it against its own full recipe catalog and surface recipes with
+    // *zero* views — recipes that never appear in analytics_events at all
+    // would otherwise be invisible from a reversed slice of existing rows.
+    const allViewCounts = viewRows;
 
     // 3. Most Poured Cocktails (from drink_history)
     const poursQuery = dateThreshold
@@ -257,7 +260,7 @@ export async function onRequestGet(context) {
       },
       cocktails: {
         top_views: topViews,
-        least_views: leastViews,
+        all_view_counts: allViewCounts,
         top_pours: topPours,
       },
       searches: searchResult.results || [],

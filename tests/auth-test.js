@@ -5,56 +5,11 @@ import { onRequestGet as onRequestGetMe, onRequestPatch as onRequestPatchMe } fr
 import { onRequestPost as onRequestPostLogout } from '../functions/api/auth/logout.js';
 import { onRequestPost as onRequestPostDeleteAccount } from '../functions/api/auth/delete-account.js';
 import * as authClient from '../js/modules/auth.js';
+import { MockD1PreparedStatementBase, createMockD1 } from './test-helpers.js';
 
 console.log('--- Testing /functions/api/auth/* and js/modules/auth.js ---');
 
-class MockD1 {
-  constructor() {
-    this.tables = {
-      users: new Map(),
-      sessions: new Map(),
-      otp_codes: new Map(),
-      bars: new Map(),
-      bar_inventory: new Map(),
-      custom_recipes: new Map(),
-      drink_history: new Map(),
-    };
-  }
-
-  prepare(sql) {
-    return new MockD1PreparedStatement(this, sql);
-  }
-
-  async batch(statements) {
-    const results = [];
-    for (const stmt of statements) {
-      results.push(await stmt.run());
-    }
-    return results;
-  }
-}
-
-class MockD1PreparedStatement {
-  constructor(db, sql) {
-    this.db = db;
-    this.sql = sql.trim();
-    this.boundParams = [];
-  }
-
-  bind(...params) {
-    this.boundParams = params;
-    return this;
-  }
-
-  async first() {
-    const res = await this.all();
-    return res.results[0] || null;
-  }
-
-  async run() {
-    return this.all();
-  }
-
+class MockD1PreparedStatement extends MockD1PreparedStatementBase {
   async all() {
     const sql = this.sql;
     const params = this.boundParams;
@@ -79,18 +34,41 @@ class MockD1PreparedStatement {
     if (sql.startsWith('INSERT INTO otp_codes')) {
       const [email, code, expires_at] = params;
       const key = `${email}:${code}`;
-      this.db.tables.otp_codes.set(key, { email, code, expires_at });
+      this.db.tables.otp_codes.set(key, { email, code, expires_at, attempts: 0, created_at: new Date().toISOString() });
       return { results: [], success: true };
     }
 
-    // SELECT code, expires_at FROM otp_codes WHERE email = ? ORDER BY expires_at DESC LIMIT 1
-    if (sql.startsWith('SELECT code, expires_at FROM otp_codes WHERE email = ?')) {
+    // SELECT expires_at, created_at FROM otp_codes WHERE email = ?
+    if (sql.startsWith('SELECT expires_at, created_at FROM otp_codes WHERE email = ?')) {
       const [email] = params;
       const matching = Array.from(this.db.tables.otp_codes.values())
         .filter(entry => entry.email === email)
         .sort((a, b) => b.expires_at.localeCompare(a.expires_at));
       return {
-        results: matching.length > 0 ? [{ code: matching[0].code, expires_at: matching[0].expires_at }] : [],
+        results: matching.length > 0 ? [{ expires_at: matching[0].expires_at, created_at: matching[0].created_at }] : [],
+        success: true,
+      };
+    }
+
+    // UPDATE otp_codes SET attempts = ? WHERE email = ?
+    if (sql.startsWith('UPDATE otp_codes SET attempts = ? WHERE email = ?')) {
+      const [attempts, email] = params;
+      for (const entry of this.db.tables.otp_codes.values()) {
+        if (entry.email === email) entry.attempts = attempts;
+      }
+      return { results: [], success: true };
+    }
+
+    // SELECT code, expires_at, attempts FROM otp_codes WHERE email = ? ORDER BY expires_at DESC LIMIT 1
+    if (sql.startsWith('SELECT code, expires_at, attempts FROM otp_codes WHERE email = ?')) {
+      const [email] = params;
+      const matching = Array.from(this.db.tables.otp_codes.values())
+        .filter(entry => entry.email === email)
+        .sort((a, b) => b.expires_at.localeCompare(a.expires_at));
+      return {
+        results: matching.length > 0
+          ? [{ code: matching[0].code, expires_at: matching[0].expires_at, attempts: matching[0].attempts || 0 }]
+          : [],
         success: true,
       };
     }
@@ -184,6 +162,11 @@ class MockD1PreparedStatement {
     throw new Error(`Unhandled SQL in MockD1: ${sql}`);
   }
 }
+
+const MockD1 = createMockD1([
+  'users', 'sessions', 'otp_codes', 'bars', 'bar_inventory',
+  'custom_recipes', 'drink_history',
+], MockD1PreparedStatement);
 
 function createMockRequest({ method = 'POST', headers = {}, body = null }) {
   return new Request('https://example.com', {

@@ -8,6 +8,7 @@ import {
   state,
   elements,
   getCachedInventoryAnalysis,
+  invalidateInventoryCache,
   SEED_RECIPE_IDS,
   inventoryVersion,
 } from '../state.js';
@@ -43,7 +44,7 @@ import { formatFraction, parseMethodContent, renderInstructionTimers, formatIngr
 import { GlassView, renderGlassSvg } from '../modules/glass-view.js';
 import { renderShareCardPng } from '../modules/share-card.js';
 import { setupTagAutocomplete, filterByTag } from './recipe-list-view.js';
-import { escapeHtml, showToast } from '../components/toast.js';
+import { escapeHtml, showToast, wirePopoverTriggerPositioning, wireCalorieInfoPopover } from '../components/toast.js';
 import { openTimerModal } from '../components/timer-modal.js';
 import { logDrinkMade } from '../modules/history.js';
 
@@ -1165,6 +1166,7 @@ export function renderCounterView() {
       if (bottleId) {
         state.inventory.add(bottleId);
         saveInventory(Array.from(state.inventory));
+        invalidateInventoryCache();
         if (_updateMyBarBadgeFn) _updateMyBarBadgeFn();
         if (_renderRecipeListFn) _renderRecipeListFn();
         renderCounterView();
@@ -1440,45 +1442,13 @@ export function renderCounterView() {
     });
   });
 
-  // CSS anchor positioning (position-anchor/anchor()) isn't reliably
-  // supported across every Chromium build in the wild yet, and when it
-  // silently fails to resolve, the popover falls back to a hardcoded CSS
-  // offset that only happens to line up with the trigger at one specific
-  // viewport size — everywhere else it renders far from the button that
-  // opened it. Position it from the actual trigger's rect instead, which
-  // works identically regardless of anchor-positioning support.
-  moreActionsPopover?.addEventListener('toggle', (e) => {
-    if (e.newState !== 'open') return;
-    const trigger = document.getElementById('btn-counter-more-mobile')?.offsetParent
+  wirePopoverTriggerPositioning(moreActionsPopover, () => (
+    document.getElementById('btn-counter-more-mobile')?.offsetParent
       ? document.getElementById('btn-counter-more-mobile')
-      : document.getElementById('btn-counter-more');
-    if (!trigger) return;
+      : document.getElementById('btn-counter-more')
+  ));
 
-    const triggerRect = trigger.getBoundingClientRect();
-    const popoverRect = moreActionsPopover.getBoundingClientRect();
-    const margin = 8;
-
-    let left = triggerRect.right - popoverRect.width;
-    left = Math.max(margin, Math.min(left, window.innerWidth - popoverRect.width - margin));
-    let top = triggerRect.bottom + margin;
-    top = Math.min(top, window.innerHeight - popoverRect.height - margin);
-
-    moreActionsPopover.style.top = `${Math.max(margin, top)}px`;
-    moreActionsPopover.style.left = `${left}px`;
-    moreActionsPopover.style.right = 'auto';
-  });
-
-  document.getElementById('btn-calorie-info')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const popover = document.getElementById('calorie-popover');
-    if (!popover) return;
-    const isOpen = popover.classList.toggle('is-open');
-    popover.setAttribute('aria-hidden', String(!isOpen));
-  });
-
-  // Close calorie popover on any outside click
-  const closeCaloriePopover = () => document.getElementById('calorie-popover')?.classList.remove('is-open');
-  document.addEventListener('click', closeCaloriePopover, { once: true });
+  wireCalorieInfoPopover('btn-calorie-info', 'calorie-popover');
 
   document.getElementById('btn-edit-drink')?.addEventListener('click', () => {
     if (!_openEditorFn) return;

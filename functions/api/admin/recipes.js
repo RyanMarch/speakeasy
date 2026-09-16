@@ -6,6 +6,7 @@
  * DELETE: Removes a promoted recipe from global_recipes.
  */
 import { checkAdminAuth, jsonResponse } from './_auth.js';
+import { mapRecipeRow } from '../_lib/recipes.js';
 
 export async function onRequestGet(context) {
   const authErr = await checkAdminAuth(context);
@@ -22,32 +23,11 @@ export async function onRequestGet(context) {
      FROM global_recipes ORDER BY name ASC`
   ).all();
 
-  const globalRecipes = (globalRows.results || []).map(r => {
-    let specs = [];
-    try { specs = JSON.parse(r.specs || '[]'); } catch {}
-    let tags = [];
-    try { tags = JSON.parse(r.tags || '[]'); } catch {}
-    return {
-      id: r.id,
-      name: r.name,
-      glassware: r.glassware || 'Rocks',
-      method: r.method || 'Stirred',
-      specs,
-      instructions: r.instructions || '',
-      description: r.description || '',
-      notes: r.notes || '',
-      garnish: r.garnish || '',
-      source: r.source || '',
-      sourceUrl: r.source_url || '',
-      riffOfId: r.riff_of_id || null,
-      riffOfName: r.riff_of_name || '',
-      tags,
-      publishedBy: r.published_by || 'admin',
-      createdAt: r.created_at,
-      updatedAt: r.updated_at,
-      isGlobal: true,
-    };
-  });
+  const globalRecipes = (globalRows.results || []).map(r => mapRecipeRow(r, {
+    isGlobal: true,
+    includePublishedBy: true,
+    includeTimestamps: true,
+  }));
 
   // 2. Fetch globally hidden recipe IDs
   const hiddenRows = await env.speakeasy_db.prepare(
@@ -67,31 +47,10 @@ export async function onRequestGet(context) {
      ORDER BY updated_at DESC`
   ).all();
 
-  const customRecipes = (customRows.results || []).map(r => {
-    let specs = [];
-    try { specs = JSON.parse(r.specs || '[]'); } catch {}
-    let tags = [];
-    try { tags = JSON.parse(r.tags || '[]'); } catch {}
-    return {
-      id: r.id,
-      userId: r.user_id,
-      name: r.name,
-      glassware: r.glassware || 'Rocks',
-      method: r.method || 'Stirred',
-      specs,
-      instructions: r.instructions || '',
-      description: r.description || '',
-      notes: r.notes || '',
-      garnish: r.garnish || '',
-      source: r.source || '',
-      sourceUrl: r.source_url || '',
-      riffOfId: r.riff_of_id || null,
-      riffOfName: r.riff_of_name || '',
-      tags,
-      isPublic: Boolean(r.is_public),
-      updatedAt: r.updated_at,
-    };
-  });
+  const customRecipes = (customRows.results || []).map(r => ({
+    ...mapRecipeRow(r, { includeUserId: true, includeIsPublic: true }),
+    updatedAt: r.updated_at,
+  }));
 
   return jsonResponse({
     success: true,

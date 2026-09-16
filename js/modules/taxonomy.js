@@ -608,7 +608,6 @@ export const TAXONOMY = {
     aliases: ['plymouth gin', 'plymouth'],
     brands: [
       'Plymouth Gin Original',
-      'Plymouth Navy Strength',
     ],
   },
   old_tom_gin: {
@@ -2655,7 +2654,7 @@ export const TAXONOMY = {
     light: '#ece5c3',
     dark: '#9a8d62',
     defaultAbv: 0,
-    aliases: ['celery salt', 'celery seed', 'worcestershire sauce', 'worcestershire', 'hot sauce', 'tabasco', 'black pepper', 'salt', 'sea salt', 'kosher salt'],
+    aliases: ['celery salt', 'celery seed', 'black pepper', 'salt', 'sea salt', 'kosher salt'],
   },
 };
 
