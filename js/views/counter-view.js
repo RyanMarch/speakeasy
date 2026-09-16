@@ -169,15 +169,18 @@ function copyOrShareLink(url) {
 
 /**
  * Share a seed recipe via a deep link. Seed recipes are bundled into every
- * install, so a plain `#recipe-id` link resolves for anyone with zero backend
- * involvement. Custom recipes use shareCustomRecipe() instead, which POSTs a
- * snapshot to /api/shares since a bare id would only resolve in the
- * creator's own browser/account.
+ * install, so /drink/:id (functions/drink/[id].js) can resolve one with zero
+ * backend involvement — it looks the id up in the same seed data the client
+ * ships, then redirects a real visitor into /app#recipe-id. That extra shell
+ * (rather than a bare #recipe-id link) only exists so link-preview crawlers
+ * get a real title/image instead of the generic site preview — they never
+ * see anything after "#" in a plain deep link. Custom recipes use
+ * shareCustomRecipe() instead, which POSTs a snapshot to /api/shares since a
+ * bare id would only resolve in the creator's own browser/account.
  */
 export function shareRecipe(recipe) {
   if (!recipe || !recipe.id) return;
-  const path = window.location.pathname.startsWith('/app') ? window.location.pathname : '/app';
-  const url = `${window.location.origin}${path}#${recipe.id}`;
+  const url = `${window.location.origin}/drink/${recipe.id}`;
   copyOrShareLink(url);
 }
 

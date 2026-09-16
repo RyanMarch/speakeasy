@@ -153,13 +153,22 @@ export async function renderShareCardPng(recipe) {
       ctx.fillText(line, 100, titleY + i * lineHeight);
     });
 
-    // Subtitle
-    const subtitle = recipe.riffOfName
-      ? `A riff on ${recipe.riffOfName}`
-      : `${recipe.glassware || 'Rocks'} · ${recipe.method || 'Stirred'}`;
-    ctx.fillStyle = COLOR_MUTED;
-    ctx.font = '400 26px "DM Sans", sans-serif';
-    ctx.fillText(subtitle, 100, titleY + titleLines.length * lineHeight + 20);
+    // Fake "View Drink" button — decorative CTA flavor, in place of the
+    // glassware/method or riff-attribution line; matches the fallback
+    // card's button for a consistent look across both.
+    const btnRowY = titleY + titleLines.length * lineHeight + 20;
+    ctx.font = '600 20px "DM Sans", sans-serif';
+    const btnText = 'View Drink  →';
+    const btnPaddingX = 28, btnHeight = 56;
+    const btnWidth = ctx.measureText(btnText).width + btnPaddingX * 2;
+    drawRoundedRect(ctx, 100, btnRowY, btnWidth, btnHeight, btnHeight / 2);
+    ctx.strokeStyle = COLOR_GOLD;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = COLOR_GOLD;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(btnText, 100 + btnPaddingX, btnRowY + btnHeight / 2 + 1);
+    ctx.textBaseline = 'alphabetic';
 
     // Glass art
     const glassSvgFragment = renderGlassSvg(recipe, 'sharecard', { mode: 'layered' });
@@ -182,11 +191,21 @@ export async function renderShareCardPng(recipe) {
     const viewBoxMatch = glassSvg.match(/viewBox="0 [-.\d]+ 240 ([.\d]+)"/);
     const vbHeight = viewBoxMatch ? parseFloat(viewBoxMatch[1]) : 300;
     const glassAspect = 240 / vbHeight;
-    const glassRenderHeight = 480;
-    const glassRenderWidth = Math.round(glassRenderHeight * glassAspect);
+    // Contain-fit within a box rather than a fixed height: glassware varies
+    // a lot in its own aspect ratio (a short, wide Rocks tumbler vs. a tall,
+    // narrow Coupe/Martini stem), and a fixed height let short/wide glasses
+    // compute a width that broke past the card's right border entirely.
+    const GLASS_MAX_WIDTH = 340;
+    const GLASS_MAX_HEIGHT = 460;
+    let glassRenderHeight = GLASS_MAX_HEIGHT;
+    let glassRenderWidth = glassRenderHeight * glassAspect;
+    if (glassRenderWidth > GLASS_MAX_WIDTH) {
+      glassRenderWidth = GLASS_MAX_WIDTH;
+      glassRenderHeight = glassRenderWidth / glassAspect;
+    }
 
     const glassImg = await loadImage(svgToDataUri(glassSvg));
-    const glassColumnCenterX = 970;
+    const glassColumnCenterX = 930;
     const glassX = glassColumnCenterX - glassRenderWidth / 2;
     const glassY = (CARD_HEIGHT - glassRenderHeight) / 2;
     ctx.drawImage(glassImg, glassX, glassY, glassRenderWidth, glassRenderHeight);

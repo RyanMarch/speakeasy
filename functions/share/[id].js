@@ -90,6 +90,14 @@ export async function onRequestGet(context) {
     `SELECT recipe FROM shares WHERE share_id = ?`
   ).bind(shareId).first();
 
+  // ROUTING MIGRATION: this is the one hash-coupled line in this file — the
+  // in-app destination a real visitor gets bounced to. If/when the app's
+  // router (js/router.js, app.js) moves from `#`-based to real path-based
+  // routing, this becomes whatever the new path for "open share <id> in the
+  // app" is (very likely just `canonicalUrl` below, i.e. no redirect at
+  // all — this whole shell page could probably be replaced by a Function
+  // that serves the real app document with rewritten <title>/OG tags
+  // in-place, once paths are meaningful).
   const appUrl = `${origin}/app#share/${shareId}`;
   const canonicalUrl = `${origin}/share/${shareId}`;
 
