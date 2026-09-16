@@ -9,7 +9,7 @@
 import { state, elements } from '../state.js';
 import { getRecipes, saveRecipe, sanitizeImportedRecipes } from '../modules/storage.js';
 import { formatIngredientName, formatFraction, renderInstructionTimers } from '../modules/parser.js';
-import { escapeHtml, showToast } from '../components/toast.js';
+import { escapeHtml, showToast, wireCalorieInfoPopover } from '../components/toast.js';
 import { GlassView } from '../modules/glass-view.js';
 import { calculateFluidLayers } from '../modules/colors.js';
 import { calculateCocktailAbv, calculateCocktailCalories } from '../modules/abv.js';
@@ -197,16 +197,7 @@ function renderRecipe(container, recipe) {
     });
   });
 
-  document.getElementById('btn-shared-calorie-info')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const popover = document.getElementById('shared-calorie-popover');
-    if (!popover) return;
-    const isOpen = popover.classList.toggle('is-open');
-    popover.setAttribute('aria-hidden', String(!isOpen));
-  });
-  document.addEventListener('click', () => {
-    document.getElementById('shared-calorie-popover')?.classList.remove('is-open');
-  }, { once: true });
+  wireCalorieInfoPopover('btn-shared-calorie-info', 'shared-calorie-popover');
 
   container.querySelectorAll('.timer-token').forEach(token => {
     token.addEventListener('click', (e) => {

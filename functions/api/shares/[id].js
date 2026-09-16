@@ -5,16 +5,8 @@
  * required — this is a public, read-only lookup.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
-
-const SHARE_ID_PATTERN = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{1,32}$/;
+import { jsonResponse } from '../_lib/http.js';
+import { SHARE_ID_PATTERN } from './_lib.js';
 
 export async function onRequestGet(context) {
   const { params, env } = context;

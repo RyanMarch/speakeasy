@@ -4,14 +4,7 @@
  * Terminates the active session by deleting the token from D1 sessions.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
+import { jsonResponse } from '../_lib/http.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;

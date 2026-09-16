@@ -43,7 +43,7 @@ export function formatIngredientName(name) {
 // expect. Left out on purpose: "dash"/"dashes" and "drops" alone, which are
 // already valid, distinct dropdown options and don't need collapsing to one
 // spelling.
-const UNIT_ALIASES = {
+export const UNIT_ALIASES = {
   ounce: 'oz',
   ounces: 'oz',
   'fl oz': 'oz',
@@ -72,6 +72,51 @@ const UNIT_ALIASES = {
   cups: 'cup',
   shots: 'shot',
 };
+
+// Canonical oz-equivalent for every unit the app understands — the single
+// source of truth for "what units exist," consumed by colors.js's volume math
+// (normalizeVolumeToOz) so it isn't a second, separately-maintained list that
+// can drift out of sync with the unit vocabulary parsed here.
+export const UNIT_CONVERSIONS_TO_OZ = {
+  oz: 1.0,
+  ml: 0.033,
+  cl: 0.33,
+  dash: 0.08,
+  dashes: 0.08,
+  drop: 0.05,
+  drops: 0.05,
+  barspoon: 0.15,
+  barspoons: 0.15,
+  tsp: 0.15,
+  tsps: 0.15,
+  tbsp: 0.5,
+  part: 1.0,
+  parts: 1.0,
+  splash: 0.2,
+  rinse: 0.05,
+  leaf: 0.02,
+  leaves: 0.02,
+  pinch: 0.02,
+  pinches: 0.02,
+  cup: 8.0,
+  cups: 8.0,
+  shot: 1.5,
+  shots: 1.5,
+};
+
+/**
+ * Resolves a freeform/spelled-out unit string ("teaspoon", "Fl. Oz.") to the
+ * short canonical form UNIT_CONVERSIONS_TO_OZ recognizes, via UNIT_ALIASES —
+ * so a unit that arrives any way other than being typed into a Quick Paste
+ * line (an imported backup, a pasted JSON) gets the same normalization
+ * instead of silently defaulting to a 1.0oz conversion factor.
+ */
+export function normalizeUnit(unit) {
+  const clean = (unit || '').toLowerCase().trim();
+  if (!clean) return '';
+  const aliased = UNIT_ALIASES[clean] || clean;
+  return UNIT_CONVERSIONS_TO_OZ[aliased] !== undefined ? aliased : clean;
+}
 
 // Parses a numeric token that may be a plain number or a (mixed) fraction —
 // "2", "0.75", "1 1/2", "3/4" — shared by the amount group below and by the
@@ -171,10 +216,25 @@ export function parseIngredientLine(line) {
     return { raw: trimmed, amount: null, unit: 'oz', name: trimmed };
   }
 
-  const amount = match[1] ? parseAmountToken(match[1]) : null;
+  let amount = match[1] ? parseAmountToken(match[1]) : null;
 
   const rawUnit = (match[2] || '').toLowerCase();
   const parsedUnit = UNIT_ALIASES[rawUnit] || rawUnit;
+
+  // A leading digit run with no recognized unit after it ("1 Bourbon", "2
+  // Campari") is a legitimate bare "parts" style amount, but a bottle/brand
+  // name that happens to start with digits ("1800 Reposado", "7-Up") would
+  // otherwise be misread the same way and produce an absurd pour amount. No
+  // real cocktail spec calls for more than a small handful of oz/parts/dashes,
+  // so an implausibly large unit-less number is treated as part of the name
+  // instead of an amount.
+  const BARE_AMOUNT_MAX = 12;
+  if (!rawUnit && amount !== null && amount > BARE_AMOUNT_MAX) {
+    const rejectedDigits = match[1].trim();
+    match[3] = `${rejectedDigits} ${match[3] || ''}`.trim();
+    amount = null;
+  }
+
   // "2 oz of lemon juice" — the amount/unit regex above has no notion of
   // this connective "of", so it fell straight into the name capture group.
   // Strip it only when it leads the name (not e.g. "Zest of lemon", where

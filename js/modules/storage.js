@@ -38,6 +38,7 @@ export function normalizeTagName(rawTag) {
 }
 
 import { SEED_RECIPES } from "../data/seed-recipes.js";
+import { normalizeUnit } from "./parser.js";
 export { SEED_RECIPES };
 
 // ==========================================
@@ -186,12 +187,16 @@ export function getRecipes() {
             Object.assign(r, { ...seed });
             updatedStorage = true;
           }
-          // Backfill all properties from seed that might be missing in older stored versions
+          // Backfill properties from seed that are genuinely missing in older stored
+          // versions (the key was never stored at all, or is null/undefined) — but
+          // NOT when it's present as an explicit '' or [], since that's how a user's
+          // deliberate clear of a field is persisted, and re-backfilling it here would
+          // silently revert their edit on the very next load.
           Object.keys(seed).forEach(key => {
-            if (r[key] === undefined || r[key] === null || r[key] === '') {
+            if (!(key in r) || r[key] === undefined || r[key] === null) {
               r[key] = Array.isArray(seed[key]) ? [...seed[key]] : seed[key];
               updatedStorage = true;
-            } else if (Array.isArray(seed[key]) && (!Array.isArray(r[key]) || r[key].length === 0)) {
+            } else if (Array.isArray(seed[key]) && !Array.isArray(r[key])) {
               r[key] = [...seed[key]];
               updatedStorage = true;
             }
@@ -452,7 +457,7 @@ export function sanitizeImportedRecipes(items) {
       : [],
     specs: Array.isArray(item.specs) ? item.specs.map(s => ({
       amount: s.amount !== null && s.amount !== undefined && !isNaN(Number(s.amount)) ? Number(s.amount) : null,
-      unit: s.unit || '',
+      unit: normalizeUnit(s.unit),
       name: s.name || '',
       abv: s.abv !== null && s.abv !== undefined && !isNaN(Number(s.abv)) ? Number(s.abv) : undefined,
     })) : [],

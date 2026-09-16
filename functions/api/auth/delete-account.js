@@ -5,14 +5,8 @@
  * data via cascading foreign keys in D1.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
+import { jsonResponse } from '../_lib/http.js';
+import { requireSession } from '../_lib/auth.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -21,34 +15,9 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
-  const authHeader = request.headers.get('Authorization') || '';
-  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-
-  if (!tokenMatch) {
-    return jsonResponse({ error: 'Unauthorized: Missing authentication token.' }, 401);
-  }
-
-  const token = tokenMatch[1].trim();
-  if (!token) {
-    return jsonResponse({ error: 'Unauthorized: Empty token.' }, 401);
-  }
-
-  // Look up session
-  const sessionRow = await env.speakeasy_db.prepare(
-    `SELECT user_id, expires_at FROM sessions WHERE token = ?`
-  ).bind(token).first();
-
-  if (!sessionRow) {
-    return jsonResponse({ error: 'Unauthorized: Invalid or expired session.' }, 401);
-  }
-
-  const expiresTime = new Date(sessionRow.expires_at).getTime();
-  if (!Number.isNaN(expiresTime) && Date.now() > expiresTime) {
-    await env.speakeasy_db.prepare(`DELETE FROM sessions WHERE token = ?`).bind(token).run();
-    return jsonResponse({ error: 'Unauthorized: Session expired.' }, 401);
-  }
-
-  const userId = sessionRow.user_id;
+  const session = await requireSession(request, env);
+  if (session instanceof Response) return session;
+  const { userId } = session;
 
   // Delete user record (foreign keys with ON DELETE CASCADE handle bars, inventory, recipes, history, and sessions)
   await env.speakeasy_db.batch([

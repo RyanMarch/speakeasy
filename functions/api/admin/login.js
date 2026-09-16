@@ -15,10 +15,12 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'invalid_json', message: 'Invalid JSON request body.' }, 400);
   }
 
-  const configuredPassword = env.ADMIN_PASSWORD || 'speakeasy-admin-dev-secret';
   const secret = getAdminSecret(env);
+  if (!env.ADMIN_PASSWORD || !secret) {
+    return jsonResponse({ error: 'server_misconfigured', message: 'Admin authentication is not configured.' }, 500);
+  }
 
-  if (!body.password || body.password !== configuredPassword) {
+  if (!body.password || body.password !== env.ADMIN_PASSWORD) {
     return jsonResponse({ error: 'invalid_credentials', message: 'Incorrect admin password.' }, 401);
   }
 

@@ -203,11 +203,12 @@ speakeasy/
 
 ### 3.8 ABV & Dilution Mechanics (`abv.js`)
 - **Proof Estimation**: Automatically resolves proof from taxonomy data.
-- **Dilution Models**:
-  - Stirred with ice: ~20% dilution.
-  - Shaken with ice: ~25% dilution.
-  - Built on rocks: ~15% dilution.
-  - Blended / Neat: 0% dilution offset.
+- **Dilution Models** (`METHOD_DILUTION` in `abv.js`):
+  - Stirred with ice: ~22% dilution.
+  - Shaken with ice: ~32% dilution.
+  - Rolled: ~18% dilution.
+  - Built on rocks: ~5% dilution.
+  - Blended: ~45% dilution.
 
 ### 3.9 Flavor Balance & Palate Distance Matching (`balance.js`, `counter-view.js`)
 - **Radar Dimensions**: Calculates profile values (Sweet, Sour, Bitter, Spirit, Herbal) based on normalized recipe ingredient volumes.

@@ -4,14 +4,9 @@
  * Ingestion and synchronization endpoint for Speakeasy unified backup payloads.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
+import { jsonResponse } from './_lib/http.js';
+import { requireSession } from './_lib/auth.js';
+import { mapRecipeRow } from './_lib/recipes.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -20,35 +15,10 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
-  // 1. Verify Authorization Bearer token
-  const authHeader = request.headers.get('Authorization') || '';
-  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-
-  if (!tokenMatch) {
-    return jsonResponse({ error: 'Missing or malformed Authorization header.' }, 401);
-  }
-
-  const token = tokenMatch[1].trim();
-  if (!token) {
-    return jsonResponse({ error: 'Empty bearer token.' }, 401);
-  }
-
-  // Query session from D1
-  const sessionRow = await env.speakeasy_db.prepare(
-    `SELECT user_id, expires_at FROM sessions WHERE token = ?`
-  ).bind(token).first();
-
-  if (!sessionRow) {
-    return jsonResponse({ error: 'Invalid or expired session token.' }, 401);
-  }
-
-  // Check expiration if expires_at is in the past
-  const expiresAt = new Date(sessionRow.expires_at).getTime();
-  if (!Number.isNaN(expiresAt) && Date.now() > expiresAt) {
-    return jsonResponse({ error: 'Session token has expired.' }, 401);
-  }
-
-  const userId = sessionRow.user_id;
+  // 1. Verify session
+  const session = await requireSession(request, env);
+  if (session instanceof Response) return session;
+  const { userId } = session;
 
   // Parse payload
   let payload;
@@ -73,8 +43,27 @@ export async function onRequestPost(context) {
     );
     barsCount = validBars.length;
 
+    // Guard against a client-supplied barId belonging to another user: the
+    // `bars` upsert below already no-ops on a foreign id (its WHERE clause
+    // only updates rows owned by this user), but bar_inventory writes have no
+    // such check of their own, so a foreign id must never reach them either.
+    const requestedIds = validBars.map(b => b.id);
+    const existingOwners = new Map();
+    if (requestedIds.length > 0) {
+      const placeholders = requestedIds.map(() => '?').join(',');
+      const ownerRows = await env.speakeasy_db.prepare(
+        `SELECT id, user_id FROM bars WHERE id IN (${placeholders})`
+      ).bind(...requestedIds).all();
+      for (const row of (ownerRows.results || [])) {
+        existingOwners.set(row.id, row.user_id);
+      }
+    }
+
     for (const b of validBars) {
       const barId = b.id;
+      const owner = existingOwners.get(barId);
+      const isOwnedByCaller = owner === undefined || owner === userId;
+
       const name = (typeof b.name === 'string' && b.name.trim()) || 'Home Bar';
       const isDefault = b.isDefault ? 1 : 0;
 
@@ -87,6 +76,8 @@ export async function onRequestPost(context) {
            WHERE bars.user_id = excluded.user_id`
         ).bind(barId, userId, name, isDefault)
       );
+
+      if (!isOwnedByCaller) continue;
 
       const uniqueTaxonomyIds = Array.from(
         new Set((b.inventory || []).filter(id => typeof id === 'string' && id.trim().length > 0))
@@ -235,34 +226,10 @@ export async function onRequestGet(context) {
     return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
-  // 1. Verify Authorization Bearer token
-  const authHeader = request.headers.get('Authorization') || '';
-  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-
-  if (!tokenMatch) {
-    return jsonResponse({ error: 'Missing or malformed Authorization header.' }, 401);
-  }
-
-  const token = tokenMatch[1].trim();
-  if (!token) {
-    return jsonResponse({ error: 'Empty bearer token.' }, 401);
-  }
-
-  // Query session from D1
-  const sessionRow = await env.speakeasy_db.prepare(
-    `SELECT user_id, expires_at FROM sessions WHERE token = ?`
-  ).bind(token).first();
-
-  if (!sessionRow) {
-    return jsonResponse({ error: 'Invalid or expired session token.' }, 401);
-  }
-
-  const expiresAt = new Date(sessionRow.expires_at).getTime();
-  if (!Number.isNaN(expiresAt) && Date.now() > expiresAt) {
-    return jsonResponse({ error: 'Session token has expired.' }, 401);
-  }
-
-  const userId = sessionRow.user_id;
+  // 1. Verify session
+  const session = await requireSession(request, env);
+  if (session instanceof Response) return session;
+  const { userId } = session;
 
   // 2. Query all of the user's bars, repairing an early-rollout data issue
   // first: before bar identity was reconciled correctly on import, a
@@ -324,37 +291,7 @@ export async function onRequestGet(context) {
      FROM custom_recipes WHERE user_id = ?`
   ).bind(userId).all();
 
-  const customRecipes = (recipeRows.results || []).map(r => {
-    let specs = [];
-    try {
-      specs = JSON.parse(r.specs || '[]');
-    } catch {
-      specs = [];
-    }
-    let tags = [];
-    try {
-      tags = JSON.parse(r.tags || '[]');
-    } catch {
-      tags = [];
-    }
-    return {
-      id: r.id,
-      name: r.name,
-      glassware: r.glassware || 'Rocks',
-      method: r.method || 'Stirred',
-      specs,
-      instructions: r.instructions || '',
-      description: r.description || '',
-      notes: r.notes || '',
-      garnish: r.garnish || '',
-      source: r.source || '',
-      sourceUrl: r.source_url || '',
-      riffOfId: r.riff_of_id || null,
-      riffOfName: r.riff_of_name || '',
-      tags,
-      isPublic: Boolean(r.is_public),
-    };
-  });
+  const customRecipes = (recipeRows.results || []).map(r => mapRecipeRow(r, { includeIsPublic: true }));
 
   // 4. Query user settings
   const userRow = await env.speakeasy_db.prepare(
@@ -380,29 +317,7 @@ export async function onRequestGet(context) {
        FROM global_recipes`
     ).all();
 
-    globalRecipes = (globalRows.results || []).map(r => {
-      let specs = [];
-      try { specs = JSON.parse(r.specs || '[]'); } catch {}
-      let tags = [];
-      try { tags = JSON.parse(r.tags || '[]'); } catch {}
-      return {
-        id: r.id,
-        name: r.name,
-        glassware: r.glassware || 'Rocks',
-        method: r.method || 'Stirred',
-        specs,
-        instructions: r.instructions || '',
-        description: r.description || '',
-        notes: r.notes || '',
-        garnish: r.garnish || '',
-        source: r.source || '',
-        sourceUrl: r.source_url || '',
-        riffOfId: r.riff_of_id || null,
-        riffOfName: r.riff_of_name || '',
-        tags,
-        isGlobal: true,
-      };
-    });
+    globalRecipes = (globalRows.results || []).map(r => mapRecipeRow(r, { isGlobal: true }));
 
     const hiddenRows = await env.speakeasy_db.prepare(
       `SELECT recipe_id FROM global_hidden_recipes`

@@ -4,14 +4,8 @@
  * Checks session authentication status and returns current user data.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
+import { jsonResponse } from '../_lib/http.js';
+import { requireSession } from '../_lib/auth.js';
 
 function parseSettings(settingsRaw) {
   if (!settingsRaw) {
@@ -90,31 +84,9 @@ export async function onRequestPatch(context) {
     return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
-  const authHeader = request.headers.get('Authorization') || '';
-  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-
-  if (!tokenMatch) {
-    return jsonResponse({ error: 'Unauthorized' }, 401);
-  }
-
-  const token = tokenMatch[1].trim();
-  if (!token) {
-    return jsonResponse({ error: 'Unauthorized' }, 401);
-  }
-
-  const sessionRow = await env.speakeasy_db.prepare(
-    `SELECT user_id, expires_at FROM sessions WHERE token = ?`
-  ).bind(token).first();
-
-  if (!sessionRow) {
-    return jsonResponse({ error: 'Unauthorized' }, 401);
-  }
-
-  const expiresTime = new Date(sessionRow.expires_at).getTime();
-  if (!Number.isNaN(expiresTime) && Date.now() > expiresTime) {
-    await env.speakeasy_db.prepare(`DELETE FROM sessions WHERE token = ?`).bind(token).run();
-    return jsonResponse({ error: 'Session expired' }, 401);
-  }
+  const session = await requireSession(request, env);
+  if (session instanceof Response) return session;
+  const { userId } = session;
 
   let body;
   try {
@@ -130,11 +102,11 @@ export async function onRequestPatch(context) {
 
   await env.speakeasy_db.prepare(
     `UPDATE users SET display_name = ? WHERE id = ?`
-  ).bind(displayName, sessionRow.user_id).run();
+  ).bind(displayName, userId).run();
 
   const user = await env.speakeasy_db.prepare(
     `SELECT id, email, display_name, settings, created_at FROM users WHERE id = ?`
-  ).bind(sessionRow.user_id).first();
+  ).bind(userId).first();
 
   return jsonResponse({
     success: true,

@@ -17,6 +17,7 @@ import {
   getInventoryForBar,
   getUnitPreference,
   getSortPreference,
+  saveSortPreference,
   getGlassViewPreference,
   getWakeLockPreference,
   saveWakeLockPreference,
@@ -58,7 +59,7 @@ import { getDrinkHistory, HISTORY_UPDATED_EVENT } from '../modules/history.js';
 import { openHiddenModal, closeHiddenModal } from './hidden-modal.js';
 import { closeBackbarModal } from './backbar-modal.js';
 import { closeAuthModal } from './auth-modal.js';
-import { showToast, showLevelUpCelebration, escapeHtml } from './toast.js';
+import { showToast, showLevelUpCelebration, escapeHtml, wirePopoverTriggerPositioning } from './toast.js';
 
 export const MIXOLOGIST_RANKS = [
   { threshold: 1000, title: 'Living Legend' },
@@ -891,11 +892,6 @@ export function setupTopBarEventListeners() {
     if (_openEditorFn) _openEditorFn(null);
   });
 
-  // Open the unified Account & Vault Settings modal
-  elements.btnVaultMenu?.addEventListener('click', () => {
-    openVaultSettingsModal();
-  });
-
   // On mobile, the profile pill opens the same quick-actions popover as Sign
   // In above rather than jumping straight into the full Settings page — see
   // isMobileHeaderLayout(). Desktop keeps going straight to Settings, since
@@ -929,55 +925,17 @@ export function setupTopBarEventListeners() {
     openVaultSettingsModal();
   });
 
-  // CSS anchor positioning isn't reliably supported everywhere yet (see the
-  // identical comment on #counter-more-popover) — position from whichever
-  // trigger is actually visible (Sign In for a guest, the profile pill once
-  // signed in) instead.
-  elements.headerQuickPopover?.addEventListener('toggle', (e) => {
-    if (e.newState !== 'open') return;
-    const trigger = elements.btnUserPill?.offsetParent ? elements.btnUserPill : elements.btnSignIn;
-    if (!trigger) return;
-
-    const triggerRect = trigger.getBoundingClientRect();
-    const popoverRect = elements.headerQuickPopover.getBoundingClientRect();
-    const margin = 8;
-
-    let left = triggerRect.right - popoverRect.width;
-    left = Math.max(margin, Math.min(left, window.innerWidth - popoverRect.width - margin));
-    const top = Math.min(triggerRect.bottom + margin, window.innerHeight - popoverRect.height - margin);
-
-    elements.headerQuickPopover.style.top = `${Math.max(margin, top)}px`;
-    elements.headerQuickPopover.style.left = `${left}px`;
-    elements.headerQuickPopover.style.right = 'auto';
-  });
+  // Position from whichever trigger is actually visible (Sign In for a
+  // guest, the profile pill once signed in) — see wirePopoverTriggerPositioning
+  // for why this can't just rely on CSS anchor positioning.
+  wirePopoverTriggerPositioning(elements.headerQuickPopover, () => (
+    elements.btnUserPill?.offsetParent ? elements.btnUserPill : elements.btnSignIn
+  ));
 
   elements.btnAccountBack?.addEventListener('click', () => {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      closeVaultSettingsModal();
-    }
-  });
-
-  elements.btnCloseVaultSettings?.addEventListener('click', () => {
-    closeVaultSettingsModal();
-  });
-
-  elements.btnDoneVaultSettings?.addEventListener('click', () => {
-    closeVaultSettingsModal();
-  });
-
-  // Light dismiss on backdrop click for <dialog>
-  elements.vaultSettingsModal?.addEventListener('click', (event) => {
-    if (event.target !== elements.vaultSettingsModal) return;
-    const rect = elements.vaultSettingsModal.getBoundingClientRect();
-    const isInsideDialog = (
-      rect.top <= event.clientY &&
-      event.clientY <= rect.top + rect.height &&
-      rect.left <= event.clientX &&
-      event.clientX <= rect.left + rect.width
-    );
-    if (!isInsideDialog) {
       closeVaultSettingsModal();
     }
   });

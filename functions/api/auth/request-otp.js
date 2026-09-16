@@ -4,14 +4,7 @@
  * Requests a 6-digit numeric OTP code for the given email address.
  */
 
-function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json;charset=utf-8',
-    },
-  });
-}
+import { jsonResponse } from '../_lib/http.js';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -39,14 +32,19 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'Invalid email address format.' }, 400);
   }
 
-  // Ensure otp_codes table exists
-  await env.speakeasy_db.prepare(
-    `CREATE TABLE IF NOT EXISTS otp_codes (
-      email TEXT NOT NULL,
-      code TEXT NOT NULL,
-      expires_at DATETIME NOT NULL
-    )`
-  ).run();
+  // Refuse to mint a fresh code (and reset the attempt budget) more than
+  // once a minute for the same email — otherwise a brute-force script could
+  // just request a new code every time it burns through the attempt cap.
+  const existing = await env.speakeasy_db.prepare(
+    `SELECT expires_at, created_at FROM otp_codes WHERE email = ?`
+  ).bind(email).first();
+  if (existing) {
+    const stillValid = Date.now() <= new Date(existing.expires_at).getTime();
+    const issuedRecently = Date.now() - new Date(existing.created_at).getTime() < 60 * 1000;
+    if (stillValid && issuedRecently) {
+      return jsonResponse({ success: true, message: 'Code sent' });
+    }
+  }
 
   // Generate a cryptographically secure 6-digit numeric code
   const randomArray = new Uint32Array(1);

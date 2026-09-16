@@ -129,7 +129,6 @@ export function initElements() {
   elements.appMain = document.getElementById('app-main');
   elements.mainStage = document.getElementById('main-stage');
   elements.recipeList = document.getElementById('recipe-list');
-  elements.recipeCountBadge = document.getElementById('recipe-count-badge');
   elements.searchInput = document.getElementById('search-input');
   elements.searchClearBtn = document.getElementById('search-clear-btn');
   elements.btnNewDrink = document.getElementById('btn-new-drink');
@@ -160,7 +159,6 @@ export function initElements() {
   elements.sidebarSortSelect = document.getElementById('sidebar-sort-select');
   elements.countAll = document.getElementById('count-all');
   elements.countCanMake = document.getElementById('count-can-make');
-  elements.countOneMissing = document.getElementById('count-one-missing');
   elements.backbarModal = document.getElementById('backbar-modal');
   elements.backbarSearchInput = document.getElementById('backbar-search-input');
   elements.backbarNavTabs = document.getElementById('backbar-nav-tabs');
@@ -190,7 +188,6 @@ export function initElements() {
 
   elements.btnSignIn = document.getElementById('btn-sign-in');
   elements.btnUserPill = document.getElementById('btn-user-pill');
-  elements.userPillAvatar = document.getElementById('user-pill-avatar');
   elements.userPillName = document.getElementById('user-pill-name');
   elements.userPopover = document.getElementById('user-popover');
   elements.userPopoverEmail = document.getElementById('user-popover-email');
@@ -203,9 +200,6 @@ export function initElements() {
   elements.authModal = document.getElementById('auth-modal');
 
   // Unified User Account & Vault Settings Page / View Elements
-  elements.vaultSettingsModal = document.getElementById('vault-settings-modal');
-  elements.btnCloseVaultSettings = document.getElementById('btn-close-vault-settings');
-  elements.btnDoneVaultSettings = document.getElementById('btn-done-vault-settings');
   elements.accountEmailDisplay = document.getElementById('account-email-display');
   elements.accountUserNameInput = document.getElementById('account-display-name-input');
   elements.accountRankDisplay = document.getElementById('account-rank-display');
