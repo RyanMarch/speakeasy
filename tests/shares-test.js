@@ -39,11 +39,11 @@ class MockD1PreparedStatement {
     const params = this.boundParams;
 
     if (sql.startsWith('INSERT INTO shares')) {
-      const [shareId, recipe] = params;
+      const [shareId, recipe, ogImage] = params;
       if (this.db.shares.has(shareId)) {
         throw new Error('UNIQUE constraint failed: shares.share_id');
       }
-      this.db.shares.set(shareId, { share_id: shareId, recipe, created_at: new Date().toISOString() });
+      this.db.shares.set(shareId, { share_id: shareId, recipe, og_image: ogImage, created_at: new Date().toISOString() });
       return { results: [], success: true };
     }
 
@@ -96,7 +96,7 @@ let firstShareId;
   const data = await res.json();
   assert.equal(data.success, true);
   assert.match(data.shareId, SHARE_ID_PATTERN, `Expected a 10-char share id, got ${data.shareId}`);
-  assert.equal(data.url, `https://example.com/app#share/${data.shareId}`);
+  assert.equal(data.url, `https://example.com/share/${data.shareId}`);
 
   firstShareId = data.shareId;
   const stored = JSON.parse(db.shares.get(firstShareId).recipe);
@@ -148,6 +148,34 @@ let firstShareId;
   const data = await res.json();
   assert.notEqual(data.shareId, firstShareId);
   console.log('PASS: Two shares get distinct ids');
+}
+
+// Test 7: a valid client-rendered PNG upload is decoded and stored as bytes
+{
+  // Minimal valid 1x1 PNG (smallest possible real PNG signature + IHDR/IEND).
+  const tinyPngBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+  const res = await onRequestPost({
+    request: createMockPostRequest({ name: 'Drink With Preview', ogImageBase64: `data:image/png;base64,${tinyPngBase64}` }),
+    env: { speakeasy_db: db },
+  });
+  const data = await res.json();
+  const stored = db.shares.get(data.shareId);
+  assert.ok(stored.og_image instanceof Uint8Array, 'Expected og_image to be decoded into bytes');
+  assert.equal(stored.og_image[0], 0x89, 'Expected the decoded bytes to start with the PNG signature');
+  console.log('PASS: POST /api/shares decodes and stores a valid client-rendered og:image PNG');
+}
+
+// Test 8: garbage/non-PNG image data is dropped rather than failing the share
+{
+  const res = await onRequestPost({
+    request: createMockPostRequest({ name: 'Drink With Bad Preview', ogImageBase64: 'not-a-real-image' }),
+    env: { speakeasy_db: db },
+  });
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  const stored = db.shares.get(data.shareId);
+  assert.equal(stored.og_image, null, 'Expected malformed image data to be dropped, not stored');
+  console.log('PASS: POST /api/shares drops malformed og:image data without failing the share');
 }
 
 console.log('All /functions/api/shares/* tests passed successfully!');

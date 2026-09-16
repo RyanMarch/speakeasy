@@ -41,6 +41,7 @@ import { calculateBalanceProfile, renderFlavorRadarSvg, calculatePalateSimilarit
 import { calculateFluidLayers, getIngredientColor } from '../modules/colors.js';
 import { formatFraction, parseMethodContent, renderInstructionTimers, formatIngredientName } from '../modules/parser.js';
 import { GlassView, renderGlassSvg } from '../modules/glass-view.js';
+import { renderShareCardPng } from '../modules/share-card.js';
 import { setupTagAutocomplete, filterByTag } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
 import { openTimerModal } from '../components/timer-modal.js';
@@ -191,6 +192,11 @@ export async function shareCustomRecipe(recipe) {
 
   showToast('Generating link…');
 
+  // Rendered here rather than assumed absent on failure — a share should
+  // never be blocked by the preview-image step, so this always resolves
+  // (renderShareCardPng swallows its own errors and resolves null).
+  const ogImageBase64 = await renderShareCardPng(recipe);
+
   let response;
   try {
     response = await fetch('/api/shares', {
@@ -210,6 +216,7 @@ export async function shareCustomRecipe(recipe) {
         riffOfId: recipe.riffOfId,
         riffOfName: recipe.riffOfName,
         tags: recipe.tags,
+        ogImageBase64,
       }),
     });
   } catch {
