@@ -40,11 +40,6 @@ ${imageUrl ? `<meta property="og:image" content="${escapeHtml(imageUrl)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">` : ''}
 
-<meta name="twitter:card" content="${imageUrl ? 'summary_large_image' : 'summary'}">
-<meta name="twitter:title" content="${escapeHtml(title)}">
-<meta name="twitter:description" content="${escapeHtml(description)}">
-${imageUrl ? `<meta name="twitter:image" content="${escapeHtml(imageUrl)}">` : ''}
-
 <meta name="theme-color" content="#020f20">
 <script>location.replace(${JSON.stringify(appUrl)});</script>
 </head>
