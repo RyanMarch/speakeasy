@@ -145,6 +145,9 @@ function renderRecipe(container, recipe) {
               const { measure, name } = formatSpecLine(spec);
               return /*html*/`<li><span class="spec-amount">${escapeHtml(measure)}</span><span class="spec-name">${escapeHtml(name)}</span></li>`;
             }).join('')}
+            ${recipe.garnish ? /*html*/`
+              <li class="spec-garnish-row"><span class="spec-amount"><span class="spec-unit">Garnish</span></span><span class="spec-name spec-garnish-name">${escapeHtml(recipe.garnish)}</span></li>
+            ` : ''}
           </ul>
 
           ${recipe.instructions ? /*html*/`
@@ -160,6 +163,13 @@ function renderRecipe(container, recipe) {
           ${tags.length > 0 ? /*html*/`
             <div class="drink-tags-chips shared-recipe-tags">
               ${tags.map(tag => `<span class="drink-tag-chip"><span class="drink-tag-text">#${escapeHtml(tag)}</span></span>`).join('')}
+            </div>
+          ` : ''}
+
+          ${recipe.source ? /*html*/`
+            <div class="editorial-source">
+              <span class="editorial-source-label">Source:</span>
+              ${recipe.source.startsWith('http') ? `<a href="${escapeHtml(recipe.source)}" target="_blank" rel="noopener">${escapeHtml(recipe.source)}</a>` : `<span>${escapeHtml(recipe.source)}</span>`}
             </div>
           ` : ''}
         </div>
