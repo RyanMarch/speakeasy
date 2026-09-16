@@ -146,7 +146,7 @@ class MockD1PreparedStatement {
     if (sql.startsWith('INSERT INTO custom_recipes')) {
       const [
         id, userId, name, glassware, method, specs, instructions,
-        description, notes, garnish, riffOfId, riffOfName, tags, isPublic
+        description, notes, garnish, source, sourceUrl, riffOfId, riffOfName, tags, isPublic
       ] = params;
       const recipe = {
         id,
@@ -159,6 +159,8 @@ class MockD1PreparedStatement {
         description,
         notes,
         garnish,
+        source,
+        source_url: sourceUrl,
         riff_of_id: riffOfId,
         riff_of_name: riffOfName,
         tags,
