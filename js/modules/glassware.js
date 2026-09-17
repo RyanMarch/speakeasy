@@ -243,7 +243,7 @@ export const GLASS_TYPES = {
   tikiMug: {
     id: 'tikiMug',
     name: 'Tiki Mug',
-    aliases: ['tiki', 'tiki mug', 'mug', 'totem'],
+    aliases: ['tiki', 'tiki mug', 'totem'],
     canvasBottom: 295,
     fluidBounds: {
       bottomY: 260,
@@ -296,6 +296,70 @@ export const GLASS_TYPES = {
       M 144 182 L 144 208
     `,
     sheenD: null,
+  },
+
+  mug: {
+    id: 'mug',
+    name: 'Mug / Hot Toddy Glass',
+    aliases: ['mug', 'hot toddy', 'toddy glass', 'irish coffee', 'hot mug', 'warm mug', 'coffee mug'],
+    canvasBottom: 295,
+    fluidBounds: {
+      bottomY: 218,
+      topY: 82,
+      height: 136,
+      leftX: 62,
+      rightX: 178,
+      width: 116,
+    },
+    // Elegant tulip/goblet interior cavity with curved base
+    fluidClipD: `
+      M 63 82
+      C 82 86, 158 86, 177 82
+      C 174 135, 172 175, 168 200
+      C 162 216, 142 220, 120 220
+      C 98 220, 78 216, 72 200
+      C 68 175, 66 135, 63 82
+      Z
+    `,
+    // Graceful outer profile: gentle inward taper, rounded bowl bottom, resting on a footed pedestal
+    glassOutlineD: `
+      M 60 78
+      C 64 135, 66 175, 70 200
+      C 76 218, 96 223, 112 223
+      L 112 240
+      C 94 242, 78 248, 76 256
+      L 76 261
+      C 92 264, 148 264, 164 261
+      L 164 256
+      C 162 248, 146 242, 128 240
+      L 128 223
+      C 144 223, 164 218, 170 200
+      C 174 175, 176 135, 180 78
+    `,
+    glassRimD: 'M 60 78 C 82 82, 158 82, 180 78',
+    rim: { leftX: 60, rightX: 180, y: 78 },
+    rimSag: 4,
+    stemD: null,
+    baseD: `
+      M 112 223
+      L 112 240
+      C 94 242, 78 248, 76 256
+      L 76 261
+      C 92 264, 148 264, 164 261
+      L 164 256
+      C 162 248, 146 242, 128 240
+      L 128 223
+      Z
+    `,
+    // Refined ear handle with graceful curves anchored flush to the outer glass wall
+    handleD: `
+      M 177 106
+      C 214 106, 218 178, 170 186
+      L 168 178
+      C 204 172, 202 118, 177 114
+      Z
+    `,
+    sheenD: 'M 67 92 C 70 135, 72 170, 75 198',
   },
 
   champagneFlute: {

@@ -49,6 +49,7 @@ const GLASSWARE_PATTERNS = [
   [/martini glass/i, 'Martini'],
   [/wine glass/i, 'Wine'],
   [/tiki mug/i, 'Tiki Mug'],
+  [/\b(?:mug|hot toddy(?: glass)?|irish coffee(?: glass)?)\b/i, 'Mug'],
 ];
 
 /**

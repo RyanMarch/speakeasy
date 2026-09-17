@@ -3596,7 +3596,7 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "oz", name: "Bourbon" },
       { amount: 0.75, unit: "oz", name: "Honey Syrup" },
       { amount: 0.5, unit: "oz", name: "Fresh Lemon Juice" },
-      { amount: 4, unit: "oz", name: "Chilled Water" },
+      { amount: 4, unit: "oz", name: "Boiling Water" },
     ],
   },
   // 78. Gin Rickey

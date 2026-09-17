@@ -23,6 +23,9 @@ export function resolveGarnishTypes(garnishString = '') {
   // a rim slot either — same treatment as celery.
   const hasSmoke = text.includes('smoke');
 
+  // Cinnamon stick is planted diagonally into the drink / resting against the rim
+  const hasCinnamonStick = text.includes('cinnamon stick') || text.includes('cinnamon quill') || (text.includes('cinnamon') && !text.includes('syrup') && !text.includes('sugar'));
+
   // Salt or sugar rim
   if (text.includes('salt rim') || text.includes('salt') && text.includes('rim')) {
     garnishes.push('saltRim');
@@ -141,11 +144,12 @@ export function resolveGarnishTypes(garnishString = '') {
     }
   }
 
-  // Celery and smoke aren't part of that cap (see above) — they're always
+  // Celery, smoke, and cinnamon sticks aren't part of that cap (see above) — they're always
   // included when present.
   const result = [];
   if (hasCelery) result.push('celeryStalk');
   if (hasSmoke) result.push('smokeCloud');
+  if (hasCinnamonStick) result.push('cinnamonStick');
   result.push(...capped);
   return result;
 }
@@ -906,6 +910,63 @@ function renderSwizzleStick(x, y, angle = 6, glassBottomY = null) {
   `;
 }
 
+/**
+ * Render a whole cinnamon stick quill planted diagonally inside the drink,
+ * resting against the glass rim and protruding out into the aroma zone.
+ */
+let cinnamonInstanceCounter = 0;
+
+function renderCinnamonStick(x, y, angle = 18, glassBottomY = null) {
+  const bottom = glassBottomY !== null ? (glassBottomY - y) : 18;
+  const top = -74;
+  const clipId = `cinnamon-clip-${cinnamonInstanceCounter++}`;
+  const quillPathD = `
+    M -4.5 ${bottom.toFixed(1)}
+    L -5 ${top}
+    C -4.5 ${top - 3}, 4.5 ${top - 3}, 5 ${top}
+    L 4.5 ${bottom.toFixed(1)}
+    Z
+  `;
+
+  return `
+    <g class="garnish garnish-cinnamon-stick" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle})" pointer-events="none">
+      <defs>
+        <clipPath id="${clipId}">
+          <path d="${quillPathD}" />
+        </clipPath>
+      </defs>
+
+      <!-- Soft contact shadow in the liquid/base -->
+      <ellipse cx="0" cy="${(bottom - 3).toFixed(1)}" rx="6" ry="2.2" fill="rgba(0, 0, 0, 0.28)" />
+
+      <!-- Main toasted wood-bark body -->
+      <path
+        d="${quillPathD}"
+        fill="#82451e"
+        stroke="#52240b"
+        stroke-width="1.2"
+        stroke-linejoin="round"
+      />
+
+      <!-- Characteristic inner roll scroll curl at cut top -->
+      <path
+        d="M -3.8 ${top} C -3.8 ${top - 2.8}, 3.8 ${top - 2.8}, 3.8 ${top} C 3.8 ${top + 2.5}, -1 ${top + 2.5}, -1 ${top} C -1 ${top - 1.5}, 2 ${top - 1.5}, 2 ${top}"
+        fill="#a75d2d"
+        stroke="#3c1906"
+        stroke-width="0.9"
+      />
+
+      <!-- Vertical bark ridges, natural striations and cinnamon parchment layers -->
+      <line x1="-2.2" y1="${bottom.toFixed(1)}" x2="-2.6" y2="${top + 2}" stroke="#a75d2d" stroke-width="1.1" opacity="0.8" />
+      <line x1="0.5" y1="${bottom.toFixed(1)}" x2="0.3" y2="${top + 2}" stroke="#482108" stroke-width="1.3" opacity="0.75" />
+      <line x1="2.4" y1="${bottom.toFixed(1)}" x2="2.2" y2="${top + 2}" stroke="#be7642" stroke-width="0.9" opacity="0.7" />
+
+      <!-- Submerged tint to integrate through liquid -->
+      <rect x="-8" y="0" width="16" height="${bottom.toFixed(1)}" fill="rgba(20, 10, 5, 0.4)" clip-path="url(#${clipId})" />
+    </g>
+  `;
+}
+
 // How far above the rim (in the shared 240-wide drawing scale) each garnish
 // type's ink actually reaches, measured from each render function above.
 // Used by glass-view.js to crop the SVG viewBox to *this recipe's* actual
@@ -917,6 +978,7 @@ const GARNISH_HEADROOM = {
   limeWedge: 24, lemonWedge: 24, orangeWedge: 24, appleSlice: 24,
   lemonTwist: 14, orangeTwist: 14, limeTwist: 14,
   cherry: 15, olive: 15, cocktailOnion: 15, pickleSpear: 15,
+  cinnamonStick: 48,
   smokeCloud: 96, // rising waves and dissipated puffs extend up out of the glass
 };
 // Rim highlight stroke + a touch of breathing room — the floor for any drink,
@@ -992,7 +1054,7 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
   // renderCombinedPick) which claims a single rim slot of its own, represented
   // here by the '__pickGroup__' placeholder.
   const pickTypes = types.filter(t => PICK_GARNISH_TYPES.has(t));
-  const otherSlotTypes = types.filter(t => t !== 'celeryStalk' && t !== 'smokeCloud' && !t.includes('Rim') && t !== 'coffeeBeans' && !PICK_GARNISH_TYPES.has(t));
+  const otherSlotTypes = types.filter(t => t !== 'celeryStalk' && t !== 'smokeCloud' && t !== 'cinnamonStick' && !t.includes('Rim') && t !== 'coffeeBeans' && !PICK_GARNISH_TYPES.has(t));
   const slotTypes = pickTypes.length > 0 ? [...otherSlotTypes, '__pickGroup__'] : otherSlotTypes;
 
   const glassBottomY = glassware.fluidBounds?.bottomY ?? 300;
@@ -1008,6 +1070,13 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
     }
     if (type === 'smokeCloud') {
       rendered.push(renderSmokeCloud(centerX, rim.y, floatY));
+      return;
+    }
+    if (type === 'cinnamonStick') {
+      // Place leaning toward right or left depending on whether another rim garnish exists
+      const angle = slotTypes.length > 0 ? 18 : 12;
+      const posX = slotTypes.length > 0 ? rim.rightX - 16 : centerX + 12;
+      rendered.push(renderCinnamonStick(posX, floatY, angle, glassBottomY));
       return;
     }
     // Pick-riding garnishes are rendered once as a group after this loop.
