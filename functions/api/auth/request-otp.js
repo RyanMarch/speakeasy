@@ -54,11 +54,18 @@ export async function onRequestPost(context) {
   // 10-minute expiration
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-  // Delete previous codes for this email and insert new code
+  // Delete previous codes for this email and insert new code. created_at is
+  // bound explicitly (rather than left to the column's own default) so the
+  // 60-second reissue guard above works the same whether or not this table's
+  // created_at column happens to carry a DEFAULT CURRENT_TIMESTAMP — D1/SQLite
+  // rejects that as an ALTER TABLE ADD COLUMN default (see migrations/0008),
+  // so a database that picked the column up via migration rather than the
+  // original CREATE TABLE may have no default at all.
+  const nowIso = new Date().toISOString();
   const deleteStmt = env.speakeasy_db.prepare(`DELETE FROM otp_codes WHERE email = ?`).bind(email);
   const insertStmt = env.speakeasy_db.prepare(
-    `INSERT INTO otp_codes (email, code, expires_at) VALUES (?, ?, ?)`
-  ).bind(email, code, expiresAt);
+    `INSERT INTO otp_codes (email, code, expires_at, created_at) VALUES (?, ?, ?, ?)`
+  ).bind(email, code, expiresAt, nowIso);
 
   await env.speakeasy_db.batch([deleteStmt, insertStmt]);
 

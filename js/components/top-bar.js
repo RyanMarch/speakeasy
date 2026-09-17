@@ -56,6 +56,7 @@ import {
   AUTH_EVENT_NAME,
 } from '../modules/auth.js';
 import { getDrinkHistory, HISTORY_UPDATED_EVENT } from '../modules/history.js';
+import { openCalculatorModal } from './calculator-modal.js';
 import { openHiddenModal, closeHiddenModal } from './hidden-modal.js';
 import { closeBackbarModal } from './backbar-modal.js';
 import { closeAuthModal } from './auth-modal.js';
@@ -1054,6 +1055,11 @@ export function setupTopBarEventListeners() {
   elements.menusShortcut?.addEventListener('click', () => {
     closeVaultSettingsModal();
     window.location.hash = '#menus';
+  });
+
+  document.getElementById('shortcut-calculators')?.addEventListener('click', () => {
+    closeVaultSettingsModal();
+    openCalculatorModal({ recipeId: state.activeRecipeId });
   });
 
   // Preferences: Units

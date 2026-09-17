@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/index.css?v=53">
-  <link rel="stylesheet" href="css/theme-deco.css?v=10">
+  <link rel="stylesheet" href="css/theme-deco.css?v=11">
   <!--
     Import Map: cache-busts the entire internal ES module graph from ONE
     place. Every internal `import` specifier resolves to an absolute URL
@@ -45,31 +45,35 @@
     "imports": {
       "/js/components/auth-modal.js": "/js/components/auth-modal.js?v=1",
       "/js/components/backbar-modal.js": "/js/components/backbar-modal.js?v=1",
+      "/js/components/calculator-modal.js": "/js/components/calculator-modal.js?v=1",
       "/js/components/editor-modal.js": "/js/components/editor-modal.js?v=1",
       "/js/components/hidden-modal.js": "/js/components/hidden-modal.js?v=1",
+      "/js/components/print-window.js": "/js/components/print-window.js?v=9",
+      "/js/components/rating-modal.js": "/js/components/rating-modal.js?v=3",
       "/js/components/timer-modal.js": "/js/components/timer-modal.js?v=1",
       "/js/components/toast.js": "/js/components/toast.js?v=1",
-      "/js/components/top-bar.js": "/js/components/top-bar.js?v=5",
+      "/js/components/top-bar.js": "/js/components/top-bar.js?v=6",
       "/js/data/featured-cocktails.js": "/js/data/featured-cocktails.js?v=1",
       "/js/data/seed-recipes.js": "/js/data/seed-recipes.js?v=1",
       "/js/modules/abv.js": "/js/modules/abv.js?v=1",
       "/js/modules/auth.js": "/js/modules/auth.js?v=1",
       "/js/modules/auto-detect.js": "/js/modules/auto-detect.js?v=1",
       "/js/modules/balance.js": "/js/modules/balance.js?v=1",
+      "/js/modules/calculators.js": "/js/modules/calculators.js?v=1",
       "/js/modules/colors.js": "/js/modules/colors.js?v=1",
       "/js/modules/garnishes.js": "/js/modules/garnishes.js?v=2",
       "/js/modules/glass-view.js": "/js/modules/glass-view.js?v=3",
       "/js/modules/glassware.js": "/js/modules/glassware.js?v=2",
-      "/js/modules/history.js": "/js/modules/history.js?v=1",
+      "/js/modules/history.js": "/js/modules/history.js?v=2",
       "/js/modules/parser.js": "/js/modules/parser.js?v=2",
       "/js/modules/storage.js": "/js/modules/storage.js?v=1",
       "/js/modules/taxonomy.js": "/js/modules/taxonomy.js?v=1",
       "/js/modules/telemetry.js": "/js/modules/telemetry.js?v=1",
       "/js/router.js": "/js/router.js?v=2",
       "/js/state.js": "/js/state.js?v=4",
-      "/js/views/counter-view.js": "/js/views/counter-view.js?v=1",
-      "/js/views/home-view.js": "/js/views/home-view.js?v=1",
-      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=1",
+      "/js/views/counter-view.js": "/js/views/counter-view.js?v=10",
+      "/js/views/home-view.js": "/js/views/home-view.js?v=2",
+      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=8",
       "/js/views/recipe-list-view.js": "/js/views/recipe-list-view.js?v=1",
       "/js/views/shared-recipe-view.js": "/js/views/shared-recipe-view.js?v=1"
     }
@@ -534,6 +538,28 @@
                   <div class="vault-shortcut-content">
                     <div class="vault-shortcut-title">Saved Event Menus</div>
                     <div class="vault-shortcut-count" id="count-saved-menus">0 saved menus</div>
+                  </div>
+                  <span class="vault-shortcut-arrow">→</span>
+                </button>
+
+                <button type="button" id="shortcut-calculators" class="vault-shortcut-card"
+                  title="Open Bartender Calculators: batching, acid adjustment, Brix">
+                  <div class="vault-shortcut-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+                      <line x1="8" y1="6" x2="16" y2="6"></line>
+                      <line x1="8" y1="10" x2="8.01" y2="10"></line>
+                      <line x1="12" y1="10" x2="12.01" y2="10"></line>
+                      <line x1="16" y1="10" x2="16.01" y2="10"></line>
+                      <line x1="8" y1="14" x2="8.01" y2="14"></line>
+                      <line x1="12" y1="14" x2="12.01" y2="14"></line>
+                      <line x1="16" y1="14" x2="16.01" y2="14"></line>
+                    </svg>
+                  </div>
+                  <div class="vault-shortcut-content">
+                    <div class="vault-shortcut-title">Bartender Calculators</div>
+                    <div class="vault-shortcut-count">Batching, acid adjustment, Brix</div>
                   </div>
                   <span class="vault-shortcut-arrow">→</span>
                 </button>

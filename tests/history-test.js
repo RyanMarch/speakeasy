@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { onRequestPost as onRequestPostLog } from '../functions/api/history/log.js';
 import { onRequestGet as onRequestGetList } from '../functions/api/history/list.js';
+import { onRequestPost as onRequestPostUpdate } from '../functions/api/history/update.js';
 import * as historyClient from '../js/modules/history.js';
 import { MockD1PreparedStatementBase, createMockD1 } from './test-helpers.js';
 
@@ -28,16 +29,16 @@ class MockD1PreparedStatement extends MockD1PreparedStatementBase {
       return { results: [], success: true };
     }
 
-    // INSERT INTO drink_history (id, user_id, recipe_id, made_at) VALUES (?, ?, ?, ?)
+    // INSERT INTO drink_history (id, user_id, recipe_id, made_at, rating, notes) VALUES (?, ?, ?, ?, ?, ?)
     if (sql.startsWith('INSERT INTO drink_history')) {
-      const [id, userId, recipeId, madeAt] = params;
-      const record = { id, user_id: userId, recipe_id: recipeId, made_at: madeAt };
+      const [id, userId, recipeId, madeAt, rating, notes] = params;
+      const record = { id, user_id: userId, recipe_id: recipeId, made_at: madeAt, rating: rating ?? null, notes: notes ?? null };
       this.db.tables.drink_history.set(id, record);
       return { results: [], success: true };
     }
 
-    // SELECT id, recipe_id, made_at FROM drink_history WHERE user_id = ? ORDER BY made_at DESC LIMIT ?
-    if (sql.startsWith('SELECT id, recipe_id, made_at FROM drink_history WHERE user_id = ?')) {
+    // SELECT id, recipe_id, made_at, rating, notes FROM drink_history WHERE user_id = ? ORDER BY made_at DESC LIMIT ?
+    if (sql.startsWith('SELECT id, recipe_id, made_at, rating, notes FROM drink_history WHERE user_id = ?')) {
       const [userId, limit] = params;
       const matching = Array.from(this.db.tables.drink_history.values())
         .filter(entry => entry.user_id === userId)
@@ -47,6 +48,26 @@ class MockD1PreparedStatement extends MockD1PreparedStatementBase {
         results: matching,
         success: true,
       };
+    }
+
+    // SELECT id FROM drink_history WHERE id = ? AND user_id = ?
+    if (sql.startsWith('SELECT id FROM drink_history WHERE id = ? AND user_id = ?')) {
+      const [id, userId] = params;
+      const record = this.db.tables.drink_history.get(id);
+      const match = record && record.user_id === userId ? [{ id: record.id }] : [];
+      return { results: match, success: true };
+    }
+
+    // UPDATE drink_history SET rating = ?, notes = ? WHERE id = ? AND user_id = ?
+    if (sql.startsWith('UPDATE drink_history SET rating = ?, notes = ?')) {
+      const [rating, notes, id, userId] = params;
+      const record = this.db.tables.drink_history.get(id);
+      if (record && record.user_id === userId) {
+        record.rating = rating ?? null;
+        record.notes = notes ?? null;
+        this.db.tables.drink_history.set(id, record);
+      }
+      return { results: [], success: true };
     }
 
     throw new Error(`Unhandled SQL in MockD1: ${sql}`);
@@ -251,6 +272,110 @@ let loggedEntry2 = null;
   assert.ok(uploadedPosts.some(p => p.recipeId === 'margarita'));
 
   console.log('PASS: syncLocalHistoryToCloud uploads local guest entries upon login');
+}
+
+// 6. Test POST /api/history/log with rating + notes, and rating validation
+{
+  const reqWithRating = createMockRequest({
+    method: 'POST',
+    headers: { Authorization: 'Bearer valid-token' },
+    body: { recipeId: 'daiquiri', madeAt: '2026-09-10T18:00:00.000Z', rating: 5, notes: 'Used Carpano Antica; came out rich' },
+  });
+  const resWithRating = await onRequestPostLog({ request: reqWithRating, env });
+  assert.equal(resWithRating.status, 200);
+  const dataWithRating = await resWithRating.json();
+  assert.equal(dataWithRating.entry.rating, 5);
+  assert.equal(dataWithRating.entry.notes, 'Used Carpano Antica; came out rich');
+  const loggedWithRatingId = dataWithRating.entry.id;
+
+  const reqBadRating = createMockRequest({
+    method: 'POST',
+    headers: { Authorization: 'Bearer valid-token' },
+    body: { recipeId: 'daiquiri', rating: 7 },
+  });
+  const resBadRating = await onRequestPostLog({ request: reqBadRating, env });
+  assert.equal(resBadRating.status, 400);
+
+  console.log('PASS: /api/history/log accepts optional rating + notes and validates rating range');
+
+  // 7. Test POST /api/history/update
+  const reqUpdate = createMockRequest({
+    method: 'POST',
+    headers: { Authorization: 'Bearer valid-token' },
+    body: { id: loggedWithRatingId, rating: 3, notes: 'Actually a bit too sweet' },
+  });
+  const resUpdate = await onRequestPostUpdate({ request: reqUpdate, env });
+  assert.equal(resUpdate.status, 200);
+  const dataUpdate = await resUpdate.json();
+  assert.equal(dataUpdate.entry.rating, 3);
+  assert.equal(dataUpdate.entry.notes, 'Actually a bit too sweet');
+
+  const reqUpdateMissing = createMockRequest({
+    method: 'POST',
+    headers: { Authorization: 'Bearer valid-token' },
+    body: { id: 'not-a-real-id', rating: 2 },
+  });
+  const resUpdateMissing = await onRequestPostUpdate({ request: reqUpdateMissing, env });
+  assert.equal(resUpdateMissing.status, 404);
+
+  // Confirm the update landed via GET /api/history/list
+  const reqListAfterUpdate = createMockRequest({
+    url: 'https://example.com/api/history/list?limit=10',
+    method: 'GET',
+    headers: { Authorization: 'Bearer valid-token' },
+  });
+  const resListAfterUpdate = await onRequestGetList({ request: reqListAfterUpdate, env });
+  const dataListAfterUpdate = await resListAfterUpdate.json();
+  const updatedEntry = dataListAfterUpdate.history.find(h => h.id === loggedWithRatingId);
+  assert.equal(updatedEntry.rating, 3);
+  assert.equal(updatedEntry.notes, 'Actually a bit too sweet');
+
+  console.log('PASS: /api/history/update persists rating + notes changes, scoped to the owning user');
+}
+
+// 8. Test client-side updateDrinkEntry() in Guest Mode
+{
+  const entry = await historyClient.logDrinkMade('negroni', '2026-09-11T10:00:00.000Z');
+  const updated = await historyClient.updateDrinkEntry(entry.id, { rating: 4, notes: 'Solid, would riff with Cynar' });
+  assert.equal(updated.rating, 4);
+  assert.equal(updated.notes, 'Solid, would riff with Cynar');
+
+  const history = historyClient.getDrinkHistory(10);
+  const found = history.find(h => h.id === entry.id);
+  assert.equal(found.rating, 4);
+  assert.equal(found.notes, 'Solid, would riff with Cynar');
+
+  console.log('PASS: Client-side updateDrinkEntry() patches rating + notes in guest mode');
+}
+
+// 9. Test guest-to-cloud migration preserves ratings + notes
+{
+  const guestEntry = await historyClient.logDrinkMade('paloma', '2026-09-11T11:00:00.000Z');
+  await historyClient.updateDrinkEntry(guestEntry.id, { rating: 5, notes: 'Grapefruit soda, not juice' });
+
+  let migratedPosts = [];
+  global.fetch = async (url, options = {}) => {
+    if (url.includes('/api/history/list')) {
+      return { ok: true, json: async () => ({ history: [] }) };
+    }
+    if (url.includes('/api/history/log')) {
+      const parsedBody = JSON.parse(options.body);
+      migratedPosts.push(parsedBody);
+      return {
+        ok: true,
+        json: async () => ({ success: true, entry: { id: `cloud-${parsedBody.recipeId}`, ...parsedBody } }),
+      };
+    }
+    return { ok: false };
+  };
+
+  await historyClient.syncLocalHistoryToCloud();
+  const migratedPaloma = migratedPosts.find(p => p.recipeId === 'paloma');
+  assert.ok(migratedPaloma, 'paloma entry was migrated to the cloud');
+  assert.equal(migratedPaloma.rating, 5);
+  assert.equal(migratedPaloma.notes, 'Grapefruit soda, not juice');
+
+  console.log('PASS: Guest-to-cloud migration preserves ratings and notes');
 }
 
 console.log('All Drink History tests passed successfully!');

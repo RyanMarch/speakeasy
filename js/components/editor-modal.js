@@ -61,12 +61,17 @@ export function openEditor(recipe = null) {
     source: '',
     sourceUrl: '',
     notes: '',
+    yield: 1,
     tags: [],
     specs: [
       { amount: 2, unit: 'oz', name: '' },
       { amount: 0.75, unit: 'oz', name: '' },
     ],
   };
+
+  if (!currentData.yield || isNaN(Number(currentData.yield)) || Number(currentData.yield) < 1) {
+    currentData.yield = 1;
+  }
 
   state.editorSpecs = (currentData.specs || []).map(s => ({ ...s }));
   state.editorTags = Array.isArray(currentData.tags) ? [...currentData.tags] : [];
@@ -189,9 +194,17 @@ export function openEditor(recipe = null) {
         </div>
       </div>
 
-      <div class="editor-section editor-field-garnish form-group">
-        <label class="form-label" for="edit-garnish">Garnish <span class="field-detected-badge" id="garnish-detected-badge" hidden>detected</span></label>
-        <input type="text" id="edit-garnish" class="form-input" value="${escapeHtml(currentData.garnish)}" placeholder="Lime wheel, orange twist, etc." autocomplete="off">
+      <div class="editor-section editor-field-yield-garnish form-row">
+        <div class="form-group form-group-garnish">
+          <label class="form-label" for="edit-garnish">Garnish <span class="field-detected-badge" id="garnish-detected-badge" hidden>detected</span></label>
+          <input type="text" id="edit-garnish" class="form-input" value="${escapeHtml(currentData.garnish)}" placeholder="Lime wheel, orange twist, etc." autocomplete="off">
+        </div>
+
+        <div class="form-group form-group-yield">
+          <label class="form-label" for="edit-yield">Servings</label>
+          <input type="number" id="edit-yield" class="form-input editor-yield-input" value="${currentData.yield || 1}" min="1" max="100" step="1" inputmode="numeric" placeholder="1">
+          <div class="field-hint" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;"></div>
+        </div>
       </div>
 
       <!-- Tags & Custom Lists -->
@@ -618,6 +631,7 @@ export function setupEditorEvents(recipeId) {
 
   const glasswareSelect = document.getElementById('edit-glassware');
   const methodSelect = document.getElementById('edit-method');
+  const yieldInput = document.getElementById('edit-yield');
   const garnishInput = document.getElementById('edit-garnish');
   const glasswareBadge = document.getElementById('glassware-detected-badge');
   const methodBadge = document.getElementById('method-detected-badge');
@@ -626,6 +640,10 @@ export function setupEditorEvents(recipeId) {
   const setDetectedBadge = (badge, isDetected) => {
     if (badge) badge.hidden = !isDetected;
   };
+
+  yieldInput?.addEventListener('input', () => {
+    updateEditorGlassPreview();
+  });
 
   glasswareSelect?.addEventListener('change', () => {
     // A manual choice always wins — stop treating this field as detectable.
@@ -742,6 +760,12 @@ export function updateEditorGlassPreview() {
   const name = document.getElementById('edit-name')?.value || 'Preview';
   const garnish = document.getElementById('edit-garnish')?.value || '';
 
+  const yieldVal = Math.max(1, parseInt(document.getElementById('edit-yield')?.value, 10) || 1);
+  const singleServingSpecs = state.editorSpecs.map(s => ({
+    ...s,
+    amount: (s.amount !== null && s.amount !== undefined) ? (s.amount / yieldVal) : s.amount,
+  }));
+
   state.glassViewEditor = new GlassView(container, {
     initialMode: state.glassViewMode,
   });
@@ -750,7 +774,7 @@ export function updateEditorGlassPreview() {
     name,
     glassware,
     garnish,
-    specs: state.editorSpecs,
+    specs: singleServingSpecs,
   }, state.glassViewMode);
 
   const method = document.getElementById('edit-method')?.value || 'Stirred';
@@ -895,6 +919,8 @@ export function saveCurrentEditor(existingId) {
   const sourceUrl = document.getElementById('edit-source-url')?.value.trim() || '';
   const notes = document.getElementById('edit-notes')?.value.trim() || '';
 
+  const yieldVal = Math.max(1, parseInt(document.getElementById('edit-yield')?.value, 10) || 1);
+
   const validSpecs = state.editorSpecs.filter(s => s.name.trim().length > 0);
 
   const recipeToSave = {
@@ -908,6 +934,7 @@ export function saveCurrentEditor(existingId) {
     source,
     sourceUrl,
     notes,
+    yield: yieldVal,
     tags: state.editorTags,
     riffOfId: state.editorRiffOfId || undefined,
     riffOfName: state.editorRiffOfName || undefined,

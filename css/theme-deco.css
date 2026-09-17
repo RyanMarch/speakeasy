@@ -9,8 +9,7 @@
 /* Gurmukhi MN Font Face */
 @font-face {
   font-family: 'Gurmukhi MN';
-  src: local('Gurmukhi MN'),
-    url('../assets/fonts/gurmukhi-mn.ttf') format('truetype');
+  src: url('../assets/fonts/gurmukhi-mn.ttf?v=2') format('truetype');
   font-weight: 400 700;
   font-style: normal;
   font-display: swap;
@@ -55,9 +54,9 @@
   --color-sub-light: #f3b490;
 
   /* Typography Stack: Gurmukhi MN & Mid-Century Sans (DM Sans / Josefin Sans) with fallbacks */
-  --font-display: 'Gurmukhi MN', 'Playfair Display', Georgia, serif;
+  --font-display: 'Gurmukhi MN', 'DM Sans', sans-serif;
   --font-sans: 'DM Sans', 'Josefin Sans', 'Jost', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-deco: 'Josefin Sans', 'Gurmukhi MN', 'Playfair Display', sans-serif;
+  --font-deco: 'Josefin Sans', 'Gurmukhi MN', 'DM Sans', sans-serif;
 
   --radius-sm: 4px;
   --radius-md: 6px;
