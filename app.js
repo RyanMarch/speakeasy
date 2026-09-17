@@ -357,6 +357,26 @@ function setupGlobalEventListeners() {
     }
   });
 
+  // Keyboard navigation from search input: Enter selects the top recipe, ArrowDown moves focus to it
+  elements.searchInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const firstItem = elements.recipeList?.querySelector('.recipe-list-item[data-id]');
+      const id = firstItem?.getAttribute('data-id');
+      if (!id) return;
+
+      e.preventDefault();
+      selectRecipe(id);
+      const firstCardBtn = firstItem.querySelector('.recipe-card-btn');
+      firstCardBtn?.focus();
+    } else if (e.key === 'ArrowDown') {
+      const firstCardBtn = elements.recipeList?.querySelector('.recipe-list-item[data-id] .recipe-card-btn');
+      if (!firstCardBtn) return;
+
+      e.preventDefault();
+      firstCardBtn.focus();
+    }
+  });
+
   elements.searchClearBtn?.addEventListener('click', () => {
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
     if (elements.searchInput) elements.searchInput.value = '';
