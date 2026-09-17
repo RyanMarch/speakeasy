@@ -11,11 +11,11 @@ import {
   normalizeTagName,
 } from '../modules/storage.js';
 
-import { parseSpecsBlock, extractGarnishLine } from '../modules/parser.js';
+import { parseSpecsBlock, extractGarnishLine, formatIngredientName, convertUnitAmount } from '../modules/parser.js';
 import { GlassView } from '../modules/glass-view.js';
 import { calculateFluidLayers } from '../modules/colors.js';
 import { calculateCocktailAbv, estimateIngredientAbv } from '../modules/abv.js';
-import { getIngredientSuggestions } from '../modules/taxonomy.js';
+import { getIngredientSuggestions, findIngredient } from '../modules/taxonomy.js';
 import { setupTagAutocomplete } from '../views/recipe-list-view.js';
 import { detectMethodFromText, detectGlasswareFromText, detectGarnishFromText, detectTagsFromRecipe } from '../modules/auto-detect.js';
 import { isAuthenticated, migrateGuestData } from '../modules/auth.js';
@@ -622,11 +622,18 @@ export function setupEditorEvents(recipeId) {
 
     if (parsed.length > 0 || filledGarnish) {
       if (parsed.length > 0) {
-        state.editorSpecs = parsed.map(p => ({
-          amount: p.amount,
-          unit: p.unit,
-          name: p.name,
-        }));
+        const targetUnitSystem = state.unitSystem || 'oz';
+        state.editorSpecs = parsed.map(p => {
+          const match = findIngredient(p.name);
+          const normalizedName = match?.name || formatIngredientName(p.name);
+          const converted = convertUnitAmount(p.amount, p.unit, targetUnitSystem);
+
+          return {
+            amount: converted.amount,
+            unit: converted.unit,
+            name: normalizedName,
+          };
+        });
         renderEditorSpecRows();
       }
       updateEditorGlassPreview();
