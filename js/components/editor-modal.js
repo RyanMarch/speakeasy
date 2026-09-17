@@ -56,7 +56,7 @@ export function openEditor(recipe = null, updateHistory = true) {
     history.pushState(null, '', targetHash);
   }
 
-  const currentData = recipe ? JSON.parse(JSON.stringify(recipe)) : {
+  const defaults = {
     id: null,
     name: '',
     glassware: 'Coupe',
@@ -74,6 +74,17 @@ export function openEditor(recipe = null, updateHistory = true) {
       { amount: 0.75, unit: 'oz', name: '' },
     ],
   };
+
+  const currentData = recipe
+    ? {
+        ...defaults,
+        ...JSON.parse(JSON.stringify(recipe)),
+        specs: recipe.specs && recipe.specs.length > 0
+          ? JSON.parse(JSON.stringify(recipe.specs))
+          : defaults.specs,
+        tags: Array.isArray(recipe.tags) ? [...recipe.tags] : defaults.tags,
+      }
+    : defaults;
 
   if (!currentData.yield || isNaN(Number(currentData.yield)) || Number(currentData.yield) < 1) {
     currentData.yield = 1;
