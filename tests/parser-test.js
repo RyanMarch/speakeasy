@@ -750,6 +750,7 @@ const garnishCases = [
   // repeat count, so "three cherries" threads three cherries onto the pick.
   { input: 'Garnish with three cherries', expected: ['cherry', 'cherry', 'cherry'] },
   { input: '2 olives', expected: ['olive', 'olive'] },
+  { input: 'Mint and a lime slice', expected: ['mintSprig', 'limeWheel'] },
 ];
 
 for (const tc of garnishCases) {
@@ -1561,6 +1562,48 @@ console.log('\n--- Testing Quick Paste Metric Specs with Taxonomy Matching ---')
   // Pineapple juice test specifically mentioned in user request
   const pineappleMatch = findIngredient('pineapple juice');
   assert.equal(pineappleMatch?.name, 'Pineapple Juice', 'Matches lowercase pineapple juice to canonical Pineapple Juice');
+
+  // Indigo Gin and Lingonberry Syrup taxonomy & color tests
+  const indigoMatch = findIngredient('Empress 1908');
+  assert.equal(indigoMatch?.id, 'indigo_gin', 'Matches Empress 1908 to indigo_gin');
+  assert.equal(indigoMatch?.name, 'Indigo Gin', 'Resolves name to Indigo Gin');
+
+  const lingonberryMatch = findIngredient('lingonberry syrup');
+  assert.equal(lingonberryMatch?.id, 'lingonberry_syrup', 'Matches lingonberry syrup to lingonberry_syrup');
+  assert.equal(lingonberryMatch?.name, 'Lingonberry Syrup', 'Resolves name to Lingonberry Syrup');
+  assert.equal(lingonberryMatch?.color, '#9e1b32', 'Lingonberry Syrup color is ruby red like grenadine');
+
+  // Pineapple Rum test
+  const pineappleRumMatch = findIngredient('pineapple rum');
+  assert.equal(pineappleRumMatch?.id, 'pineapple_rum', 'Matches pineapple rum to pineapple_rum');
+  assert.equal(pineappleRumMatch?.name, 'Pineapple Rum', 'Resolves name to Pineapple Rum');
+  assert.equal(pineappleRumMatch?.family, 'rum', 'Belongs to rum family');
+
+  const stigginsMatch = findIngredient('Plantation Stiggins Fancy');
+  assert.equal(stigginsMatch?.id, 'pineapple_rum', 'Matches Plantation Stiggins Fancy to pineapple_rum');
+
+  // Pear Juice & Pear Syrup tests
+  const pearJuiceMatch = findIngredient('pear juice');
+  assert.equal(pearJuiceMatch?.id, 'pear_juice', 'Matches pear juice to pear_juice');
+  assert.equal(pearJuiceMatch?.name, 'Pear Juice', 'Resolves name to Pear Juice');
+  assert.equal(pearJuiceMatch?.color, '#ece4d0', 'Pear juice color is pale tan/off-white');
+
+  const pearNectarMatch = findIngredient('pear nectar');
+  assert.equal(pearNectarMatch?.id, 'pear_juice', 'Matches pear nectar to pear_juice');
+
+  const pearSyrupMatch = findIngredient('pear syrup');
+  assert.equal(pearSyrupMatch?.id, 'pear_syrup', 'Matches pear syrup to pear_syrup');
+  assert.equal(pearSyrupMatch?.name, 'Pear Syrup', 'Resolves name to Pear Syrup');
+  assert.equal(pearSyrupMatch?.color, '#ece4d0', 'Pear syrup color is pale tan/off-white');
+
+  // Pear Liqueur tests
+  const pearLiqueurMatch = findIngredient('pear liqueur');
+  assert.equal(pearLiqueurMatch?.id, 'pear_liqueur', 'Matches pear liqueur to pear_liqueur');
+  assert.equal(pearLiqueurMatch?.name, 'Pear Liqueur', 'Resolves name to Pear Liqueur');
+  assert.equal(pearLiqueurMatch?.family, 'fruit_liqueur', 'Belongs to fruit_liqueur family');
+
+  const spicedPearMatch = findIngredient('St. George Spiced Pear');
+  assert.equal(spicedPearMatch?.id, 'pear_liqueur', 'Matches St. George Spiced Pear to pear_liqueur');
 
   console.log('PASS: Quick Paste metric specs parsing and canonical taxonomy matching verified');
 }

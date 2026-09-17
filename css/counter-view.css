@@ -2270,13 +2270,15 @@
 }
 
 .editorial-source a {
-  color: var(--color-accent-light);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .editorial-source a:hover {
   color: var(--color-text-bright);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .recipe-editorial-footer .drink-tags-bar {

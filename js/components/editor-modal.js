@@ -25,11 +25,11 @@ import { escapeHtml, showToast } from './toast.js';
 // an empty field the user has to fill from scratch — they're a real (editable,
 // deletable) starting value here, not just placeholder text to retype around.
 const DEFAULT_INSTRUCTIONS_BY_METHOD = {
-  Shaken: 'Combine all ingredients in a shaker with ice. Shake until cold and diluted. Strain into a chilled glass.',
-  Stirred: 'Combine all ingredients in a mixing glass with ice. Stir for 20-30 seconds until well-chilled. Strain into a chilled glass.',
-  Built: 'Build directly in the glass over ice, then stir briefly to combine.',
-  Blended: 'Add all ingredients to a blender with ice. Blend until smooth, then pour into a chilled glass.',
-  Rolled: 'Roll the ingredients gently between two mixing tins to combine without over-diluting. Strain into a chilled glass.',
+  Shaken: '1. Combine all ingredients in a shaker with ice.\n2. Shake until cold and diluted.\n3. Strain into a chilled glass.',
+  Stirred: '1. Combine all ingredients in a mixing glass with ice.\n2. Stir for 20-30 seconds until well-chilled.\n3. Strain into a chilled glass.',
+  Built: '1. Build directly in the glass over ice.\n2. Stir briefly to combine.',
+  Blended: '1. Add all ingredients to a blender with ice.\n2. Blend until smooth.\n3. Pour into a chilled glass.',
+  Rolled: '1. Roll the ingredients gently between two mixing tins to combine without over-diluting.\n2. Strain into a chilled glass.',
 };
 
 function getDefaultInstructions(method) {

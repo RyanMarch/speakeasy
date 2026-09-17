@@ -11,11 +11,11 @@ const COLOR_MAP = [
   { pattern: /\b(campari|aperol|cappelletti|select aperitivo|red bitter)\b/i, color: '#e63946', light: '#ff5c6a', dark: '#b01925', label: 'Crimson Aperitivo' },
   { pattern: /\b(sweet vermouth|rosso|punt e mes|carpano|amaro nonino|averna|cynar|amaro)\b/i, color: '#6b1822', light: '#8c2430', dark: '#470b13', label: 'Ruby Amaro' },
   { pattern: /\b(angostura|peychaud|bitters?)\b/i, color: '#7a1921', light: '#9b2933', dark: '#520b12', label: 'Spiced Bitters' },
-  { pattern: /\b(grenadine|pomegranate|maraschino|cherry)\b/i, color: '#9e1b32', light: '#bf2c47', dark: '#6e0d1f', label: 'Ruby Syrup' },
+  { pattern: /\b(grenadine|pomegranate|maraschino|cherry|lingonberry)\b/i, color: '#9e1b32', light: '#bf2c47', dark: '#6e0d1f', label: 'Ruby Syrup' },
 
   // Dark spirits & whiskeys
   { pattern: /\b(bourbon|rye|whiskey|whisky|scotch|cognac|brandy|calvados)\b/i, color: '#c67828', light: '#e5933d', dark: '#914f11', label: 'Amber Whiskey' },
-  { pattern: /\b(dark rum|aged rum|blackstrap|gold rum|demerara rum)\b/i, color: '#8d481d', light: '#a85a26', dark: '#5e2d0d', label: 'Aged Rum' },
+  { pattern: /\b(dark rum|aged rum|blackstrap|gold rum|demerara rum|pineapple rum)\b/i, color: '#8d481d', light: '#a85a26', dark: '#5e2d0d', label: 'Aged Rum' },
 
   // Herbal & specialty liqueurs
   { pattern: /\b(green chartreuse|absinthe|midori|mint|pastis|anisette)\b/i, color: '#68b338', light: '#85d44d', dark: '#488220', label: 'Herbal Botanical' },
@@ -28,6 +28,7 @@ const COLOR_MAP = [
   { pattern: /\b(lemon juice|fresh lemon|lemon)\b/i, color: '#f3da58', light: '#f9e87d', dark: '#c7ae29', label: 'Fresh Lemon' },
   { pattern: /\b(grapefruit|pink grapefruit)\b/i, color: '#f4978e', light: '#f8b4ad', dark: '#c96a60', label: 'Grapefruit' },
   { pattern: /\b(orange juice|fresh orange|pineapple|passion fruit)\b/i, color: '#f77f00', light: '#fc9e38', dark: '#c45a00', label: 'Citrus Juice' },
+  { pattern: /\b(pear|pear juice|pear nectar|pear syrup|pear pur[eé]e)\b/i, color: '#ece4d0', light: '#f6f1e3', dark: '#c9be9f', label: 'Pear' },
 
   // Syrups, sweeteners & pantry dairy
   { pattern: /\b(butter)\b/i, color: '#f6e49d', light: '#fdf5cb', dark: '#d6be63', label: 'Butter' },
@@ -36,6 +37,9 @@ const COLOR_MAP = [
   { pattern: /\b(simple syrup|sugar syrup|agave|cane syrup|gomme)\b/i, color: '#f1e8be', light: '#faf5d8', dark: '#cfc48f', label: 'Cane Syrup' },
   { pattern: /\b(cointreau|triple sec|orange cura[cç]ao|grand marnier)\b/i, color: '#ecc170', light: '#f5d693', dark: '#bd9446', label: 'Orange Liqueur' },
   { pattern: /\b(cinnamon)\b/i, color: '#9c522b', light: '#ba6a3e', dark: '#6e3416', label: 'Cinnamon' },
+
+  // Specialty tinted spirits
+  { pattern: /\b(indigo gin|empress 1908|empress gin|purple gin|butterfly pea.*gin)\b/i, color: '#3d348b', light: '#594fb5', dark: '#272061', label: 'Indigo Gin' },
 
   // Clear spirits & effervescence
   { pattern: /\b(gin|vodka|blanco tequila|silver tequila|white rum|light rum|mezcal|pisco|dry vermouth|aquavit)\b/i, color: '#d2e2ec', light: '#e7f0f6', dark: '#a5c0d1', label: 'Clear Spirit' },
