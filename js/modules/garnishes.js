@@ -24,7 +24,8 @@ export function resolveGarnishTypes(garnishString = '') {
   const hasSmoke = text.includes('smoke');
 
   // Cinnamon stick is planted diagonally into the drink / resting against the rim
-  const hasCinnamonStick = text.includes('cinnamon stick') || text.includes('cinnamon quill') || (text.includes('cinnamon') && !text.includes('syrup') && !text.includes('sugar'));
+  const isCinnamonDust = text.includes('cinnamon dust') || text.includes('grated cinnamon') || (text.includes('cinnamon') && (text.includes('dust') || text.includes('grated')));
+  const hasCinnamonStick = !isCinnamonDust && (text.includes('cinnamon stick') || text.includes('cinnamon quill') || (text.includes('cinnamon') && !text.includes('syrup') && !text.includes('sugar')));
 
   // Salt or sugar rim
   if (text.includes('salt rim') || text.includes('salt') && text.includes('rim')) {
@@ -60,9 +61,39 @@ export function resolveGarnishTypes(garnishString = '') {
     pushGarnishRepeated(garnishes, 'cherry', detectGarnishCount(text, '(?:maraschino\\s+)?cherr(?:y|ies)|maraschino'));
   }
 
+  // Cranberry
+  if (text.includes('cranberr')) {
+    pushGarnishRepeated(garnishes, 'cranberry', detectGarnishCount(text, 'cranberr(?:y|ies)'));
+  }
+
+  // Nutmeg / Cinnamon Dust
+  if (text.includes('nutmeg') || text.includes('cinnamon dust') || text.includes('grated cinnamon') || text.includes('dusting')) {
+    garnishes.push('nutmegDust');
+  }
+
+  // Cocktail Umbrella
+  if (text.includes('umbrella') || text.includes('parasol')) {
+    garnishes.push('cocktailUmbrella');
+  }
+
+  // Edible Flower / Orchid
+  if (text.includes('orchid') || text.includes('edible flower') || text.includes('flower') || text.includes('blossom') || text.includes('pansy') || text.includes('hibiscus')) {
+    garnishes.push('edibleFlower');
+  }
+
   // Mint
   if (text.includes('mint') || text.includes('basil')) {
     garnishes.push('mintSprig');
+  }
+
+  // Rosemary
+  if (text.includes('rosemary')) {
+    garnishes.push('rosemarySprig');
+  }
+
+  // Thyme
+  if (text.includes('thyme')) {
+    garnishes.push('thymeSprig');
   }
 
   // Pineapple
@@ -95,22 +126,36 @@ export function resolveGarnishTypes(garnishString = '') {
     garnishes.push('marshmallow');
   }
 
+  // Dehydrated Citrus Wheel
+  const isDehydrated = text.includes('dehydrated') || text.includes('dried wheel') || text.includes('dried citrus') || text.includes('dried lime') || text.includes('dried orange') || text.includes('dried lemon');
+  if (isDehydrated) {
+    garnishes.push('dehydratedCitrusWheel');
+  }
+
   // Wheels and Slices
-  if (/lime.*(wheel|disc|slice)/.test(text) || /(wheel|disc|slice).*lime/.test(text)) {
-    garnishes.push('limeWheel');
-  } else if (/lemon.*(wheel|slice)/.test(text) || /wheel.*lemon/.test(text)) {
-    garnishes.push('lemonWheel');
-  } else if (/orange.*(wheel|slice)/.test(text) || /wheel.*orange/.test(text)) {
-    garnishes.push('orangeWheel');
+  if (!isDehydrated) {
+    if (/lime.*(wheel|disc|slice)/.test(text) || /(wheel|disc|slice).*lime/.test(text)) {
+      garnishes.push('limeWheel');
+    } else if (/grapefruit.*(wheel|disc|slice)/.test(text) || /(wheel|disc|slice).*grapefruit/.test(text)) {
+      garnishes.push('grapefruitWheel');
+    } else if (/lemon.*(wheel|slice)/.test(text) || /wheel.*lemon/.test(text)) {
+      garnishes.push('lemonWheel');
+    } else if (/orange.*(wheel|slice)/.test(text) || /wheel.*orange/.test(text)) {
+      garnishes.push('orangeWheel');
+    }
   }
 
   // Wedges
-  if (text.includes('lime wedge') || text.includes('wedge') && text.includes('lime')) {
-    if (!garnishes.includes('limeWheel')) garnishes.push('limeWedge');
-  } else if (text.includes('lemon wedge')) {
-    if (!garnishes.includes('lemonWheel')) garnishes.push('lemonWedge');
-  } else if (text.includes('orange wedge') || text.includes('grapefruit wedge')) {
-    if (!garnishes.includes('orangeWheel')) garnishes.push('orangeWedge');
+  if (!isDehydrated) {
+    if (text.includes('grapefruit wedge')) {
+      if (!garnishes.includes('grapefruitWheel')) garnishes.push('grapefruitWedge');
+    } else if (text.includes('lime wedge') || text.includes('wedge') && text.includes('lime')) {
+      if (!garnishes.includes('limeWheel')) garnishes.push('limeWedge');
+    } else if (text.includes('lemon wedge')) {
+      if (!garnishes.includes('lemonWheel')) garnishes.push('lemonWedge');
+    } else if (text.includes('orange wedge')) {
+      if (!garnishes.includes('orangeWheel')) garnishes.push('orangeWedge');
+    }
   }
 
   // Twists and Peels
@@ -131,7 +176,8 @@ export function resolveGarnishTypes(garnishString = '') {
 
   // Generic fruit mention fallbacks if nothing matched yet
   if (garnishes.length === 0) {
-    if (text.includes('lime')) garnishes.push('limeWheel');
+    if (text.includes('grapefruit')) garnishes.push('grapefruitWheel');
+    else if (text.includes('lime')) garnishes.push('limeWheel');
     else if (text.includes('lemon')) garnishes.push('lemonWheel');
     else if (text.includes('orange')) garnishes.push('orangeTwist');
   }
@@ -172,7 +218,7 @@ export function resolveGarnishTypes(garnishString = '') {
 // Garnishes that ride on a cocktail pick rather than perching directly on the
 // rim — combined onto a single shared pick by renderCombinedPick instead of
 // each rendering its own separate pick.
-const PICK_GARNISH_TYPES = new Set(['cherry', 'olive', 'cocktailOnion', 'pickleSpear']);
+const PICK_GARNISH_TYPES = new Set(['cherry', 'cranberry', 'olive', 'cocktailOnion', 'pickleSpear']);
 
 // Number words a recipe might use ahead of a pick garnish's name ("three
 // cherries", "double olive") so its count can carry through to the pick.
@@ -224,6 +270,7 @@ function renderCitrusWheel(x, y, type = 'lime', angle = 4) {
     lime: { rind: '#2e7d32', pith: '#dcedc8', pulp: '#7cb342', pulpDark: '#558b2f', mem: '#f1f8e9' },
     lemon: { rind: '#fbc02d', pith: '#fff9c4', pulp: '#fdd835', pulpDark: '#f57f17', mem: '#fffde7' },
     orange: { rind: '#e65100', pith: '#ffe0b2', pulp: '#fb8c00', pulpDark: '#ef6c00', mem: '#fff3e0' },
+    grapefruit: { rind: '#d84315', pith: '#ffebee', pulp: '#e57373', pulpDark: '#c62828', mem: '#fff5f5' },
   };
   const t = themes[type] || themes.lime;
 
@@ -261,6 +308,7 @@ function renderCitrusWedge(x, y, type = 'lime', isLeft = false) {
     lime: { rind: '#2e7d32', pith: '#dcedc8', pulp: '#7cb342' },
     lemon: { rind: '#fbc02d', pith: '#fff9c4', pulp: '#fdd835' },
     orange: { rind: '#e65100', pith: '#ffe0b2', pulp: '#fb8c00' },
+    grapefruit: { rind: '#d84315', pith: '#ffebee', pulp: '#e57373' },
   };
   const t = themes[type] || themes.lime;
   const sx = isLeft ? -1 : 1;
@@ -434,6 +482,28 @@ function cherryPickShape() {
   `;
 }
 
+function cranberryPickShape() {
+  return `
+    <!-- Distinctive slightly oblong / firm barrel-shaped berry silhouette with matte crimson skin -->
+    <ellipse cx="0" cy="0" rx="9" ry="11" fill="#b71c1c" />
+    <ellipse cx="-0.5" cy="0" rx="8.2" ry="10.2" fill="#c62828" />
+
+    <!-- Subdued firm shading (matte skin, avoiding cherry's syrupy glossy high sheen) -->
+    <ellipse cx="-1" cy="3.5" rx="6.5" ry="6" fill="#880e4f" opacity="0.5" />
+    <ellipse cx="0" cy="5" rx="5" ry="3.5" fill="#4a0014" opacity="0.4" />
+
+    <!-- Satin specular crescent (subtle waxy bloom, soft highlight rather than high-gloss hotspot) -->
+    <path d="M -4.5 -4 C -5.5 0, -4.5 4, -2.5 7" stroke="rgba(255, 220, 225, 0.45)" stroke-width="1.4" stroke-linecap="round" fill="none" />
+
+    <!-- Iconic 4-lobed / 5-point persistent calyx crown (blossom-end star scar, unique to cranberries) -->
+    <g transform="translate(0, -9.2)">
+      <circle cx="0" cy="0" r="2.2" fill="#3e1319" />
+      <path d="M 0 -2.6 L 0.7 -1.2 L 2.2 -1.2 L 1.0 -0.2 L 1.5 1.2 L 0 0.4 L -1.5 1.2 L -1.0 -0.2 L -2.2 -1.2 L -0.7 -1.2 Z" fill="#260b10" />
+      <circle cx="0" cy="0" r="0.7" fill="#581b23" />
+    </g>
+  `;
+}
+
 function olivePickShape() {
   return `
     <ellipse cx="0" cy="0" rx="12" ry="17.5" fill="#2e4215" opacity="0.6" />
@@ -479,9 +549,10 @@ function picklePickShape() {
 // items on a shared pick — a pickle spear needs much more berth than a
 // cherry or a pearl onion. Items sit touching (no gap), like fruit actually
 // pressed together on a real cocktail pick.
-const PICK_ITEM_HALF_LENGTH = { cherry: 12, olive: 18, cocktailOnion: 13, pickleSpear: 27 };
+const PICK_ITEM_HALF_LENGTH = { cherry: 12, cranberry: 11, olive: 18, cocktailOnion: 13, pickleSpear: 27 };
 const PICK_ITEM_SHAPE_RENDERERS = {
   cherry: cherryPickShape,
+  cranberry: cranberryPickShape,
   olive: olivePickShape,
   cocktailOnion: onionPickShape,
   pickleSpear: picklePickShape,
@@ -609,6 +680,70 @@ function renderMintSprig(x, y, angle = -12) {
       <!-- Front budding tender leaf -->
       <path d="M 0 1 C -8 -6, -6 -20, 0 -24 C 6 -20, 8 -6, 0 1 Z" fill="#66bb6a" opacity="0.98" />
       <path d="M 0 1 L 0 -22" stroke="#e8f5e9" stroke-width="0.9" fill="none" opacity="0.85" />
+    </g>
+  `;
+}
+
+/**
+ * Render a fresh sprig of rosemary perched on the glass rim with needle-like leaves
+ */
+function renderRosemarySprig(x, y, angle = -8) {
+  const maxReach = 64;
+  const margin = 6;
+  const scale = Math.max(0.55, Math.min(1, (y - margin) / maxReach));
+
+  return `
+    <g class="garnish garnish-rosemary" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle}) scale(${scale.toFixed(2)})" pointer-events="none">
+      <!-- Woody lower stem extending down inside the glass -->
+      <path d="M 0 -8 Q -1 14, -5 36" stroke="#4a3728" stroke-width="3.2" stroke-linecap="round" fill="none" />
+      <path d="M -0.4 -8 Q -1.4 14, -5.4 36" stroke="#6d543e" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.65" />
+
+      <!-- Stem rim clasp shadow -->
+      <ellipse cx="-1" cy="3" rx="3.2" ry="1.6" fill="rgba(0, 0, 0, 0.28)" />
+
+      <!-- Upper woody/greenish stem -->
+      <path d="M 0 4 Q 0 -28, 0 -60" stroke="#334626" stroke-width="2.6" stroke-linecap="round" fill="none" />
+      <path d="M 0.3 4 Q 0.3 -28, 0.3 -60" stroke="#4a6336" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.7" />
+
+      <!-- Dense tiers of needle leaves angled upward (background darker layer) -->
+      <!-- Tier 1: lower-mid needles -->
+      <path d="M -1 -2 Q -12 -5, -22 -10" stroke="#1e381b" stroke-width="2.4" stroke-linecap="round" fill="none" />
+      <path d="M 1 -1 Q 12 -4, 21 -9" stroke="#1e381b" stroke-width="2.4" stroke-linecap="round" fill="none" />
+
+      <!-- Tier 2: mid needles -->
+      <path d="M -1 -12 Q -14 -18, -24 -24" stroke="#234220" stroke-width="2.2" stroke-linecap="round" fill="none" />
+      <path d="M 1 -11 Q 14 -17, 23 -23" stroke="#234220" stroke-width="2.2" stroke-linecap="round" fill="none" />
+
+      <!-- Tier 3: upper-mid needles -->
+      <path d="M -1 -22 Q -13 -32, -22 -40" stroke="#284b25" stroke-width="2.1" stroke-linecap="round" fill="none" />
+      <path d="M 1 -21 Q 13 -31, 22 -39" stroke="#284b25" stroke-width="2.1" stroke-linecap="round" fill="none" />
+
+      <!-- Tier 4: high needles -->
+      <path d="M -0.8 -33 Q -11 -45, -18 -54" stroke="#2d552a" stroke-width="2.0" stroke-linecap="round" fill="none" />
+      <path d="M 0.8 -32 Q 11 -44, 18 -53" stroke="#2d552a" stroke-width="2.0" stroke-linecap="round" fill="none" />
+
+      <!-- Foreground & highlight needle layers (finer needle highlights & leafy crown) -->
+      <!-- Tier 1 foreground highlights -->
+      <path d="M -0.8 -3 Q -11 -6, -21 -11" stroke="#3d6b38" stroke-width="1.3" stroke-linecap="round" fill="none" />
+      <path d="M 0.8 -2 Q 11 -5, 20 -10" stroke="#4c7e46" stroke-width="1.3" stroke-linecap="round" fill="none" />
+
+      <!-- Tier 2 foreground highlights -->
+      <path d="M -0.8 -13 Q -13 -19, -23 -25" stroke="#4c7e46" stroke-width="1.2" stroke-linecap="round" fill="none" />
+      <path d="M 0.8 -12 Q 13 -18, 22 -24" stroke="#5c9354" stroke-width="1.2" stroke-linecap="round" fill="none" />
+
+      <!-- Tier 3 foreground highlights -->
+      <path d="M -0.8 -23 Q -12 -33, -21 -41" stroke="#5c9354" stroke-width="1.2" stroke-linecap="round" fill="none" />
+      <path d="M 0.8 -22 Q 12 -32, 21 -40" stroke="#6fa966" stroke-width="1.2" stroke-linecap="round" fill="none" />
+
+      <!-- Tier 4 foreground highlights -->
+      <path d="M -0.6 -34 Q -10 -46, -17 -55" stroke="#6fa966" stroke-width="1.1" stroke-linecap="round" fill="none" />
+      <path d="M 0.6 -33 Q 10 -45, 17 -54" stroke="#82bf79" stroke-width="1.1" stroke-linecap="round" fill="none" />
+
+      <!-- Upright crown tip cluster -->
+      <path d="M -0.5 -44 Q -6 -54, -10 -63" stroke="#5c9354" stroke-width="1.7" stroke-linecap="round" fill="none" />
+      <path d="M 0.5 -44 Q 6 -54, 10 -63" stroke="#6fa966" stroke-width="1.7" stroke-linecap="round" fill="none" />
+      <path d="M 0 -48 L 0 -64" stroke="#82bf79" stroke-width="1.8" stroke-linecap="round" fill="none" />
+      <path d="M 0 -54 L 0 -65" stroke="#a5d6a7" stroke-width="0.9" stroke-linecap="round" fill="none" />
     </g>
   `;
 }
@@ -1195,17 +1330,220 @@ function renderCinnamonStick(x, y, angle = 18, glassBottomY = null) {
   `;
 }
 
+/**
+ * Render fine grated nutmeg or cinnamon dust flecks sprinkled across surface
+ */
+function renderNutmegDust(cx, surfaceY) {
+  // Delicate distribution of aromatic spice flecks floating on fluid surface / foam
+  const flecks = [
+    { x: -28, y: -2, r: 0.9, op: 0.75, col: '#5c3214' },
+    { x: -22, y: 3, r: 0.7, op: 0.70, col: '#7a451d' },
+    { x: -16, y: -4, r: 1.1, op: 0.85, col: '#45220c' },
+    { x: -11, y: 1, r: 0.8, op: 0.80, col: '#673617' },
+    { x: -6, y: -3, r: 1.2, op: 0.90, col: '#3e1d08' },
+    { x: -2, y: 4, r: 0.7, op: 0.65, col: '#824b22' },
+    { x: 3, y: -1, r: 1.0, op: 0.85, col: '#4c250d' },
+    { x: 8, y: -5, r: 0.8, op: 0.75, col: '#613214' },
+    { x: 14, y: 2, r: 1.1, op: 0.80, col: '#53280e' },
+    { x: 19, y: -3, r: 0.7, op: 0.70, col: '#754019' },
+    { x: 25, y: 1, r: 0.9, op: 0.75, col: '#421f0a' },
+    { x: -18, y: -1, r: 0.5, op: 0.60, col: '#8d5228' },
+    { x: -8, y: 3, r: 0.6, op: 0.65, col: '#5c3214' },
+    { x: 5, y: 3, r: 0.6, op: 0.65, col: '#7a451d' },
+    { x: 12, y: -2, r: 0.5, op: 0.60, col: '#45220c' },
+  ];
+
+  return `
+    <g class="garnish garnish-nutmeg-dust" transform="translate(${cx.toFixed(1)}, ${surfaceY.toFixed(1)})" pointer-events="none">
+      ${flecks.map(f => `
+        <circle cx="${f.x}" cy="${f.y}" r="${f.r}" fill="${f.col}" opacity="${f.op}" />
+      `).join('')}
+    </g>
+  `;
+}
+
+/**
+ * Render artisanal dehydrated citrus wheel (caramelized deep amber/translucent disc with darkened rind)
+ */
+function renderDehydratedCitrusWheel(x, y, angle = 5) {
+  const count = 8;
+  const r = 15;
+  const segments = [];
+  for (let i = 0; i < count; i++) {
+    const a1 = ((i * 360) / count + 4) * (Math.PI / 180);
+    const a2 = (((i + 1) * 360) / count - 4) * (Math.PI / 180);
+    const x1 = (Math.cos(a1) * r).toFixed(1);
+    const y1 = (Math.sin(a1) * r).toFixed(1);
+    const x2 = (Math.cos(a2) * r).toFixed(1);
+    const y2 = (Math.sin(a2) * r).toFixed(1);
+    segments.push(`<path d="M 0 0 L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z" fill="#9e561a" opacity="0.82" />`);
+  }
+
+  return `
+    <g class="garnish garnish-dehydrated-wheel" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle})" pointer-events="none">
+      <!-- Dark browned/caramelized outer rind -->
+      <circle cx="0" cy="0" r="21" fill="#422008" stroke="#2b1404" stroke-width="0.8" />
+      <!-- Dried parchment pith ring -->
+      <circle cx="0" cy="0" r="18" fill="#7a4216" opacity="0.9" />
+      <!-- Darkened inner translucent pulp base -->
+      <circle cx="0" cy="0" r="15.5" fill="#5a2e0e" />
+      <!-- Radial translucent glassine segments -->
+      ${segments.join('')}
+      <!-- Delicate caramelized fiber veins -->
+      <circle cx="0" cy="0" r="2.8" fill="#381905" />
+      <!-- Rim notch illusion -->
+      <line x1="0" y1="2" x2="0" y2="21" stroke="rgba(0,0,0,0.5)" stroke-width="1.3" />
+    </g>
+  `;
+}
+
+/**
+ * Render a classic colorful tiki paper cocktail umbrella / parasol
+ */
+function renderCocktailUmbrella(x, y, isLeft = false) {
+  const sx = isLeft ? -1 : 1;
+  const rot = isLeft ? -16 : 16;
+  const maxReach = 65;
+  const margin = 8;
+  const scale = Math.max(0.6, Math.min(1, (y - margin) / maxReach));
+
+  return `
+    <g class="garnish garnish-cocktail-umbrella" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${rot}) scale(${sx * scale}, ${scale})" pointer-events="none">
+      <!-- Bamboo toothpick shaft extending down into the drink and up to crown -->
+      <line x1="-8" y1="32" x2="8" y2="-44" stroke="#d7ccc8" stroke-width="2.4" stroke-linecap="round" />
+      <line x1="-7.5" y1="32" x2="8.5" y2="-44" stroke="#8d6e63" stroke-width="0.8" stroke-linecap="round" opacity="0.6" />
+
+      <!-- Umbrella paper canopy assembly -->
+      <g transform="translate(6, -34) rotate(-22)">
+        <!-- Back underside fold shadow -->
+        <path d="M -30 0 Q 0 -16, 30 0 Q 0 4, -30 0 Z" fill="#b71c1c" opacity="0.8" />
+
+        <!-- Main parasol conical paper facets with alternating vibrant tropical ribs -->
+        <path d="M -30 0 Q -15 -8, 0 -20 L 0 0 Z" fill="#e53935" />
+        <path d="M 0 -20 Q 15 -8, 30 0 L 0 0 Z" fill="#fbc02d" />
+        <path d="M -18 -4 Q -9 -10, 0 -20 L -6 0 Z" fill="#ffb300" opacity="0.9" />
+        <path d="M 0 -20 Q 9 -10, 18 -4 L 6 0 Z" fill="#e53935" opacity="0.9" />
+
+        <!-- Scalloped delicate rim edge -->
+        <path d="M -30 0 Q -24 3, -18 -1 Q -12 4, -6 1 Q 0 4, 6 1 Q 12 4, 18 -1 Q 24 3, 30 0" stroke="#ffffff" stroke-width="1.2" fill="none" opacity="0.9" />
+
+        <!-- Rib lines radiating from apex -->
+        <line x1="0" y1="-20" x2="-30" y2="0" stroke="#ffe082" stroke-width="0.9" opacity="0.85" />
+        <line x1="0" y1="-20" x2="-18" y2="-1" stroke="#ffe082" stroke-width="0.9" opacity="0.85" />
+        <line x1="0" y1="-20" x2="-6" y2="1" stroke="#ffe082" stroke-width="0.9" opacity="0.85" />
+        <line x1="0" y1="-20" x2="6" y2="1" stroke="#ffe082" stroke-width="0.9" opacity="0.85" />
+        <line x1="0" y1="-20" x2="18" y2="-1" stroke="#ffe082" stroke-width="0.9" opacity="0.85" />
+        <line x1="0" y1="-20" x2="30" y2="0" stroke="#ffe082" stroke-width="0.9" opacity="0.85" />
+
+        <!-- Top toothpick finial tip -->
+        <line x1="0" y1="-20" x2="1" y2="-27" stroke="#d7ccc8" stroke-width="2.2" stroke-linecap="round" />
+        <circle cx="1" cy="-27" r="1.8" fill="#ff5252" />
+      </g>
+    </g>
+  `;
+}
+
+/**
+ * Render vibrant edible flower (cocktail orchid / pansy blossom) resting on surface/rim
+ */
+function renderEdibleFlower(x, y, angle = 8) {
+  return `
+    <g class="garnish garnish-edible-flower" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle})" pointer-events="none">
+      <!-- Soft drop shadow on liquid / glass -->
+      <ellipse cx="0" cy="4" rx="14" ry="7" fill="rgba(0, 0, 0, 0.28)" />
+
+      <!-- Lower petal pair (deep velvety purple) -->
+      <path d="M 0 0 C -12 8, -18 20, -5 23 C 4 24, 6 12, 0 0 Z" fill="#4a148c" opacity="0.95" />
+      <path d="M 0 0 C 12 8, 18 20, 5 23 C -4 24, -6 12, 0 0 Z" fill="#4a148c" opacity="0.95" />
+
+      <!-- Lateral spreading petals (vibrant magenta/violet) -->
+      <path d="M 0 0 C -16 -4, -26 4, -22 14 C -16 20, -6 8, 0 0 Z" fill="#8e24aa" />
+      <path d="M 0 0 C 16 -4, 26 4, 22 14 C 16 20, 6 8, 0 0 Z" fill="#8e24aa" />
+
+      <!-- Top upright dorsal petal (bright orchid pink/purple) -->
+      <path d="M 0 0 C -14 -10, -12 -25, 0 -26 C 12 -25, 14 -10, 0 0 Z" fill="#ab47bc" />
+
+      <!-- Center eye & golden throat labellum -->
+      <ellipse cx="0" cy="3" rx="4.5" ry="3.5" fill="#fbc02d" />
+      <circle cx="0" cy="2" r="2.0" fill="#e65100" />
+      <circle cx="0" cy="2" r="1.0" fill="#ffffff" opacity="0.9" />
+
+      <!-- Delicate petal vein radiating accents -->
+      <path d="M 0 -2 L -5 -16 M 0 -2 L 5 -16 M 0 3 L -12 9 M 0 3 L 12 9" stroke="#ce93d8" stroke-width="0.8" opacity="0.75" />
+    </g>
+  `;
+}
+
+/**
+ * Render a fresh sprig of garden thyme with delicate woody stem and tiny oval leaves
+ */
+function renderThymeSprig(x, y, angle = -10) {
+  const maxReach = 58;
+  const margin = 6;
+  const scale = Math.max(0.55, Math.min(1, (y - margin) / maxReach));
+
+  // Small pair of thyme oval leaves along stem
+  const leafPair = (stemY, dx, rot) => `
+    <g transform="translate(0, ${stemY}) rotate(${rot})">
+      <ellipse cx="${-dx}" cy="0" rx="3.6" ry="1.9" fill="#388e3c" transform="rotate(-15)" />
+      <ellipse cx="${-dx + 0.3}" cy="-0.2" rx="2.5" ry="1.1" fill="#66bb6a" transform="rotate(-15)" opacity="0.7" />
+      <ellipse cx="${dx}" cy="0" rx="3.6" ry="1.9" fill="#2e7d32" transform="rotate(15)" />
+      <ellipse cx="${dx - 0.3}" cy="-0.2" rx="2.5" ry="1.1" fill="#4caf50" transform="rotate(15)" opacity="0.7" />
+    </g>
+  `;
+
+  return `
+    <g class="garnish garnish-thyme" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle}) scale(${scale.toFixed(2)})" pointer-events="none">
+      <!-- Submerged woody twig -->
+      <path d="M 0 -6 Q -2 14, -6 34" stroke="#4e342e" stroke-width="2.2" stroke-linecap="round" fill="none" />
+      <ellipse cx="-1" cy="3" rx="2.8" ry="1.4" fill="rgba(0, 0, 0, 0.25)" />
+
+      <!-- Upper main curving stem -->
+      <path d="M 0 3 Q 2 -25, -2 -54" stroke="#5d4037" stroke-width="1.8" stroke-linecap="round" fill="none" />
+      <path d="M 0.2 3 Q 2.2 -25, -1.8 -54" stroke="#795548" stroke-width="0.9" stroke-linecap="round" fill="none" opacity="0.6" />
+
+      <!-- Side branchlet -->
+      <path d="M 1 -18 Q 8 -26, 12 -34" stroke="#5d4037" stroke-width="1.3" stroke-linecap="round" fill="none" />
+
+      <!-- Paired thyme leaves along primary stem -->
+      ${leafPair(-4, 5, -8)}
+      ${leafPair(-14, 5.2, 5)}
+      ${leafPair(-24, 4.8, -12)}
+      ${leafPair(-34, 4.4, 8)}
+      ${leafPair(-44, 3.8, -6)}
+
+      <!-- Branchlet leaves -->
+      <g transform="translate(7, -26) rotate(35)">
+        <ellipse cx="-3" cy="0" rx="3.0" ry="1.6" fill="#43a047" />
+        <ellipse cx="3" cy="0" rx="3.0" ry="1.6" fill="#388e3c" />
+      </g>
+      <g transform="translate(12, -34) rotate(40)">
+        <ellipse cx="0" cy="-2.5" rx="1.8" ry="3.0" fill="#4caf50" />
+      </g>
+
+      <!-- Terminal tip cluster -->
+      <ellipse cx="-2" cy="-55" rx="2.0" ry="3.4" fill="#66bb6a" transform="rotate(-6)" />
+      <ellipse cx="-3.5" cy="-53" rx="1.7" ry="2.8" fill="#4caf50" transform="rotate(-25)" />
+      <ellipse cx="-0.5" cy="-53" rx="1.7" ry="2.8" fill="#388e3c" transform="rotate(20)" />
+    </g>
+  `;
+}
+
 // How far above the rim (in the shared 240-wide drawing scale) each garnish
 // type's ink actually reaches, measured from each render function above.
 // Used by glass-view.js to crop the SVG viewBox to *this recipe's* actual
 // content instead of reserving room for the tallest garnish on every drink.
 const GARNISH_HEADROOM = {
   mintSprig: 72, // 66-unit max leaf reach + 6 margin (see renderMintSprig)
+  rosemarySprig: 70, // 64-unit max needle reach + 6 margin (see renderRosemarySprig)
+  thymeSprig: 64,
+  cocktailUmbrella: 72,
   pineappleWedge: 48,
-  limeWheel: 29, lemonWheel: 29, orangeWheel: 29, cucumberSlice: 29, jalapenoSlice: 26,
-  limeWedge: 24, lemonWedge: 24, orangeWedge: 24, appleSlice: 24, strawberry: 32, marshmallow: 24,
+  limeWheel: 29, lemonWheel: 29, orangeWheel: 29, grapefruitWheel: 29, dehydratedCitrusWheel: 29, cucumberSlice: 29, jalapenoSlice: 26,
+  limeWedge: 24, lemonWedge: 24, orangeWedge: 24, grapefruitWedge: 24, appleSlice: 24, strawberry: 32, marshmallow: 24,
+  edibleFlower: 26,
   lemonTwist: 14, orangeTwist: 14, limeTwist: 14,
-  cherry: 15, olive: 15, cocktailOnion: 15, pickleSpear: 15,
+  cherry: 15, cranberry: 15, olive: 15, cocktailOnion: 15, pickleSpear: 15,
   cinnamonStick: 48,
   smokeCloud: 96, // rising waves and dissipated puffs extend up out of the glass
 };
@@ -1282,7 +1620,7 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
   // renderCombinedPick) which claims a single rim slot of its own, represented
   // here by the '__pickGroup__' placeholder.
   const pickTypes = types.filter(t => PICK_GARNISH_TYPES.has(t));
-  const otherSlotTypes = types.filter(t => t !== 'celeryStalk' && t !== 'smokeCloud' && t !== 'cinnamonStick' && !t.includes('Rim') && t !== 'coffeeBeans' && !PICK_GARNISH_TYPES.has(t));
+  const otherSlotTypes = types.filter(t => t !== 'celeryStalk' && t !== 'smokeCloud' && t !== 'cinnamonStick' && t !== 'nutmegDust' && !t.includes('Rim') && t !== 'coffeeBeans' && !PICK_GARNISH_TYPES.has(t));
   const slotTypes = pickTypes.length > 0 ? [...otherSlotTypes, '__pickGroup__'] : otherSlotTypes;
 
   const glassBottomY = glassware.fluidBounds?.bottomY ?? 300;
@@ -1305,6 +1643,10 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
       const angle = slotTypes.length > 0 ? 18 : 12;
       const posX = slotTypes.length > 0 ? rim.rightX - 16 : centerX + 12;
       rendered.push(renderCinnamonStick(posX, floatY, angle, glassBottomY));
+      return;
+    }
+    if (type === 'nutmegDust') {
+      rendered.push(renderNutmegDust(centerX, floatY - 2));
       return;
     }
     // Pick-riding garnishes are rendered once as a group after this loop.
@@ -1335,6 +1677,12 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
       case 'orangeWheel':
         rendered.push(renderCitrusWheel(posX, posY - 6, 'orange', isSlotLeft ? -14 : 14));
         break;
+      case 'grapefruitWheel':
+        rendered.push(renderCitrusWheel(posX, posY - 6, 'grapefruit', isSlotLeft ? -14 : 14));
+        break;
+      case 'dehydratedCitrusWheel':
+        rendered.push(renderDehydratedCitrusWheel(posX, posY - 6, isSlotLeft ? -14 : 14));
+        break;
       case 'limeWedge':
         rendered.push(renderCitrusWedge(posX, posY, 'lime', isSlotLeft));
         break;
@@ -1343,6 +1691,9 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
         break;
       case 'orangeWedge':
         rendered.push(renderCitrusWedge(posX, posY, 'orange', isSlotLeft));
+        break;
+      case 'grapefruitWedge':
+        rendered.push(renderCitrusWedge(posX, posY, 'grapefruit', isSlotLeft));
         break;
       case 'lemonTwist':
         rendered.push(renderPeelTwist(posX, posY, 'lemon', isSlotLeft, isFlamed));
@@ -1355,6 +1706,18 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
         break;
       case 'mintSprig':
         rendered.push(renderMintSprig(isSlotLeft ? rim.leftX + 4 : rim.rightX - 4, posY + 2, isSlotLeft ? 14 : -14));
+        break;
+      case 'rosemarySprig':
+        rendered.push(renderRosemarySprig(isSlotLeft ? rim.leftX + 4 : rim.rightX - 4, posY + 2, isSlotLeft ? 12 : -12));
+        break;
+      case 'thymeSprig':
+        rendered.push(renderThymeSprig(isSlotLeft ? rim.leftX + 4 : rim.rightX - 4, posY + 2, isSlotLeft ? 12 : -12));
+        break;
+      case 'cocktailUmbrella':
+        rendered.push(renderCocktailUmbrella(posX, posY, isSlotLeft));
+        break;
+      case 'edibleFlower':
+        rendered.push(renderEdibleFlower(isSlotLeft ? rim.leftX + 8 : rim.rightX - 8, floatY + 4, isSlotLeft ? -12 : 12));
         break;
       case 'pineappleWedge':
         rendered.push(renderPineappleWedge(posX, posY - 4, isSlotLeft ? -16 : 16));
