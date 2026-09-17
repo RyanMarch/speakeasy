@@ -1611,9 +1611,16 @@
 /* Section 3: Shortcuts Grid */
 .vault-shortcuts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
 }
+
+@media (max-width: 900px) {
+  .vault-shortcuts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 
 .vault-shortcut-card {
   display: flex;
@@ -2199,4 +2206,344 @@ html.animations-disabled .toast-level-up,
   .toast-level-up-sparkle {
     display: none;
   }
+}
+
+/* ==========================================================================
+   Calculator Modal (Freezer Batcher / Acid Adjuster / Brix Blender)
+   ========================================================================== */
+
+.calculator-dialog {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: #0e131d;
+  color: var(--color-text);
+  width: min(560px, 94vw);
+  max-height: 88vh;
+  padding: 0;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85);
+  margin: auto;
+  overflow: hidden;
+}
+
+.calculator-dialog:not([open]) {
+  display: none;
+}
+
+.calculator-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.calculator-dialog::backdrop {
+  background-color: rgba(5, 8, 14, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.calculator-dialog-container {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 88vh;
+}
+
+.calculator-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.calculator-dialog-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.15rem;
+  margin: 0;
+  color: var(--color-accent);
+}
+
+.calculator-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.75rem 1.25rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.calculator-tab {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.calculator-tab.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.calculator-tab-panel {
+  padding: 1.1rem 1.25rem 1.4rem;
+  overflow-y: auto;
+}
+
+.calc-field-row {
+  margin-bottom: 0.9rem;
+}
+
+.calc-field-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.calc-search-wrapper {
+  position: relative;
+}
+
+.calc-select,
+.calc-number-input {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.calc-pill-group {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.calc-pill {
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.calc-pill.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent-light);
+  color: #1a1508;
+  font-weight: 700;
+}
+
+.calc-result-block {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.calc-result-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.calc-result-table td {
+  padding: 0.4rem 0;
+  border-bottom: 1px dotted var(--color-border-subtle);
+  font-size: 0.88rem;
+}
+
+.calc-result-dilution-row td {
+  color: var(--color-accent-light);
+  font-weight: 600;
+}
+
+.calc-result-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-result-amount-sub {
+  color: var(--color-text-faint);
+  font-size: 0.78rem;
+}
+
+.calc-result-footnote {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-faint);
+}
+
+.calc-empty-hint {
+  color: var(--color-text-faint);
+  font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   Rating & Tasting Notes Popover
+   ========================================================================== */
+
+/* Non-modal — a plain fixed-position sheet, not a <dialog>/showModal(), so
+   there's no backdrop and no focus trap: the rest of the page stays visible
+   and fully interactive (scrollable, clickable) while this is up. Slides up
+   from the bottom edge, clear of the home-indicator/notch safe area on
+   mobile, and never blocks the width of the screen behind it beyond its own
+   card so a tap elsewhere on the page just works. */
+.rating-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1050;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px max(12px, env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+.rating-sheet-inner {
+  position: relative;
+  width: min(400px, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: #0e131d;
+  color: var(--color-text);
+  padding: 1.25rem 1.4rem 1.4rem;
+  text-align: center;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.55), 0 4px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+  transform: translateY(calc(100% + 24px));
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rating-sheet.open .rating-sheet-inner {
+  transform: translateY(0);
+}
+
+.rating-sheet-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.7rem;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--color-text-faint);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+}
+
+.rating-sheet-close:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rating-sheet-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.2rem;
+  margin: 0 0 0.15rem;
+  color: var(--color-accent);
+}
+
+.rating-sheet-subtitle {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.rating-star-picker {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.rating-star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-faint);
+  padding: 0.15rem;
+  transition: color 0.12s ease, transform 0.12s ease;
+}
+
+.rating-star-btn:hover,
+.rating-star-btn.filled {
+  color: var(--color-accent);
+  transform: scale(1.08);
+}
+
+.rating-notes-input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text);
+  font-size: 0.88rem;
+  margin-bottom: 1.1rem;
+}
+
+.rating-sheet-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.rating-sheet-actions .rating-skip-btn {
+  flex: 1;
+}
+
+.rating-sheet-actions .rating-save-btn {
+  flex: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rating-sheet-inner {
+    transition: none;
+  }
+}
+
+/* Shared gold star display (Counter View rating summary + Home View cards) */
+.rating-stars-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: var(--color-accent);
+}
+
+.counter-rating-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  margin-left: 0.6rem;
+}
+
+.counter-rating-note {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.counter-rating-edit-icon {
+  color: var(--color-text-faint);
 }

@@ -150,12 +150,9 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
   const surfaceY = (fluidBottomY - fluidTotalHeight).toFixed(2);
   const surfaceMeniscus = '';
 
-  // Detect effervescence / sparkling ingredients (club soda, tonic, prosecco, champagne, sparkling wine, ginger beer, cola)
-  const sparklingKeywords = ['soda', 'tonic', 'prosecco', 'champagne', 'sparkling', 'seltzer', 'ginger beer', 'ginger ale', 'cola'];
-  const hasSparkle = (recipe?.specs || []).some(s => {
-    const n = (s?.name || '').toLowerCase();
-    return sparklingKeywords.some(kw => n.includes(kw));
-  });
+  // Detect effervescence / sparkling ingredients (club soda, tonic, prosecco, champagne, cava, sparkling wine/cider, ginger beer, cola, beer)
+  const sparklingPattern = /\b(soda|tonic|prosecco|champagne|cava|sparkling|seltzer|ginger beer|ginger ale|cola|coke|beer|lager|stout)\b/i;
+  const hasSparkle = (recipe?.specs || []).some(s => sparklingPattern.test(s?.name || ''));
 
   const effervescenceHtml = (hasSparkle && layers.length > 0) ? `
     <!-- Ambient Effervescence: streams of micro-bubbles rising from depths to surface -->

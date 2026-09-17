@@ -9,6 +9,9 @@ import { getMenus, saveMenu, deleteMenu } from '../modules/storage.js';
 import { REFRIGERATED_INGREDIENT_IDS } from '../modules/taxonomy.js';
 import { renderShoppingCard, wireShoppingCardEvents } from '../components/backbar-modal.js';
 import { escapeHtml, showToast } from '../components/toast.js';
+import { renderGlassSvg } from '../modules/glass-view.js';
+import { formatIngredientName } from '../modules/parser.js';
+import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
 
 let _selectRecipeFn = null;
 let _goHomeFn = null;
@@ -232,6 +235,7 @@ function renderViewMode(container) {
 
     <div class="menu-builder-view-actions">
       <button type="button" class="btn btn-secondary btn-sm" data-action="edit-cocktails">Edit Cocktails</button>
+      <button type="button" class="btn btn-secondary btn-sm" data-action="print-menu">Print Guest Menu</button>
       <button type="button" class="btn btn-ghost btn-sm" data-action="delete-menu">Delete Menu</button>
     </div>
 
@@ -257,6 +261,23 @@ function renderViewMode(container) {
     renderMenuBuilderView();
   });
   container.querySelector('[data-action="edit-cocktails"]')?.addEventListener('click', beginEditingActiveMenu);
+  container.querySelector('[data-action="print-menu"]')?.addEventListener('click', () => {
+    // Measured against the actual print CSS: ~12 cocktails is what reliably
+    // fits one page at this icon/text size before the two-column layout
+    // spills onto a second page. Only worth flagging past 10, so a menu
+    // that's borderline-but-fine doesn't get an unnecessary prompt.
+    if (selected.length > PRINT_MENU_RECOMMENDED_MAX_FOR_WARNING) {
+      const proceed = confirm(
+        `This menu has ${selected.length} cocktails — around 12 is the most that reliably fits on one printed page. It may spill onto a second page. Print anyway?`
+      );
+      if (!proceed) return;
+    }
+    const bodyHtml = renderPrintMenuHtml(activeMenu.name, selected);
+    const printWin = openPrintWindow(`${activeMenu.name || 'Cocktail Menu'} — Speakeasy`, PRINT_MENU_STYLES, bodyHtml);
+    if (!printWin) {
+      showToast('Please allow pop-ups to print this menu');
+    }
+  });
   container.querySelector('[data-action="delete-menu"]')?.addEventListener('click', () => {
     if (!confirm(`Delete "${activeMenu.name}"?`)) return;
     deleteMenu(activeMenu.id);
@@ -431,6 +452,67 @@ function renderPicker() {
       renderSelectedList();
     });
   });
+}
+
+// Past this many cocktails, the print-menu confirm warns that the layout
+// may spill onto a second page — measured empirically against the actual
+// print CSS below (64px glass icons, 2-column layout, ~108px per item):
+// 12 cocktails fits an 8.5x11 page with margins, 14 does not.
+const PRINT_MENU_RECOMMENDED_MAX_FOR_WARNING = 10;
+
+/**
+ * Inline styles for the standalone guest-menu print document (see
+ * js/components/print-window.js for why this prints in its own window
+ * rather than in the live app document) — card-styled like the recipe
+ * print, sharing the same navy/gold theme, so the two printouts read as
+ * one consistent set rather than two different designs.
+ */
+const PRINT_MENU_STYLES = /*css*/`
+  .menu-card {
+    max-width: 7.5in;
+    margin: 0 auto;
+    background: var(--color-surface-card);
+    color: var(--color-text);
+    border: 1px solid var(--color-accent);
+    border-radius: 12px;
+    padding: 28px 32px;
+  }
+  .menu-title { font-family: var(--font-display); font-size: 28px; font-weight: 600; text-align: center; margin: 0 0 22px; text-transform: uppercase; }
+  .menu-items { column-count: 2; column-gap: 0.5in; }
+  .menu-item { break-inside: avoid; margin-bottom: 30px; display: flex; gap: 16px; align-items: center; }
+  .menu-item svg { width: 64px; height: 64px; flex-shrink: 0; }
+  .menu-item-name { font-weight: 700; font-size: 20px; display: block; }
+  .menu-item-flavors { font-size: 13px; color: var(--color-text-muted); }
+`;
+
+/**
+ * Builds the standalone guest-menu print document's <body> HTML —
+ * deliberately omits the backbar pantry checklist, glassware tally, and
+ * missing-ingredient warnings that the on-screen summary shows, since a
+ * guest-facing printout has no business exposing bar-prep internals.
+ */
+function renderPrintMenuHtml(menuName, selectedRecipes) {
+  return /*html*/`
+    <div class="menu-card">
+      ${renderBrandRow()}
+      <h1 class="menu-title">${escapeHtml(menuName || 'Cocktail Menu')}</h1>
+      <div class="menu-items">
+        ${selectedRecipes.map(r => {
+    const flavorSummary = (r.specs || []).map(s => formatIngredientName(s.name)).filter(Boolean).slice(0, 4).join(', ');
+    return /*html*/`
+            <div class="menu-item">
+              ${renderGlassSvg(r, `print-menu-glass-${r.id}`, { mode: 'layered' })}
+              <span>
+                <span class="menu-item-name">${escapeHtml(r.name)}</span>
+                <span class="menu-item-flavors">${escapeHtml(flavorSummary)}</span>
+              </span>
+            </div>
+          `;
+  }).join('')}
+      </div>
+      ${renderCardFooterHtml()}
+    </div>
+  `;
 }
 
 function getSelectedRecipes() {

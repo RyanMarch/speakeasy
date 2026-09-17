@@ -74,17 +74,23 @@ function setLocalHistoryEntries(entries) {
  *
  * @param {string} recipeId
  * @param {string} [madeAt]
- * @returns {Promise<{ id?: string, recipeId: string, madeAt: string }>}
+ * @param {{ rating?: number|null, notes?: string|null }} [options]
+ * @returns {Promise<{ id?: string, recipeId: string, madeAt: string, rating: number|null, notes: string|null }>}
  */
-export async function logDrinkMade(recipeId, madeAt = new Date().toISOString()) {
+export async function logDrinkMade(recipeId, madeAt = new Date().toISOString(), options = {}) {
   if (!recipeId) {
     throw new Error('recipeId is required to log drink history.');
   }
+
+  const rating = options.rating ?? null;
+  const notes = options.notes ?? null;
 
   let entry = {
     id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `hist-${Date.now()}`,
     recipeId,
     madeAt,
+    rating,
+    notes,
   };
 
   if (isAuthenticated()) {
@@ -96,12 +102,12 @@ export async function logDrinkMade(recipeId, madeAt = new Date().toISOString()) 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ recipeId, madeAt }),
+        body: JSON.stringify({ recipeId, madeAt, rating, notes }),
       });
 
       const data = await response.json();
       if (response.ok && data.success && data.entry) {
-        entry = data.entry;
+        entry = { rating: null, notes: null, ...data.entry };
       }
     } catch (err) {
       console.warn('Failed to log drink history to cloud, falling back to local:', err);
@@ -115,6 +121,51 @@ export async function logDrinkMade(recipeId, madeAt = new Date().toISOString()) 
 
   dispatchHistoryUpdated({ entry, history: updated });
   return entry;
+}
+
+/**
+ * Updates the rating and/or tasting notes on an existing history entry.
+ * In Guest Mode: patches the localStorage entry directly.
+ * In Authenticated Mode: also calls /api/history/update to persist the change.
+ * Triggers `speakeasy:history-updated` CustomEvent.
+ *
+ * @param {string} id
+ * @param {{ rating?: number|null, notes?: string|null }} changes
+ * @returns {Promise<{ id: string, recipeId: string, madeAt: string, rating: number|null, notes: string|null } | null>}
+ */
+export async function updateDrinkEntry(id, changes = {}) {
+  if (!id) return null;
+
+  const local = getLocalHistoryEntries();
+  const idx = local.findIndex(e => e.id === id);
+  if (idx === -1) return null;
+
+  const rating = changes.rating !== undefined ? changes.rating : (local[idx].rating ?? null);
+  const notes = changes.notes !== undefined ? changes.notes : (local[idx].notes ?? null);
+
+  const updatedEntry = { ...local[idx], rating, notes };
+  const updated = [...local];
+  updated[idx] = updatedEntry;
+  setLocalHistoryEntries(updated);
+
+  if (isAuthenticated()) {
+    const token = getToken();
+    try {
+      await fetch('/api/history/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id, rating, notes }),
+      });
+    } catch (err) {
+      console.warn('Failed to update drink history entry in cloud:', err);
+    }
+  }
+
+  dispatchHistoryUpdated({ entry: updatedEntry, history: updated });
+  return updatedEntry;
 }
 
 /**
@@ -211,6 +262,8 @@ export async function syncLocalHistoryToCloud() {
         body: JSON.stringify({
           recipeId: entry.recipeId,
           madeAt: entry.madeAt,
+          rating: entry.rating ?? null,
+          notes: entry.notes ?? null,
         }),
       });
 

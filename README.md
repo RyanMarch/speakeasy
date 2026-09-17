@@ -69,6 +69,9 @@ Everything works in your browser, and even better when added to your home screen
 - Switch from ounces to milliliters at any time
 - Keep the recipe screen awake while you're prepping ingredients
 - View and add recipe histories to understand their origins
+- Rate drinks and record tasting notes in your pour history
+- Built-in calculators for bottle batching, acid adjustment, and syrup Brix
+- Print physical menus from the Menu Builder and recipe sheets from Counter View
 - Get ingredient substitutions suggestions based on what you have in stock
 - Search by _anything_ including flavor profiles, ingredients, or glassware types
 - Get kcal estimates for recipes

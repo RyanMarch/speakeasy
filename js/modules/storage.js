@@ -350,7 +350,7 @@ const BACKUP_SCHEMA_VERSION = 2;
 // available at import time via SEED_RECIPES).
 const SEED_COMPARISON_FIELDS = [
   'name', 'glassware', 'method', 'garnish', 'description',
-  'instructions', 'source', 'sourceUrl', 'notes', 'tags', 'specs',
+  'instructions', 'source', 'sourceUrl', 'notes', 'tags', 'specs', 'yield',
 ];
 
 // getRecipes() normalizes tags on every load (renaming/dropping retired variants
@@ -452,6 +452,7 @@ export function sanitizeImportedRecipes(items) {
     notes: item.notes || '',
     riffOfId: item.riffOfId || null,
     riffOfName: item.riffOfName || '',
+    yield: item.yield !== null && item.yield !== undefined && !isNaN(Number(item.yield)) && Number(item.yield) >= 1 ? Math.round(Number(item.yield)) : 1,
     tags: Array.isArray(item.tags)
       ? Array.from(new Set(item.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean)))
       : [],

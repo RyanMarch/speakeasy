@@ -24,6 +24,8 @@ import { setupTagAutocomplete } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { getDrinkHistory, HISTORY_UPDATED_EVENT } from '../modules/history.js';
+import { renderStarsHtml } from '../components/rating-modal.js';
+import { openCalculatorModal } from '../components/calculator-modal.js';
 
 let _selectRecipeFn = null;
 let _showDrinksListMobileFn = null;
@@ -101,7 +103,7 @@ export function renderHomeView() {
     const recipe = state.recipes.find(r => r.id === entry.recipeId);
     if (recipe) {
       seenRecipeIds.add(entry.recipeId);
-      recentlyMadeRecipes.push({ ...recipe, madeAt: entry.madeAt });
+      recentlyMadeRecipes.push({ ...recipe, madeAt: entry.madeAt, rating: entry.rating });
     }
   }
 
@@ -201,6 +203,19 @@ export function renderHomeView() {
           <strong>${ingredientCount}</strong>
           <span>${ingredientCount === 1 ? 'Ingredient' : 'Ingredients'} in Bar</span>
         </div>
+        <button type="button" id="btn-open-calculators" class="btn btn-secondary btn-sm home-calculators-btn" data-action="open-calculators" title="Bartender Calculators: batching, acid adjustment, Brix">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+            <line x1="8" y1="6" x2="16" y2="6"></line>
+            <line x1="8" y1="10" x2="8.01" y2="10"></line>
+            <line x1="12" y1="10" x2="12.01" y2="10"></line>
+            <line x1="16" y1="10" x2="16.01" y2="10"></line>
+            <line x1="8" y1="14" x2="8.01" y2="14"></line>
+            <line x1="12" y1="14" x2="12.01" y2="14"></line>
+            <line x1="16" y1="14" x2="16.01" y2="14"></line>
+          </svg>
+          Calculators
+        </button>
         <button type="button" class="btn btn-secondary btn-sm home-menu-builder-btn" data-action="open-menu-builder">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
@@ -343,6 +358,7 @@ export function renderHomeCard(recipe, collectionKey, idx) {
       <div class="similar-card-body">
         ${isRecentlyMade ? `
           <span class="similar-relation-badge badge-made">${escapeHtml(relativeBadgeText)}</span>
+          ${recipe.rating ? renderStarsHtml(recipe.rating, { size: 10 }) : ''}
         ` : `
           <span class="similar-relation-badge badge-ready${invAnalysis.canMake ? '' : ' badge-hidden'}">Ready</span>
         `}
@@ -379,6 +395,10 @@ export function setupHomeViewEvents(pinnableTags) {
   container.querySelector('[data-action="open-shopping"]')?.addEventListener('click', () => {
     state.backbarTab = 'shopping';
     if (_openBackbarModalFn) _openBackbarModalFn();
+  });
+
+  container.querySelector('[data-action="open-calculators"]')?.addEventListener('click', () => {
+    openCalculatorModal({ recipeId: state.activeRecipeId });
   });
 
   container.querySelector('[data-action="open-menu-builder"]')?.addEventListener('click', () => {

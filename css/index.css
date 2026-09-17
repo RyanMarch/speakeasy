@@ -16,9 +16,10 @@
 @import url('./layout.css?v=2');
 @import url('./recipe-list.css?v=1');
 @import url('./counter-view.css?v=5');
-@import url('./home-view.css?v=2');
+@import url('./home-view.css?v=3');
 @import url('./menu-builder-view.css?v=1');
 @import url('./editor.css?v=1');
-@import url('./modals.css?v=2');
-@import url('./responsive.css?v=4');
+@import url('./modals.css?v=5');
+@import url('./responsive.css?v=6');
+@import url('./print.css?v=10');
 

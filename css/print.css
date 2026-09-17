@@ -1,0 +1,31 @@
+/**
+ * Speakeasy Print Stylesheet — safety net only.
+ *
+ * The "Print Recipe Card" and "Print Guest Menu" actions no longer print the
+ * live app document at all — they open a small, self-contained popup window
+ * with its own inline-styled HTML (see js/components/print-window.js) and
+ * print that instead. Printing out of the main document meant fighting the
+ * app shell's own screen-oriented CSS (nested flex/grid ancestors, deep
+ * cascade, page-break interactions with Safari/WebKit's print engine bugs)
+ * on every recipe; a tiny standalone document sidesteps all of that.
+ *
+ * This file only covers the fallback case of someone hitting Cmd/Ctrl+P
+ * directly on the main app instead of using those buttons — it hides
+ * interactive chrome so that doesn't print a broken mess, without trying to
+ * reproduce a styled card/menu in place.
+ */
+@media print {
+  .app-header,
+  .sidebar,
+  .timer-toast,
+  .rating-sheet,
+  .toast-container,
+  .account-page-footer {
+    display: none !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}

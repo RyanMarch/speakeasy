@@ -150,15 +150,18 @@
   color: var(--color-accent);
 }
 
-/* Build a Menu — a peer action to Browse/Search, but visible at every
-   breakpoint (unlike those, it has no desktop equivalent already on screen) */
+/* Calculators & Build a Menu actions visible at every breakpoint */
+.home-calculators-btn,
 .home-menu-builder-btn {
-  margin-left: auto;
   align-self: center;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   flex-shrink: 0;
+}
+
+.home-calculators-btn {
+  margin-left: auto;
 }
 
 /* Home Collection Shelves (reuses .similar-cocktails-shelf / .similar-cocktail-card) */
