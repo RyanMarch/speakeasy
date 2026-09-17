@@ -81,7 +81,7 @@ export function resolveGarnishTypes(garnishString = '') {
   }
 
   // Wheels and Slices
-  if (/lime.*(wheel|disc)/.test(text) || /(wheel|disc).*lime/.test(text)) {
+  if (/lime.*(wheel|disc|slice)/.test(text) || /(wheel|disc|slice).*lime/.test(text)) {
     garnishes.push('limeWheel');
   } else if (/lemon.*(wheel|slice)/.test(text) || /wheel.*lemon/.test(text)) {
     garnishes.push('lemonWheel');
