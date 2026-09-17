@@ -75,6 +75,14 @@ const BASE_STYLES = /*css*/`
   .fluid-layered-group { opacity: 1; }
   .fluid-blended-group { opacity: 0; }
 
+  /* Ensure steam lines render clearly on printed recipe cards and menus */
+  .garnish-steam {
+    display: block !important;
+  }
+  .garnish-steam-wisp {
+    animation: none !important;
+  }
+
   /* Shared brand mark styling — the actual icon/title/subtitle markup is
      produced by renderBrandHeaderBar()/renderBrandRow() below, in one of two
      layouts (a full-bleed page header for documents with no card of their

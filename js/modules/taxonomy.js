@@ -3114,31 +3114,40 @@ export function recipeMatchesQuery(recipe, query = '') {
     return Array.isArray(recipe.tags) && recipe.tags.some(t => (t || '').toLowerCase().includes(tagTerm));
   }
 
-  // Metadata checks — normalized on both sides so punctuation differences
-  // (apostrophes, "&" vs "and" vs a bare "n") between the query and the
-  // stored text don't cause a false negative, e.g. searching "dark n stormy"
-  // or "dark & stormy" for a recipe actually named "Dark 'n Stormy".
-  const nq = normalizeSearchText(q);
-  if (nq) {
-    if (normalizeSearchText(recipe.name || '').includes(nq)) return true;
-    if (normalizeSearchText(recipe.glassware || '').includes(nq)) return true;
-    if (normalizeSearchText(recipe.method || '').includes(nq)) return true;
-    if (normalizeSearchText(recipe.description || '').includes(nq)) return true;
-    if (normalizeSearchText(recipe.source || '').includes(nq)) return true;
-    if (normalizeSearchText(recipe.instructions || '').includes(nq)) return true;
-  }
+  // Helper to test if a single term matches any part of a recipe
+  const termMatchesRecipe = (term) => {
+    if (!term) return true;
+    const nterm = normalizeSearchText(term);
+    if (nterm) {
+      if (normalizeSearchText(recipe.name || '').includes(nterm)) return true;
+      if (normalizeSearchText(recipe.glassware || '').includes(nterm)) return true;
+      if (normalizeSearchText(recipe.method || '').includes(nterm)) return true;
+      if (normalizeSearchText(recipe.description || '').includes(nterm)) return true;
+      if (normalizeSearchText(recipe.source || '').includes(nterm)) return true;
+      if (normalizeSearchText(recipe.instructions || '').includes(nterm)) return true;
+    }
+    if (Array.isArray(recipe.tags) && recipe.tags.some(t => (t || '').toLowerCase().includes(term))) {
+      return true;
+    }
+    const specs = recipe.specs || [];
+    for (const spec of specs) {
+      if (ingredientMatchesQuery(spec.name || '', term)) {
+        return true;
+      }
+    }
+    return false;
+  };
 
-  // Check tags if present
-  if (Array.isArray(recipe.tags) && recipe.tags.some(t => (t || '').toLowerCase().includes(q))) {
+  // Check full query first (preserves exact phrase matching)
+  if (termMatchesRecipe(q)) {
     return true;
   }
 
-  // Check ingredients via taxonomy
-  const specs = recipe.specs || [];
-  for (const spec of specs) {
-    if (ingredientMatchesQuery(spec.name || '', q)) {
-      return true;
-    }
+  // Multi-term search: split on whitespace so queries like "ginger lime" match
+  // if every token is satisfied across ingredients/metadata/tags.
+  const tokens = q.split(/\s+/).filter(Boolean);
+  if (tokens.length > 1) {
+    return tokens.every(token => termMatchesRecipe(token));
   }
 
   return false;

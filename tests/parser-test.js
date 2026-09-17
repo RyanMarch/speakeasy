@@ -629,6 +629,28 @@ if (recipeMatchesQuery(summerDrink, '#winter')) {
 }
 console.log('Tag hashtag matching and plain text tag matching verified.');
 
+// 3. Multi-term query search matching across ingredients and fields
+const darkNStormy = {
+  name: "Dark 'n Stormy",
+  tags: ['classic', 'highball'],
+  specs: [
+    { amount: 0.5, unit: 'oz', name: 'Fresh Lime Juice' },
+    { amount: 5, unit: 'oz', name: 'Ginger Beer' },
+    { amount: 2, unit: 'oz', name: 'Black / Blackstrap Rum' },
+  ],
+};
+if (!recipeMatchesQuery(darkNStormy, 'ginger lime')) {
+  throw new Error('recipeMatchesQuery should match "ginger lime" across specs');
+}
+if (!recipeMatchesQuery(darkNStormy, 'rum lime ginger')) {
+  throw new Error('recipeMatchesQuery should match "rum lime ginger" across specs');
+}
+if (recipeMatchesQuery(darkNStormy, 'ginger lime tequila')) {
+  throw new Error('recipeMatchesQuery should not match when an AND token is absent');
+}
+console.log('Multi-term recipe query matching verified.');
+
+
 console.log('--- Testing URL-Safe Slug Generation ---');
 import { slugifyRecipeName } from '../js/modules/storage.js';
 
