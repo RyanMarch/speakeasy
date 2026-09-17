@@ -65,6 +65,13 @@ CREATE TABLE IF NOT EXISTS shares (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Pre-Rendered Link-Preview Images for Bundled Seed Cocktails
+CREATE TABLE IF NOT EXISTS seed_drink_images (
+    recipe_id TEXT PRIMARY KEY,
+    og_image BLOB NOT NULL,        -- PNG bytes, pre-rendered offline (see scripts/generate-seed-og-images.js)
+    generated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Drink History ("I made this" Log)
 CREATE TABLE IF NOT EXISTS drink_history (
     id TEXT PRIMARY KEY,

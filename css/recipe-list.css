@@ -311,6 +311,11 @@
   border-color: rgba(212, 163, 89, 0.25);
 }
 
+.recipe-card-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
 .recipe-list-item.active .recipe-card-btn {
   background: rgba(212, 163, 89, 0.12);
   border-color: rgba(212, 163, 89, 0.35);
