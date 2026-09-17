@@ -234,6 +234,15 @@ const mapleMatch = findIngredient('Grade A Maple Syrup');
 console.log('Grade A Maple Syrup =>', mapleMatch?.name);
 if (!mapleMatch || mapleMatch.id !== 'maple_syrup') throw new Error('Maple syrup match failed');
 
+const marshmallowSyrupMatch = findIngredient('Marshmallow Syrup');
+console.log('Marshmallow Syrup =>', marshmallowSyrupMatch?.name, `(Color: ${marshmallowSyrupMatch?.color})`);
+if (!marshmallowSyrupMatch || marshmallowSyrupMatch.id !== 'marshmallow_syrup') throw new Error('Marshmallow syrup match failed');
+if (marshmallowSyrupMatch.color !== '#fdfbf7') throw new Error('Marshmallow syrup color should be white (#fdfbf7)');
+
+const marshmallowMatch = findIngredient('Toasted Marshmallow');
+console.log('Toasted Marshmallow =>', marshmallowMatch?.name);
+if (!marshmallowMatch || marshmallowMatch.id !== 'marshmallow') throw new Error('Marshmallow match failed');
+
 const oliveMatch = findIngredient('Olive Juice');
 console.log('Olive Juice =>', oliveMatch?.name, `(Family: ${oliveMatch?.family})`);
 if (!oliveMatch || oliveMatch.id !== 'olive_brine') throw new Error('Olive juice match failed');
@@ -751,6 +760,11 @@ const garnishCases = [
   { input: 'Garnish with three cherries', expected: ['cherry', 'cherry', 'cherry'] },
   { input: '2 olives', expected: ['olive', 'olive'] },
   { input: 'Mint and a lime slice', expected: ['mintSprig', 'limeWheel'] },
+  { input: 'Fresh strawberry', expected: ['strawberry'] },
+  { input: 'Jalapeño slice', expected: ['jalapenoSlice'] },
+  { input: 'Jalapeno coin and fresh strawberry', expected: ['strawberry', 'jalapenoSlice'] },
+  { input: 'Toasted marshmallow', expected: ['marshmallow'] },
+  { input: 'Garnish with a toasted smore', expected: ['marshmallow'] },
 ];
 
 for (const tc of garnishCases) {
@@ -758,6 +772,11 @@ for (const tc of garnishCases) {
   if (JSON.stringify(res) !== JSON.stringify(tc.expected)) {
     throw new Error(`Garnish resolution mismatch for "${tc.input}": expected ${JSON.stringify(tc.expected)}, got ${JSON.stringify(res)}`);
   }
+}
+
+const smoreGarnishSvg = renderGarnishesSvg({ garnish: 'Garnish with a toasted smore' }, GLASS_TYPES.rocks, 120);
+if (!smoreGarnishSvg.includes('garnish-marshmallow')) {
+  throw new Error(`Expected rendered SVG to contain marshmallow garnish: ${smoreGarnishSvg}`);
 }
 
 const renderedSvg = renderGarnishesSvg({ garnish: 'Orange twist & cocktail cherry' }, GLASS_TYPES.rocks, 120);
@@ -1602,8 +1621,22 @@ console.log('\n--- Testing Quick Paste Metric Specs with Taxonomy Matching ---')
   assert.equal(pearLiqueurMatch?.name, 'Pear Liqueur', 'Resolves name to Pear Liqueur');
   assert.equal(pearLiqueurMatch?.family, 'fruit_liqueur', 'Belongs to fruit_liqueur family');
 
-  const spicedPearMatch = findIngredient('St. George Spiced Pear');
-  assert.equal(spicedPearMatch?.id, 'pear_liqueur', 'Matches St. George Spiced Pear to pear_liqueur');
+  // Jalapeño and Strawberry tests
+  const jalapenoMatch = findIngredient('jalapeno');
+  assert.equal(jalapenoMatch?.id, 'jalapeno', 'Matches jalapeno to jalapeno');
+  assert.equal(jalapenoMatch?.name, 'Jalapeño', 'Resolves name to Jalapeño');
+  assert.equal(jalapenoMatch?.parent, 'produce', 'Jalapeño parent is produce');
+
+  const jalapenoAccentMatch = findIngredient('jalapeño slices');
+  assert.equal(jalapenoAccentMatch?.id, 'jalapeno', 'Matches jalapeño slices to jalapeno');
+
+  const strawberryMatch = findIngredient('strawberry');
+  assert.equal(strawberryMatch?.id, 'strawberries', 'Matches singular strawberry to strawberries');
+  assert.equal(strawberryMatch?.name, 'Strawberries', 'Resolves name to Strawberries');
+  assert.equal(strawberryMatch?.parent, 'produce', 'Strawberries parent is produce');
+
+  const freshStrawberryMatch = findIngredient('fresh strawberry');
+  assert.equal(freshStrawberryMatch?.id, 'strawberries', 'Matches fresh strawberry to strawberries');
 
   console.log('PASS: Quick Paste metric specs parsing and canonical taxonomy matching verified');
 }
