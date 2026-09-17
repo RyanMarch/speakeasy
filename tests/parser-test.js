@@ -765,6 +765,19 @@ const garnishCases = [
   { input: 'Jalapeno coin and fresh strawberry', expected: ['strawberry', 'jalapenoSlice'] },
   { input: 'Toasted marshmallow', expected: ['marshmallow'] },
   { input: 'Garnish with a toasted smore', expected: ['marshmallow'] },
+  { input: 'Sprig of rosemary', expected: ['rosemarySprig'] },
+  { input: 'Garnish with fresh rosemary', expected: ['rosemarySprig'] },
+  { input: 'Fresh thyme sprig', expected: ['thymeSprig'] },
+  { input: 'Sprinkled freshly grated nutmeg', expected: ['nutmegDust'] },
+  { input: 'Dusting of cinnamon', expected: ['nutmegDust'] },
+  { input: 'Dehydrated lime wheel', expected: ['dehydratedCitrusWheel'] },
+  { input: 'Cocktail umbrella & pineapple wedge', expected: ['cocktailUmbrella', 'pineappleWedge'] },
+  { input: 'Edible orchid blossom', expected: ['edibleFlower'] },
+  { input: 'Grapefruit wheel', expected: ['grapefruitWheel'] },
+  { input: 'Grapefruit wedge', expected: ['grapefruitWedge'] },
+  { input: 'Fresh cranberries', expected: ['cranberry'] },
+  { input: 'Three cranberries', expected: ['cranberry', 'cranberry', 'cranberry'] },
+  { input: 'Cranberry and orange twist', expected: ['cranberry', 'orangeTwist'] },
 ];
 
 for (const tc of garnishCases) {
@@ -772,6 +785,51 @@ for (const tc of garnishCases) {
   if (JSON.stringify(res) !== JSON.stringify(tc.expected)) {
     throw new Error(`Garnish resolution mismatch for "${tc.input}": expected ${JSON.stringify(tc.expected)}, got ${JSON.stringify(res)}`);
   }
+}
+
+const rosemaryGarnishSvg = renderGarnishesSvg({ garnish: 'Sprig of rosemary' }, GLASS_TYPES.rocks, 120);
+if (!rosemaryGarnishSvg.includes('garnish-rosemary')) {
+  throw new Error(`Expected rendered SVG to contain rosemary garnish: ${rosemaryGarnishSvg}`);
+}
+
+const thymeGarnishSvg = renderGarnishesSvg({ garnish: 'Fresh thyme sprig' }, GLASS_TYPES.rocks, 120);
+if (!thymeGarnishSvg.includes('garnish-thyme')) {
+  throw new Error(`Expected rendered SVG to contain thyme garnish: ${thymeGarnishSvg}`);
+}
+
+const nutmegGarnishSvg = renderGarnishesSvg({ garnish: 'Dusting of cinnamon' }, GLASS_TYPES.rocks, 120);
+if (!nutmegGarnishSvg.includes('garnish-nutmeg-dust')) {
+  throw new Error(`Expected rendered SVG to contain nutmeg dust garnish: ${nutmegGarnishSvg}`);
+}
+
+const dehydratedGarnishSvg = renderGarnishesSvg({ garnish: 'Dehydrated lime wheel' }, GLASS_TYPES.rocks, 120);
+if (!dehydratedGarnishSvg.includes('garnish-dehydrated-wheel')) {
+  throw new Error(`Expected rendered SVG to contain dehydrated citrus wheel garnish: ${dehydratedGarnishSvg}`);
+}
+
+const umbrellaGarnishSvg = renderGarnishesSvg({ garnish: 'Cocktail umbrella' }, GLASS_TYPES.rocks, 120);
+if (!umbrellaGarnishSvg.includes('garnish-cocktail-umbrella')) {
+  throw new Error(`Expected rendered SVG to contain cocktail umbrella garnish: ${umbrellaGarnishSvg}`);
+}
+
+const flowerGarnishSvg = renderGarnishesSvg({ garnish: 'Edible orchid' }, GLASS_TYPES.rocks, 120);
+if (!flowerGarnishSvg.includes('garnish-edible-flower')) {
+  throw new Error(`Expected rendered SVG to contain edible flower garnish: ${flowerGarnishSvg}`);
+}
+
+const grapefruitWheelSvg = renderGarnishesSvg({ garnish: 'Grapefruit wheel' }, GLASS_TYPES.rocks, 120);
+if (!grapefruitWheelSvg.includes('garnish-grapefruit-wheel')) {
+  throw new Error(`Expected rendered SVG to contain grapefruit wheel garnish: ${grapefruitWheelSvg}`);
+}
+
+const grapefruitWedgeSvg = renderGarnishesSvg({ garnish: 'Grapefruit wedge' }, GLASS_TYPES.rocks, 120);
+if (!grapefruitWedgeSvg.includes('garnish-grapefruit-wedge')) {
+  throw new Error(`Expected rendered SVG to contain grapefruit wedge garnish: ${grapefruitWedgeSvg}`);
+}
+
+const cranberrySvg = renderGarnishesSvg({ garnish: 'Three cranberries' }, GLASS_TYPES.rocks, 120);
+if (!cranberrySvg.includes('garnish-combined-pick')) {
+  throw new Error(`Expected rendered SVG to contain combined pick with cranberries: ${cranberrySvg}`);
 }
 
 const smoreGarnishSvg = renderGarnishesSvg({ garnish: 'Garnish with a toasted smore' }, GLASS_TYPES.rocks, 120);
