@@ -13,6 +13,7 @@ import {
 
 import { parseSpecsBlock, extractGarnishLine } from '../modules/parser.js';
 import { GlassView } from '../modules/glass-view.js';
+import { calculateFluidLayers } from '../modules/colors.js';
 import { calculateCocktailAbv, estimateIngredientAbv } from '../modules/abv.js';
 import { getIngredientSuggestions } from '../modules/taxonomy.js';
 import { setupTagAutocomplete } from '../views/recipe-list-view.js';
@@ -263,11 +264,15 @@ export function openEditor(recipe = null) {
             <!-- Live GlassView -->
           </div>
           <div class="glass-meta-card" style="max-width: 100%;">
-            <div id="editor-abv-badge" style="font-size: 0.85rem; font-weight: 600; color: var(--color-accent-light); margin-bottom: 0.25rem;">
-              Estimated Strength: ~0% ABV
+            <div class="glass-stats-row editor-glass-stats-row" style="margin-bottom: 0.25rem;">
+              <span id="editor-total-volume" class="glass-total-volume">0.00 oz</span>
+              <span class="glass-stats-divider">·</span>
+              <span id="editor-abv-badge" class="glass-abv" style="font-size: 0.85rem; font-weight: 600; color: var(--color-accent-light);">
+                Estimated Strength: ~0% ABV
+              </span>
             </div>
             <div class="glass-interaction-tip">
-              Layers and ABV recalculate in real-time as amounts are entered
+              Layers, volume, and ABV recalculate in real-time as amounts are entered
             </div>
           </div>
         </div>
@@ -297,11 +302,28 @@ export function renderEditorSpecRows() {
   const container = document.getElementById('editor-specs-rows');
   if (!container) return;
 
-  const units = ['oz', 'ml', 'dash', 'dashes', 'barspoon', 'tsp', 'tbsp', 'drops', 'splash', 'rinse', 'part', 'leaves', 'pinch', 'cup', 'shot'];
+  const units = [
+    { value: 'oz', label: 'oz' },
+    { value: 'ml', label: 'ml' },
+    { value: 'dash', label: 'dash' },
+    { value: 'barspoon', label: 'barspoon' },
+    { value: 'tsp', label: 'tsp' },
+    { value: 'tbsp', label: 'tbsp' },
+    { value: 'drops', label: 'drops' },
+    { value: 'splash', label: 'splash' },
+    { value: 'rinse', label: 'rinse' },
+    { value: 'slices', label: 'slices' },
+    { value: 'part', label: 'part' },
+    { value: 'leaves', label: 'leaves' },
+    { value: 'pinch', label: 'pinch' },
+    { value: 'cup', label: 'cup' },
+    { value: 'shot', label: 'shot' },
+  ];
 
   container.innerHTML = state.editorSpecs.map((spec, i) => {
     const defaultAbv = estimateIngredientAbv(spec.name || '');
     const currentAbv = spec.abv !== undefined && spec.abv !== null ? spec.abv : (defaultAbv > 0 ? defaultAbv : '');
+    const normalizedUnit = (spec.unit === 'dashes') ? 'dash' : (spec.unit === 'slice') ? 'slices' : spec.unit;
 
     return /*html*/`
       <div class="editor-spec-row" data-index="${i}">
@@ -316,7 +338,7 @@ export function renderEditorSpecRows() {
         <select class="form-select spec-input-unit" aria-label="Unit">
           <option value="" ${!spec.unit ? 'selected' : ''}>none</option>
           ${units.map(u => `
-            <option value="${u}" ${spec.unit === u ? 'selected' : ''}>${u}</option>
+            <option value="${u.value}" ${normalizedUnit === u.value ? 'selected' : ''}>${u.label}</option>
           `).join('')}
         </select>
         <div class="spec-name-wrapper">
@@ -785,6 +807,17 @@ export function updateEditorGlassPreview() {
     abvBadge.textContent = rounded > 0
       ? `ABV: ${rounded}%`
       : 'Non-Alcoholic';
+  }
+
+  const volumeBadge = document.getElementById('editor-total-volume');
+  if (volumeBadge) {
+    const layers = calculateFluidLayers(singleServingSpecs);
+    const singleServingTotalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
+    const scaledTotalOz = singleServingTotalOz * yieldVal;
+    const totalDisplay = state.unitSystem === 'ml'
+      ? `${Math.round(scaledTotalOz * 30)} ml`
+      : `${scaledTotalOz.toFixed(2)} oz`;
+    volumeBadge.textContent = totalDisplay;
   }
 
   runTagAutoDetection(method);
