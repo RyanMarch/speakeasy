@@ -166,12 +166,28 @@ function renderRecipe(container, recipe) {
             </div>
           ` : ''}
 
-          ${recipe.source ? /*html*/`
+          ${(() => {
+            const hasSource = Boolean(recipe.source && recipe.source.trim());
+            const hasUrl = Boolean(recipe.sourceUrl && recipe.sourceUrl.trim());
+            if (!hasSource && !hasUrl) return '';
+
+            let contentHtml = '';
+            if (hasUrl) {
+              const label = hasSource ? recipe.source.trim() : recipe.sourceUrl.trim();
+              contentHtml = `<a href="${escapeHtml(recipe.sourceUrl.trim())}" target="_blank" rel="noopener" class="editorial-source-link">${escapeHtml(label)}</a>`;
+            } else if (recipe.source.trim().startsWith('http')) {
+              contentHtml = `<a href="${escapeHtml(recipe.source.trim())}" target="_blank" rel="noopener" class="editorial-source-link">${escapeHtml(recipe.source.trim())}</a>`;
+            } else {
+              contentHtml = `<span>${escapeHtml(recipe.source.trim())}</span>`;
+            }
+
+            return /*html*/`
             <div class="editorial-source">
               <span class="editorial-source-label">Source:</span>
-              ${recipe.source.startsWith('http') ? `<a href="${escapeHtml(recipe.source)}" target="_blank" rel="noopener">${escapeHtml(recipe.source)}</a>` : `<span>${escapeHtml(recipe.source)}</span>`}
+              ${contentHtml}
             </div>
-          ` : ''}
+            `;
+          })()}
         </div>
       </div>
 
