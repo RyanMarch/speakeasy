@@ -108,13 +108,21 @@ function init() {
   const deepLinkedToRecipe = !deepLinkedToShare && Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
   const deepLinkedToMenuBuilder = !deepLinkedToShare && (urlHash === 'menus' || urlHash.startsWith('menus/'));
   const deepLinkedToAccount = !deepLinkedToShare && (urlHash === 'account' || urlHash === 'vault');
+  const deepLinkedToNew = !deepLinkedToShare && urlHash === 'new';
+  const deepLinkedToEdit = !deepLinkedToShare && urlHash.startsWith('edit/');
 
   if (!initialId && state.recipes.length > 0) {
     initialId = state.recipes[0].id;
   }
 
   state.activeRecipeId = initialId;
-  state.viewMode = deepLinkedToShare ? 'shared-recipe' : (deepLinkedToRecipe ? 'counter' : (deepLinkedToMenuBuilder ? 'menu-builder' : (deepLinkedToAccount ? 'account' : 'home')));
+  state.viewMode = deepLinkedToShare
+    ? 'shared-recipe'
+    : (deepLinkedToNew || deepLinkedToEdit)
+      ? 'edit'
+      : (deepLinkedToRecipe
+        ? 'counter'
+        : (deepLinkedToMenuBuilder ? 'menu-builder' : (deepLinkedToAccount ? 'account' : 'home')));
   if (deepLinkedToShare) {
     state.pendingShareId = urlHash === 'share' ? null : urlHash.slice('share/'.length);
   }
@@ -125,6 +133,14 @@ function init() {
     // Same "restore this state, don't push new history" entry point the
     // hashchange listener below uses for browser back/forward.
     applyMenuBuilderHash(urlHash === 'menus' ? null : urlHash.slice('menus/'.length));
+  }
+  let pendingInitialEditor = null;
+  if (deepLinkedToNew) {
+    pendingInitialEditor = { recipe: null };
+  } else if (deepLinkedToEdit) {
+    const editTargetId = urlHash.slice('edit/'.length);
+    const targetRecipe = state.recipes.find(r => r.id === editTargetId);
+    pendingInitialEditor = { recipe: targetRecipe || null };
   }
 
   const isMobile = window.innerWidth <= 768;
@@ -187,6 +203,10 @@ function init() {
   updateMyBarBadge();
   renderRecipeList();
   renderCurrentView();
+
+  if (pendingInitialEditor) {
+    openEditor(pendingInitialEditor.recipe, false);
+  }
 
   // Validate stored session token against backend and sync state
   checkSession().then(async result => {
@@ -406,6 +426,16 @@ function setupGlobalEventListeners() {
       }
       elements.sidebar?.classList.add('mobile-hidden');
       elements.mainStage?.classList.remove('mobile-hidden');
+      return;
+    }
+    if (rawHash === 'new') {
+      openEditor(null, false);
+      return;
+    }
+    if (rawHash.startsWith('edit/')) {
+      const editTargetId = rawHash.slice('edit/'.length);
+      const targetRecipe = state.recipes.find(r => r.id === editTargetId);
+      openEditor(targetRecipe || null, false);
       return;
     }
     // Stale/malformed hash (typo'd link, old bookmark, etc.) — matches none of
