@@ -1,4 +1,4 @@
-import { parseIngredientLine, parseSpecsBlock, extractGarnishLine, formatFraction, parseMethodContent } from '../js/modules/parser.js';
+import { parseIngredientLine, parseSpecsBlock, extractGarnishLine, formatFraction, parseMethodContent, convertUnitAmount, formatIngredientName } from '../js/modules/parser.js';
 import assert from 'node:assert/strict';
 import { calculateFluidLayers, normalizeVolumeToOz } from '../js/modules/colors.js';
 import { resolveGlassware } from '../js/modules/glassware.js';
@@ -1471,6 +1471,76 @@ console.log('\n--- Testing Slice / Slices Unit Parsing ---');
   const vol = normalizeVolumeToOz(multipleSlices.amount, multipleSlices.unit);
   assert.ok(Math.abs(vol - 0.3) < 0.0001, 'Calculates ~0.3 oz for 3 slices');
   console.log('PASS: Slice and slices parsing and volume math verified');
+}
+
+console.log('\n--- Testing Metric-to-Oz & Unit Conversion (convertUnitAmount) ---');
+{
+  assert.deepEqual(convertUnitAmount(22.5, 'ml', 'oz'), { amount: 0.75, unit: 'oz' });
+  assert.deepEqual(convertUnitAmount(30, 'ml', 'oz'), { amount: 1, unit: 'oz' });
+  assert.deepEqual(convertUnitAmount(15, 'ml', 'oz'), { amount: 0.5, unit: 'oz' });
+  assert.deepEqual(convertUnitAmount(7.5, 'ml', 'oz'), { amount: 0.25, unit: 'oz' });
+  assert.deepEqual(convertUnitAmount(45, 'ml', 'oz'), { amount: 1.5, unit: 'oz' });
+  assert.deepEqual(convertUnitAmount(60, 'ml', 'oz'), { amount: 2, unit: 'oz' });
+  assert.deepEqual(convertUnitAmount(3, 'cl', 'oz'), { amount: 1, unit: 'oz' });
+  assert.deepEqual(convertUnitAmount(2, 'dashes', 'oz'), { amount: 2, unit: 'dashes' }); // non-volume preserved
+
+  // Converting oz to ml
+  assert.deepEqual(convertUnitAmount(1, 'oz', 'ml'), { amount: 30, unit: 'ml' });
+  assert.deepEqual(convertUnitAmount(0.75, 'oz', 'ml'), { amount: 22.5, unit: 'ml' });
+  assert.deepEqual(convertUnitAmount(1.5, 'oz', 'ml'), { amount: 45, unit: 'ml' });
+  console.log('PASS: Unit conversions between metric and ounces verified');
+}
+
+console.log('\n--- Testing Quick Paste Metric Specs with Taxonomy Matching ---');
+{
+  const testInput = `
+22.5 ml Peated Scotch
+22.5 ml Aperol
+22.5 ml Fresh lemon juice
+22.5 ml Honey syrup
+`;
+  const parsed = parseSpecsBlock(testInput);
+  assert.equal(parsed.length, 4, 'Parses 4 ingredient lines');
+
+  const processed = parsed.map(p => {
+    const match = findIngredient(p.name);
+    const normalizedName = match?.name || formatIngredientName(p.name);
+    const converted = convertUnitAmount(p.amount, p.unit, 'oz');
+    return {
+      amount: converted.amount,
+      unit: converted.unit,
+      name: normalizedName,
+    };
+  });
+
+  assert.deepEqual(processed, [
+    { amount: 0.75, unit: 'oz', name: 'Peated / Islay Scotch' },
+    { amount: 0.75, unit: 'oz', name: 'Aperol' },
+    { amount: 0.75, unit: 'oz', name: 'Lemon Juice' },
+    { amount: 0.75, unit: 'oz', name: 'Honey Syrup' },
+  ]);
+
+  // Casing fallback test for an unknown ingredient
+  const unknownParsed = parseSpecsBlock('15 ml homemade elderberry shrub');
+  const unknownProcessed = unknownParsed.map(p => {
+    const match = findIngredient(p.name);
+    const normalizedName = match?.name || formatIngredientName(p.name);
+    const converted = convertUnitAmount(p.amount, p.unit, 'oz');
+    return {
+      amount: converted.amount,
+      unit: converted.unit,
+      name: normalizedName,
+    };
+  });
+  assert.deepEqual(unknownProcessed, [
+    { amount: 0.5, unit: 'oz', name: 'Homemade Elderberry Shrub' },
+  ]);
+
+  // Pineapple juice test specifically mentioned in user request
+  const pineappleMatch = findIngredient('pineapple juice');
+  assert.equal(pineappleMatch?.name, 'Pineapple Juice', 'Matches lowercase pineapple juice to canonical Pineapple Juice');
+
+  console.log('PASS: Quick Paste metric specs parsing and canonical taxonomy matching verified');
 }
 
 console.log('All tests completed successfully!');

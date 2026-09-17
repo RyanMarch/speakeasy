@@ -121,6 +121,52 @@ export function normalizeUnit(unit) {
   return UNIT_CONVERSIONS_TO_OZ[aliased] !== undefined ? aliased : clean;
 }
 
+/**
+ * Converts an amount and unit between metric (ml, cl) and imperial (oz) based on target unit preference.
+ * Uses standard cocktail ratio (30 ml = 1 oz) and snaps to common bartending fractions when close.
+ *
+ * @param {number|null} amount
+ * @param {string} unit
+ * @param {'oz'|'ml'} targetUnitSystem
+ * @returns {{ amount: number|null, unit: string }}
+ */
+export function convertUnitAmount(amount, unit, targetUnitSystem) {
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    return { amount, unit };
+  }
+
+  const normUnit = normalizeUnit(unit);
+
+  if (targetUnitSystem === 'oz') {
+    let ml = null;
+    if (normUnit === 'ml') ml = amount;
+    else if (normUnit === 'cl') ml = amount * 10;
+
+    if (ml !== null) {
+      const rawOz = ml / 30;
+      const roundedOz = Math.round(rawOz * 100) / 100;
+      const whole = Math.floor(roundedOz);
+      const frac = roundedOz - whole;
+      const commonFractions = [0, 0.125, 0.25, 0.333, 0.375, 0.5, 0.625, 0.666, 0.75, 0.875, 1];
+      let snapped = roundedOz;
+      for (const targetFrac of commonFractions) {
+        if (Math.abs(frac - targetFrac) < 0.02) {
+          snapped = Math.round((whole + targetFrac) * 1000) / 1000;
+          break;
+        }
+      }
+      return { amount: snapped, unit: 'oz' };
+    }
+  } else if (targetUnitSystem === 'ml') {
+    if (normUnit === 'oz') {
+      const ml = Math.round(amount * 30 * 10) / 10;
+      return { amount: ml % 1 === 0 ? Math.round(ml) : ml, unit: 'ml' };
+    }
+  }
+
+  return { amount, unit };
+}
+
 // Parses a numeric token that may be a plain number or a (mixed) fraction —
 // "2", "0.75", "1 1/2", "3/4" — shared by the amount group below and by the
 // redundant-conversion check's own number, so the two don't drift apart.
