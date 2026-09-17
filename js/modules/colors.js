@@ -29,14 +29,17 @@ const COLOR_MAP = [
   { pattern: /\b(grapefruit|pink grapefruit)\b/i, color: '#f4978e', light: '#f8b4ad', dark: '#c96a60', label: 'Grapefruit' },
   { pattern: /\b(orange juice|fresh orange|pineapple|passion fruit)\b/i, color: '#f77f00', light: '#fc9e38', dark: '#c45a00', label: 'Citrus Juice' },
 
-  // Syrups & sweeteners
+  // Syrups, sweeteners & pantry dairy
+  { pattern: /\b(butter)\b/i, color: '#f6e49d', light: '#fdf5cb', dark: '#d6be63', label: 'Butter' },
   { pattern: /\b(orgeat|cream|coconut cream|milk|egg white|aquafaba)\b/i, color: '#f4ede2', light: '#ffffff', dark: '#dcd3c5', label: 'Velvet Cream' },
   { pattern: /\b(demerara|honey|maple|molasses|rich simple|brown sugar)\b/i, color: '#a66a38', light: '#bf834e', dark: '#73441e', label: 'Demerara Gold' },
   { pattern: /\b(simple syrup|sugar syrup|agave|cane syrup|gomme)\b/i, color: '#f1e8be', light: '#faf5d8', dark: '#cfc48f', label: 'Cane Syrup' },
   { pattern: /\b(cointreau|triple sec|orange cura[cç]ao|grand marnier)\b/i, color: '#ecc170', light: '#f5d693', dark: '#bd9446', label: 'Orange Liqueur' },
+  { pattern: /\b(cinnamon)\b/i, color: '#9c522b', light: '#ba6a3e', dark: '#6e3416', label: 'Cinnamon' },
 
   // Clear spirits & effervescence
   { pattern: /\b(gin|vodka|blanco tequila|silver tequila|white rum|light rum|mezcal|pisco|dry vermouth|aquavit)\b/i, color: '#d2e2ec', light: '#e7f0f6', dark: '#a5c0d1', label: 'Clear Spirit' },
+  { pattern: /\b(boiling water|hot water|chilled water|tap water|cold water|warm water|water)\b/i, color: '#f8fafc', light: '#ffffff', dark: '#e2e8f0', label: 'Water' },
   { pattern: /\b(tonic|club soda|sparkling|seltzer|ginger beer|ginger ale|champagne|prosecco|cava)\b/i, color: '#d9eef9', light: '#edf7fc', dark: '#afd5ea', label: 'Sparkling Mixer' },
 ];
 

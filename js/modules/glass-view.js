@@ -276,6 +276,17 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
         stroke-linejoin="round"
       />
 
+      <!-- Glass Handle (e.g. Mug / Hot Toddy Glass) -->
+      ${glassware.handleD ? `
+        <path
+          d="${glassware.handleD}"
+          fill="rgba(255, 255, 255, 0.05)"
+          stroke="rgba(255, 255, 255, 0.42)"
+          stroke-width="2.0"
+          stroke-linejoin="round"
+        />
+      ` : ''}
+
       <!-- Cut glass facet details (e.g. Tartan pattern) -->
       ${glassware.detailsD ? `
         <path

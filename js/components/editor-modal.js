@@ -179,12 +179,13 @@ export function openEditor(recipe = null) {
             <option value="Nick & Nora" ${currentData.glassware === 'Nick & Nora' ? 'selected' : ''}>Nick & Nora</option>
             <option value="Wine" ${currentData.glassware === 'Wine' ? 'selected' : ''}>Wine Glass</option>
             <option value="Champagne Flute" ${currentData.glassware === 'Champagne Flute' ? 'selected' : ''}>Champagne Flute</option>
+            <option value="Mug" ${currentData.glassware === 'Mug' ? 'selected' : ''}>Mug / Hot Toddy Glass</option>
             <option value="Tiki Mug" ${currentData.glassware === 'Tiki Mug' ? 'selected' : ''}>Tiki Mug</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="edit-method">Preparation Technique <span class="field-detected-badge" id="method-detected-badge" hidden>detected</span></label>
+          <label class="form-label" for="edit-method">Preparation <span class="field-detected-badge" id="method-detected-badge" hidden>detected</span></label>
           <select id="edit-method" class="form-select">
             <option value="Shaken" ${currentData.method === 'Shaken' ? 'selected' : ''}>Shaken</option>
             <option value="Stirred" ${currentData.method === 'Stirred' ? 'selected' : ''}>Stirred</option>
