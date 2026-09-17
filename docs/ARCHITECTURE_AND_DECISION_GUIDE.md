@@ -64,18 +64,22 @@ speakeasy/
 │   │   └── shared-recipe-view.js # Snapshot view for shared cocktail links
 │   ├── components/
 │   │   ├── top-bar.js         # Header brand navigation, desktop sticky title, vault popover
-│   │   ├── editor-modal.js    # Quick-paste recipe editor, natural language spec parser
+│   │   ├── editor-modal.js    # Quick-paste recipe editor, natural language spec parser, batch yield
 │   │   ├── backbar-modal.js   # Inventory drawer modal, bottle toggling, category tabs, shopping list
+│   │   ├── calculator-modal.js# Bar calculators (batch punch/bottle sizing, acid adjustment, Brix syrup)
+│   │   ├── rating-modal.js    # Rating & tasting note modal for drinks and pour history
+│   │   ├── print-window.js    # Print preview and format helper for menus and recipe sheets
 │   │   ├── hidden-modal.js    # Hidden cocktails management modal
 │   │   ├── timer-modal.js     # Floating counter timer toast, 3-phase countdown, haptic alerts
 │   │   └── toast.js           # Toast notifications and HTML escaping utility
 │   └── modules/
 │       ├── auth.js            # Passwordless OTP authentication and session management
-│       ├── history.js         # Drink history logging and cloud synchronization
+│       ├── history.js         # Drink history logging, ratings, tasting notes, cloud sync
 │       ├── telemetry.js       # Client telemetry tracking (views, searches, feature usage)
 │       ├── taxonomy.js        # Hierarchical ingredient graph, brand mapping, search, substitutes, shopping list
 │       ├── storage.js         # LocalStorage manager, menus, low stock, backup export/import, seed re-exports
 │       ├── parser.js          # Natural text ingredient parser, fractions, method/timer detector
+│       ├── calculators.js     # Batch scaling, dilution math, acid adjustment, and syrup Brix calculations
 │       ├── auto-detect.js     # Recipe editor auto-detection for method, glass, garnish, and computed tags
 │       ├── glassware.js       # Glassware geometric profiles, fluid paths, clip paths
 │       ├── glass-view.js      # SVG renderer for layered liquids, ice, and blended cocktails
@@ -87,7 +91,7 @@ speakeasy/
 │   └── api/                   # Cloudflare Pages Functions (Serverless Backend)
 │       ├── admin/             # Endpoints for admin session, analytics aggregation, recipes, and visibility
 │       ├── auth/              # Endpoints for OTP generation, verification, session, and account deletion
-│       ├── history/           # Endpoints to log and list user drink history
+│       ├── history/           # Endpoints to log, update (rating/notes), and list user drink history
 │       ├── shares/            # Endpoints to create and read public recipe snapshots
 │       ├── telemetry.js       # Ingestion endpoint for recipe views, search logs, and feature events
 │       └── sync.js            # Endpoint to sync local library to the cloud and fetch updates
@@ -95,7 +99,12 @@ speakeasy/
 │   ├── 0001_initial_schema.sql
 │   ├── 0002_add_shares.sql
 │   ├── 0003_global_recipes.sql
-│   └── 0004_analytics.sql
+│   ├── 0004_analytics.sql
+│   ├── 0005_add_garnish_column.sql
+│   ├── 0006_add_source_columns.sql
+│   ├── 0007_add_og_image_column.sql
+│   ├── 0008_otp_rate_limit.sql
+│   └── 0009_add_ratings_notes.sql
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml         # GitHub Actions automated test, D1 migration & Pages deploy
@@ -103,9 +112,10 @@ speakeasy/
 ├── tests/
 │   ├── architecture-test.js   # Structural integrity, module exports, CSS imports, preload checks
 │   ├── parser-test.js         # Headless test runner covering parsing, taxonomy, ABV, seeds, and backups
+│   ├── calculator-test.js     # Batch punch scaling, acid balancing, and Brix syrup calculations
 │   ├── sync-test.js           # Cloud sync, hydration, and multi-bar persistence tests
 │   ├── auth-test.js           # Passwordless OTP, session, and account deletion tests
-│   ├── history-test.js        # Drink history logging and guest-to-cloud migration tests
+│   ├── history-test.js        # Drink history logging, ratings, and guest-to-cloud migration tests
 │   ├── shares-test.js         # Recipe sharing and snapshot endpoint tests
 │   └── admin-test.js          # Admin dashboard, analytics, and recipe moderation tests
 ├── manifest.webmanifest       # PWA manifest (standalone mode)
@@ -144,6 +154,7 @@ speakeasy/
     instructions: "1. Combine...",
     description: "...",
     notes: "...",
+    yield: 1,                     // Base batch servings (default 1)
     riffOfId: "negroni",          // Lineage pointer to parent drink
     riffOfName: "Negroni",
     tags: ["classic", "whiskey-forward", "riff"]
@@ -156,7 +167,7 @@ speakeasy/
   - `speakeasy_hidden_recipes`: Array of recipe IDs soft-hidden from general browsing.
   - `speakeasy_low_stock`: Array of taxonomy IDs marked as running low. Independent of ownership; cleared automatically when a bottle is toggled out of inventory.
   - `speakeasy_menus`: Array of saved event menus (`{ id, name, recipeIds, createdAt }`).
-  - `speakeasy_drink_history`: Log of drinks made (`{ id, recipeId, madeAt }`).
+  - `speakeasy_drink_history`: Log of drinks made (`{ id, recipeId, madeAt, rating, notes }`).
   - `speakeasy_pinned_tags`: Array of tag names pinned to display as dedicated carousels on the Home landing page.
   - `speakeasy_bars`: Metadata for multi-bar locations, with `speakeasy_active_bar_id` tracking the current view.
   - `speakeasy_auth_token` and `speakeasy_user`: Authentication state for cloud sync.
@@ -273,6 +284,21 @@ speakeasy/
   - **Animation Guard**: Suppressed automatically whenever the **More Fun** setting is toggled off (`animations-disabled` class) or system `prefers-reduced-motion` is active.
   - **Developer Testing Helper**: Triggerable in console via `speakeasyLevelUp(newTitle, previousTitle)`.
 
+### 3.12 Bar Calculators & Batch Scaling Engine (`calculators.js`, `calculator-modal.js`)
+- **Batch Scaling & Dilution**: Calculates scaled ingredient volumes and required dilution water when pre-batching cocktails into bottles or punch bowls. Incorporates method-specific dilution rates (`Stirred` ~22%, `Shaken` ~32%, `Built` ~5%, `Blended` ~45%) to ensure pre-chilled bottled batches match standard shaken/stirred drinks.
+- **Acid Adjustment**: Computes citric and malic acid powder weights needed to balance fresh juices (such as orange or grapefruit) to match the acidity of lime or lemon, maintaining standard cocktail ratios without altering flavor profiles.
+- **Syrup Brix Calculator**: Calculates sugar content percentage by weight (°Bx) and total finished yield volume for simple, rich, or custom ratio syrups.
+- **Recipe Batch Yield**: Recipes support a `yield` integer property (defaults to 1). Ingredients in recipes authored as batches or punches automatically scale down to single-serving portions for glass rendering, calories, and ABV estimation, while preserving batch specs for display and scaling.
+
+### 3.13 Recipe Ratings, Tasting Notes & Pour History (`rating-modal.js`, `history.js`, `functions/api/history/*`)
+- **Star Ratings & Notes**: Users can assign 1 to 5 star ratings and add tasting notes when recording drinks made ("I Made This") or directly from the counter view.
+- **Persistence & Cloud Sync**: Ratings and notes persist locally across sessions in `speakeasy_drink_history` and synchronize with Cloudflare D1 via `/api/history/log` and `/api/history/update`.
+- **Guest-to-Cloud Migration**: Local guest ratings and notes seamlessly migrate to the user's remote account upon sign-in.
+
+### 3.14 Print Engine & Physical Formats (`print-window.js`, `css/print.css`)
+- **Menu Builder Printing**: Generates clean, printer-optimized physical menus directly from saved event menus with course sections, descriptions, and spirit highlights.
+- **Recipe Sheet Printing**: Outputs formatted index cards and counter recipe sheets complete with glassware specs, instructions, and measurements.
+
 ---
 
 ## 4. Application Flow & Routing
@@ -331,4 +357,4 @@ Before committing any alterations:
 
 ---
 
-*Last updated: September 14, 2026*
+*Last updated: September 17, 2026*
