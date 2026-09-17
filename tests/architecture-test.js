@@ -319,6 +319,11 @@ async function runTests() {
   editorModalMod.openEditor({ id: 'manhattan', name: 'Manhattan', specs: [] });
   assert(pushedHash === '#edit/manhattan', 'openEditor(existing) pushes #edit/manhattan to history');
 
+  // Test opening editor with partial recipe (e.g. from search empty state)
+  editorModalMod.openEditor({ name: 'Espresso Martini' });
+  assert(pushedHash === '#new', 'openEditor with partial recipe pushes #new');
+  assert(stateMod.state.editorSpecs.length === 2, 'openEditor with partial recipe preserves default specs');
+
   // Test cancelEditor restores previous recipe hash if activeRecipeId is present
   stateMod.state.activeRecipeId = 'manhattan';
   editorModalMod.cancelEditor();
