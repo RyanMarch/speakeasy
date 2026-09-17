@@ -3637,25 +3637,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "oz", name: "Club Soda" },
     ],
   },
-  // 80. Japanese Cocktail (ancestor — required for Improved Japanese riffOfId)
-  {
-    id: "japanese-cocktail",
-    name: "Japanese Cocktail",
-    glassware: "Coupe",
-    method: "Stirred",
-    garnish: "Lemon peel",
-    description: "Jerry Thomas's 1862 original: Cognac stirred with orgeat and aromatic bitters, and nothing else. One of the earliest recorded cocktails calling for a non-whiskey base.",
-    instructions: "1. Combine cognac, orgeat, and bitters in a mixing glass filled with ice.\n2. Stir for 20-25 seconds until well-chilled.\n3. Strain into a chilled coupe.\n4. Express lemon peel over the surface and drop it in.",
-    source: "Jerry Thomas, Bar-Tenders Guide (1862)",
-    sourceUrl: "",
-    notes: "One of the first cocktails in print to use cognac and almond syrup as its only sweetener.",
-    tags: ["classic", "cognac-forward", "ancestor", "nutty", "slow-sipper"],
-    specs: [
-      { amount: 2, unit: "oz", name: "Cognac" },
-      { amount: 0.5, unit: "oz", name: "Orgeat" },
-      { amount: 2, unit: "dashes", name: "Aromatic Bitters" },
-    ],
-  },
   // 81. Pegu Club
   {
     id: "pegu-club",

@@ -1248,7 +1248,7 @@ for (let i = 0; i < canonicalShoppingList.length - 1; i++) {
   }
 }
 
-// Total 1-bottle unlocks across the shopping list must equal the 46 bottle-next drinks from Starter Bar.
+// Total 1-bottle unlocks across the shopping list must equal the 48 bottle-next drinks from Starter Bar.
 // (Was 52 before Peychaud's Bitters got its own taxonomy id split out of aromatic_bitters —
 // Sazerac, Vieux Carré, Metropole, Monte Carlo, and À La Louisienne all call for it by name, and
 // were incorrectly counted as "ready to make" off owning Angostura alone. Splitting them fixed the
@@ -1259,11 +1259,13 @@ for (let i = 0; i < canonicalShoppingList.length - 1; i++) {
 // Was 48 before the ~28 "family bucket" taxonomy entries (Spiced Liqueurs, Herbal & Botanical
 // Liqueur, Aperitivo / Red Bitter, etc.) got split into individually-ownable specific products —
 // the Starter Bar's 'red_bitter' became 'campari' specifically, so Aperol-specific recipes
-// (Aperol Spritz, Paper Plane) correctly stopped counting as bottle-next off it alone.)
+// (Aperol Spritz, Paper Plane) correctly stopped counting as bottle-next off it alone.
+// Increased from 46 to 48 with the addition of 21 seed recipes, where Army & Navy (+Orgeat) and
+// Cherry Picker (+Maraschino Liqueur) added two new 1-bottle unlocks from Starter Bar.)
 const totalStarterUnlocks = canonicalShoppingList.reduce((sum, item) => sum + item.unlockCount, 0);
-console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 46)`);
-if (totalStarterUnlocks !== 46) {
-  throw new Error(`Expected exactly 46 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
+console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 48)`);
+if (totalStarterUnlocks !== 48) {
+  throw new Error(`Expected exactly 48 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
 }
 
 console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingList[0].name} (+${canonicalShoppingList[0].unlockCount} cocktails)`);

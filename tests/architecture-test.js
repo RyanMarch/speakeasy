@@ -31,7 +31,7 @@ async function runTests() {
   const { SEED_RECIPES: storageSeeds } = await import('../js/modules/storage.js');
 
   assert(Array.isArray(directSeeds), 'seed-recipes.js exports an array');
-  assert(directSeeds.length === 181, `seed-recipes.js has 181 recipes (found: ${directSeeds.length})`);
+  assert(directSeeds.length === 201, `seed-recipes.js has 201 recipes (found: ${directSeeds.length})`);
   const storageMod = await import('../js/modules/storage.js');
   assert(typeof storageMod.clearUserDataOnSignOut === 'function', 'storage.js exports clearUserDataOnSignOut()');
   assert(typeof storageMod.getHomeCollectionsOrder === 'function', 'storage.js exports getHomeCollectionsOrder()');
@@ -51,8 +51,8 @@ async function runTests() {
       validSpecsCount++;
     }
   }
-  assert(seenIds.size === 181, 'All 181 recipe IDs are unique');
-  assert(validSpecsCount === 181, 'All 181 recipes have non-empty specs arrays');
+  assert(seenIds.size === directSeeds.length, `All ${directSeeds.length} recipe IDs are unique`);
+  assert(validSpecsCount === directSeeds.length, `All ${directSeeds.length} recipes have non-empty specs arrays`);
 
   console.log('\n--- 2. Testing Module Exports & Contracts ---');
   const stateMod = await import('../js/state.js');
