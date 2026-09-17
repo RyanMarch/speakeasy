@@ -459,8 +459,32 @@ function setupGlobalEventListeners() {
     }
   });
 
-  // Keyboard shortcut: Escape to cancel editor or clear search
+  // Keyboard shortcuts:
+  // - Escape: cancel editor or clear search
+  // - Cmd/Ctrl + K or /: focus search input (when visible)
+  // - ArrowUp / ArrowDown: navigate between recipes when viewing recipe detail
   window.addEventListener('keydown', (e) => {
+    const isEditingText = e.target && (
+      e.target.tagName === 'INPUT' ||
+      e.target.tagName === 'TEXTAREA' ||
+      e.target.tagName === 'SELECT' ||
+      e.target.isContentEditable
+    );
+
+    // Search focus shortcuts: '/' (without modifiers/inputs) or Cmd+K / Ctrl+K
+    const isSearchFocusKey = (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey && !isEditingText)
+      || ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K'));
+
+    if (isSearchFocusKey) {
+      const searchInput = elements.searchInput;
+      if (searchInput && searchInput.offsetParent !== null && !searchInput.disabled) {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+        return;
+      }
+    }
+
     if (e.key === 'Escape') {
       if (state.viewMode === 'edit') {
         cancelEditor();
@@ -469,6 +493,40 @@ function setupGlobalEventListeners() {
         state.searchQuery = '';
         elements.searchClearBtn?.classList.remove('visible');
         renderRecipeList();
+      }
+      return;
+    }
+
+    // Up / Down arrow navigation between recipes:
+    // Only active when viewing a recipe ('counter'), no open modal, and not focused in an input
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !isEditingText) {
+      if (state.viewMode !== 'counter') return;
+      if (document.querySelector('.modal:not(.hidden)')) return;
+
+      const items = Array.from(elements.recipeList?.querySelectorAll('.recipe-list-item[data-id]') || []);
+      if (items.length === 0) return;
+
+      const currentIndex = items.findIndex(item => item.getAttribute('data-id') === state.activeRecipeId);
+      let targetIndex = -1;
+
+      if (e.key === 'ArrowDown') {
+        if (currentIndex === -1) {
+          targetIndex = 0;
+        } else if (currentIndex < items.length - 1) {
+          targetIndex = currentIndex + 1;
+        }
+      } else if (e.key === 'ArrowUp') {
+        if (currentIndex > 0) {
+          targetIndex = currentIndex - 1;
+        }
+      }
+
+      if (targetIndex >= 0 && targetIndex < items.length) {
+        e.preventDefault();
+        const nextId = items[targetIndex].getAttribute('data-id');
+        if (nextId) {
+          selectRecipe(nextId);
+        }
       }
     }
   });
