@@ -96,12 +96,35 @@ function wrapText(ctx, text, maxWidth, maxLines) {
   return lines;
 }
 
+/**
+ * wrapText(), but steps the font size down when the title would otherwise
+ * truncate with an ellipsis — e.g. "Hot Buttered Rum" at the shortest-name
+ * tier's 86px wraps to "HOT"/"BUTTERED…", silently dropping "Rum". A
+ * shrunk-but-complete title reads better than a bigger one that's missing
+ * a word, and this only kicks in for the rare title where three-plus words
+ * don't fit two lines at the tier's default size — most names render at
+ * exactly titleFontSize()'s size. Sets ctx.font as a side effect, to
+ * whatever size it settles on.
+ */
+function fitTitle(ctx, name, startFontSize, maxWidth, maxLines) {
+  const upper = (name || 'A Speakeasy Cocktail').toUpperCase();
+  let fontSize = startFontSize;
+  ctx.font = `700 ${fontSize}px "Gurmukhi MN", "DM Sans", sans-serif`;
+  let lines = wrapText(ctx, upper, maxWidth, maxLines);
+  while (lines.some((line) => line.endsWith('…')) && fontSize > 40) {
+    fontSize -= 4;
+    ctx.font = `700 ${fontSize}px "Gurmukhi MN", "DM Sans", sans-serif`;
+    lines = wrapText(ctx, upper, maxWidth, maxLines);
+  }
+  return { fontSize, lines };
+}
+
 function titleFontSize(name) {
   const len = (name || '').length;
-  if (len > 34) return 46;
+  if (len > 34) return 48;
   if (len > 24) return 56;
-  if (len > 16) return 66;
-  return 76;
+  if (len > 16) return 62;
+  return 86;
 }
 
 /**
@@ -134,32 +157,45 @@ export async function renderShareCardPng(recipe) {
     drawRoundedRect(ctx, 44, 44, CARD_WIDTH - 88, CARD_HEIGHT - 88, 8);
     ctx.stroke();
 
-    // "SPEAKEASY" label
+    // "SPEAKEASY" label. Sized and viewed as a phone-screen thumbnail (a
+    // link preview in Messages/Slack/etc. renders this card at a few
+    // hundred px wide), not at its native 1200px canvas size, so text needs
+    // real heft to survive that downscale — 22px all but disappears.
     ctx.fillStyle = COLOR_GOLD;
-    ctx.font = '600 22px "DM Sans", sans-serif';
+    ctx.font = '700 42px "Gurmukhi MN", "DM Sans", sans-serif';
     ctx.textBaseline = 'alphabetic';
-    fillTextSpaced(ctx, 'SPEAKEASY', 100, 234, 6);
+    fillTextSpaced(ctx, 'SPEAKEASY', 100, 120, 11);
 
-    // Title
-    const fontSize = titleFontSize(recipe.name);
+    // Title. Uppercased for the same reason every other Gurmukhi MN heading
+    // in the app is styled with text-transform: uppercase (see
+    // css/theme-deco.css) instead of drawn as typed: the font's accented
+    // Latin glyphs (é, ñ, á, ç…) only exist in its uppercase set, so a
+    // mixed-case name like "Piña Colada" silently loses its tilde where an
+    // ordinary DOM heading would just pick that glyph up from the CSS
+    // transform — canvas fillText draws the literal string with no such
+    // transform applied for us.
     ctx.fillStyle = COLOR_WHITE;
-    ctx.font = `700 ${fontSize}px "Playfair Display", Georgia, serif`;
-    const titleLines = wrapText(ctx, recipe.name || 'A Speakeasy Cocktail', 620, 2);
+    const { fontSize, lines: titleLines } = fitTitle(ctx, recipe.name, titleFontSize(recipe.name), 640, 2);
     const lineHeight = fontSize * 1.12;
-    // Scales with fontSize so the title's cap-height clears the SPEAKEASY
-    // label by a consistent margin whether it's rendered at 46px or 76px.
-    const titleY = 290 + fontSize * 0.75;
+    // Rebalanced for the larger type scale: a 2-line title at the largest
+    // tier plus the enlarged button needs more vertical room than the old
+    // constants (tuned when everything was smaller) left, which pushed the
+    // button below the card's bottom edge for any short name that wraps.
+    // SPEAKEASY moved up (see its y= above) to free up that space rather
+    // than shrinking the type back down.
+    const titleY = 190 + fontSize * 0.7;
     titleLines.forEach((line, i) => {
       ctx.fillText(line, 100, titleY + i * lineHeight);
     });
 
     // Fake "View Drink" button — decorative CTA flavor, in place of the
     // glassware/method or riff-attribution line; matches the fallback
-    // card's button for a consistent look across both.
+    // card's button for a consistent look across both. Sized up for the
+    // same thumbnail-legibility reason as the SPEAKEASY label above.
     const btnRowY = titleY + titleLines.length * lineHeight + 20;
-    ctx.font = '600 20px "DM Sans", sans-serif';
+    ctx.font = '600 38px "DM Sans", sans-serif';
     const btnText = 'View Drink  →';
-    const btnPaddingX = 28, btnHeight = 56;
+    const btnPaddingX = 44, btnHeight = 92;
     const btnWidth = ctx.measureText(btnText).width + btnPaddingX * 2;
     drawRoundedRect(ctx, 100, btnRowY, btnWidth, btnHeight, btnHeight / 2);
     ctx.strokeStyle = COLOR_GOLD;
