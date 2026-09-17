@@ -164,7 +164,7 @@ export function openEditor(recipe = null) {
         <label class="form-label" for="edit-instructions">Preparation Directions</label>
         <textarea id="edit-instructions" class="form-textarea" rows="4" placeholder="Step-by-step preparation directions..." autocomplete="off">${escapeHtml(currentData.instructions || currentData.notes || '')}</textarea>
         <div class="field-hint" style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.35rem;">
-          Mention a technique, glass, or garnish here ("garnish with a cherry") and we'll suggest it below.
+          Mention a technique, glass, or garnish here and we'll suggest it below.
         </div>
       </div>
 
@@ -185,7 +185,7 @@ export function openEditor(recipe = null) {
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="edit-method">Preparation <span class="field-detected-badge" id="method-detected-badge" hidden>detected</span></label>
+          <label class="form-label" for="edit-method">Preparation<span class="field-detected-badge" id="method-detected-badge" hidden>detected</span></label>
           <select id="edit-method" class="form-select">
             <option value="Shaken" ${currentData.method === 'Shaken' ? 'selected' : ''}>Shaken</option>
             <option value="Stirred" ${currentData.method === 'Stirred' ? 'selected' : ''}>Stirred</option>
@@ -246,14 +246,14 @@ export function openEditor(recipe = null) {
           <input type="text" id="edit-source" class="form-input" value="${escapeHtml(currentData.source || '')}" placeholder="Your name, bar, or book" autocomplete="off">
         </div>
         <div class="form-group">
-          <label class="form-label" for="edit-source-url">Source Link / URL</label>
+          <label class="form-label" for="edit-source-url">Source Link</label>
           <input type="url" id="edit-source-url" class="form-input" value="${escapeHtml(currentData.sourceUrl || '')}" placeholder="https://example.com/my-recipe" autocomplete="off">
         </div>
       </div>
 
       <!-- Additional Notes -->
       <div class="editor-section editor-field-notes form-group">
-        <label class="form-label" for="edit-notes">Additional Notes & Tips (Optional)</label>
+        <label class="form-label" for="edit-notes">Additional Notes & Tips</label>
         <textarea id="edit-notes" class="form-textarea" rows="2" placeholder="Ice, dilution details, or variations..." autocomplete="off">${escapeHtml(currentData.notes || '')}</textarea>
       </div>
 
@@ -840,10 +840,13 @@ export function updateEditorGlassPreview() {
 function runTagAutoDetection(method) {
   if (!state.editorTagsAutoDetectEnabled) return;
   const namedSpecs = state.editorSpecs.filter(s => s.name && s.name.trim());
+  const glassware = document.getElementById('edit-glassware')?.value || 'Rocks';
+  const name = document.getElementById('edit-name')?.value || '';
+  const instructions = document.getElementById('edit-instructions')?.value || '';
 
   const currentlySuggested = new Set(
     namedSpecs.length > 0
-      ? detectTagsFromRecipe(namedSpecs, method).filter(tag => !state.editorAutoRemovedTags.includes(tag))
+      ? detectTagsFromRecipe(namedSpecs, method, { glassware, name, instructions }).filter(tag => !state.editorAutoRemovedTags.includes(tag))
       : []
   );
 

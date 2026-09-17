@@ -410,3 +410,34 @@ export function resolveGlassware(glasswareString = '') {
 
   return GLASS_TYPES.rocks;
 }
+
+/**
+ * Detects whether a drink is served hot based on explicit tag (#hot),
+ * glassware profile (Mug / Hot Toddy Glass), boiling/hot ingredients,
+ * or instructions mentioning hot/steaming water/cider/tea/toddy.
+ */
+export function isHotBeverage(recipe, glassware = null) {
+  if (!recipe) return false;
+
+  // 1. Explicit tag
+  const tags = Array.isArray(recipe.tags) ? recipe.tags.map(t => String(t).toLowerCase().trim()) : [];
+  if (tags.includes('hot')) return true;
+
+  // 2. Glassware profile
+  const resolvedGlass = glassware || resolveGlassware(recipe.glassware);
+  if (resolvedGlass?.id === 'mug') return true;
+
+  // 3. Hot ingredient specs
+  const hotIngredientPattern = /\b(boiling water|hot water|hot coffee|hot tea|hot cider|steaming water)\b/i;
+  if ((recipe.specs || []).some(s => hotIngredientPattern.test(s?.name || ''))) {
+    return true;
+  }
+
+  // 4. Instructions / Name / Notes mention
+  const combinedText = `${recipe.name || ''} ${recipe.instructions || ''} ${recipe.notes || ''}`.toLowerCase();
+  if (/\b(hot toddy|hot buttered|boiling water|steaming water|served hot)\b/i.test(combinedText)) {
+    return true;
+  }
+
+  return false;
+}

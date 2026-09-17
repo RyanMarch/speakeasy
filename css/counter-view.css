@@ -841,11 +841,91 @@
   }
 }
 
+/* Steam Vapor: continuous, smooth upward drift with faint ambient wisp expansion */
+@keyframes steamRiseUp1 {
+  0% {
+    transform: translateY(0) translateX(0) scaleX(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.42;
+  }
+  60% {
+    transform: translateY(-28px) translateX(-2px) scaleX(1.04);
+    opacity: 0.38;
+  }
+  100% {
+    transform: translateY(-56px) translateX(1px) scaleX(1.10);
+    opacity: 0;
+  }
+}
+
+@keyframes steamRiseUp2 {
+  0% {
+    transform: translateY(0) translateX(0) scaleX(1);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.46;
+  }
+  65% {
+    transform: translateY(-32px) translateX(2px) scaleX(1.03);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(-64px) translateX(-1px) scaleX(1.08);
+    opacity: 0;
+  }
+}
+
+@keyframes steamRiseUp3 {
+  0% {
+    transform: translateY(0) translateX(0) scaleX(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.38;
+  }
+  55% {
+    transform: translateY(-26px) translateX(1.5px) scaleX(1.05);
+    opacity: 0.32;
+  }
+  100% {
+    transform: translateY(-52px) translateX(-2px) scaleX(1.12);
+    opacity: 0;
+  }
+}
+
 .garnish-smoke-wave,
 .garnish-smoke-puff,
-.garnish-smoke-shimmer {
+.garnish-smoke-shimmer,
+.garnish-steam-wisp {
   transform-box: fill-box;
-  transform-origin: center;
+  transform-origin: center bottom;
+}
+
+.garnish-steam-wisp-1 {
+  animation: steamRiseUp1 4.6s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+}
+
+.garnish-steam-wisp-2 {
+  animation: steamRiseUp2 5.4s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+  animation-delay: -1.8s;
+}
+
+.garnish-steam-wisp-3 {
+  animation: steamRiseUp3 4.9s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+  animation-delay: -3.3s;
+}
+
+.garnish-steam-wisp-4 {
+  animation: steamRiseUp1 4.6s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+  animation-delay: -2.3s;
+}
+
+.garnish-steam-wisp-5 {
+  animation: steamRiseUp2 5.4s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+  animation-delay: -4.5s;
 }
 
 .garnish-smoke-wave-1 {
@@ -883,7 +963,8 @@
 @media (prefers-reduced-motion: reduce) {
   .garnish-smoke-wave,
   .garnish-smoke-puff,
-  .garnish-smoke-shimmer {
+  .garnish-smoke-shimmer,
+  .garnish-steam-wisp {
     animation: none;
   }
 }
@@ -2575,11 +2656,17 @@
 /* "More Fun" Preference Disabled / Static Mode
    Disables infinite ambient animations, effervescence bubbles, smoke, embers,
    sparks, and swirl transitions across glassware.
+   Steam lines are completely hidden (not even static) when More Fun is off.
 -------------------------------------------------------------------------- */
+.animations-disabled .garnish-steam {
+  display: none !important;
+}
+
 .animations-disabled .fluid-bubble,
 .animations-disabled .garnish-smoke-wave,
 .animations-disabled .garnish-smoke-puff,
 .animations-disabled .garnish-smoke-shimmer,
+.animations-disabled .garnish-steam-wisp,
 .animations-disabled .peel-ember-glow,
 .animations-disabled .peel-spark,
 .animations-disabled .speakeasy-glass-svg.is-blending-forward,

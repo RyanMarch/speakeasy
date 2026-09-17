@@ -198,6 +198,8 @@ function detectAbvTag(specs, method) {
   return null;
 }
 
+const HOT_INGREDIENT_PATTERN = /\b(boiling water|hot water|hot coffee|hot tea|hot cider|steaming water)\b/i;
+
 /**
  * Suggests a small, capped set of tags from a recipe's ingredients, computed
  * flavor balance, and ABV. Always additive (the caller should only use this to
@@ -205,12 +207,21 @@ function detectAbvTag(specs, method) {
  * dominant spirit, then flavor character, then other ingredient signals, then
  * strength — so if the cap trims the list, what's cut is the least specific.
  */
-export function detectTagsFromRecipe(specs, method) {
+export function detectTagsFromRecipe(specs, method, extraContext = {}) {
   const tags = [];
   const spiritTag = detectDominantSpiritTag(specs);
   if (spiritTag) tags.push(spiritTag);
   tags.push(...detectFlavorTags(specs));
   tags.push(...detectIngredientPresenceTags(specs));
+
+  // Detect hot beverage tag from ingredients or context
+  const hasHotIngredient = (specs || []).some(s => HOT_INGREDIENT_PATTERN.test(s?.name || ''));
+  const isMugGlassware = extraContext.glassware === 'Mug';
+  const hasHotNameOrDirections = /\b(hot toddy|hot buttered|boiling water|steaming water)\b/i.test(`${extraContext.name || ''} ${extraContext.instructions || ''}`);
+  if (hasHotIngredient || isMugGlassware || hasHotNameOrDirections) {
+    tags.push('hot');
+  }
+
   const abvTag = detectAbvTag(specs, method);
   if (abvTag) tags.push(abvTag);
   return Array.from(new Set(tags)).slice(0, 5);
