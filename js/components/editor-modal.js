@@ -47,9 +47,14 @@ export function setEditorModalCallbacks(cbs) {
 /**
  * Open Recipe Editor (Create or Edit)
  */
-export function openEditor(recipe = null) {
+export function openEditor(recipe = null, updateHistory = true) {
   state.viewMode = 'edit';
   const isNew = !recipe || !recipe.id;
+
+  const targetHash = isNew ? '#new' : `#edit/${recipe.id}`;
+  if (updateHistory && window.location.hash !== targetHash) {
+    history.pushState(null, '', targetHash);
+  }
 
   const currentData = recipe ? JSON.parse(JSON.stringify(recipe)) : {
     id: null,
@@ -933,6 +938,16 @@ export function cancelEditor() {
   state.editorRiffOfId = null;
   state.editorRiffOfName = '';
   state.viewMode = 'counter';
+
+  const rawHash = window.location.hash.replace(/^#+/, '').trim();
+  if (rawHash === 'new' || rawHash.startsWith('edit/')) {
+    if (state.activeRecipeId) {
+      history.pushState(null, '', `#${state.activeRecipeId}`);
+    } else {
+      history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+  }
+
   if (_renderCurrentViewFn) _renderCurrentViewFn();
 
   if (!state.activeRecipeId) {

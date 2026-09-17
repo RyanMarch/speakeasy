@@ -275,6 +275,62 @@ async function runTests() {
   // Clean up mock localStorage
   delete globalThis.localStorage;
 
+  console.log('\n--- 7. Testing Editor URL Hash Routing ---');
+  let pushedHash = null;
+  globalThis.window = {
+    location: { hash: '#old-fashioned', pathname: '/app', search: '' }
+  };
+  globalThis.history = {
+    pushState: (_state, _title, url) => { pushedHash = url; window.location.hash = url; }
+  };
+
+  // Mock document elements needed by openEditor / cancelEditor
+  const dummyEl = {
+    innerHTML: '',
+    style: {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {} },
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    addEventListener: () => {},
+    setAttribute: () => {},
+    getAttribute: () => '',
+  };
+  globalThis.document = {
+    getElementById: () => dummyEl,
+    querySelector: () => dummyEl,
+    querySelectorAll: () => [],
+  };
+  globalThis.IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+  globalThis.window.scrollTo = () => {};
+  stateMod.elements.editorViewContainer = dummyEl;
+  stateMod.elements.sidebar = dummyEl;
+  stateMod.elements.mainStage = dummyEl;
+
+  // Test opening a new drink pushes #new
+  editorModalMod.openEditor(null);
+  assert(pushedHash === '#new', 'openEditor(null) pushes #new to history');
+  assert(stateMod.state.viewMode === 'edit', 'state.viewMode is set to edit');
+
+  // Test opening an existing recipe for edit pushes #edit/:id
+  editorModalMod.openEditor({ id: 'manhattan', name: 'Manhattan', specs: [] });
+  assert(pushedHash === '#edit/manhattan', 'openEditor(existing) pushes #edit/manhattan to history');
+
+  // Test cancelEditor restores previous recipe hash if activeRecipeId is present
+  stateMod.state.activeRecipeId = 'manhattan';
+  editorModalMod.cancelEditor();
+  assert(pushedHash === '#manhattan', 'cancelEditor() restores active recipe hash #manhattan');
+  assert(stateMod.state.viewMode === 'counter', 'cancelEditor() restores counter viewMode');
+
+  // Clean up globals
+  delete globalThis.window;
+  delete globalThis.history;
+  delete globalThis.document;
+  delete globalThis.IntersectionObserver;
+
   console.log(`\nAll Architecture Tests Complete! Passed: ${passedTests} / ${totalTests}`);
 }
 
