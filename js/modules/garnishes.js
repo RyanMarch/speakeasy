@@ -80,6 +80,21 @@ export function resolveGarnishTypes(garnishString = '') {
     garnishes.push('cucumberSlice');
   }
 
+  // Strawberry
+  if (text.includes('strawberr')) {
+    garnishes.push('strawberry');
+  }
+
+  // Jalapeño
+  if (text.includes('jalapeno') || text.includes('jalapeño')) {
+    garnishes.push('jalapenoSlice');
+  }
+
+  // Marshmallow
+  if (text.includes('marshmallow') || text.includes('smore') || text.includes("s'more")) {
+    garnishes.push('marshmallow');
+  }
+
   // Wheels and Slices
   if (/lime.*(wheel|disc|slice)/.test(text) || /(wheel|disc|slice).*lime/.test(text)) {
     garnishes.push('limeWheel');
@@ -946,6 +961,133 @@ function renderCucumberSlice(x, y, angle = 1) {
 }
 
 /**
+ * Render a whole strawberry perched on the rim with a slotted incision,
+ * seed achenes, and leafy green hull calyx.
+ */
+function renderStrawberry(x, y, isLeft = false) {
+  const sx = isLeft ? -1 : 1;
+  const rot = isLeft ? -10 : 10;
+  const seeds = [
+    { x: -5, y: -9 }, { x: 0, y: -10 }, { x: 5, y: -9 },
+    { x: -9, y: -3 }, { x: -3, y: -3 }, { x: 3, y: -3 }, { x: 9, y: -3 },
+    { x: -8, y: 3 }, { x: -2, y: 4 }, { x: 4, y: 4 }, { x: 8, y: 3 },
+    { x: -5, y: 9 }, { x: 1, y: 10 }, { x: 6, y: 9 },
+    { x: -2, y: 15 }, { x: 2, y: 15 },
+    { x: 0, y: 19 },
+  ];
+
+  return `
+    <g class="garnish garnish-strawberry" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${rot}) scale(${sx}, 1)" pointer-events="none">
+      <!-- Shadow accent behind berry -->
+      <path d="M 0 -14 C -17 -14, -18 6, 0 24 C 18 6, 17 -14, 0 -14 Z" fill="#780616" opacity="0.4" />
+      <!-- Main berry body -->
+      <path d="M 0 -14 C -16 -14, -17 5, 0 23 C 17 5, 16 -14, 0 -14 Z" fill="#d31932" />
+      <!-- Highlight sheen along shoulder -->
+      <path d="M -12 -8 C -14 0, -10 10, -2 17" stroke="rgba(255, 255, 255, 0.45)" stroke-width="2.2" stroke-linecap="round" fill="none" />
+      <!-- Strawberry seeds (achenes) with shadow recess -->
+      ${seeds.map(s => `
+        <ellipse cx="${s.x}" cy="${s.y}" rx="0.9" ry="1.4" fill="#ffeb3b" transform="rotate(10 ${s.x} ${s.y})" />
+        <circle cx="${s.x + 0.3}" cy="${s.y + 0.6}" r="0.45" fill="#880e4f" opacity="0.6" />
+      `).join('')}
+      <!-- Green stem & calyx leaves sitting on top -->
+      <!-- Stem -->
+      <path d="M 0 -14 Q 1 -21, 5 -24" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" fill="none" />
+      <!-- Calyx crown fronds -->
+      <path d="M 0 -13 C -6 -18, -13 -17, -15 -14 C -12 -12, -6 -11, 0 -13 Z" fill="#4caf50" stroke="#2e7d32" stroke-width="0.6" />
+      <path d="M 0 -13 C -3 -20, -6 -23, -8 -25 C -5 -19, -2 -16, 0 -13 Z" fill="#66bb6a" stroke="#2e7d32" stroke-width="0.6" />
+      <path d="M 0 -13 C 3 -20, 6 -23, 8 -25 C 5 -19, 2 -16, 0 -13 Z" fill="#66bb6a" stroke="#2e7d32" stroke-width="0.6" />
+      <path d="M 0 -13 C 6 -18, 13 -17, 15 -14 C 12 -12, 6 -11, 0 -13 Z" fill="#4caf50" stroke="#2e7d32" stroke-width="0.6" />
+      <path d="M 0 -13 C -3 -9, -4 -3, -5 0 C -3 -5, -1 -9, 0 -13 Z" fill="#388e3c" />
+      <path d="M 0 -13 C 3 -9, 4 -3, 5 0 C 3 -5, 1 -9, 0 -13 Z" fill="#388e3c" />
+      <!-- Rim notch slit illusion -->
+      <line x1="0" y1="2" x2="0" y2="23" stroke="rgba(0, 0, 0, 0.45)" stroke-width="1.6" />
+    </g>
+  `;
+}
+
+/**
+ * Render a sliced jalapeño coin/wheel with shiny dark green skin, pale inner
+ * placenta, round seeds, and rim notch.
+ */
+function renderJalapenoSlice(x, y, angle = 3) {
+  const seeds = [
+    { dx: -4.5, dy: -3.5 },
+    { dx: 4.5, dy: -3.5 },
+    { dx: 0, dy: 5 },
+    { dx: -3.8, dy: 3 },
+    { dx: 3.8, dy: 3 },
+  ];
+
+  return `
+    <g class="garnish garnish-jalapeno" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angle})" pointer-events="none">
+      <!-- Outer dark pepper skin -->
+      <circle cx="0" cy="0" r="19" fill="#1b5e20" />
+      <!-- Glossy skin edge highlight -->
+      <circle cx="0" cy="0" r="18" fill="#2e7d32" />
+      <!-- Inner pepper wall flesh -->
+      <circle cx="0" cy="0" r="15.5" fill="#43a047" />
+      <!-- Pale core cavity / placenta ring -->
+      <circle cx="0" cy="0" r="11" fill="#c8e6c9" opacity="0.9" />
+      <!-- Cavity hollow center -->
+      <circle cx="0" cy="0" r="7.5" fill="#e8f5e9" />
+      <!-- Internal rib segments connecting wall to core -->
+      <line x1="0" y1="-7.5" x2="0" y2="-15.5" stroke="#a5d6a7" stroke-width="2.2" stroke-linecap="round" />
+      <line x1="-6.5" y1="3.8" x2="-13.4" y2="7.8" stroke="#a5d6a7" stroke-width="2.2" stroke-linecap="round" />
+      <line x1="6.5" y1="3.8" x2="13.4" y2="7.8" stroke="#a5d6a7" stroke-width="2.2" stroke-linecap="round" />
+      <!-- Characteristic round jalapeño seeds -->
+      ${seeds.map(s => `
+        <ellipse cx="${s.dx}" cy="${s.dy}" rx="2" ry="1.6" fill="#fff9c4" stroke="#d4c878" stroke-width="0.5" />
+        <circle cx="${s.dx + 0.3}" cy="${s.dy - 0.3}" r="0.5" fill="#ffffff" opacity="0.8" />
+      `).join('')}
+      <!-- Rim notch illusion -->
+      <line x1="0" y1="2" x2="0" y2="19" stroke="rgba(0, 0, 0, 0.4)" stroke-width="1.3" />
+    </g>
+  `;
+}
+
+/**
+ * Render a golden toasted marshmallow perched on the glass rim with
+ * caramelized brûlée top, gooey pillowy contours, and toasted blisters.
+ */
+function renderMarshmallow(x, y, isLeft = false) {
+  const sx = isLeft ? -1 : 1;
+  const rot = isLeft ? -6 : 6;
+
+  return `
+    <g class="garnish garnish-marshmallow" transform="translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${rot}) scale(${sx}, 1)" pointer-events="none">
+      <!-- Cast shadow behind marshmallow -->
+      <path d="M -13 -13 C -13 -16, 13 -16, 13 -13 L 14 11 C 14 16, -14 16, -14 11 Z" fill="#4a250a" opacity="0.3" />
+
+      <!-- Main pillowy marshmallow cylindrical body -->
+      <rect x="-13" y="-12" width="26" height="23" rx="4.5" fill="#fcfaf2" stroke="#e8dfce" stroke-width="0.8" />
+
+      <!-- Soft gradient shading on body sides -->
+      <path d="M -13 -10 C -13 0, -13 8, -13 10 C -11 10, -10 0, -10 -10 Z" fill="#ece1cd" opacity="0.6" />
+      <path d="M 13 -10 C 13 0, 13 8, 13 10 C 11 10, 10 0, 10 -10 Z" fill="#ece1cd" opacity="0.6" />
+
+      <!-- Golden toasted surface patches along side and base -->
+      <ellipse cx="6" cy="3" rx="4.5" ry="3.2" fill="#d4944d" opacity="0.75" />
+      <ellipse cx="6" cy="3" rx="2.5" ry="1.6" fill="#8d4b1a" opacity="0.85" />
+      <ellipse cx="-5" cy="6" rx="3.5" ry="2.2" fill="#d4944d" opacity="0.65" />
+
+      <!-- Toasted caramelized brûlée top crown -->
+      <ellipse cx="0" cy="-12" rx="13" ry="4.5" fill="#d99955" />
+      <ellipse cx="0" cy="-12.3" rx="11.2" ry="3.6" fill="#8c4714" />
+      <!-- Dark charred center spots from torch/campfire flame -->
+      <ellipse cx="-2" cy="-12.5" rx="5" ry="1.8" fill="#421a05" />
+      <circle cx="4" cy="-12.8" r="1.6" fill="#361504" />
+      <circle cx="-6" cy="-12.2" r="1.2" fill="#5a270a" />
+
+      <!-- Subtle gooey sheen highlight -->
+      <path d="M -8 -8 C -10 -4, -10 2, -8 6" stroke="rgba(255, 255, 255, 0.85)" stroke-width="1.4" stroke-linecap="round" fill="none" />
+
+      <!-- Rim notch slot illusion -->
+      <line x1="0" y1="2" x2="0" y2="12" stroke="rgba(0, 0, 0, 0.35)" stroke-width="1.5" />
+    </g>
+  `;
+}
+
+/**
  * Render a swizzle stick planted into the drink — a thin wooden shaft topped
  * with the classic radiating-spoke pinwheel, standing tall out of crushed ice
  * for tiki/swizzle-method drinks (Queen's Park Swizzle, Chartreuse Swizzle, etc.)
@@ -1060,8 +1202,8 @@ function renderCinnamonStick(x, y, angle = 18, glassBottomY = null) {
 const GARNISH_HEADROOM = {
   mintSprig: 72, // 66-unit max leaf reach + 6 margin (see renderMintSprig)
   pineappleWedge: 48,
-  limeWheel: 29, lemonWheel: 29, orangeWheel: 29, cucumberSlice: 29,
-  limeWedge: 24, lemonWedge: 24, orangeWedge: 24, appleSlice: 24,
+  limeWheel: 29, lemonWheel: 29, orangeWheel: 29, cucumberSlice: 29, jalapenoSlice: 26,
+  limeWedge: 24, lemonWedge: 24, orangeWedge: 24, appleSlice: 24, strawberry: 32, marshmallow: 24,
   lemonTwist: 14, orangeTwist: 14, limeTwist: 14,
   cherry: 15, olive: 15, cocktailOnion: 15, pickleSpear: 15,
   cinnamonStick: 48,
@@ -1222,6 +1364,15 @@ export function renderGarnishesSvg(recipe, glassware, surfaceY) {
         break;
       case 'cucumberSlice':
         rendered.push(renderCucumberSlice(posX, posY - 6, isSlotLeft ? -14 : 14));
+        break;
+      case 'strawberry':
+        rendered.push(renderStrawberry(posX, posY, isSlotLeft));
+        break;
+      case 'jalapenoSlice':
+        rendered.push(renderJalapenoSlice(posX, posY - 6, isSlotLeft ? -14 : 14));
+        break;
+      case 'marshmallow':
+        rendered.push(renderMarshmallow(posX, posY, isSlotLeft));
         break;
     }
   });

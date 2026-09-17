@@ -1984,6 +1984,23 @@ export const TAXONOMY = {
     defaultAbv: 0,
     aliases: ['vanilla syrup'],
   },
+  marshmallow_syrup: {
+    id: 'marshmallow_syrup',
+    name: 'Marshmallow Syrup',
+    family: 'flavored_syrup',
+    parent: 'sweeteners',
+    color: '#fdfbf7',
+    light: '#ffffff',
+    dark: '#ede7db',
+    defaultAbv: 0,
+    aliases: ['marshmallow syrup', 'toasted marshmallow syrup', 'marshmallow simple syrup'],
+    brands: [
+      'Monin',
+      'Torani',
+      '1883 Maison Routin',
+      'Jordan\'s Skinny Mixes',
+    ],
+  },
   raspberry_syrup: {
     id: 'raspberry_syrup',
     name: 'Raspberry Syrup',
@@ -2093,6 +2110,17 @@ export const TAXONOMY = {
     dark: '#a1540f',
     defaultAbv: 0,
     aliases: ['marmalade'],
+  },
+  marshmallow: {
+    id: 'marshmallow',
+    name: 'Marshmallow',
+    family: 'raw_sweetener',
+    parent: 'sweeteners',
+    color: '#fdfbf7',
+    light: '#ffffff',
+    dark: '#ede7db',
+    defaultAbv: 0,
+    aliases: ['marshmallow', 'marshmallows', 'toasted marshmallow'],
   },
 
   // ==========================================
@@ -2371,7 +2399,18 @@ export const TAXONOMY = {
     light: '#e0454f',
     dark: '#870f18',
     defaultAbv: 0,
-    aliases: ['strawberries'],
+    aliases: ['strawberries', 'strawberry', 'fresh strawberry', 'fresh strawberries', 'sliced strawberry', 'sliced strawberries'],
+  },
+  jalapeno: {
+    id: 'jalapeno',
+    name: 'Jalapeño',
+    family: 'fresh_produce',
+    parent: 'produce',
+    color: '#2e7d32',
+    light: '#4caf50',
+    dark: '#1b5e20',
+    defaultAbv: 0,
+    aliases: ['jalapeno', 'jalapeño', 'jalapenos', 'jalapeños', 'jalapeno pepper', 'jalapeño pepper', 'jalapeno slice', 'jalapeño slice', 'jalapeno slices', 'jalapeño slices', 'fresh jalapeno', 'fresh jalapeño'],
   },
   grapes: {
     id: 'grapes',
@@ -2972,6 +3011,7 @@ export const REFRIGERATED_INGREDIENT_IDS = new Set([
   'ginger_root',
   'blackberries',
   'strawberries',
+  'jalapeno',
   'grapes',
 
   // Texture & Dairy
