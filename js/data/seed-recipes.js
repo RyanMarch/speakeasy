@@ -3591,7 +3591,7 @@ export const SEED_RECIPES = [
     source: "Scottish Traditional (c. 18th century)",
     sourceUrl: "",
     notes: "The definitive hot winter restorative.",
-    tags: ["classic", "whiskey-forward", "nightcaps", "comforting", "ancestor"],
+    tags: ["classic", "whiskey-forward", "hot", "nightcaps", "comforting", "ancestor"],
     specs: [
       { amount: 2, unit: "oz", name: "Bourbon" },
       { amount: 0.75, unit: "oz", name: "Honey Syrup" },

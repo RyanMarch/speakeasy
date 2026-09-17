@@ -782,6 +782,92 @@ function renderSmokeCloud(cx, rimY, liquidY) {
 }
 
 /**
+ * Render delicate, wispy, vertical steam tendrils rising from a hot beverage.
+ * Visibly thinner than smoke ribbons, wafting much higher upward, and dissolving smoothly.
+ */
+let steamInstanceCounter = 0;
+
+export function renderSteamVapor(cx, rimY, liquidY) {
+  const filterId = `steam-blur-${steamInstanceCounter++}`;
+  const maskId = `steam-fade-mask-${steamInstanceCounter}`;
+  const startY = typeof liquidY === 'number' && !isNaN(liquidY) ? liquidY : rimY + 8;
+
+  // Multiple layered wisps that ascend vertically in staggered streams
+  const wisps = [
+    {
+      // Stream 1: left stream, primary wave
+      d: `M ${cx - 16} ${startY + 6} C ${cx - 24} ${startY - 18}, ${cx - 8} ${rimY - 15}, ${cx - 18} ${rimY - 45} S ${cx - 6} ${rimY - 78}, ${cx - 14} ${rimY - 96}`,
+      width: 2.4,
+      opacity: 0.40,
+      variant: 1,
+    },
+    {
+      // Stream 2: left stream, follow-up wave (staggered for seamless continuity)
+      d: `M ${cx - 13} ${startY + 12} C ${cx - 20} ${startY - 12}, ${cx - 10} ${rimY - 12}, ${cx - 16} ${rimY - 42} S ${cx - 8} ${rimY - 74}, ${cx - 12} ${rimY - 90}`,
+      width: 1.8,
+      opacity: 0.32,
+      variant: 4,
+    },
+    {
+      // Stream 3: central stream, rising tallest
+      d: `M ${cx} ${startY + 8} C ${cx + 8} ${startY - 20}, ${cx - 10} ${rimY - 20}, ${cx + 8} ${rimY - 52} S ${cx - 6} ${rimY - 86}, ${cx + 4} ${rimY - 106}`,
+      width: 2.8,
+      opacity: 0.46,
+      variant: 2,
+    },
+    {
+      // Stream 4: central stream, secondary wave
+      d: `M ${cx + 2} ${startY + 16} C ${cx + 10} ${startY - 14}, ${cx - 8} ${rimY - 16}, ${cx + 6} ${rimY - 48} S ${cx - 4} ${rimY - 80}, ${cx + 2} ${rimY - 98}`,
+      width: 2.0,
+      opacity: 0.36,
+      variant: 5,
+    },
+    {
+      // Stream 5: right stream
+      d: `M ${cx + 15} ${startY + 6} C ${cx + 22} ${startY - 16}, ${cx + 6} ${rimY - 14}, ${cx + 18} ${rimY - 46} S ${cx + 8} ${rimY - 76}, ${cx + 14} ${rimY - 95}`,
+      width: 2.2,
+      opacity: 0.38,
+      variant: 3,
+    },
+  ];
+
+  return `
+    <g class="garnish garnish-steam" pointer-events="none">
+      <defs>
+        <filter id="${filterId}" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="2.4" />
+        </filter>
+        <!-- Vertical fade mask: allows steam to emerge smoothly from the liquid and cleanly evaporate into air -->
+        <linearGradient id="${maskId}" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="#fff" stop-opacity="0.05" />
+          <stop offset="20%" stop-color="#fff" stop-opacity="0.85" />
+          <stop offset="65%" stop-color="#fff" stop-opacity="0.80" />
+          <stop offset="85%" stop-color="#fff" stop-opacity="0.25" />
+          <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+        </linearGradient>
+        <mask id="${maskId}-apply">
+          <rect x="${cx - 70}" y="${rimY - 125}" width="140" height="${startY - (rimY - 125) + 20}" fill="url(#${maskId})" />
+        </mask>
+      </defs>
+
+      <!-- Wispy steam ribbons masked for vertical dissipation -->
+      <g mask="url(#${maskId}-apply)" filter="url(#${filterId})">
+        ${wisps.map(w => `
+          <path
+            class="garnish-steam-wisp garnish-steam-wisp-${w.variant}"
+            d="${w.d}"
+            fill="none"
+            stroke="rgba(255, 255, 255, ${w.opacity})"
+            stroke-width="${w.width}"
+            stroke-linecap="round"
+          />
+        `).join('')}
+      </g>
+    </g>
+  `;
+}
+
+/**
  * Render pineapple wedge
  */
 function renderPineappleWedge(x, y, angle = 16) {

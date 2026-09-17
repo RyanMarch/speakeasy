@@ -3,9 +3,9 @@
  * Generates an SVG glass with proportional fluid layers, clipped to glassware geometry.
  */
 
-import { resolveGlassware } from './glassware.js';
+import { resolveGlassware, isHotBeverage } from './glassware.js';
 import { calculateFluidLayers, calculateBlendedColor } from './colors.js';
-import { renderGarnishesSvg, getGarnishHeadroom } from './garnishes.js';
+import { renderGarnishesSvg, getGarnishHeadroom, renderSteamVapor } from './garnishes.js';
 
 let nextGlassId = 1;
 
@@ -27,7 +27,11 @@ function escapeXml(str) {
  * so both always agree.
  */
 function computeGlassViewBox(recipe, glassware) {
-  const headroom = getGarnishHeadroom(recipe);
+  const garnishHeadroom = getGarnishHeadroom(recipe);
+  const isHot = isHotBeverage(recipe, glassware);
+  // Steam tendrils waft high above the rim (up to ~95 units), so reserve headroom when hot
+  const steamHeadroom = isHot ? 88 : 0;
+  const headroom = Math.max(garnishHeadroom, steamHeadroom);
   const top = Math.max(0, glassware.rim.y - headroom);
   const bottom = glassware.canvasBottom;
   return { top, height: bottom - top };
@@ -304,6 +308,13 @@ export function renderGlassSvg(recipe, id = '', options = {}) {
 
       <!-- Garnishes -->
       ${garnishesSvg}
+
+      <!-- Ambient Steam for hot beverages (drifting upward from surface) -->
+      ${(isHotBeverage(recipe, glassware) && layers.length > 0) ? renderSteamVapor(
+        (glassware.rim.leftX + glassware.rim.rightX) / 2,
+        glassware.rim.y,
+        parseFloat(surfaceY)
+      ) : ''}
     </svg>
   `;
 }
