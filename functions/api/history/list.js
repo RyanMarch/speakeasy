@@ -26,13 +26,15 @@ export async function onRequestGet(context) {
 
   // 3. Query drink history
   const result = await env.speakeasy_db.prepare(
-    `SELECT id, recipe_id, made_at FROM drink_history WHERE user_id = ? ORDER BY made_at DESC LIMIT ?`
+    `SELECT id, recipe_id, made_at, rating, notes FROM drink_history WHERE user_id = ? ORDER BY made_at DESC LIMIT ?`
   ).bind(userId, limit).all();
 
   const history = (result.results || []).map(row => ({
     id: row.id,
     recipeId: row.recipe_id,
     madeAt: row.made_at,
+    rating: row.rating ?? null,
+    notes: row.notes ?? null,
   }));
 
   return jsonResponse({ history });

@@ -1,7 +1,8 @@
 /**
- * Cloudflare Pages Function: POST /api/history/log
+ * Cloudflare Pages Function: POST /api/history/update
  *
- * Logs a drink creation event to the D1 drink_history table for authenticated users.
+ * Updates the rating and/or tasting notes on an existing drink_history entry,
+ * scoped to the authenticated user so one account can never edit another's history.
  */
 
 import { jsonResponse } from '../_lib/http.js';
@@ -19,7 +20,7 @@ export async function onRequestPost(context) {
   if (session instanceof Response) return session;
   const { userId } = session;
 
-  // 2. Parse payload: { recipeId: string, madeAt?: string }
+  // 2. Parse payload: { id: string, rating?: number|null, notes?: string|null }
   let body;
   try {
     body = await request.json();
@@ -31,14 +32,11 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'Payload must be a JSON object.' }, 400);
   }
 
-  const recipeId = typeof body.recipeId === 'string' ? body.recipeId.trim() : '';
-  if (!recipeId) {
-    return jsonResponse({ error: 'Missing or invalid recipeId.' }, 400);
+  const id = typeof body.id === 'string' ? body.id.trim() : '';
+  if (!id) {
+    return jsonResponse({ error: 'Missing or invalid id.' }, 400);
   }
 
-  // Optional rating (1-5 integer) and tasting notes, logged at the same time
-  // as the entry when the caller already has them (e.g. the guest-to-cloud
-  // migration replaying a locally-rated entry).
   let rating = null;
   if (body.rating !== undefined && body.rating !== null) {
     const parsedRating = Number(body.rating);
@@ -50,26 +48,22 @@ export async function onRequestPost(context) {
 
   const notes = typeof body.notes === 'string' && body.notes.trim() ? body.notes.trim() : null;
 
-  // Determine timestamp
-  const madeAt = typeof body.madeAt === 'string' && body.madeAt.trim()
-    ? body.madeAt.trim()
-    : new Date().toISOString();
+  // 3. Confirm the entry exists and belongs to this user
+  const existing = await env.speakeasy_db.prepare(
+    `SELECT id FROM drink_history WHERE id = ? AND user_id = ?`
+  ).bind(id, userId).first();
 
-  const id = crypto.randomUUID();
+  if (!existing) {
+    return jsonResponse({ error: 'History entry not found.' }, 404);
+  }
 
-  // 3. Insert into drink_history
+  // 4. Update rating and notes
   await env.speakeasy_db.prepare(
-    `INSERT INTO drink_history (id, user_id, recipe_id, made_at, rating, notes) VALUES (?, ?, ?, ?, ?, ?)`
-  ).bind(id, userId, recipeId, madeAt, rating, notes).run();
+    `UPDATE drink_history SET rating = ?, notes = ? WHERE id = ? AND user_id = ?`
+  ).bind(rating, notes, id, userId).run();
 
   return jsonResponse({
     success: true,
-    entry: {
-      id,
-      recipeId,
-      madeAt,
-      rating,
-      notes,
-    },
+    entry: { id, rating, notes },
   });
 }

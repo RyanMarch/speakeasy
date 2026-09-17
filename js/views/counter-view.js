@@ -46,7 +46,10 @@ import { renderShareCardPng } from '../modules/share-card.js';
 import { setupTagAutocomplete, filterByTag } from './recipe-list-view.js';
 import { escapeHtml, showToast, wirePopoverTriggerPositioning, wireCalorieInfoPopover } from '../components/toast.js';
 import { openTimerModal } from '../components/timer-modal.js';
-import { logDrinkMade } from '../modules/history.js';
+import { logDrinkMade, getDrinkHistory } from '../modules/history.js';
+import { openRatingModal, renderStarsHtml } from '../components/rating-modal.js';
+import { openCalculatorModal } from '../components/calculator-modal.js';
+import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
 
 let _selectRecipeFn = null;
 let _openEditorFn = null;
@@ -332,6 +335,127 @@ export function formatPalateMatchLabel(percentage) {
 }
 
 /**
+ * Finds this recipe's most recent rated/noted history entry (if any) and
+ * renders a compact "your rating" row with an edit affordance, shown beside
+ * the "I Made This" button once a drink has been rated at least once.
+ */
+function renderLatestRatingHtml(recipeId) {
+  const entries = getDrinkHistory(50).filter(h => h.recipeId === recipeId && (h.rating || h.notes));
+  if (entries.length === 0) return '';
+  const latest = entries[0];
+
+  return /*html*/`
+    <button type="button" id="btn-edit-rating" class="counter-rating-summary" data-entry-id="${escapeHtml(latest.id)}" title="Edit your rating and notes">
+      ${latest.rating ? renderStarsHtml(latest.rating) : '<span class="rating-stars-display">Rate this drink</span>'}
+      ${latest.notes ? `<span class="counter-rating-note">${escapeHtml(latest.notes)}</span>` : ''}
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="counter-rating-edit-icon"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+    </button>
+  `;
+}
+
+/**
+ * Inline styles for the standalone recipe print document (see
+ * js/components/print-window.js) — a small, self-contained stylesheet with
+ * no flex/grid anywhere (plain block flow throughout, native <ol> numbering
+ * instead of a counter()-based trick), since that's the one layout style
+ * every print engine — Safari/WebKit's included — reliably gets right.
+ */
+const PRINT_RECIPE_CARD_STYLES = /*css*/`
+  .card {
+    max-width: 6.5in;
+    margin: 0 auto;
+    background: var(--color-surface-card);
+    color: var(--color-text);
+    border: 1px solid var(--color-accent);
+    border-radius: 12px;
+    padding: 28px 32px;
+  }
+  h1 { font-family: var(--font-display); font-size: 38px; margin: 0 0 4px; font-weight: 600; text-transform: uppercase; }
+  .meta { font-size: 13px; color: var(--color-text-muted); margin: 0 0 10px; }
+  .description { font-size: 14px; line-height: 1.45; color: var(--color-text-secondary); margin: 0 0 16px; }
+  /* This flex row never needs to survive a page break — the whole card is
+     sized to fit a single printed page — so it's exempt from the
+     plain-block-only rule the rest of this document follows for that reason. */
+  .card-columns { display: flex; align-items: flex-start; gap: 20px; margin-bottom: 4px; }
+  .card-col-glass { flex: 0 0 38%; text-align: center; padding-top: 8px; }
+  .card-col-glass svg { width: 100%; max-width: 155px; height: auto; }
+  .card-col-ingredients { flex: 1 1 auto; min-width: 0; }
+  .card-col-ingredients h2.section-title { margin-top: 0; }
+  h2.section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin: 18px 0 8px;
+  }
+  .specs { list-style: none; margin: 0; padding: 0; }
+  .specs li {
+    display: block;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(235, 188, 114, 0.25);
+    font-size: 14px;
+  }
+  .specs .amount { display: inline-block; min-width: 64px; margin-right: 12px; font-weight: 700; color: var(--color-text); }
+  .specs .amount-unit { color: var(--color-accent); }
+  .specs .garnish-label { color: var(--color-accent); }
+  ol.method, ul.method { margin: 0; padding-left: 22px; }
+  ol.method li, ul.method li { font-size: 14px; line-height: 1.5; margin-bottom: 6px; }
+  .timer-token { all: unset; font: inherit; font-weight: 700; }
+`;
+
+/**
+ * Builds the standalone recipe print document's <body> HTML for the current
+ * recipe. Opened in its own window by openPrintWindow() (see
+ * js/components/print-window.js) rather than printed in place — see that
+ * module's header comment for why.
+ */
+function renderPrintRecipeCardHtml(recipe, effectiveSpecs, abvDisplay, totalDisplay) {
+  const specsHtml = effectiveSpecs.map(spec => {
+    const amountHtml = spec.amount !== null && spec.amount !== undefined
+      ? `${escapeHtml(formatFraction(spec.amount))} <span class="amount-unit">${escapeHtml(spec.unit || 'oz')}</span>`
+      : `<span class="amount-unit">to taste</span>`;
+    return /*html*/`<li><span class="amount">${amountHtml}</span><span>${escapeHtml(formatIngredientName(spec.name))}</span></li>`;
+  }).join('');
+
+  const garnishHtml = recipe.garnish ? /*html*/`
+    <li><span class="amount garnish-label">Garnish</span><span>${escapeHtml(recipe.garnish)}</span></li>
+  ` : '';
+
+  const rawMethodText = recipe.instructions || recipe.notes || `${recipe.method || 'Standard'}: Standard build and chill.`;
+  const parsedMethod = parseMethodContent(rawMethodText);
+  let methodBodyHtml;
+  if (parsedMethod.type === 'ordered') {
+    methodBodyHtml = /*html*/`<ol class="method">${parsedMethod.items.map(item => `<li>${renderInstructionTimers(item, escapeHtml)}</li>`).join('')}</ol>`;
+  } else if (parsedMethod.type === 'unordered') {
+    methodBodyHtml = /*html*/`<ul class="method">${parsedMethod.items.map(item => `<li>${renderInstructionTimers(item, escapeHtml)}</li>`).join('')}</ul>`;
+  } else {
+    methodBodyHtml = /*html*/`<p style="font-size:14px; line-height:1.5;">${renderInstructionTimers(rawMethodText, escapeHtml)}</p>`;
+  }
+
+  return /*html*/`
+    <div class="card">
+      ${renderBrandRow()}
+      <h1>${escapeHtml(recipe.name)}</h1>
+      <div class="meta">${escapeHtml(recipe.glassware || 'Glass')} &middot; ${escapeHtml(recipe.method || 'Standard')} &middot; ${escapeHtml(abvDisplay)} &middot; ${escapeHtml(totalDisplay)}</div>
+      ${recipe.description ? `<p class="description">${escapeHtml(recipe.description)}</p>` : ''}
+
+      <div class="card-columns">
+        <div class="card-col-glass">${renderGlassSvg(recipe, `print-glass-${recipe.id}`, { mode: 'layered' })}</div>
+        <div class="card-col-ingredients">
+          <h2 class="section-title">Ingredients</h2>
+          <ul class="specs">${specsHtml}${garnishHtml}</ul>
+        </div>
+      </div>
+
+      <h2 class="section-title">Method</h2>
+      ${methodBodyHtml}
+      ${renderCardFooterHtml()}
+    </div>
+  `;
+}
+
+/**
  * Discovers similar and riff-connected cocktails across the vault with palate similarity integration.
  * Guarantees parent/child/sibling recipes as top priority, then ranks remaining candidates
  * by palate match percentage and shared technique/profile.
@@ -477,13 +601,23 @@ export function renderCounterView() {
   const allLibraryTags = getAllUniqueTags(state.recipes);
   const availableTags = allLibraryTags.filter(t => !(recipe.tags || []).includes(t));
 
-  const layers = calculateFluidLayers(effectiveSpecs);
-  const baseTotalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
+  const baseYield = (recipe.yield && !isNaN(Number(recipe.yield)) && Number(recipe.yield) >= 1)
+    ? Math.round(Number(recipe.yield))
+    : 1;
+
+  // Single-serving specs for calorie count, glass volume, and single-serving calculations
+  const singleServingSpecs = effectiveSpecs.map(s => ({
+    ...s,
+    amount: (s.amount !== null && s.amount !== undefined) ? (s.amount / baseYield) : s.amount,
+  }));
+
+  const layers = calculateFluidLayers(singleServingSpecs);
+  const singleServingTotalOz = layers.length > 0 ? layers[0].totalVolOz : 0;
   const isSeed = SEED_RECIPE_IDS.has(recipe.id);
   const isCurrentlyHidden = isRecipeHidden(recipe.id);
 
   const currentServings = state.servings || 1;
-  const scaledTotalOz = baseTotalOz * currentServings;
+  const scaledTotalOz = singleServingTotalOz * currentServings;
   const totalDisplay = state.unitSystem === 'ml'
     ? `${Math.round(scaledTotalOz * 30)} ml`
     : `${scaledTotalOz.toFixed(2)} oz`;
@@ -492,8 +626,8 @@ export function renderCounterView() {
   const roundedAbv = Math.round(abvInfo.estimatedAbv);
   const abvDisplay = roundedAbv > 0 ? `${roundedAbv}% ABV` : 'Non-Alcoholic';
 
-  // Calorie estimate always reflects a single serving, regardless of the servings stepper
-  const calorieInfo = calculateCocktailCalories(effectiveSpecs);
+  // Calorie estimate reflects a single serving
+  const calorieInfo = calculateCocktailCalories(singleServingSpecs);
   const calorieDisplay = calorieInfo.totalKcal > 0 ? `~${calorieInfo.totalKcal} kcal` : null;
 
   const flavorProfile = calculateBalanceProfile(effectiveSpecs);
@@ -504,7 +638,7 @@ export function renderCounterView() {
     let unitText = spec.unit || '';
 
     if (spec.amount !== null && spec.amount !== undefined) {
-      const scaledAmount = spec.amount * currentServings;
+      const scaledAmount = (spec.amount / baseYield) * currentServings;
       if (state.unitSystem === 'ml' && (spec.unit === 'oz' || !spec.unit)) {
         amountText = `${Math.round(scaledAmount * 30)}`;
         unitText = 'ml';
@@ -672,7 +806,7 @@ export function renderCounterView() {
       <div class="drink-title-row">
         <div class="drink-title-header-left">
           <h2 class="drink-name">${escapeHtml(recipe.name)}</h2>
-          <!-- Stats meta row: glass, method, ABV, calories (always fits one line) -->
+          <!-- Stats meta row: glass, method, ABV, calories, yield (always fits one line) -->
           <div class="drink-meta-row">
             <span class="drink-meta-item">${escapeHtml(recipe.glassware || 'Glass')}</span>
             <span class="meta-dot-divider">·</span>
@@ -685,6 +819,12 @@ export function renderCounterView() {
                 ${escapeHtml(calorieDisplay)}
                 <button type="button" id="btn-calorie-info" class="btn-calorie-info" aria-label="Calorie estimate info">ⓘ</button>
                 <span class="calorie-popover" id="calorie-popover" role="tooltip" aria-hidden="true">~${calorieInfo.alcoholKcal} kcal alcohol &nbsp;·&nbsp; ~${calorieInfo.sugarKcal} kcal sugar &nbsp;·&nbsp; estimates vary by brand</span>
+              </span>
+            ` : ''}
+            ${baseYield > 1 ? `
+              <span class="meta-dot-divider">·</span>
+              <span class="drink-meta-item drink-meta-yield" title="Authored as a batch of ${baseYield} servings">
+                Batch: ${baseYield} servings
               </span>
             ` : ''}
           </div>
@@ -733,13 +873,35 @@ export function renderCounterView() {
               </button>
 
               ${isSeed ? /*html*/ `
+                <button type="button" id="btn-share-drink" class="vault-action-item" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">Share</span>
+                    <span class="vault-action-sub">Send to a friend</span>
+                  </span>
+                </button>
+              ` : /*html*/ `
+                <button type="button" id="btn-share-custom-drink" class="vault-action-item" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">Share</span>
+                    <span class="vault-action-sub">Send to a friend</span>
+                  </span>
+                </button>
+              `}
+
+              ${isSeed ? /*html*/ `
                 <button type="button" id="btn-edit-drink" class="vault-action-item" role="menuitem">
                   <span class="vault-action-icon">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
                   </span>
                   <span class="vault-action-meta">
                     <span class="vault-action-label">Edit as New Recipe</span>
-                    <span class="vault-action-sub">Make new drink based on this one.</span>
+                    <span class="vault-action-sub">Start riffing on this recipe</span>
                   </span>
                 </button>
               ` : /*html*/ `
@@ -753,6 +915,32 @@ export function renderCounterView() {
                   </span>
                 </button>
               `}
+
+              <button type="button" id="btn-print-recipe-card" class="vault-action-item" role="menuitem">
+                <span class="vault-action-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                  </svg>
+                </span>
+                <span class="vault-action-meta">
+                  <span class="vault-action-label">Print Recipe Card</span>
+                  <span class="vault-action-sub">Get a print version</span>
+                </span>
+              </button>
+
+              <button type="button" id="btn-batch-for-freezer" class="vault-action-item" role="menuitem">
+                <span class="vault-action-icon">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2v20"></path><path d="M2 12h20"></path><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m4.93 19.07 4.24-4.24"></path>
+                  </svg>
+                </span>
+                <span class="vault-action-meta">
+                  <span class="vault-action-label">Batch for Freezer</span>
+                  <span class="vault-action-sub">Scale this into a freezer bottle</span>
+                </span>
+              </button>
 
               ${isSeed ? /*html*/ `
                 <button type="button" id="btn-hide-drink" class="vault-action-item" role="menuitem">
@@ -774,26 +962,6 @@ export function renderCounterView() {
                   </span>
                   <span class="vault-action-meta">
                     <span class="vault-action-label">Delete Recipe</span>
-                  </span>
-                </button>
-              `}
-
-              ${isSeed ? /*html*/ `
-                <button type="button" id="btn-share-drink" class="vault-action-item" role="menuitem">
-                  <span class="vault-action-icon">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                  </span>
-                  <span class="vault-action-meta">
-                    <span class="vault-action-label">Share</span>
-                  </span>
-                </button>
-              ` : /*html*/ `
-                <button type="button" id="btn-share-custom-drink" class="vault-action-item" role="menuitem">
-                  <span class="vault-action-icon">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                  </span>
-                  <span class="vault-action-meta">
-                    <span class="vault-action-label">Share</span>
                   </span>
                 </button>
               `}
@@ -969,6 +1137,7 @@ export function renderCounterView() {
                   </svg>
                   <span>I Made This</span>
                 </button>
+                ${renderLatestRatingHtml(recipe.id)}
               </div>
             </div>
           `;
@@ -1117,7 +1286,11 @@ export function renderCounterView() {
       });
     },
   });
-  state.glassViewMain.render(effectiveRecipe, state.glassViewMode);
+  const singleServingRecipe = {
+    ...effectiveRecipe,
+    specs: singleServingSpecs,
+  };
+  state.glassViewMain.render(singleServingRecipe, state.glassViewMode);
 
   // Wire Glass View Presentation Switch (Layers vs Blended)
   const glassToggleBtns = elements.counterViewContainer.querySelectorAll('.glass-view-btn');
@@ -1321,7 +1494,11 @@ export function renderCounterView() {
     showToast(`Saved new riff: ${newName}`);
   });
 
-  // "I made this" action handlers (Method row and More popover menu)
+  // "I made this" action handlers (Method row and More popover menu). Logs
+  // immediately (non-blocking) so the history entry exists the instant the
+  // button is tapped, then opens the rating popover — rating/notes are
+  // applied to that same entry afterward via updateDrinkEntry, never
+  // blocking the log itself.
   const handleMadeThis = async () => {
     try {
       if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -1330,12 +1507,37 @@ export function renderCounterView() {
     } catch {
       // Ignore vibration errors
     }
-    await logDrinkMade(recipe.id);
+    const entry = await logDrinkMade(recipe.id);
     showToast(`Logged ${recipe.name} to history`);
+    openRatingModal(entry.id, recipe.name, { onSaved: () => renderCounterView() });
   };
 
   document.getElementById('btn-made-this')?.addEventListener('click', handleMadeThis);
   document.getElementById('btn-more-made-this')?.addEventListener('click', handleMadeThis);
+
+  document.getElementById('btn-edit-rating')?.addEventListener('click', (e) => {
+    const entryId = e.currentTarget.getAttribute('data-entry-id');
+    if (entryId) {
+      openRatingModal(entryId, recipe.name, { onSaved: () => renderCounterView() });
+    }
+  });
+
+  // Print Recipe Card: opens a small standalone print window rather than
+  // printing the live app document — see js/components/print-window.js for why.
+  document.getElementById('btn-print-recipe-card')?.addEventListener('click', () => {
+    moreActionsPopover?.hidePopover();
+    const bodyHtml = renderPrintRecipeCardHtml(recipe, effectiveSpecs, abvDisplay, totalDisplay);
+    const printWin = openPrintWindow(`${recipe.name} — Speakeasy`, PRINT_RECIPE_CARD_STYLES, bodyHtml);
+    if (!printWin) {
+      showToast('Please allow pop-ups to print this recipe');
+    }
+  });
+
+  // Batch for Freezer: opens the Calculator modal's Freezer Batcher tab
+  // pre-selected to this cocktail.
+  document.getElementById('btn-batch-for-freezer')?.addEventListener('click', () => {
+    openCalculatorModal({ tab: 'batch', recipeId: recipe.id });
+  });
 
   // Apply header substitute recommendation
   document.getElementById('btn-apply-header-sub')?.addEventListener('click', (e) => {

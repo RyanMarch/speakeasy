@@ -1170,7 +1170,7 @@ console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingL
 console.log('Ranked Bar Unlock Shopping List tests passed.');
 
 console.log('--- Testing Backup Export/Import (v2 Schema, v1 back-compat) ---');
-const { buildBackupPayload, importData, saveRecipes, saveInventory, getInventory, getUnitPreference, getActiveBarId, getBars, saveBars } = await import('../js/modules/storage.js');
+const { buildBackupPayload, importData, saveRecipes, saveInventory, getInventory, getUnitPreference, getActiveBarId, getBars, saveBars, sanitizeImportedRecipes } = await import('../js/modules/storage.js');
 
 const customRiff = {
   id: 'test-custom-riff',
@@ -1422,7 +1422,39 @@ const unflamedSvg = renderGarnishesSvg(unflamedRecipe, rocksGlass, 120);
 assert(!unflamedSvg.includes('peel-ember-glow'), 'Unflamed recipe does not include peel-ember-glow');
 assert(!unflamedSvg.includes('peel-sparks-group'), 'Unflamed recipe does not include peel-sparks-group');
 assert(!unflamedSvg.includes('garnish-flamed-twist'), 'Unflamed recipe does not include garnish-flamed-twist class');
-console.log('PASS: Flamed peel glow and ember sparks only render when recipe specifies flamed');
+console.log('\n--- Testing Recipe Yield & Punch Batch Scaling ---');
+{
+  const punchRecipe = {
+    name: 'Autumn Punch',
+    yield: 8,
+    specs: [
+      { name: 'Bourbon', amount: 16, unit: 'oz' },
+      { name: 'Lemon Juice', amount: 8, unit: 'oz' },
+      { name: 'Simple Syrup', amount: 6, unit: 'oz' },
+    ],
+  };
+
+  const sanitized = sanitizeImportedRecipes([punchRecipe])[0];
+  assert.equal(sanitized.yield, 8, 'Yield is preserved on sanitize');
+
+  // Single-serving specs division
+  const baseYield = sanitized.yield || 1;
+  const singleServingSpecs = sanitized.specs.map(s => ({
+    ...s,
+    amount: s.amount / baseYield,
+  }));
+
+  assert.equal(singleServingSpecs[0].amount, 2, 'Bourbon per serving scaled to 2 oz');
+  assert.equal(singleServingSpecs[1].amount, 1, 'Lemon juice per serving scaled to 1 oz');
+  assert.equal(singleServingSpecs[2].amount, 0.75, 'Simple syrup per serving scaled to 0.75 oz');
+
+  // Calorie calculations
+  const batchCalories = calculateCocktailCalories(sanitized.specs);
+  const singleServingCalories = calculateCocktailCalories(singleServingSpecs);
+  assert.ok(singleServingCalories.totalKcal > 0, 'Calculates single-serving calories');
+  assert.ok(Math.abs(singleServingCalories.totalKcal - Math.round(batchCalories.totalKcal / 8)) <= 15, 'Single-serving calories scale by 1 / yield');
+  console.log('PASS: Punch recipe yield sanitization and single-serving scaling verified');
+}
 
 console.log('All tests completed successfully!');
 
