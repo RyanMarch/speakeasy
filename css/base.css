@@ -58,7 +58,7 @@
      glassware-type badge ("ROCKS", "COUPE") starts getting cut off, so that's
      as narrow as this is allowed to get before the list becomes unreadable.
      Below 860px the mobile breakpoint takes over and this stops applying. */
-  --sidebar-width: clamp(295px, calc(295px + (100vw - 860px) * 0.125), 350px);
+  --sidebar-width: clamp(295px, calc(295px + (100vw - 860px) * 0.125), 450px);
 }
 
 *,

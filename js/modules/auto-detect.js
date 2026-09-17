@@ -200,6 +200,75 @@ function detectAbvTag(specs, method) {
 
 const HOT_INGREDIENT_PATTERN = /\b(boiling water|hot water|hot coffee|hot tea|hot cider|steaming water)\b/i;
 
+// Ingredient IDs that reliably signal smokiness regardless of their broader
+// family classification. Peated scotch is still family:whiskey (correct), but
+// that family tag doesn't tell us it's smoky — so we check IDs explicitly.
+const SMOKY_INGREDIENT_IDS = new Set(['peated_scotch', 'mezcal']);
+
+/**
+ * Returns 'smoky' if any ingredient resolves to a known smoky spirit (peated
+ * scotch or mezcal). Smoke is a defining character cue, not a flavor-axis
+ * score, so ingredient identity is the right signal.
+ */
+function detectSmokyTag(specs) {
+  for (const spec of specs || []) {
+    if (!spec?.name?.trim()) continue;
+    const item = findIngredient(spec.name);
+    if (item && SMOKY_INGREDIENT_IDS.has(item.id)) return 'smoky';
+  }
+  return null;
+}
+
+// Ingredient IDs that signal heat/spice regardless of volume. These are
+// typically minor additions that still define the drink's character.
+const SPICY_INGREDIENT_IDS = new Set(['hot_sauce', 'jalapeno']);
+
+/**
+ * Returns 'spicy' if any spice-forward ingredient is present. Using ID-level
+ * matching so this fires for jalapeño slices, hot sauce, etc. regardless of
+ * how the name was typed (aliases resolve to the canonical ID).
+ */
+function detectSpicyTag(specs) {
+  for (const spec of specs || []) {
+    if (!spec?.name?.trim()) continue;
+    const item = findIngredient(spec.name);
+    if (item && SPICY_INGREDIENT_IDS.has(item.id)) return 'spicy';
+  }
+  return null;
+}
+
+// A recipe qualifies as split-base when two or more distinct spirit families
+// each contribute at least this share of the total spirit volume.
+const SPLIT_BASE_MIN_SHARE = 0.25;
+
+/**
+ * Returns 'split-base' when two or more distinct spirit families each hold at
+ * least 25% of the combined spirit volume. A float of 0.5 oz Islay on a 2 oz
+ * scotch base does NOT qualify — only recipes where two bases genuinely share
+ * the load (e.g. mezcal + rye, rum + rye, gin + apple brandy) will fire.
+ */
+function detectSplitBaseTag(specs) {
+  const familyVolumes = {};
+  let totalOz = 0;
+
+  for (const spec of specs || []) {
+    if (!spec?.name?.trim()) continue;
+    const item = findIngredient(spec.name);
+    if (!item || !BASE_SPIRIT_FAMILY_TAGS[item.family]) continue;
+    const oz = normalizeVolumeToOz(spec.amount, spec.unit);
+    if (oz <= 0) continue;
+    familyVolumes[item.family] = (familyVolumes[item.family] || 0) + oz;
+    totalOz += oz;
+  }
+
+  if (totalOz <= 0) return null;
+
+  const qualifyingFamilies = Object.values(familyVolumes).filter(
+    vol => vol / totalOz >= SPLIT_BASE_MIN_SHARE
+  );
+  return qualifyingFamilies.length >= 2 ? 'split-base' : null;
+}
+
 /**
  * Suggests a small, capped set of tags from a recipe's ingredients, computed
  * flavor balance, and ABV. Always additive (the caller should only use this to
@@ -222,7 +291,16 @@ export function detectTagsFromRecipe(specs, method, extraContext = {}) {
     tags.push('hot');
   }
 
+  const smokyTag = detectSmokyTag(specs);
+  if (smokyTag) tags.push(smokyTag);
+
+  const spicyTag = detectSpicyTag(specs);
+  if (spicyTag) tags.push(spicyTag);
+
+  const splitBaseTag = detectSplitBaseTag(specs);
+  if (splitBaseTag) tags.push(splitBaseTag);
+
   const abvTag = detectAbvTag(specs, method);
   if (abvTag) tags.push(abvTag);
-  return Array.from(new Set(tags)).slice(0, 5);
+  return Array.from(new Set(tags)).slice(0, 8);
 }
