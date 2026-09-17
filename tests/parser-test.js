@@ -1456,6 +1456,23 @@ console.log('\n--- Testing Recipe Yield & Punch Batch Scaling ---');
   console.log('PASS: Punch recipe yield sanitization and single-serving scaling verified');
 }
 
+console.log('\n--- Testing Slice / Slices Unit Parsing ---');
+{
+  const singleSlice = parseIngredientLine('1 slice Cucumber');
+  assert.equal(singleSlice.amount, 1, 'Parses amount 1 for single slice');
+  assert.equal(singleSlice.unit, 'slice', 'Normalizes unit to slice');
+  assert.equal(singleSlice.name, 'Cucumber', 'Extracts name Cucumber');
+
+  const multipleSlices = parseIngredientLine('3 slices Orange');
+  assert.equal(multipleSlices.amount, 3, 'Parses amount 3 for slices');
+  assert.equal(multipleSlices.unit, 'slice', 'Normalizes slices to slice');
+  assert.equal(multipleSlices.name, 'Orange', 'Extracts name Orange');
+
+  const vol = normalizeVolumeToOz(multipleSlices.amount, multipleSlices.unit);
+  assert.ok(Math.abs(vol - 0.3) < 0.0001, 'Calculates ~0.3 oz for 3 slices');
+  console.log('PASS: Slice and slices parsing and volume math verified');
+}
+
 console.log('All tests completed successfully!');
 
 

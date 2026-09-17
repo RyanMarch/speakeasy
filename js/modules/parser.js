@@ -71,6 +71,7 @@ export const UNIT_ALIASES = {
   pinches: 'pinch',
   cups: 'cup',
   shots: 'shot',
+  slices: 'slice',
 };
 
 // Canonical oz-equivalent for every unit the app understands — the single
@@ -102,6 +103,8 @@ export const UNIT_CONVERSIONS_TO_OZ = {
   cups: 8.0,
   shot: 1.5,
   shots: 1.5,
+  slice: 0.1,
+  slices: 0.1,
 };
 
 /**
@@ -191,7 +194,7 @@ function stripRedundantConversion(name, amount, unit) {
 // and AMOUNT_UNIT_ONLY_REGEX (which needs the identical unit vocabulary to
 // recognize a bare "2 oz" line with no ingredient name yet on it) so the two
 // can't drift apart.
-const UNIT_WORD_PATTERN = 'dashes|dash|bar\\s?spoons?|tbsp|tablespoons?|tsps?|tsp|teaspoons?|drops?|drop|fl\\.?\\s?oz\\.?|fluid\\s?ounces?|ounces?|oz|milliliters?|millilitres?|ml|cc|cl|splashes?|parts?|part|leaves|leaf|pinche?s?|cups?|shots?|rinse';
+const UNIT_WORD_PATTERN = 'slices?|dashes|dash|bar\\s?spoons?|tbsp|tablespoons?|tsps?|tsp|teaspoons?|drops?|drop|fl\\.?\\s?oz\\.?|fluid\\s?ounces?|ounces?|oz|milliliters?|millilitres?|ml|cc|cl|splashes?|parts?|part|leaves|leaf|pinche?s?|cups?|shots?|rinse';
 
 // Matches a line that is ONLY an amount, optionally with a unit — "2 oz",
 // "3/4", "1 dash" — and nothing else. Used by parseSpecsBlock to recognize a
