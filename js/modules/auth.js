@@ -1,13 +1,15 @@
 /**
  * Client-side authentication and session management module.
  *
- * Coordinates authentication state, token persistence in localStorage,
- * OTP verification, session termination, and guest data cloud migration.
+ * Coordinates authentication state, OTP verification, session termination,
+ * and guest data cloud migration. The session token itself lives in an
+ * HttpOnly cookie set by the server — page JS never sees or stores it, and
+ * every fetch below relies on the browser attaching that cookie
+ * automatically (same-origin requests do this without extra options).
  */
 
 import { buildBackupPayload, importData } from './storage.js';
 
-export const AUTH_TOKEN_KEY = 'speakeasy_auth_token';
 export const AUTH_USER_KEY = 'speakeasy_user';
 export const AUTH_EVENT_NAME = 'speakeasy:auth-changed';
 
@@ -22,22 +24,12 @@ function dispatchAuthChange(detail = {}) {
 }
 
 /**
- * Returns true if an active auth token exists in localStorage.
+ * Returns true if a locally-cached user profile exists. This is an
+ * optimistic, client-only signal (the cookie can't be read from JS) —
+ * checkSession() is the source of truth for whether it's still valid.
  */
 export function isAuthenticated() {
-  return Boolean(getToken());
-}
-
-/**
- * Retrieves the stored auth token, or null.
- */
-export function getToken() {
-  try {
-    if (typeof localStorage === 'undefined') return null;
-    return localStorage.getItem(AUTH_TOKEN_KEY) || null;
-  } catch {
-    return null;
-  }
+  return Boolean(getUser());
 }
 
 /**
@@ -72,12 +64,14 @@ export async function requestOtp(email) {
 }
 
 /**
- * Verifies the OTP code, persists the session token and user profile,
- * and notifies the application of the auth state change.
+ * Verifies the OTP code, persists the user profile, and notifies the
+ * application of the auth state change. The session token is set by the
+ * server as an HttpOnly cookie and never touches page JS.
  */
 export async function verifyOtp(email, code) {
   const response = await fetch('/api/auth/verify-otp', {
     method: 'POST',
+    credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, code }),
   });
@@ -89,7 +83,6 @@ export async function verifyOtp(email, code) {
 
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
     }
   } catch (err) {
@@ -105,23 +98,17 @@ export async function verifyOtp(email, code) {
  * clearing local credentials, and dispatching an auth event.
  */
 export async function logout() {
-  const token = getToken();
-  if (token) {
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-    } catch (err) {
-      console.warn('Logout network request failed:', err);
-    }
+  try {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'same-origin',
+    });
+  } catch (err) {
+    console.warn('Logout network request failed:', err);
   }
 
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
       localStorage.removeItem(AUTH_USER_KEY);
     }
   } catch (err) {
@@ -136,16 +123,13 @@ export async function logout() {
  * clearing local credentials and notifying the application.
  */
 export async function deleteAccount() {
-  const token = getToken();
-  if (!token) {
+  if (!isAuthenticated()) {
     throw new Error('No active account to delete.');
   }
 
   const response = await fetch('/api/auth/delete-account', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    credentials: 'same-origin',
   });
 
   const data = await response.json().catch(() => ({}));
@@ -155,7 +139,6 @@ export async function deleteAccount() {
 
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
       localStorage.removeItem(AUTH_USER_KEY);
     }
   } catch (err) {
@@ -167,20 +150,13 @@ export async function deleteAccount() {
 }
 
 /**
- * Checks with the server (/api/auth/me) to ensure the local token remains valid.
- * Clears local state if expired or invalid.
+ * Checks with the server (/api/auth/me) to see whether the session cookie
+ * (if any) still maps to a valid session. Clears local state if not.
  */
 export async function checkSession() {
-  const token = getToken();
-  if (!token) {
-    return { authenticated: false, user: null };
-  }
-
   try {
     const response = await fetch('/api/auth/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      credentials: 'same-origin',
     });
 
     const data = await response.json();
@@ -192,17 +168,16 @@ export async function checkSession() {
     }
   } catch (err) {
     console.warn('Failed to verify session status with server:', err);
-    return { authenticated: true, user: getUser() };
+    return { authenticated: isAuthenticated(), user: getUser() };
   }
 
   // If unauthorized or invalid session
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
       localStorage.removeItem(AUTH_USER_KEY);
     }
   } catch (err) {
-    console.warn('Failed to remove invalid token:', err);
+    console.warn('Failed to remove invalid user profile:', err);
   }
   dispatchAuthChange({ authenticated: false, user: null });
   return { authenticated: false, user: null };
@@ -213,8 +188,7 @@ export async function checkSession() {
  * by building the standard unified v1 backup payload and posting to /api/sync.
  */
 export async function migrateGuestData() {
-  const token = getToken();
-  if (!token) {
+  if (!isAuthenticated()) {
     throw new Error('Cannot migrate data without active authentication.');
   }
 
@@ -222,9 +196,9 @@ export async function migrateGuestData() {
 
   const response = await fetch('/api/sync', {
     method: 'POST',
+    credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
@@ -242,16 +216,13 @@ export async function migrateGuestData() {
  * via GET /api/sync and hydrates local storage seamlessly.
  */
 export async function pullRemoteData() {
-  const token = getToken();
-  if (!token) {
+  if (!isAuthenticated()) {
     throw new Error('Cannot pull remote data without active authentication.');
   }
 
   const response = await fetch('/api/sync', {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    credentials: 'same-origin',
   });
 
   const data = await response.json();
@@ -277,7 +248,7 @@ export async function pullRemoteData() {
  * Updates the user's display name locally and in Cloudflare D1.
  */
 export async function updateDisplayName(displayName) {
-  const token = getToken();
+  const authenticated = isAuthenticated();
   const trimmed = (displayName || '').trim();
   if (!trimmed) {
     throw new Error('Name cannot be empty.');
@@ -295,13 +266,13 @@ export async function updateDisplayName(displayName) {
   }
 
   // Sync to remote server if authenticated
-  if (token) {
+  if (authenticated) {
     try {
       const res = await fetch('/api/auth/me', {
         method: 'PATCH',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ displayName: trimmed }),
       });
@@ -318,6 +289,6 @@ export async function updateDisplayName(displayName) {
     }
   }
 
-  dispatchAuthChange({ authenticated: Boolean(token), user: currentUser });
+  dispatchAuthChange({ authenticated, user: currentUser });
   return currentUser;
 }

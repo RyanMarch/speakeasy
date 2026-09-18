@@ -5,7 +5,7 @@
  */
 
 import { jsonResponse } from '../_lib/http.js';
-import { requireSession } from '../_lib/auth.js';
+import { requireSession, getSessionToken } from '../_lib/auth.js';
 
 function parseSettings(settingsRaw) {
   if (!settingsRaw) {
@@ -28,14 +28,7 @@ export async function onRequestGet(context) {
     return jsonResponse({ authenticated: false, error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
-  const authHeader = request.headers.get('Authorization') || '';
-  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-
-  if (!tokenMatch) {
-    return jsonResponse({ authenticated: false });
-  }
-
-  const token = tokenMatch[1].trim();
+  const token = getSessionToken(request);
   if (!token) {
     return jsonResponse({ authenticated: false });
   }

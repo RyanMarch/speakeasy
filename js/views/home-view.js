@@ -353,7 +353,7 @@ export function renderHomeCard(recipe, collectionKey, idx) {
   return  /*html*/`
     <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(recipe.id)}" role="button" tabindex="0">
       <div class="similar-card-glass">
-        ${renderGlassSvg(recipe, `home-glass-${collectionKey}-${recipe.id}-${idx}`)}
+        ${renderGlassSvg(recipe, `home-glass-${collectionKey}-${recipe.id}-${idx}`, { mode: state.glassViewMode })}
       </div>
       <div class="similar-card-body">
         ${isRecentlyMade ? `

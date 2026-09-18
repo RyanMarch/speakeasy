@@ -4,7 +4,7 @@
  * event notifications, and cloud sync upon login.
  */
 
-import { getToken, isAuthenticated, AUTH_EVENT_NAME } from './auth.js';
+import { isAuthenticated, AUTH_EVENT_NAME } from './auth.js';
 
 export const HISTORY_STORAGE_KEY = 'speakeasy_drink_history';
 export const HISTORY_UPDATED_EVENT = 'speakeasy:history-updated';
@@ -94,13 +94,12 @@ export async function logDrinkMade(recipeId, madeAt = new Date().toISOString(), 
   };
 
   if (isAuthenticated()) {
-    const token = getToken();
     try {
       const response = await fetch('/api/history/log', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ recipeId, madeAt, rating, notes }),
       });
@@ -149,13 +148,12 @@ export async function updateDrinkEntry(id, changes = {}) {
   setLocalHistoryEntries(updated);
 
   if (isAuthenticated()) {
-    const token = getToken();
     try {
       await fetch('/api/history/update', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ id, rating, notes }),
       });
@@ -183,11 +181,8 @@ export function getDrinkHistory(limit = 15) {
 
   // If authenticated and in browser, asynchronously refresh local cache in background
   if (isAuthenticated() && typeof fetch === 'function') {
-    const token = getToken();
     fetch(`/api/history/list?limit=${encodeURIComponent(Math.max(limit, 25))}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      credentials: 'same-origin',
     })
       .then(res => res.json())
       .then(data => {
@@ -222,7 +217,6 @@ export async function syncLocalHistoryToCloud() {
     return { syncedCount: 0 };
   }
 
-  const token = getToken();
   const localEntries = getLocalHistoryEntries();
   if (localEntries.length === 0) {
     return { syncedCount: 0 };
@@ -234,7 +228,7 @@ export async function syncLocalHistoryToCloud() {
   let existingRemoteIds = new Set();
   try {
     const listRes = await fetch('/api/history/list?limit=100', {
-      headers: { 'Authorization': `Bearer ${token}` },
+      credentials: 'same-origin',
     });
     if (listRes.ok) {
       const listData = await listRes.json();
@@ -255,9 +249,9 @@ export async function syncLocalHistoryToCloud() {
     try {
       const response = await fetch('/api/history/log', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           recipeId: entry.recipeId,
@@ -290,12 +284,9 @@ export async function fetchRemoteHistory(limit = 50) {
     return getLocalHistoryEntries();
   }
 
-  const token = getToken();
   try {
     const res = await fetch(`/api/history/list?limit=${encodeURIComponent(limit)}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+      credentials: 'same-origin',
     });
     if (!res.ok) return getLocalHistoryEntries();
 
