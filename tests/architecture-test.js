@@ -250,7 +250,7 @@ async function runTests() {
 
   // Case 2: Signed in, but 0 custom recipes -> hidden
   globalThis.localStorage = {
-    getItem: (k) => k === 'speakeasy_auth_token' ? 'fake-token-123' : (k === 'speakeasy_user' ? JSON.stringify({ id: 'u1', email: 'test@example.com' }) : null),
+    getItem: (k) => k === 'speakeasy_user' ? JSON.stringify({ id: 'u1', email: 'test@example.com' }) : null,
     setItem: () => {},
     removeItem: () => {}
   };

@@ -1266,7 +1266,7 @@ export function renderCounterView() {
       return `
             <div class="similar-cocktail-card" data-recipe-id="${escapeHtml(item.recipe.id)}" role="button" tabindex="0">
               <div class="similar-card-glass">
-                ${renderGlassSvg(item.recipe, `sim-glass-${item.recipe.id}-${idx}`)}
+                ${renderGlassSvg(item.recipe, `sim-glass-${item.recipe.id}-${idx}`, { mode: state.glassViewMode })}
               </div>
               <div class="similar-card-body">
                 <div class="similar-card-badges">

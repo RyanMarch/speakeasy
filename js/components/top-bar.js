@@ -151,9 +151,23 @@ export function getMixologistRankDetails() {
   };
 }
 
+const RANK_PROMOTION_COALESCE_MS = 400;
+let _rankPromotionTimer = null;
+let _rankPromotionBurstPrevThreshold;
+
 /**
  * Checks whether user has leveled up since last recorded rank threshold.
  * Shows celebration toast if level increased.
+ *
+ * Several rank-affecting events can fire in a tight burst around sign-in
+ * (auth change, cloud data pull, history sync each dispatch their own
+ * event — see the listeners below), and the score can jump multiple tiers
+ * across that burst. This coalesces same-burst calls into a single check:
+ * the "previous" threshold is captured once, on the burst's leading edge,
+ * and compared against the final computed rank once the burst quiets down,
+ * so the user sees one banner for their highest promotion instead of one
+ * per intermediate tier.
+ *
  * @param {Object} [options]
  * @param {boolean} [options.deferIfModalOpen=false] - If true, defers celebration until modal closes
  */
@@ -163,22 +177,34 @@ export function checkMixologistRankPromotion(options = {}) {
     return;
   }
 
-  const details = getMixologistRankDetails();
-  try {
-    const rawPrev = localStorage.getItem(LAST_SEEN_RANK_KEY);
-    if (rawPrev !== null) {
-      const prevThreshold = Number(rawPrev);
-      if (!isNaN(prevThreshold) && details.threshold > prevThreshold) {
+  if (_rankPromotionTimer === null) {
+    try {
+      const rawPrev = localStorage.getItem(LAST_SEEN_RANK_KEY);
+      _rankPromotionBurstPrevThreshold = rawPrev !== null && !isNaN(Number(rawPrev)) ? Number(rawPrev) : null;
+    } catch {
+      _rankPromotionBurstPrevThreshold = null;
+    }
+  } else {
+    clearTimeout(_rankPromotionTimer);
+  }
+
+  _rankPromotionTimer = setTimeout(() => {
+    _rankPromotionTimer = null;
+    const prevThreshold = _rankPromotionBurstPrevThreshold;
+
+    const details = getMixologistRankDetails();
+    try {
+      if (prevThreshold !== null && details.threshold > prevThreshold) {
         const prevRank = MIXOLOGIST_RANKS.find(r => r.threshold === prevThreshold);
         showLevelUpCelebration(details.title, {
           previousRankTitle: prevRank ? prevRank.title : null,
         });
       }
+      localStorage.setItem(LAST_SEEN_RANK_KEY, String(details.threshold));
+    } catch {
+      // localStorage unavailable
     }
-    localStorage.setItem(LAST_SEEN_RANK_KEY, String(details.threshold));
-  } catch {
-    // localStorage unavailable
-  }
+  }, RANK_PROMOTION_COALESCE_MS);
 }
 
 /**
@@ -722,6 +748,12 @@ export function setUnitSystem(unit) {
   }
 
   showToast(`Units switched to ${unit === 'oz' ? 'Ounces (oz)' : 'Milliliters (ml)'}`);
+
+  if (isAuthenticated()) {
+    migrateGuestData().catch(err => {
+      console.warn('Failed to sync unit preference to cloud:', err);
+    });
+  }
 }
 
 /**
@@ -746,6 +778,28 @@ export function setGlassViewMode(mode) {
   toggleBtns?.forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
   });
+
+  if (state.viewMode === 'home' && _renderHomeViewFn) {
+    _renderHomeViewFn();
+  } else if (state.viewMode === 'counter') {
+    // Update similar cocktail cards' glass SVGs without rebuilding the main counter DOM,
+    // preserving state.glassViewMain and allowing its vortex swirl animation to play
+    const simGlasses = elements.counterViewContainer?.querySelectorAll('.similar-cocktails-track .similar-cocktail-card');
+    simGlasses?.forEach(card => {
+      const recipeId = card.getAttribute('data-recipe-id');
+      const recipe = state.recipes.find(r => r.id === recipeId);
+      const glassWrap = card.querySelector('.similar-card-glass');
+      if (recipe && glassWrap) {
+        glassWrap.innerHTML =  /*html*/renderGlassSvg(recipe, `sim-glass-${recipe.id}`, { mode });
+      }
+    });
+  }
+
+  if (isAuthenticated()) {
+    migrateGuestData().catch(err => {
+      console.warn('Failed to sync glass view mode to cloud:', err);
+    });
+  }
 }
 
 /**
@@ -765,6 +819,12 @@ export function setFunAnimations(enabled) {
   }
 
   showToast(bool ? 'Animations enabled' : 'Animations disabled');
+
+  if (isAuthenticated()) {
+    migrateGuestData().catch(err => {
+      console.warn('Failed to sync animation preference to cloud:', err);
+    });
+  }
 }
 
 /**
@@ -789,6 +849,12 @@ export function setLibrarySort(sortOption) {
   };
   const label = labels[sortOption] || 'Selected';
   showToast(`Sorted by ${label}`);
+
+  if (isAuthenticated()) {
+    migrateGuestData().catch(err => {
+      console.warn('Failed to sync library sort to cloud:', err);
+    });
+  }
 }
 
 /**

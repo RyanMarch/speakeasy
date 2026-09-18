@@ -227,7 +227,7 @@ db.tables.sessions.set('expired-token', {
 
 // Test 1: Missing DB binding
 {
-  const req = createMockRequest({ headers: { Authorization: 'Bearer valid-token' }, body: {} });
+  const req = createMockRequest({ headers: { Cookie: 'speakeasy_session=valid-token' }, body: {} });
   const res = await onRequestPost({ request: req, env: {} });
   assert.equal(res.status, 500);
   const data = await res.json();
@@ -241,11 +241,11 @@ db.tables.sessions.set('expired-token', {
   const resNoAuth = await onRequestPost({ request: reqNoAuth, env: { speakeasy_db: db } });
   assert.equal(resNoAuth.status, 401);
 
-  const reqInvalid = createMockRequest({ headers: { Authorization: 'Bearer bogus-token' }, body: {} });
+  const reqInvalid = createMockRequest({ headers: { Cookie: 'speakeasy_session=bogus-token' }, body: {} });
   const resInvalid = await onRequestPost({ request: reqInvalid, env: { speakeasy_db: db } });
   assert.equal(resInvalid.status, 401);
 
-  const reqExpired = createMockRequest({ headers: { Authorization: 'Bearer expired-token' }, body: {} });
+  const reqExpired = createMockRequest({ headers: { Cookie: 'speakeasy_session=expired-token' }, body: {} });
   const resExpired = await onRequestPost({ request: reqExpired, env: { speakeasy_db: db } });
   assert.equal(resExpired.status, 401);
   console.log('PASS: Session authentication validation');
@@ -277,7 +277,7 @@ db.tables.sessions.set('expired-token', {
   };
 
   const req = createMockRequest({
-    headers: { Authorization: 'Bearer valid-token', 'Content-Type': 'application/json' },
+    headers: { Cookie: 'speakeasy_session=valid-token', 'Content-Type': 'application/json' },
     body: syncPayload,
   });
 
@@ -328,7 +328,7 @@ db.tables.sessions.set('expired-token', {
 {
   const req = createMockRequest({
     method: 'GET',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
   });
 
   const res = await onRequestGet({ request: req, env: { speakeasy_db: db } });
@@ -371,7 +371,7 @@ db.tables.sessions.set('expired-token', {
   };
 
   const req = createMockRequest({
-    headers: { Authorization: 'Bearer valid-token', 'Content-Type': 'application/json' },
+    headers: { Cookie: 'speakeasy_session=valid-token', 'Content-Type': 'application/json' },
     body: multiBarPayload,
   });
 
@@ -385,7 +385,7 @@ db.tables.sessions.set('expired-token', {
   const bars = Array.from(db.tables.bars.values()).filter(b => b.user_id === 'user-123');
   assert.equal(bars.length, 2);
 
-  const getReq = createMockRequest({ method: 'GET', headers: { Authorization: 'Bearer valid-token' } });
+  const getReq = createMockRequest({ method: 'GET', headers: { Cookie: 'speakeasy_session=valid-token' } });
   const getRes = await onRequestGet({ request: getReq, env: { speakeasy_db: db } });
   const getData = await getRes.json();
   assert.equal(getData.backup.bars.length, 2);
@@ -427,7 +427,7 @@ db.tables.sessions.set('expired-token', {
   db.tables.bar_inventory.set('bar-freshly-migrated:campari', { bar_id: 'bar-freshly-migrated', ingredient_id: 'campari', is_low_stock: 0 });
   db.tables.bar_inventory.set('bar-freshly-migrated:sweet_vermouth', { bar_id: 'bar-freshly-migrated', ingredient_id: 'sweet_vermouth', is_low_stock: 0 });
 
-  const req = createMockRequest({ method: 'GET', headers: { Authorization: 'Bearer dupe-token' } });
+  const req = createMockRequest({ method: 'GET', headers: { Cookie: 'speakeasy_session=dupe-token' } });
   const res = await onRequestGet({ request: req, env: { speakeasy_db: db } });
   assert.equal(res.status, 200);
   const data = await res.json();

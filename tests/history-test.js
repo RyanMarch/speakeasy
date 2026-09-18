@@ -106,7 +106,7 @@ db.tables.sessions.set('expired-token', {
   const resNoDb = await onRequestPostLog({ request: createMockRequest({ method: 'POST', body: { recipeId: 'negroni' } }), env: {} });
   assert.equal(resNoDb.status, 500);
 
-  // Missing Authorization header
+  // Missing session cookie
   const resNoAuth = await onRequestPostLog({
     request: createMockRequest({ method: 'POST', body: { recipeId: 'negroni' } }),
     env,
@@ -117,7 +117,7 @@ db.tables.sessions.set('expired-token', {
   const resExpired = await onRequestPostLog({
     request: createMockRequest({
       method: 'POST',
-      headers: { Authorization: 'Bearer expired-token' },
+      headers: { Cookie: 'speakeasy_session=expired-token' },
       body: { recipeId: 'negroni' },
     }),
     env,
@@ -128,7 +128,7 @@ db.tables.sessions.set('expired-token', {
   const resNoRecipe = await onRequestPostLog({
     request: createMockRequest({
       method: 'POST',
-      headers: { Authorization: 'Bearer valid-token' },
+      headers: { Cookie: 'speakeasy_session=valid-token' },
       body: {},
     }),
     env,
@@ -144,7 +144,7 @@ let loggedEntry2 = null;
 {
   const req1 = createMockRequest({
     method: 'POST',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
     body: { recipeId: 'negroni', madeAt: '2026-09-10T12:00:00.000Z' },
   });
   const res1 = await onRequestPostLog({ request: req1, env });
@@ -159,7 +159,7 @@ let loggedEntry2 = null;
   // Second entry with later timestamp
   const req2 = createMockRequest({
     method: 'POST',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
     body: { recipeId: 'manhattan', madeAt: '2026-09-10T14:00:00.000Z' },
   });
   const res2 = await onRequestPostLog({ request: req2, env });
@@ -176,7 +176,7 @@ let loggedEntry2 = null;
   const reqList = createMockRequest({
     url: 'https://example.com/api/history/list?limit=10',
     method: 'GET',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
   });
   const resList = await onRequestGetList({ request: reqList, env });
   assert.equal(resList.status, 200);
@@ -262,8 +262,9 @@ let loggedEntry2 = null;
     return { ok: false };
   };
 
-  // Set auth token to simulate logged in user
-  global.localStorage.setItem('speakeasy_auth_token', 'mock-session-token');
+  // Set cached user profile to simulate logged in user (the session token
+  // itself lives in an HttpOnly cookie now, invisible to this client code)
+  global.localStorage.setItem('speakeasy_user', JSON.stringify({ id: 'u1', email: 'test@example.com' }));
 
   const syncResult = await historyClient.syncLocalHistoryToCloud();
   assert.equal(syncResult.syncedCount, 2);
@@ -278,7 +279,7 @@ let loggedEntry2 = null;
 {
   const reqWithRating = createMockRequest({
     method: 'POST',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
     body: { recipeId: 'daiquiri', madeAt: '2026-09-10T18:00:00.000Z', rating: 5, notes: 'Used Carpano Antica; came out rich' },
   });
   const resWithRating = await onRequestPostLog({ request: reqWithRating, env });
@@ -290,7 +291,7 @@ let loggedEntry2 = null;
 
   const reqBadRating = createMockRequest({
     method: 'POST',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
     body: { recipeId: 'daiquiri', rating: 7 },
   });
   const resBadRating = await onRequestPostLog({ request: reqBadRating, env });
@@ -301,7 +302,7 @@ let loggedEntry2 = null;
   // 7. Test POST /api/history/update
   const reqUpdate = createMockRequest({
     method: 'POST',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
     body: { id: loggedWithRatingId, rating: 3, notes: 'Actually a bit too sweet' },
   });
   const resUpdate = await onRequestPostUpdate({ request: reqUpdate, env });
@@ -312,7 +313,7 @@ let loggedEntry2 = null;
 
   const reqUpdateMissing = createMockRequest({
     method: 'POST',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
     body: { id: 'not-a-real-id', rating: 2 },
   });
   const resUpdateMissing = await onRequestPostUpdate({ request: reqUpdateMissing, env });
@@ -322,7 +323,7 @@ let loggedEntry2 = null;
   const reqListAfterUpdate = createMockRequest({
     url: 'https://example.com/api/history/list?limit=10',
     method: 'GET',
-    headers: { Authorization: 'Bearer valid-token' },
+    headers: { Cookie: 'speakeasy_session=valid-token' },
   });
   const resListAfterUpdate = await onRequestGetList({ request: reqListAfterUpdate, env });
   const dataListAfterUpdate = await resListAfterUpdate.json();
