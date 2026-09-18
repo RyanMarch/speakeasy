@@ -362,6 +362,9 @@ export class GlassView {
       // Trigger reflow to restart animation cleanly
       void svgEl.offsetWidth;
 
+      // Ensure the SVG filter matches this glass view instance
+      svgEl.style.setProperty('--swirl-filter', `url(#${this.id}-swirl)`);
+
       if (mode === 'blended') {
         svgEl.classList.add('is-blending-forward');
       } else {

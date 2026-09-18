@@ -419,6 +419,7 @@ export function buildBackupPayload() {
     settings: {
       unitPref: getUnitPreference(),
       sortPref: getSortPreference(),
+      glassViewMode: getGlassViewPreference(),
       glassViewPref: getGlassViewPreference(),
     },
     customRecipes: getCustomRecipesForBackup(),
@@ -587,7 +588,8 @@ export function importData(jsonString) {
 
   if (settingsRaw.unitPref) saveUnitPreference(settingsRaw.unitPref);
   if (settingsRaw.sortPref) saveSortPreference(settingsRaw.sortPref);
-  if (settingsRaw.glassViewPref) saveGlassViewPreference(settingsRaw.glassViewPref);
+  const incomingGlassMode = settingsRaw.glassViewMode || settingsRaw.glassViewPref;
+  if (incomingGlassMode) saveGlassViewPreference(incomingGlassMode);
 
   return {
     recipes: Array.from(recipeMap.values()),
@@ -638,6 +640,14 @@ export function clearUserDataOnSignOut() {
       localStorage.removeItem(MENUS_STORAGE_KEY);
       localStorage.removeItem('speakeasy_drink_history');
       localStorage.removeItem('speakeasy_last_active_recipe');
+      localStorage.removeItem(SETTINGS_STORAGE_KEY);
+      localStorage.removeItem(UNIT_STORAGE_KEY);
+      localStorage.removeItem(GLASS_VIEW_STORAGE_KEY);
+      localStorage.removeItem(WAKE_LOCK_STORAGE_KEY);
+      localStorage.removeItem(FUN_STORAGE_KEY);
+      localStorage.removeItem(SORT_PREFERENCE_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_INVENTORY_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_BAR_NAME_STORAGE_KEY);
     }
   } catch (err) {
     console.warn('Failed to clear user data keys on sign out:', err);
@@ -708,6 +718,77 @@ function writeInventoryForBar(barId, ids) {
 }
 
 /**
+ * Safely cleans up the pre-multi-bar legacy inventory keys (speakeasy_inventory,
+ * speakeasy_bar_name) and prunes any orphaned per-bar inventory keys.
+ *
+ * IMPORTANT: If a legacy speakeasy_inventory array exists alongside an already-initialized
+ * bars registry, we heuristic-merge into the user's default bar (or first bar) by exact bottle ID
+ * using Set deduplication so no owned bottles are lost. After merging, the legacy keys are removed.
+ */
+function cleanupAndPruneInventoryStorage() {
+  try {
+    if (typeof localStorage === 'undefined') return;
+
+    // 1. Check for lingering pre-multi-bar legacy inventory
+    const legacyInventoryRaw = localStorage.getItem(LEGACY_INVENTORY_STORAGE_KEY);
+    if (legacyInventoryRaw) {
+      let legacyBottles = [];
+      try {
+        const parsed = JSON.parse(legacyInventoryRaw);
+        if (Array.isArray(parsed)) {
+          legacyBottles = parsed.filter(id => typeof id === 'string');
+        }
+      } catch (e) {
+        console.error('Failed to parse legacy inventory during cleanup:', e);
+      }
+
+      if (legacyBottles.length > 0) {
+        let bars = [];
+        try {
+          const rawBars = localStorage.getItem(BARS_STORAGE_KEY);
+          bars = rawBars ? JSON.parse(rawBars) : [];
+        } catch {
+          bars = [];
+        }
+
+        if (Array.isArray(bars) && bars.length > 0) {
+          // Heuristic: merge into default bar (or oldest/first bar)
+          const targetBar = bars.find(b => b.isDefault) || bars[0];
+          const existingTargetInventory = readInventoryForBar(targetBar.id);
+          const merged = Array.from(new Set([...existingTargetInventory, ...legacyBottles]));
+          writeInventoryForBar(targetBar.id, merged);
+        }
+      }
+
+      // Safe to purge legacy keys once merged
+      localStorage.removeItem(LEGACY_INVENTORY_STORAGE_KEY);
+      localStorage.removeItem(LEGACY_BAR_NAME_STORAGE_KEY);
+    }
+
+    // 2. Prune any orphaned speakeasy_inventory__<barId> keys
+    try {
+      const rawBars = localStorage.getItem(BARS_STORAGE_KEY);
+      const bars = rawBars ? JSON.parse(rawBars) : [];
+      if (Array.isArray(bars) && bars.length > 0) {
+        const validBarIds = new Set(bars.map(b => b && b.id).filter(Boolean));
+        Object.keys(localStorage)
+          .filter(key => key.startsWith(INVENTORY_KEY_PREFIX))
+          .forEach(key => {
+            const barId = key.slice(INVENTORY_KEY_PREFIX.length);
+            if (!validBarIds.has(barId)) {
+              localStorage.removeItem(key);
+            }
+          });
+      }
+    } catch (e) {
+      console.error('Failed to prune orphaned bar inventory keys:', e);
+    }
+  } catch (err) {
+    console.error('Error in cleanupAndPruneInventoryStorage:', err);
+  }
+}
+
+/**
  * One-time, idempotent migration from the legacy single-bar storage shape
  * (one flat inventory array + one bar name) into the multi-bar registry.
  * Guarded by presence of BARS_STORAGE_KEY so it only ever runs once per browser.
@@ -720,7 +801,12 @@ function ensureBarsInitialized() {
     console.error('Failed to read bars registry from localStorage:', err);
     return;
   }
-  if (existing) return;
+
+  if (existing) {
+    // If bars already exist, clean up any lingering legacy single-bar keys or orphaned bar inventories
+    cleanupAndPruneInventoryStorage();
+    return;
+  }
 
   const legacyName = (() => {
     try {
@@ -754,6 +840,14 @@ function ensureBarsInitialized() {
     console.error('Failed to initialize bars registry:', err);
   }
   writeInventoryForBar(barId, legacyInventory);
+
+  // Clean up legacy keys now that multi-bar is initialized
+  try {
+    localStorage.removeItem(LEGACY_INVENTORY_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_BAR_NAME_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 /**
@@ -951,26 +1045,119 @@ export function clearInventory() {
 // ==========================================
 // User Preferences & Bar Profile
 // ==========================================
+export const SETTINGS_STORAGE_KEY = 'speakeasy_settings';
 const UNIT_STORAGE_KEY = 'speakeasy_unit_system';
 
-export function getUnitPreference() {
+/**
+ * Returns the consolidated app settings object, migrating any legacy standalone keys on read.
+ */
+export function getAppSettings() {
+  let settings = {};
   try {
-    const val = localStorage.getItem(UNIT_STORAGE_KEY);
-    return val === 'ml' ? 'ml' : 'oz';
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        settings = parsed;
+      }
+    }
   } catch {
-    return 'oz';
+    settings = {};
+  }
+
+  // Migrate legacy individual preference keys on read if not already in speakeasy_settings
+  let dirty = false;
+
+  try {
+    if (typeof localStorage !== 'undefined') {
+      // 1. Unit preference
+      if (settings.unitSystem === undefined) {
+        const legacyUnit = localStorage.getItem(UNIT_STORAGE_KEY);
+        if (legacyUnit !== null) {
+          settings.unitSystem = legacyUnit === 'ml' ? 'ml' : 'oz';
+          dirty = true;
+          localStorage.removeItem(UNIT_STORAGE_KEY);
+        }
+      }
+
+      // 2. Glass view mode
+      if (settings.glassViewMode === undefined) {
+        const legacyGlass = localStorage.getItem(GLASS_VIEW_STORAGE_KEY);
+        if (legacyGlass !== null) {
+          settings.glassViewMode = legacyGlass === 'blended' ? 'blended' : 'layered';
+          dirty = true;
+          localStorage.removeItem(GLASS_VIEW_STORAGE_KEY);
+        }
+      }
+
+      // 3. Wake lock enabled (strictly coerced boolean)
+      if (settings.wakeLockEnabled === undefined) {
+        const legacyWake = localStorage.getItem(WAKE_LOCK_STORAGE_KEY);
+        if (legacyWake !== null) {
+          settings.wakeLockEnabled = legacyWake === 'true';
+          dirty = true;
+          localStorage.removeItem(WAKE_LOCK_STORAGE_KEY);
+        }
+      }
+
+      // 4. Fun animations enabled (strictly coerced boolean)
+      if (settings.funAnimationsEnabled === undefined) {
+        const legacyFun = localStorage.getItem(FUN_STORAGE_KEY);
+        if (legacyFun !== null) {
+          settings.funAnimationsEnabled = legacyFun === 'true';
+          dirty = true;
+          localStorage.removeItem(FUN_STORAGE_KEY);
+        }
+      }
+
+      // 5. Library sort preference
+      if (settings.librarySort === undefined) {
+        const legacySort = localStorage.getItem(SORT_PREFERENCE_STORAGE_KEY);
+        if (legacySort !== null) {
+          settings.librarySort = VALID_SORT_OPTIONS.has(legacySort) ? legacySort : 'curated';
+          dirty = true;
+          localStorage.removeItem(SORT_PREFERENCE_STORAGE_KEY);
+        }
+      }
+
+      if (dirty) {
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+      }
+    }
+  } catch (err) {
+    console.error('Failed to migrate legacy settings to speakeasy_settings:', err);
+  }
+
+  return settings;
+}
+
+export function saveAppSettings(updates) {
+  try {
+    const current = getAppSettings();
+    const updated = { ...current, ...updates };
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (err) {
+    console.error('Failed to save app settings:', err);
+    return updates;
   }
 }
 
+export function getUnitPreference() {
+  const settings = getAppSettings();
+  return settings.unitSystem === 'ml' ? 'ml' : 'oz';
+}
+
 export function saveUnitPreference(unit) {
+  const clean = unit === 'ml' ? 'ml' : 'oz';
+  saveAppSettings({ unitSystem: clean });
   try {
-    const clean = unit === 'ml' ? 'ml' : 'oz';
-    localStorage.setItem(UNIT_STORAGE_KEY, clean);
-    return clean;
-  } catch (err) {
-    console.error('Failed to save unit preference:', err);
-    return unit;
+    // Also remove legacy key if still present
+    localStorage.removeItem(UNIT_STORAGE_KEY);
+  } catch {
+    // ignore
   }
+  return clean;
 }
 
 export function getBarName() {
@@ -1046,67 +1233,55 @@ export function saveAvatarRecipeId(recipeId) {
 const GLASS_VIEW_STORAGE_KEY = 'speakeasy_glass_view_mode';
 
 export function getGlassViewPreference() {
-  try {
-    const val = localStorage.getItem(GLASS_VIEW_STORAGE_KEY);
-    return val === 'blended' ? 'blended' : 'layered';
-  } catch {
-    return 'layered';
-  }
+  const settings = getAppSettings();
+  return settings.glassViewMode === 'blended' ? 'blended' : 'layered';
 }
 
 export function saveGlassViewPreference(mode) {
+  const clean = mode === 'blended' ? 'blended' : 'layered';
+  saveAppSettings({ glassViewMode: clean });
   try {
-    const clean = mode === 'blended' ? 'blended' : 'layered';
-    localStorage.setItem(GLASS_VIEW_STORAGE_KEY, clean);
-    return clean;
-  } catch (err) {
-    console.error('Failed to save glass view preference:', err);
-    return mode;
+    localStorage.removeItem(GLASS_VIEW_STORAGE_KEY);
+  } catch {
+    // ignore
   }
+  return clean;
 }
 
 const WAKE_LOCK_STORAGE_KEY = 'speakeasy_wake_lock_enabled';
 
 export function getWakeLockPreference() {
-  try {
-    const val = localStorage.getItem(WAKE_LOCK_STORAGE_KEY);
-    return val === null ? true : val === 'true';
-  } catch {
-    return true;
-  }
+  const settings = getAppSettings();
+  return settings.wakeLockEnabled !== undefined ? Boolean(settings.wakeLockEnabled) : true;
 }
 
 export function saveWakeLockPreference(enabled) {
+  const bool = Boolean(enabled);
+  saveAppSettings({ wakeLockEnabled: bool });
   try {
-    const bool = Boolean(enabled);
-    localStorage.setItem(WAKE_LOCK_STORAGE_KEY, String(bool));
-    return bool;
-  } catch (err) {
-    console.error('Failed to save wake lock preference:', err);
-    return enabled;
+    localStorage.removeItem(WAKE_LOCK_STORAGE_KEY);
+  } catch {
+    // ignore
   }
+  return bool;
 }
 
 const FUN_STORAGE_KEY = 'speakeasy_fun_animations_enabled';
 
 export function getFunPreference() {
-  try {
-    const val = localStorage.getItem(FUN_STORAGE_KEY);
-    return val === null ? true : val === 'true';
-  } catch {
-    return true;
-  }
+  const settings = getAppSettings();
+  return settings.funAnimationsEnabled !== undefined ? Boolean(settings.funAnimationsEnabled) : true;
 }
 
 export function saveFunPreference(enabled) {
+  const bool = Boolean(enabled);
+  saveAppSettings({ funAnimationsEnabled: bool });
   try {
-    const bool = Boolean(enabled);
-    localStorage.setItem(FUN_STORAGE_KEY, String(bool));
-    return bool;
-  } catch (err) {
-    console.error('Failed to save fun preference:', err);
-    return enabled;
+    localStorage.removeItem(FUN_STORAGE_KEY);
+  } catch {
+    // ignore
   }
+  return bool;
 }
 
 // Tags a user has "pinned" to appear as their own browsable collection on the Home
@@ -1209,23 +1384,19 @@ const SORT_PREFERENCE_STORAGE_KEY = 'speakeasy_library_sort';
 const VALID_SORT_OPTIONS = new Set(['curated', 'name-asc', 'name-desc', 'ready', 'specs-asc']);
 
 export function getSortPreference() {
-  try {
-    const val = localStorage.getItem(SORT_PREFERENCE_STORAGE_KEY);
-    return VALID_SORT_OPTIONS.has(val) ? val : 'curated';
-  } catch {
-    return 'curated';
-  }
+  const settings = getAppSettings();
+  return VALID_SORT_OPTIONS.has(settings.librarySort) ? settings.librarySort : 'curated';
 }
 
 export function saveSortPreference(sortOption) {
+  const clean = VALID_SORT_OPTIONS.has(sortOption) ? sortOption : 'curated';
+  saveAppSettings({ librarySort: clean });
   try {
-    const clean = VALID_SORT_OPTIONS.has(sortOption) ? sortOption : 'curated';
-    localStorage.setItem(SORT_PREFERENCE_STORAGE_KEY, clean);
-    return clean;
-  } catch (err) {
-    console.error('Failed to save sort preference:', err);
-    return sortOption;
+    localStorage.removeItem(SORT_PREFERENCE_STORAGE_KEY);
+  } catch {
+    // ignore
   }
+  return clean;
 }
 
 // ==========================================

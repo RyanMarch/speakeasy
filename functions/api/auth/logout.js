@@ -5,6 +5,7 @@
  */
 
 import { jsonResponse } from '../_lib/http.js';
+import { getSessionToken, clearSessionCookieHeader } from '../_lib/auth.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -13,17 +14,14 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
 
-  const authHeader = request.headers.get('Authorization') || '';
-  const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-
-  if (!tokenMatch) {
-    return jsonResponse({ success: true, message: 'No active session' });
-  }
-
-  const token = tokenMatch[1].trim();
+  const token = getSessionToken(request);
   if (token) {
     await env.speakeasy_db.prepare(`DELETE FROM sessions WHERE token = ?`).bind(token).run();
   }
 
-  return jsonResponse({ success: true, message: 'Logged out' });
+  return jsonResponse(
+    { success: true, message: token ? 'Logged out' : 'No active session' },
+    200,
+    { 'Set-Cookie': clearSessionCookieHeader(request) }
+  );
 }

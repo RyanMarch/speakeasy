@@ -168,12 +168,16 @@ const MockD1 = createMockD1([
   'custom_recipes', 'drink_history',
 ], MockD1PreparedStatement);
 
-function createMockRequest({ method = 'POST', headers = {}, body = null }) {
-  return new Request('https://example.com', {
+function createMockRequest({ method = 'POST', headers = {}, body = null, url = 'https://example.com' }) {
+  return new Request(url, {
     method,
     headers: new Headers(headers),
     body: body ? JSON.stringify(body) : null,
   });
+}
+
+function cookieHeaders(token) {
+  return token ? { Cookie: `speakeasy_session=${token}` } : {};
 }
 
 const db = new MockD1();
@@ -249,12 +253,15 @@ let createdUser = null;
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.equal(data.success, true);
-  assert.ok(data.token);
+  assert.equal(data.token, undefined);
   assert.equal(data.user.email, 'test@example.com');
   assert.equal(data.user.displayName, 'test');
   assert.deepEqual(data.user.settings, { unitPref: 'oz', sortPref: 'curated', glassViewMode: 'layered' });
 
-  createdToken = data.token;
+  const setCookie = res.headers.get('Set-Cookie');
+  assert.ok(setCookie);
+  assert.match(setCookie, /^speakeasy_session=([^;]+); HttpOnly; Secure; SameSite=Lax; Path=\/; Max-Age=\d+$/);
+  createdToken = setCookie.match(/^speakeasy_session=([^;]+)/)[1];
   createdUser = data.user;
 
   // Verify OTP code was deleted from DB after verification
@@ -266,6 +273,23 @@ let createdUser = null;
   assert.ok(session);
   assert.equal(session.user_id, createdUser.id);
   console.log('PASS: verify-otp endpoint validates code, upserts user, and creates 30-day session');
+
+  // Local dev (plain HTTP, e.g. wrangler pages dev on localhost) must NOT get
+  // a Secure cookie — Safari silently drops Secure cookies set over HTTP,
+  // which would break every authenticated request in local development.
+  const localOtpReq = createMockRequest({ body: { email: 'localdev@example.com' } });
+  await onRequestPostRequestOtp({ request: localOtpReq, env });
+  const localOtpEntry = Array.from(db.tables.otp_codes.values()).find(o => o.email === 'localdev@example.com');
+  const localReq = createMockRequest({
+    body: { email: 'localdev@example.com', code: localOtpEntry.code },
+    url: 'http://localhost:8789/api/auth/verify-otp',
+  });
+  const localRes = await onRequestPostVerifyOtp({ request: localReq, env });
+  const localSetCookie = localRes.headers.get('Set-Cookie');
+  assert.ok(localSetCookie);
+  assert.match(localSetCookie, /^speakeasy_session=([^;]+); HttpOnly; SameSite=Lax; Path=\/; Max-Age=\d+$/);
+  assert.ok(!localSetCookie.includes('Secure'), 'plain-HTTP request must not receive a Secure cookie');
+  console.log('PASS: verify-otp omits Secure attribute for plain-HTTP (local dev) requests');
 }
 
 // 3. Test /api/auth/me endpoint
@@ -273,7 +297,7 @@ let createdUser = null;
   // With valid token
   const req = createMockRequest({
     method: 'GET',
-    headers: { Authorization: `Bearer ${createdToken}` },
+    headers: cookieHeaders(createdToken),
   });
   const res = await onRequestGetMe({ request: req, env });
   assert.equal(res.status, 200);
@@ -284,7 +308,7 @@ let createdUser = null;
   // With invalid token
   const badReq = createMockRequest({
     method: 'GET',
-    headers: { Authorization: 'Bearer fake-token' },
+    headers: cookieHeaders('fake-token'),
   });
   const badRes = await onRequestGetMe({ request: badReq, env });
   assert.equal(badRes.status, 200);
@@ -297,7 +321,7 @@ let createdUser = null;
 {
   const patchReq = createMockRequest({
     method: 'PATCH',
-    headers: { Authorization: `Bearer ${createdToken}` },
+    headers: cookieHeaders(createdToken),
     body: { displayName: 'The Alchemist' },
   });
   const patchRes = await onRequestPatchMe({ request: patchReq, env });
@@ -309,7 +333,7 @@ let createdUser = null;
   // Verify updated in GET /api/auth/me
   const getReq = createMockRequest({
     method: 'GET',
-    headers: { Authorization: `Bearer ${createdToken}` },
+    headers: cookieHeaders(createdToken),
   });
   const getRes = await onRequestGetMe({ request: getReq, env });
   const getData = await getRes.json();
@@ -321,7 +345,7 @@ let createdUser = null;
 {
   const req = createMockRequest({
     method: 'POST',
-    headers: { Authorization: `Bearer ${createdToken}` },
+    headers: cookieHeaders(createdToken),
   });
   const res = await onRequestPostLogout({ request: req, env });
   assert.equal(res.status, 200);
@@ -348,7 +372,7 @@ let createdUser = null;
 
   const delReq = createMockRequest({
     method: 'POST',
-    headers: { Authorization: `Bearer ${testToken}` },
+    headers: cookieHeaders(testToken),
   });
   const delRes = await onRequestPostDeleteAccount({ request: delReq, env });
   assert.equal(delRes.status, 200);
@@ -362,7 +386,6 @@ let createdUser = null;
 // 6. Test client module exports and storage bridge
 {
   assert.equal(typeof authClient.isAuthenticated, 'function');
-  assert.equal(typeof authClient.getToken, 'function');
   assert.equal(typeof authClient.getUser, 'function');
   assert.equal(typeof authClient.requestOtp, 'function');
   assert.equal(typeof authClient.verifyOtp, 'function');

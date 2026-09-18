@@ -6,6 +6,7 @@
  */
 
 import { jsonResponse } from '../_lib/http.js';
+import { sessionCookieHeader } from '../_lib/auth.js';
 
 function parseSettings(settingsRaw) {
   if (!settingsRaw) {
@@ -116,7 +117,6 @@ export async function onRequestPost(context) {
 
   return jsonResponse({
     success: true,
-    token,
     user: {
       id: user.id,
       email: user.email,
@@ -124,5 +124,5 @@ export async function onRequestPost(context) {
       settings: parseSettings(user.settings),
       createdAt: user.created_at || null,
     },
-  });
+  }, 200, { 'Set-Cookie': sessionCookieHeader(token, request) });
 }
