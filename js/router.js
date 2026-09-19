@@ -37,6 +37,13 @@ export function selectRecipe(id, updateHistory = true) {
     state.riffModeActive = false;
     state.servings = 1;
   }
+  // Opened from the mobile drinks list: remember the scroll position so Back
+  // can restore it (the list is hidden, and the page scroll reset, below).
+  if (window.innerWidth <= 768 && !elements.sidebar?.classList.contains('mobile-hidden')) {
+    state.listScrollY = window.scrollY;
+    state.returnToMobileList = true;
+  }
+
   state.activeRecipeId = id;
   state.viewMode = 'counter';
   recordRecentlyViewed(id);
@@ -182,7 +189,16 @@ export function renderCurrentView() {
       if (elements[key]) elements[key].style.display = key === config.container ? 'block' : 'none';
     });
     if (elements.btnNewDrink) elements.btnNewDrink.style.display = config.btnNewDrinkVisible ? '' : 'none';
+    // A display:none sidebar forgets its scroll position, so stash it on the
+    // way out and put it back when the sidebar returns.
+    const sidebarWasHidden = elements.appMain?.classList.contains('hide-sidebar');
+    if (config.hideSidebar && !sidebarWasHidden && elements.recipeList) {
+      state.listScrollTop = elements.recipeList.scrollTop;
+    }
     elements.appMain?.classList.toggle('hide-sidebar', config.hideSidebar);
+    if (!config.hideSidebar && sidebarWasHidden && elements.recipeList) {
+      elements.recipeList.scrollTop = state.listScrollTop;
+    }
     elements.desktopStickyTitle?.classList.remove(...config.stickyClassesToRemove);
     if (config.clearMobileSticky) {
       document.getElementById('mobile-sticky-title')?.classList.remove('visible');
@@ -220,6 +236,7 @@ export function renderCurrentView() {
  */
 export function goHome() {
   state.viewMode = 'home';
+  state.returnToMobileList = false;
   if (window.location.hash) {
     history.pushState(null, '', window.location.pathname + window.location.search);
   }
