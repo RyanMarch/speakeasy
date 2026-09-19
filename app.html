@@ -26,7 +26,7 @@
   <meta name="theme-color" content="#121110">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/index.css?v=54">
+  <link rel="stylesheet" href="css/index.css?v=63">
   <link rel="stylesheet" href="css/theme-deco.css?v=11">
   <!--
     Import Map: cache-busts the entire internal ES module graph from ONE
@@ -159,9 +159,8 @@
         <button id="btn-sign-in" class="btn btn-secondary btn-sm auth-signin-btn" title="Sign in to sync your library">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-            <polyline points="10 17 15 12 10 7"></polyline>
-            <line x1="15" y1="12" x2="3" y2="12"></line>
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
           </svg>
           <span class="btn-text">Sign In</span>
         </button>
@@ -174,7 +173,6 @@
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
           <span class="auth-user-name" id="user-pill-name">Profile</span>
-          <span class="auth-status-badge" title="Synced with cloud"></span>
         </button>
 
         <!-- Hidden Popovers kept as hidden containers for backwards-compatibility -->
@@ -938,7 +936,7 @@
           <p class="auth-prompt">Enter your email for a passwordless sign-in code.</p>
           <form id="auth-form-email" class="auth-form" novalidate>
             <div class="auth-form-field">
-              <input type="email" id="auth-email-input" class="auth-input" required placeholder="bartender@example.com"
+              <input type="email" id="auth-email-input" class="auth-input" required aria-label="Email address" placeholder="bartender@example.com"
                 autocomplete="email" />
               <div id="auth-email-error" class="auth-error" style="display: none;"></div>
             </div>
@@ -954,7 +952,7 @@
               id="auth-email-display"></strong>.</p>
           <form id="auth-form-otp" class="auth-form" novalidate>
             <div class="auth-form-field">
-              <input type="text" id="auth-otp-input" class="auth-input auth-input-otp" required maxlength="6"
+              <input type="text" id="auth-otp-input" class="auth-input auth-input-otp" required aria-label="6-digit sign-in code" maxlength="6"
                 inputmode="numeric" autocomplete="one-time-code" placeholder="······" />
               <div id="auth-otp-error" class="auth-error" style="display: none;"></div>
             </div>

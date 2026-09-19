@@ -5,7 +5,7 @@
  * Storage and Fetch APIs.
  */
 
-const CACHE_NAME = 'speakeasy-v3';
+const CACHE_NAME = 'speakeasy-v4';
 
 // Core shell files precached at install time, so the app has *something* to serve
 // on a cold offline open even before the fetch handler below has had a chance to
@@ -39,15 +39,41 @@ const PRECACHE_URLS = [
   'css/editor.css',
   'css/modals.css',
   'css/responsive.css',
-  'js/modules/taxonomy.js',
-  'js/modules/storage.js',
-  'js/modules/parser.js',
-  'js/modules/glassware.js',
-  'js/modules/glass-view.js',
-  'js/modules/garnishes.js',
-  'js/modules/colors.js',
+  'css/print.css',
+  'js/router.js',
+  'js/state.js',
+  'js/components/auth-modal.js',
+  'js/components/backbar-modal.js',
+  'js/components/calculator-modal.js',
+  'js/components/editor-modal.js',
+  'js/components/hidden-modal.js',
+  'js/components/print-window.js',
+  'js/components/rating-modal.js',
+  'js/components/timer-modal.js',
+  'js/components/toast.js',
+  'js/components/top-bar.js',
+  'js/data/featured-cocktails.js',
+  'js/data/seed-recipes.js',
   'js/modules/abv.js',
+  'js/modules/auth.js',
+  'js/modules/auto-detect.js',
   'js/modules/balance.js',
+  'js/modules/calculators.js',
+  'js/modules/colors.js',
+  'js/modules/garnishes.js',
+  'js/modules/glass-view.js',
+  'js/modules/glassware.js',
+  'js/modules/history.js',
+  'js/modules/parser.js',
+  'js/modules/share-card.js',
+  'js/modules/storage.js',
+  'js/modules/taxonomy.js',
+  'js/modules/telemetry.js',
+  'js/views/counter-view.js',
+  'js/views/home-view.js',
+  'js/views/menu-builder-view.js',
+  'js/views/recipe-list-view.js',
+  'js/views/shared-recipe-view.js',
   'assets/icon.svg',
   'assets/icon-192.png',
   'assets/icon-512.png',
@@ -114,7 +140,10 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(async () => {
         const cache = await caches.open(CACHE_NAME);
-        const cached = await cache.match(request);
+        // ignoreSearch: the page requests `?v=N` cache-busted URLs, but the
+        // precache above stores bare paths — without this a cold offline open
+        // (no prior online visit) misses every precached asset.
+        const cached = await cache.match(request) || await cache.match(request, { ignoreSearch: true });
         if (cached) return cached;
         if (request.mode === 'navigate') {
           if (url.pathname.startsWith('/app')) {

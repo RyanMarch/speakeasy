@@ -449,6 +449,63 @@
     z-index: 10;
   }
 
+  /* Footer Home button and All/Ready toggle share one 40px height so the row
+     reads balanced. The toggle's frame adds 6px (2px padding + 1px border per
+     side), so its buttons are 34px. The 44px tap area below still applies. */
+  .footer-nav-btn {
+    min-height: 40px;
+    padding: 0 1rem;
+    font-size: 0.85rem;
+  }
+
+  .inventory-filter-btn {
+    height: 34px;
+    min-height: 34px;
+  }
+
+  /* Touch targets: these controls keep their compact look, but each gets an
+     invisible ::after box centered on it that is at least 44x44 (it only grows
+     an axis that is currently smaller, so wide buttons gain height only). Taps
+     inside that box land on the control. Text inputs/selects can't take
+     pseudo-elements, so they aren't covered here. */
+  .brand-group-btn,
+  .my-bar-btn,
+  .auth-signin-btn,
+  .auth-user-pill,
+  .pack-pill,
+  .home-calculators-btn,
+  .home-menu-builder-btn,
+  .home-new-drink-btn,
+  .home-browse-all-btn,
+  .home-search-btn,
+  .shelf-title-link,
+  .footer-nav-btn,
+  .inventory-filter-btn {
+    position: relative;
+  }
+
+  .brand-group-btn::after,
+  .my-bar-btn::after,
+  .auth-signin-btn::after,
+  .auth-user-pill::after,
+  .pack-pill::after,
+  .home-calculators-btn::after,
+  .home-menu-builder-btn::after,
+  .home-new-drink-btn::after,
+  .home-browse-all-btn::after,
+  .home-search-btn::after,
+  .shelf-title-link::after,
+  .footer-nav-btn::after,
+  .inventory-filter-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+
   /* Main Stage (Recipe & Editor): Clean Side Margins, Document Scrolling
      No horizontal padding here — it lives on the view containers below instead,
      so horizontally-scrolling shelves (.similar-cocktails-track) can bleed to the
@@ -1133,14 +1190,24 @@
     row-gap: 0.75rem;
   }
 
-  /* De-emphasized on mobile: Calculators and Build a Menu drop to plain ghost
+  /* De-emphasized on mobile: Calculators, Build a Menu and New Drink share one row and drop to plain ghost
      links rather than competing with Search/Browse as equal-weight bordered buttons.
      Desktop is untouched — only this breakpoint's rules carry !important to
      beat .btn-secondary's own !important background/border. */
-  .home-calculators-btn,
-  .home-menu-builder-btn {
-    margin-left: 0;
+  .home-quick-actions {
+    display: flex;
     flex-basis: 100%;
+    gap: 0.5rem;
+  }
+
+  .home-calculators-btn,
+  .home-menu-builder-btn,
+  .home-new-drink-btn {
+    margin-left: 0;
+    display: inline-flex;
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
     justify-content: center;
     background: none !important;
     border-color: transparent !important;
@@ -1155,20 +1222,16 @@
      A direct child of .home-view (see the JS template) rather than nested
      in .home-stats-card — sticky can't stay stuck past the bottom of its
      own containing block, and .home-stats-card ends right after this row.
-     Unlike .counter-mobile-bar, this one does NOT bleed edge-to-edge —
-     margin (not padding) keeps it and its background confined to the same
-     inset column as the rest of Home's content, so it doesn't read as
-     wider than everything else while stuck. Nothing on mobile Home scrolls
-     past that column at rest, so the background still fully masks content
-     scrolling underneath. */
+     Bleeds full-width edge-to-edge so cards scrolling underneath are completely
+     masked on the sides of the buttons, matching .counter-mobile-bar. */
   .home-browse-actions {
     display: flex;
     gap: 0.6rem;
     position: sticky;
     top: var(--mobile-header-height);
     z-index: 90;
-    margin: 0.25rem var(--mobile-inset) 0;
-    padding: 0.65rem 0;
+    margin: 0.25rem 0 0;
+    padding: 0.65rem var(--mobile-inset);
     background: rgba(18, 17, 16, 0.98);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
