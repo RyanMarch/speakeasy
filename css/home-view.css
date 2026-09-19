@@ -164,6 +164,16 @@
   margin-left: auto;
 }
 
+/* Desktop: wrapper is transparent so buttons stay direct flex items of the stats row */
+.home-quick-actions {
+  display: contents;
+}
+
+/* Mobile-only (shown in responsive.css); desktop has the header button */
+.home-new-drink-btn {
+  display: none;
+}
+
 /* Home Collection Shelves (reuses .similar-cocktails-shelf / .similar-cocktail-card) */
 
 .similar-cocktails-shelf.home-shelf {
@@ -215,28 +225,6 @@
   line-height: 1.35;
 }
 
-.home-unpin-btn,
-.home-hide-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-faint);
-  cursor: pointer;
-  font-size: 0.85rem;
-  line-height: 1;
-  padding: 0;
-  margin: -5px -5px -5px 0;
-  min-width: 24px;
-  min-height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s ease;
-}
-
-.home-unpin-btn:hover,
-.home-hide-btn:hover {
-  color: var(--color-crimson);
-}
 
 .home-empty-state {
   padding: 2.5rem 0;

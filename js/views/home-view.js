@@ -15,7 +15,6 @@ import {
   getRecentlyViewed,
   getAllUniqueTags,
   savePinnedTags,
-  saveHiddenHomeCollections,
   normalizeTagName,
 } from '../modules/storage.js';
 
@@ -203,6 +202,7 @@ export function renderHomeView() {
           <strong>${ingredientCount}</strong>
           <span>${ingredientCount === 1 ? 'Ingredient' : 'Ingredients'} in Bar</span>
         </div>
+        <div class="home-quick-actions">
         <button type="button" id="btn-open-calculators" class="btn btn-secondary btn-sm home-calculators-btn" data-action="open-calculators" title="Bartender Calculators: batching, acid adjustment, Brix">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="4" y="2" width="16" height="20" rx="2"></rect>
@@ -224,6 +224,14 @@ export function renderHomeView() {
           </svg>
           Build a Menu
         </button>
+        <button type="button" class="btn btn-secondary btn-sm home-new-drink-btn" data-action="new-drink">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          New Drink
+        </button>
+        </div>
       </div>
     </div>
 
@@ -312,13 +320,6 @@ export function renderHomeShelf(col, idx) {
           ` : `
             <span class="counter-card-title">${escapeHtml(col.title)}</span>
           `}
-          ${col.pinned ? `
-            <button type="button" class="home-unpin-btn" data-action="unpin-tag" data-tag="${escapeHtml(col.key)}"
-              title="Remove this collection from Home" aria-label="Remove ${escapeHtml(col.title)} collection">×</button>
-          ` : `
-            <button type="button" class="home-hide-btn" data-action="hide-collection" data-collection="${escapeHtml(col.key)}"
-              title="Hide this shelf from Home" aria-label="Hide ${escapeHtml(col.title)} shelf">×</button>
-          `}
         </div>
         <div class="shelf-scroll-controls">
           <button type="button" class="shelf-nav-btn shelf-nav-prev" aria-label="Scroll ${escapeHtml(col.title)} left" title="Scroll left">
@@ -401,6 +402,12 @@ export function setupHomeViewEvents(pinnableTags) {
     openCalculatorModal({ recipeId: state.activeRecipeId });
   });
 
+  // The header's #btn-new-drink is display:none on mobile but still clickable
+  // programmatically, so reuse its handler instead of wiring another callback.
+  container.querySelector('[data-action="new-drink"]')?.addEventListener('click', () => {
+    document.getElementById('btn-new-drink')?.click();
+  });
+
   container.querySelector('[data-action="open-menu-builder"]')?.addEventListener('click', () => {
     if (_openMenuBuilderModalFn) _openMenuBuilderModalFn();
   });
@@ -471,26 +478,6 @@ export function setupHomeViewEvents(pinnableTags) {
   }, { root: null, rootMargin: '600px 0px', threshold: 0 });
 
   container.querySelectorAll('.home-track').forEach(track => shelfObserver.observe(track));
-
-  container.querySelectorAll('[data-action="unpin-tag"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tag = btn.getAttribute('data-tag');
-      if (!tag) return;
-      state.pinnedTags = state.pinnedTags.filter(t => t !== tag);
-      savePinnedTags(state.pinnedTags);
-      renderHomeView();
-    });
-  });
-
-  container.querySelectorAll('[data-action="hide-collection"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const key = btn.getAttribute('data-collection');
-      if (!key) return;
-      state.hiddenHomeCollections.add(key);
-      saveHiddenHomeCollections([...state.hiddenHomeCollections]);
-      renderHomeView();
-    });
-  });
 
   const pinInput = document.getElementById('home-pin-tag-input');
   const pinTag = (rawTag) => {
