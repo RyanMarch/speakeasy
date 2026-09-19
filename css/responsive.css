@@ -449,6 +449,63 @@
     z-index: 10;
   }
 
+  /* Footer Home button and All/Ready toggle share one 40px height so the row
+     reads balanced. The toggle's frame adds 6px (2px padding + 1px border per
+     side), so its buttons are 34px. The 44px tap area below still applies. */
+  .footer-nav-btn {
+    min-height: 40px;
+    padding: 0 1rem;
+    font-size: 0.85rem;
+  }
+
+  .inventory-filter-btn {
+    height: 34px;
+    min-height: 34px;
+  }
+
+  /* Touch targets: these controls keep their compact look, but each gets an
+     invisible ::after box centered on it that is at least 44x44 (it only grows
+     an axis that is currently smaller, so wide buttons gain height only). Taps
+     inside that box land on the control. Text inputs/selects can't take
+     pseudo-elements, so they aren't covered here. */
+  .brand-group-btn,
+  .my-bar-btn,
+  .auth-signin-btn,
+  .auth-user-pill,
+  .pack-pill,
+  .home-calculators-btn,
+  .home-menu-builder-btn,
+  .home-new-drink-btn,
+  .home-browse-all-btn,
+  .home-search-btn,
+  .shelf-title-link,
+  .footer-nav-btn,
+  .inventory-filter-btn {
+    position: relative;
+  }
+
+  .brand-group-btn::after,
+  .my-bar-btn::after,
+  .auth-signin-btn::after,
+  .auth-user-pill::after,
+  .pack-pill::after,
+  .home-calculators-btn::after,
+  .home-menu-builder-btn::after,
+  .home-new-drink-btn::after,
+  .home-browse-all-btn::after,
+  .home-search-btn::after,
+  .shelf-title-link::after,
+  .footer-nav-btn::after,
+  .inventory-filter-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+
   /* Main Stage (Recipe & Editor): Clean Side Margins, Document Scrolling
      No horizontal padding here — it lives on the view containers below instead,
      so horizontally-scrolling shelves (.similar-cocktails-track) can bleed to the
