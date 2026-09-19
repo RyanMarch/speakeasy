@@ -45,6 +45,8 @@ import {
   updateAuthIndicator,
 } from './js/components/top-bar.js';
 import { trackEvent } from './js/modules/telemetry.js';
+import { initMobileSearchFocus } from './js/modules/mobile-search-focus.js';
+import { runViewTransition } from './js/modules/view-transition.js';
 
 import {
   setupBackbarEventListeners,
@@ -344,6 +346,8 @@ function setupGlobalEventListeners() {
 
   // Search with debounced telemetry
   let searchDebounceTimer = null;
+  initMobileSearchFocus();
+
   elements.searchInput?.addEventListener('input', (e) => {
     state.searchQuery = e.target.value.trim().toLowerCase();
     elements.searchClearBtn?.classList.toggle('visible', state.searchQuery.length > 0);
@@ -409,9 +413,11 @@ function setupGlobalEventListeners() {
       // to that list, at the same scroll position, rather than to Home.
       if (state.returnToMobileList && window.innerWidth <= 768) {
         state.returnToMobileList = false;
-        elements.sidebar?.classList.remove('mobile-hidden');
-        elements.mainStage?.classList.add('mobile-hidden');
-        window.scrollTo(0, state.listScrollY || 1);
+        runViewTransition(() => {
+          elements.sidebar?.classList.remove('mobile-hidden');
+          elements.mainStage?.classList.add('mobile-hidden');
+          window.scrollTo(0, state.listScrollY || 1);
+        }, 'back');
         return;
       }
       if (state.viewMode !== 'home') {

@@ -12,6 +12,7 @@ import {
   SEED_RECIPE_IDS,
   inventoryVersion,
 } from '../state.js';
+import { runViewTransition } from '../modules/view-transition.js';
 
 import {
   getRecipes,
@@ -1698,10 +1699,12 @@ export function renderCounterView() {
   });
 
   document.getElementById('btn-mobile-back')?.addEventListener('click', () => {
-    elements.sidebar.classList.remove('mobile-hidden');
-    elements.mainStage.classList.add('mobile-hidden');
+    runViewTransition(() => {
+      elements.sidebar.classList.remove('mobile-hidden');
+      elements.mainStage.classList.add('mobile-hidden');
+      window.scrollTo(0, state.listScrollY || 1);
+    }, 'back');
     state.returnToMobileList = false;
-    window.scrollTo(0, state.listScrollY || 1);
     if (window.location.hash) {
       history.pushState(null, '', window.location.pathname + window.location.search);
     }

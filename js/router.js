@@ -15,6 +15,7 @@ import { renderMenuBuilderView, resetMenuBuilderToList } from './views/menu-buil
 import { renderVaultSettingsModal } from './components/top-bar.js';
 import { renderSharedRecipeView, setSharedRecipeViewCallbacks } from './views/shared-recipe-view.js';
 import { trackEvent } from './modules/telemetry.js';
+import { runViewTransition } from './modules/view-transition.js';
 
 setSharedRecipeViewCallbacks({
   selectRecipe,
@@ -59,30 +60,32 @@ export function selectRecipe(id, updateHistory = true) {
     history.pushState(null, '', `#${id}`);
   }
 
-  const preservedScrollTop = elements.recipeList?.scrollTop || 0;
-  renderRecipeList();
-  if (elements.recipeList) {
-    elements.recipeList.scrollTop = preservedScrollTop;
-  }
-  renderCurrentView();
-
-  // Keep active item visible in sidebar without jarring jumps when clicked directly
-  const activeEl = elements.recipeList?.querySelector('.recipe-list-item.active');
-  if (activeEl && elements.recipeList) {
-    const listRect = elements.recipeList.getBoundingClientRect();
-    const itemRect = activeEl.getBoundingClientRect();
-    if (itemRect.top < listRect.top || itemRect.bottom > listRect.bottom) {
-      activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  runViewTransition(() => {
+    const preservedScrollTop = elements.recipeList?.scrollTop || 0;
+    renderRecipeList();
+    if (elements.recipeList) {
+      elements.recipeList.scrollTop = preservedScrollTop;
     }
-  }
+    renderCurrentView();
 
-  // Mobile navigation adjustment
-  elements.sidebar?.classList.add('mobile-hidden');
-  elements.mainStage?.classList.remove('mobile-hidden');
-  if (elements.mainStage) {
-    elements.mainStage.scrollTop = 0;
-  }
-  window.scrollTo({ top: 1 });
+    // Keep active item visible in sidebar without jarring jumps when clicked directly
+    const activeEl = elements.recipeList?.querySelector('.recipe-list-item.active');
+    if (activeEl && elements.recipeList) {
+      const listRect = elements.recipeList.getBoundingClientRect();
+      const itemRect = activeEl.getBoundingClientRect();
+      if (itemRect.top < listRect.top || itemRect.bottom > listRect.bottom) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    // Mobile navigation adjustment
+    elements.sidebar?.classList.add('mobile-hidden');
+    elements.mainStage?.classList.remove('mobile-hidden');
+    if (elements.mainStage) {
+      elements.mainStage.scrollTop = 0;
+    }
+    window.scrollTo({ top: 1 });
+  }, 'forward');
 }
 
 /**
@@ -215,20 +218,7 @@ export function renderCurrentView() {
     }
   };
 
-  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !state.funAnimations;
-  if (!reducedMotion && document.startViewTransition) {
-    window._activeViewTransition?.skipTransition?.();
-    const transition = document.startViewTransition(applyView);
-    window._activeViewTransition = transition;
-    transition.ready.catch(() => {});
-    transition.finished.catch(() => {}).finally(() => {
-      if (window._activeViewTransition === transition) {
-        window._activeViewTransition = null;
-      }
-    });
-  } else {
-    applyView();
-  }
+  runViewTransition(applyView);
 }
 
 /**
@@ -240,15 +230,17 @@ export function goHome() {
   if (window.location.hash) {
     history.pushState(null, '', window.location.pathname + window.location.search);
   }
-  renderRecipeList();
-  renderCurrentView();
+  runViewTransition(() => {
+    renderRecipeList();
+    renderCurrentView();
 
-  elements.sidebar?.classList.add('mobile-hidden');
-  elements.mainStage?.classList.remove('mobile-hidden');
-  if (elements.mainStage) {
-    elements.mainStage.scrollTop = 0;
-  }
-  window.scrollTo({ top: 1 });
+    elements.sidebar?.classList.add('mobile-hidden');
+    elements.mainStage?.classList.remove('mobile-hidden');
+    if (elements.mainStage) {
+      elements.mainStage.scrollTop = 0;
+    }
+    window.scrollTo({ top: 1 });
+  }, 'back');
 }
 
 /**
@@ -261,14 +253,16 @@ export function goToMenuBuilder() {
   if (window.location.hash !== '#menus') {
     history.pushState(null, '', '#menus');
   }
-  renderCurrentView();
+  runViewTransition(() => {
+    renderCurrentView();
 
-  elements.sidebar?.classList.add('mobile-hidden');
-  elements.mainStage?.classList.remove('mobile-hidden');
-  if (elements.mainStage) {
-    elements.mainStage.scrollTop = 0;
-  }
-  window.scrollTo({ top: 1 });
+    elements.sidebar?.classList.add('mobile-hidden');
+    elements.mainStage?.classList.remove('mobile-hidden');
+    if (elements.mainStage) {
+      elements.mainStage.scrollTop = 0;
+    }
+    window.scrollTo({ top: 1 });
+  }, 'forward');
 }
 
 /**
@@ -280,14 +274,16 @@ export function goToAccount() {
   if (window.location.hash !== '#account') {
     history.pushState(null, '', '#account');
   }
-  renderCurrentView();
+  runViewTransition(() => {
+    renderCurrentView();
 
-  elements.sidebar?.classList.add('mobile-hidden');
-  elements.mainStage?.classList.remove('mobile-hidden');
-  if (elements.mainStage) {
-    elements.mainStage.scrollTop = 0;
-  }
-  window.scrollTo({ top: 1 });
+    elements.sidebar?.classList.add('mobile-hidden');
+    elements.mainStage?.classList.remove('mobile-hidden');
+    if (elements.mainStage) {
+      elements.mainStage.scrollTop = 0;
+    }
+    window.scrollTo({ top: 1 });
+  }, 'forward');
 }
 
 /**
@@ -301,15 +297,21 @@ export function goToAccount() {
  *   a tag tapped from a recipe) and re-render the list filtered to match.
  */
 export function showDrinksListMobile({ focusSearch = false, query } = {}) {
-  elements.sidebar?.classList.remove('mobile-hidden');
-  elements.mainStage?.classList.add('mobile-hidden');
+  const reveal = () => {
+    elements.sidebar?.classList.remove('mobile-hidden');
+    elements.mainStage?.classList.add('mobile-hidden');
 
-  if (typeof query === 'string' && elements.searchInput) {
-    elements.searchInput.value = query;
-    state.searchQuery = query.trim().toLowerCase();
-    elements.searchClearBtn?.classList.toggle('visible', state.searchQuery.length > 0);
-    renderRecipeList();
-  }
+    if (typeof query === 'string' && elements.searchInput) {
+      elements.searchInput.value = query;
+      state.searchQuery = query.trim().toLowerCase();
+      elements.searchClearBtn?.classList.toggle('visible', state.searchQuery.length > 0);
+      renderRecipeList();
+    }
+  };
+  // Focusing the search field has to happen synchronously (see below) and needs
+  // the list visible first, so that entry point skips the animated transition.
+  if (focusSearch) reveal();
+  else runViewTransition(reveal, 'forward');
 
   if (focusSearch && elements.searchInput) {
     // Must be synchronous, not deferred via setTimeout/rAF: iOS Safari only
