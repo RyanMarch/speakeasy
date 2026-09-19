@@ -1133,14 +1133,24 @@
     row-gap: 0.75rem;
   }
 
-  /* De-emphasized on mobile: Calculators and Build a Menu drop to plain ghost
+  /* De-emphasized on mobile: Calculators, Build a Menu and New Drink share one row and drop to plain ghost
      links rather than competing with Search/Browse as equal-weight bordered buttons.
      Desktop is untouched — only this breakpoint's rules carry !important to
      beat .btn-secondary's own !important background/border. */
-  .home-calculators-btn,
-  .home-menu-builder-btn {
-    margin-left: 0;
+  .home-quick-actions {
+    display: flex;
     flex-basis: 100%;
+    gap: 0.5rem;
+  }
+
+  .home-calculators-btn,
+  .home-menu-builder-btn,
+  .home-new-drink-btn {
+    margin-left: 0;
+    display: inline-flex;
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
     justify-content: center;
     background: none !important;
     border-color: transparent !important;
@@ -1155,20 +1165,16 @@
      A direct child of .home-view (see the JS template) rather than nested
      in .home-stats-card — sticky can't stay stuck past the bottom of its
      own containing block, and .home-stats-card ends right after this row.
-     Unlike .counter-mobile-bar, this one does NOT bleed edge-to-edge —
-     margin (not padding) keeps it and its background confined to the same
-     inset column as the rest of Home's content, so it doesn't read as
-     wider than everything else while stuck. Nothing on mobile Home scrolls
-     past that column at rest, so the background still fully masks content
-     scrolling underneath. */
+     Bleeds full-width edge-to-edge so cards scrolling underneath are completely
+     masked on the sides of the buttons, matching .counter-mobile-bar. */
   .home-browse-actions {
     display: flex;
     gap: 0.6rem;
     position: sticky;
     top: var(--mobile-header-height);
     z-index: 90;
-    margin: 0.25rem var(--mobile-inset) 0;
-    padding: 0.65rem 0;
+    margin: 0.25rem 0 0;
+    padding: 0.65rem var(--mobile-inset);
     background: rgba(18, 17, 16, 0.98);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
