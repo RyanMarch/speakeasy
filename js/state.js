@@ -43,6 +43,13 @@ export const HOME_DEFAULT_COLLECTIONS = [
 export const state = {
   recipes: [],
   activeRecipeId: null,
+  // Where the drinks list was scrolled to when a recipe was opened from it, so
+  // going back (in-app button or browser/swipe back) can put the user in the
+  // same spot. listScrollY is the mobile page scroll, listScrollTop the
+  // desktop sidebar's own scroll (lost whenever the sidebar is display:none).
+  listScrollY: 0,
+  listScrollTop: 0,
+  returnToMobileList: false,
   activeRiffs: {}, // { [specIndex]: substituteTaxonomyId }
   riffAmountOverrides: {}, // { [specIndex]: newAmount } — amount edits to existing specs while riffing
   riffExtraSpecs: [], // [{ amount, unit, name }] — new ingredients added while riffing

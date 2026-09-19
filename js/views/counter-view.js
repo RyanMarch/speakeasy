@@ -1700,7 +1700,8 @@ export function renderCounterView() {
   document.getElementById('btn-mobile-back')?.addEventListener('click', () => {
     elements.sidebar.classList.remove('mobile-hidden');
     elements.mainStage.classList.add('mobile-hidden');
-    window.scrollTo({ top: 1 });
+    state.returnToMobileList = false;
+    window.scrollTo(0, state.listScrollY || 1);
     if (window.location.hash) {
       history.pushState(null, '', window.location.pathname + window.location.search);
     }

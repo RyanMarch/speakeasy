@@ -405,9 +405,20 @@ function setupGlobalEventListeners() {
   window.addEventListener('hashchange', () => {
     const rawHash = window.location.hash.replace(/^#+/, '').trim();
     if (!rawHash) {
+      // Back from a recipe that was opened from the mobile drinks list: return
+      // to that list, at the same scroll position, rather than to Home.
+      if (state.returnToMobileList && window.innerWidth <= 768) {
+        state.returnToMobileList = false;
+        elements.sidebar?.classList.remove('mobile-hidden');
+        elements.mainStage?.classList.add('mobile-hidden');
+        window.scrollTo(0, state.listScrollY || 1);
+        return;
+      }
       if (state.viewMode !== 'home') {
         state.viewMode = 'home';
+        const listScrollTop = elements.recipeList?.scrollTop || 0;
         renderRecipeList();
+        if (elements.recipeList) elements.recipeList.scrollTop = listScrollTop;
         renderCurrentView();
       }
       elements.sidebar?.classList.add('mobile-hidden');
