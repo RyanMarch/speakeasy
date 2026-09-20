@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/index.css?v=65">
-  <link rel="stylesheet" href="css/theme-deco.css?v=11">
+  <link rel="stylesheet" href="css/theme-deco.css?v=12">
   <!--
     Import Map: cache-busts the entire internal ES module graph from ONE
     place. Every internal `import` specifier resolves to an absolute URL
@@ -46,12 +46,12 @@
       "/js/components/auth-modal.js": "/js/components/auth-modal.js?v=1",
       "/js/components/backbar-modal.js": "/js/components/backbar-modal.js?v=1",
       "/js/components/calculator-modal.js": "/js/components/calculator-modal.js?v=1",
-      "/js/components/editor-modal.js": "/js/components/editor-modal.js?v=1",
+      "/js/components/editor-modal.js": "/js/components/editor-modal.js?v=2",
       "/js/components/hidden-modal.js": "/js/components/hidden-modal.js?v=1",
       "/js/components/print-window.js": "/js/components/print-window.js?v=10",
       "/js/components/rating-modal.js": "/js/components/rating-modal.js?v=3",
-      "/js/components/timer-modal.js": "/js/components/timer-modal.js?v=1",
-      "/js/components/toast.js": "/js/components/toast.js?v=1",
+      "/js/components/timer-modal.js": "/js/components/timer-modal.js?v=2",
+      "/js/components/toast.js": "/js/components/toast.js?v=2",
       "/js/components/top-bar.js": "/js/components/top-bar.js?v=6",
       "/js/data/featured-cocktails.js": "/js/data/featured-cocktails.js?v=1",
       "/js/data/seed-recipes.js": "/js/data/seed-recipes.js?v=1",
@@ -75,7 +75,7 @@
       "/js/state.js": "/js/state.js?v=5",
       "/js/views/counter-view.js": "/js/views/counter-view.js?v=14",
       "/js/views/home-view.js": "/js/views/home-view.js?v=2",
-      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=8",
+      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=9",
       "/js/views/recipe-list-view.js": "/js/views/recipe-list-view.js?v=1",
       "/js/views/shared-recipe-view.js": "/js/views/shared-recipe-view.js?v=2"
     }
@@ -99,9 +99,9 @@
   <link rel="modulepreload" href="/js/components/top-bar.js?v=5">
   <link rel="modulepreload" href="/js/components/backbar-modal.js?v=1">
   <link rel="modulepreload" href="/js/components/hidden-modal.js?v=1">
-  <link rel="modulepreload" href="/js/components/editor-modal.js?v=1">
-  <link rel="modulepreload" href="/js/components/timer-modal.js?v=1">
-  <link rel="modulepreload" href="/js/components/toast.js?v=1">
+  <link rel="modulepreload" href="/js/components/editor-modal.js?v=2">
+  <link rel="modulepreload" href="/js/components/timer-modal.js?v=2">
+  <link rel="modulepreload" href="/js/components/toast.js?v=2">
   <link rel="modulepreload" href="/js/components/auth-modal.js?v=1">
   <link rel="modulepreload" href="/js/modules/auth.js?v=1">
   <link rel="modulepreload" href="/js/modules/storage.js?v=1">
@@ -276,7 +276,7 @@
             </svg>
             <input type="search" id="search-input" class="search-input" placeholder="Search drinks, spirits, flavors..."
               aria-label="Search recipes">
-            <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
+            <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
           </div>
           <!-- <div class="sidebar-sort-select-wrap">
             <select id="sidebar-sort-select" class="sidebar-sort-select" aria-label="Sort cocktail list">
@@ -830,7 +830,7 @@
               in stock.</p>
           </div>
           <button id="btn-close-backbar" class="btn btn-ghost btn-sm close-modal-btn"
-            aria-label="Close modal">✕</button>
+            aria-label="Close modal"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
 
         <!-- Backbar View Switcher: My Bar vs Shopping List -->
@@ -907,7 +907,7 @@
             <p class="backbar-dialog-subtitle">Manage default recipes you've hidden from your library. Unhide anytime to
               restore.</p>
           </div>
-          <button id="btn-close-hidden-modal" class="btn btn-ghost btn-modal-close" aria-label="Close dialog">✕</button>
+          <button id="btn-close-hidden-modal" class="btn btn-ghost btn-modal-close" aria-label="Close dialog"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
 
         <div class="hidden-recipes-body" id="hidden-recipes-container">
@@ -930,7 +930,7 @@
         <div class="auth-dialog-header">
           <h2 class="auth-dialog-title" id="auth-modal-title">Account & Cloud Sync</h2>
           <button id="btn-close-auth-modal" class="btn btn-ghost btn-sm close-modal-btn"
-            aria-label="Close dialog">✕</button>
+            aria-label="Close dialog"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
 
         <!-- Step 1: Email Input Form -->

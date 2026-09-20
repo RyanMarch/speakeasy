@@ -682,19 +682,31 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 }
 
 @keyframes vt-out-to-left {
-  to { opacity: 0; transform: translateX(-28px); }
+  to {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
 }
 
 @keyframes vt-out-to-right {
-  to { opacity: 0; transform: translateX(28px); }
+  to {
+    opacity: 0;
+    transform: translateX(28px);
+  }
 }
 
 @keyframes vt-in-from-right {
-  from { opacity: 0; transform: translateX(36px); }
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
 }
 
 @keyframes vt-in-from-left {
-  from { opacity: 0; transform: translateX(-36px); }
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -871,4 +883,13 @@ body:has(#vault-popover:popover-open) .vault-menu-btn .chevron-icon {
 
 .auth-signout-btn:hover {
   background: rgba(230, 57, 70, 0.1);
+}
+
+/* Drawn close icon (CLOSE_ICON_SVG in components/toast.js), replacing the ✕ character. */
+.icon-x {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
 }

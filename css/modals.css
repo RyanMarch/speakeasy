@@ -2191,18 +2191,42 @@
   }
 }
 
-html.animations-disabled .toast-level-up,
+/* Calm the level-up toast when animations are off: either the app's own
+   "fun animations" setting (html.animations-disabled) or the OS-level
+   reduced-motion preference. This block used to end its first selector with a
+   dangling comma straight into the @media line, which made the whole rule invalid
+   and so silently skipped both cases. */
+html.animations-disabled .toast-level-up {
+  animation: none;
+  box-shadow: var(--shadow-lg);
+}
+
+html.animations-disabled .toast-level-up::before {
+  display: none;
+}
+
+html.animations-disabled .toast-level-up-badge {
+  animation: none;
+}
+
+html.animations-disabled .toast-level-up-sparkle {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .toast-level-up {
     animation: none;
     box-shadow: var(--shadow-lg);
   }
+
   .toast-level-up::before {
     display: none;
   }
+
   .toast-level-up-badge {
     animation: none;
   }
+
   .toast-level-up-sparkle {
     display: none;
   }
