@@ -2153,6 +2153,7 @@
     opacity: 0;
     transform: translateY(24px) scale(0.88);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -2163,7 +2164,9 @@
   0% {
     left: -100%;
   }
-  50%, 100% {
+
+  50%,
+  100% {
     left: 150%;
   }
 }
@@ -2172,9 +2175,11 @@
   0% {
     transform: scale(0.3) rotate(-35deg);
   }
+
   70% {
     transform: scale(1.18) rotate(10deg);
   }
+
   100% {
     transform: scale(1) rotate(0);
   }
@@ -2185,24 +2190,49 @@
     opacity: 1;
     transform: translate(0, 0) scale(1);
   }
+
   100% {
     opacity: 0;
     transform: translate(var(--tx, 20px), var(--ty, -25px)) scale(0);
   }
 }
 
-html.animations-disabled .toast-level-up,
+/* Calm the level-up toast when animations are off: either the app's own
+   "fun animations" setting (html.animations-disabled) or the OS-level
+   reduced-motion preference. This block used to end its first selector with a
+   dangling comma straight into the @media line, which made the whole rule invalid
+   and so silently skipped both cases. */
+html.animations-disabled .toast-level-up {
+  animation: none;
+  box-shadow: var(--shadow-lg);
+}
+
+html.animations-disabled .toast-level-up::before {
+  display: none;
+}
+
+html.animations-disabled .toast-level-up-badge {
+  animation: none;
+}
+
+html.animations-disabled .toast-level-up-sparkle {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .toast-level-up {
     animation: none;
     box-shadow: var(--shadow-lg);
   }
+
   .toast-level-up::before {
     display: none;
   }
+
   .toast-level-up-badge {
     animation: none;
   }
+
   .toast-level-up-sparkle {
     display: none;
   }
@@ -2264,18 +2294,30 @@ html.animations-disabled .toast-level-up,
 
 .calculator-tabs {
   display: flex;
+  /* The dialog body is a column flex box: without this, the (now scrollable)
+     strip is allowed to shrink when a tab panel is tall, squashing the tabs. */
+  flex-shrink: 0;
   gap: 0.25rem;
   padding: 0.75rem 1.25rem 0;
   border-bottom: 1px solid var(--color-border-subtle);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.calculator-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .calculator-tab {
+  flex-shrink: 0;
+  white-space: nowrap;
   background: none;
   border: none;
   color: var(--color-text-muted);
   font-size: 0.82rem;
   font-weight: 600;
-  padding: 0.5rem 0.75rem;
+  /* Extra bottom padding keeps the active-tab underline off the label. */
+  padding: 0.5rem 0.75rem 0.8rem;
   cursor: pointer;
   border-bottom: 2px solid transparent;
 }
@@ -2546,4 +2588,518 @@ html.animations-disabled .toast-level-up,
 
 .counter-rating-edit-icon {
   color: var(--color-text-faint);
+}
+
+/* ==========================================================================
+   Bar Basics sheet (how to make a syrup) — js/components/bar-basics-sheet.js.
+   A centered card on desktop; a bottom sheet on phones.
+   ========================================================================== */
+
+.basics-sheet {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: #0e131d;
+  color: var(--color-text);
+  width: min(520px, 94vw);
+  max-height: 88vh;
+  max-height: 88dvh;
+  padding: 0;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85);
+  margin: auto;
+  overflow: hidden;
+}
+
+.basics-sheet:not([open]) {
+  display: none;
+}
+
+.basics-sheet[open] {
+  display: flex;
+  flex-direction: column;
+  animation: basicsSheetIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.basics-sheet::backdrop {
+  background-color: rgba(5, 8, 14, 0.40);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.basics-sheet-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: inherit;
+}
+
+.basics-sheet-grabber {
+  display: none;
+}
+
+.basics-sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem 0.8rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.basics-sheet-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.basics-sheet-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  margin: 0;
+  color: var(--color-accent);
+}
+
+.basics-sheet-body {
+  padding: 1rem 1.25rem 1.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.basics-tagline {
+  margin: 0 0 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.basics-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.basics-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-secondary);
+}
+
+.basics-chip-ratio {
+  border-color: rgba(212, 163, 89, 0.4);
+  color: var(--color-accent);
+}
+
+.basics-section-title {
+  margin: 1.2rem 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.basics-ingredients,
+.basics-tips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.basics-ingredient {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.9rem;
+}
+
+.basics-ingredient-amount {
+  flex: 0 0 9.5rem;
+  font-weight: 600;
+  color: var(--color-text-bright, #fff);
+}
+
+.basics-ingredient-item {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text-secondary);
+}
+
+.basics-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: basics-step;
+}
+
+.basics-steps li {
+  position: relative;
+  counter-increment: basics-step;
+  padding: 0.45rem 0 0.45rem 2rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.basics-steps li::before {
+  content: counter(basics-step);
+  position: absolute;
+  left: 0;
+  top: 0.5rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  border: 1px solid rgba(212, 163, 89, 0.4);
+}
+
+.basics-keeps {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  margin-top: 1.1rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.basics-keeps-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+
+.basics-tips li {
+  position: relative;
+  padding: 0.3rem 0 0.3rem 1rem;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.basics-tips li::before {
+  content: '';
+  position: absolute;
+  left: 0.15rem;
+  top: 0.85rem;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.basics-note {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+@keyframes basicsSheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}
+
+@media (max-width: 768px) {
+  .basics-sheet {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    max-height: 88dvh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .basics-sheet[open] {
+    animation-name: basicsSheetUp;
+    animation-duration: 340ms;
+  }
+
+  .basics-sheet-grabber {
+    display: block;
+    width: 38px;
+    height: 4px;
+    margin: 0.55rem auto 0;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  .basics-sheet-header {
+    padding-top: 0.7rem;
+  }
+
+  .basics-ingredient {
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .basics-ingredient-amount {
+    flex: none;
+  }
+
+  /* Comfortable tap target for the close button. */
+  .basics-sheet-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@keyframes basicsSheetUp {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .basics-sheet[open] {
+    animation: none;
+  }
+}
+
+/* Bar Basics tab (in the Bar Tools dialog) */
+
+.basics-intro {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.basics-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.basics-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.6rem 0.25rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.basics-list-item:hover .basics-list-name,
+.basics-list-item:focus-visible .basics-list-name {
+  color: var(--color-accent);
+}
+
+.basics-list-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.basics-list-name {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--color-text-bright, #fff);
+  transition: color var(--transition-fast);
+}
+
+.basics-list-ratio {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.basics-list-arrow {
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--color-text-faint);
+}
+
+.basics-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 44px;
+  margin: -0.5rem 0 0.25rem -0.25rem;
+  padding: 0 0.25rem;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.basics-detail-title {
+  margin: 0 0 0.6rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.4rem;
+  color: var(--color-accent);
+}
+
+.basics-credit {
+  margin: 0.6rem 0 0;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--color-text-faint);
+}
+
+/* Phone width: the four Bar Tools tabs don't fit at full length, and a
+   scrolled-away fourth tab is easy to miss, so use the short labels. */
+.calculator-tab .tab-short {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .calculator-tab .tab-full {
+    display: none;
+  }
+
+  .calculator-tab .tab-short {
+    display: inline;
+  }
+
+  .calculator-tabs {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Bar Basics list: grouped sections */
+
+.basics-group+.basics-group {
+  margin-top: 1.3rem;
+}
+
+.basics-group-title {
+  margin: 0 0 0.1rem;
+  padding-bottom: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  border-bottom: 1px solid rgba(212, 163, 89, 0.3);
+}
+/* Bar Basics: batch-size pills and the Brix Blender link */
+
+.basics-scale {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+}
+
+.basics-scale-label {
+  margin-right: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.basics-scale-pill {
+  position: relative;
+  min-width: 46px;
+  min-height: 34px;
+  padding: 0 0.8rem;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+/* Grows the tap area to ~44px without changing the pill's look. */
+.basics-scale-pill::after {
+  content: '';
+  position: absolute;
+  inset: -5px -2px;
+}
+
+.basics-scale-pill:hover {
+  border-color: rgba(212, 163, 89, 0.5);
+}
+
+.basics-scale-pill.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent, #1a1408);
+}
+
+.basics-tool-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  background: rgba(212, 163, 89, 0.06);
+  border: 1px solid rgba(212, 163, 89, 0.28);
+  border-radius: var(--radius-sm);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.basics-tool-link:hover,
+.basics-tool-link:focus-visible {
+  border-color: var(--color-accent);
+  background: rgba(212, 163, 89, 0.1);
+}
+
+.basics-tool-link-title {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.basics-tool-link-sub {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.basics-tool-link-arrow {
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--color-accent);
 }

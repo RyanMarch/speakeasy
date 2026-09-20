@@ -328,7 +328,7 @@ export const SEED_RECIPES = [
     method: "Shaken",
     garnish: "Candied ginger & lemon wheel",
     description: "Sam Ross’s 21st-century benchmark whiskey sour layering honey, fiery fresh ginger, and an aromatic Islay peated scotch float.",
-    instructions: "1. Add blended scotch, fresh lemon juice, and honey syrup to a shaker with ice.\n2. Shake hard for 12 seconds until cold.\n3. Strain over fresh ice in a rocks glass.\n4. Gently float peated Islay scotch over the back of a barspoon on top of the drink.\n5. Garnish with candied ginger.",
+    instructions: "1. Add blended scotch, fresh lemon juice, and honey-ginger syrup to a shaker with ice.\n2. Shake hard for 12 seconds until cold.\n3. Strain over fresh ice in a rocks glass.\n4. Gently float peated Islay scotch over the back of a barspoon on top of the drink.\n5. Garnish with candied ginger.",
     source: "Sam Ross, Milk & Honey NYC (2005)",
     sourceUrl: "",
     notes: "",
@@ -336,7 +336,7 @@ export const SEED_RECIPES = [
     specs: [
       { amount: 2, unit: "oz", name: "Blended Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
-      { amount: 0.75, unit: "oz", name: "Honey Syrup" },
+      { amount: 0.75, unit: "oz", name: "Honey-Ginger Syrup" },
       { amount: 0.25, unit: "oz", name: "Peated / Islay Scotch" },
     ],
   },

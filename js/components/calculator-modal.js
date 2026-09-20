@@ -1,6 +1,6 @@
 /**
  * Speakeasy Bartender Calculator Suite Modal
- * Tabbed dialog: Freezer Batcher, Acid Adjuster, Brix Blender. Builds its own
+ * Tabbed "Bar Tools" dialog: Freezer Batcher, Acid Adjuster, Brix Blender, Bar Basics. Builds its own
  * <dialog> lazily (same self-creating pattern as timer-modal.js / rating-modal.js)
  * rather than requiring markup in app.html.
  */
@@ -12,7 +12,9 @@ import {
   calculateBrix,
 } from '../modules/calculators.js';
 import { recipeMatchesQuery } from '../modules/taxonomy.js';
-import { escapeHtml, setupDialogLightDismiss } from './toast.js';
+import { escapeHtml, setupDialogLightDismiss, CLOSE_ICON_SVG } from './toast.js';
+import { BAR_BASICS, BAR_BASICS_GROUPS, getBarBasic } from '../data/bar-basics.js';
+import { renderBarBasicBody, wireBarBasicBody, resetBatchScale } from './bar-basics-sheet.js';
 
 const BOTTLE_SIZES_ML = [375, 750, 1000];
 const BATCH_SEARCH_RESULT_CAP = 40;
@@ -23,7 +25,7 @@ const JUICE_TYPES = [
 ];
 
 let dialogEl = null;
-let activeTab = 'batch';
+let activeTab = 'basics';
 let selectedRecipeId = null;
 let batchSearchQuery = '';
 let batchSuggestOpen = false;
@@ -33,6 +35,7 @@ let acidVolumeMl = 250;
 let acidTarget = 'lemon';
 let brixSugarGrams = 100;
 let brixWaterMl = 100;
+let basicsSelectedId = null; // null = the list of Bar Basics
 
 function getDialogElement() {
   if (dialogEl && document.body.contains(dialogEl)) return dialogEl;
@@ -44,13 +47,14 @@ function getDialogElement() {
   dialogEl.innerHTML = /*html*/`
     <div class="calculator-dialog-container">
       <div class="calculator-dialog-header">
-        <h2 id="calculator-modal-title" class="calculator-dialog-title">Bartender Calculators</h2>
-        <button type="button" id="btn-close-calculator" class="btn btn-ghost btn-sm close-modal-btn" aria-label="Close modal">✕</button>
+        <h2 id="calculator-modal-title" class="calculator-dialog-title">Bar Tools</h2>
+        <button type="button" id="btn-close-calculator" class="btn btn-ghost btn-sm close-modal-btn" aria-label="Close modal">${CLOSE_ICON_SVG}</button>
       </div>
-      <div class="calculator-tabs" role="tablist" aria-label="Calculator tools">
-        <button type="button" class="calculator-tab" data-tab="batch" role="tab">Freezer Batcher</button>
-        <button type="button" class="calculator-tab" data-tab="acid" role="tab">Acid Adjuster</button>
-        <button type="button" class="calculator-tab" data-tab="brix" role="tab">Brix Blender</button>
+      <div class="calculator-tabs" role="tablist" aria-label="Bar tools">
+        <button type="button" class="calculator-tab" data-tab="basics" role="tab" aria-label="Bar Basics"><span class="tab-full">Bar Basics</span><span class="tab-short" aria-hidden="true">Basics</span></button>
+        <button type="button" class="calculator-tab" data-tab="batch" role="tab" aria-label="Freezer Batcher"><span class="tab-full">Freezer Batcher</span><span class="tab-short" aria-hidden="true">Batcher</span></button>
+        <button type="button" class="calculator-tab" data-tab="acid" role="tab" aria-label="Acid Adjuster"><span class="tab-full">Acid Adjuster</span><span class="tab-short" aria-hidden="true">Acid</span></button>
+        <button type="button" class="calculator-tab" data-tab="brix" role="tab" aria-label="Brix Blender"><span class="tab-full">Brix Blender</span><span class="tab-short" aria-hidden="true">Brix</span></button>
       </div>
       <div class="calculator-tab-panel" id="calculator-tab-panel"></div>
     </div>
@@ -84,7 +88,77 @@ function renderTabs() {
 function renderPanel() {
   if (activeTab === 'batch') renderBatchPanel();
   else if (activeTab === 'acid') renderAcidPanel();
+  else if (activeTab === 'basics') renderBasicsPanel();
   else renderBrixPanel();
+}
+
+// --- Tab 4: Bar Basics (how to make syrups and other house-made ingredients) ---
+
+function renderBasicsPanel({ keepScroll = false } = {}) {
+  const panel = document.getElementById('calculator-tab-panel');
+  if (!panel) return;
+
+  const entry = basicsSelectedId ? getBarBasic(basicsSelectedId) : null;
+
+  if (entry) {
+    const scrollTop = panel.scrollTop;
+    panel.innerHTML = /*html*/`
+      <button type="button" class="basics-back-btn" id="basics-back">
+        <span aria-hidden="true">‹</span> All Bar Basics
+      </button>
+      <h3 class="basics-detail-title">${escapeHtml(entry.name)}</h3>
+      ${renderBarBasicBody(entry)}
+    `;
+    panel.querySelector('#basics-back').addEventListener('click', () => {
+      basicsSelectedId = null;
+      renderBasicsPanel();
+    });
+    wireBarBasicBody(panel, entry, {
+      rerender: () => renderBasicsPanel({ keepScroll: true }),
+      openBrix: (inputs) => {
+        activeTab = 'brix';
+        brixSugarGrams = inputs.sugarG;
+        brixWaterMl = inputs.waterMl;
+        renderTabs();
+        renderPanel();
+      },
+    });
+    panel.scrollTop = keepScroll ? scrollTop : 0;
+    return;
+  }
+
+  panel.innerHTML = /*html*/`
+    <p class="basics-intro">Make your own syrups and mixers. Tap one for the recipe.</p>
+    ${BAR_BASICS_GROUPS.map(group => {
+      const entries = BAR_BASICS.filter(basic => basic.group === group.id);
+      if (entries.length === 0) return '';
+      return /*html*/`
+        <section class="basics-group" aria-labelledby="basics-group-${escapeHtml(group.id)}">
+          <h3 class="basics-group-title" id="basics-group-${escapeHtml(group.id)}">${escapeHtml(group.label)}</h3>
+          <ul class="basics-list">
+            ${entries.map(basic => /*html*/`
+              <li>
+                <button type="button" class="basics-list-item" data-basic-id="${escapeHtml(basic.id)}">
+                  <span class="basics-list-text">
+                    <span class="basics-list-name">${escapeHtml(basic.name)}</span>
+                    <span class="basics-list-ratio">${escapeHtml(basic.ratio)}</span>
+                  </span>
+                  <span class="basics-list-arrow" aria-hidden="true">›</span>
+                </button>
+              </li>
+            `).join('')}
+          </ul>
+        </section>
+      `;
+    }).join('')}
+  `;
+  panel.querySelectorAll('.basics-list-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      basicsSelectedId = btn.getAttribute('data-basic-id');
+      renderBasicsPanel();
+    });
+  });
+  panel.scrollTop = 0;
 }
 
 // --- Tab 1: Freezer Batcher ---
@@ -319,8 +393,21 @@ function renderBrixPanel() {
  */
 export function openCalculatorModal(options = {}) {
   const dialog = getDialogElement();
-  activeTab = options.tab || 'batch';
+  // Opens on Bar Basics unless a caller asks for a specific tab (the recipe page's
+  // batch button asks for 'batch'). Always starts at the list unless a basic is named.
+  activeTab = options.tab || 'basics';
   if (options.recipeId) selectedRecipeId = options.recipeId;
+  basicsSelectedId = null;
+  resetBatchScale();
+  if (options.brix) {
+    activeTab = 'brix';
+    brixSugarGrams = options.brix.sugarG;
+    brixWaterMl = options.brix.waterMl;
+  }
+  if (options.basicId) {
+    activeTab = 'basics';
+    basicsSelectedId = getBarBasic(options.basicId) ? options.basicId : null;
+  }
   batchSuggestOpen = false;
   batchSearchQuery = '';
 

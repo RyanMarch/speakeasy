@@ -41,6 +41,13 @@ export function showToast(message, options = {}) {
  * without native `closedby="any"` support — a click that lands on the
  * backdrop (not the dialog's own content rect) closes it via `closeFn`.
  */
+/**
+ * A drawn "close" X, used instead of the ✕ character: that glyph is missing from
+ * some fonts (it renders as a "?" box), and a drawn icon also sizes and aligns
+ * the same everywhere. Inherits the button's color and font size.
+ */
+export const CLOSE_ICON_SVG = '<svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
 export function setupDialogLightDismiss(dialogEl, closeFn) {
   if (!dialogEl || ('closedBy' in HTMLDialogElement.prototype)) return;
   dialogEl.addEventListener('click', (event) => {

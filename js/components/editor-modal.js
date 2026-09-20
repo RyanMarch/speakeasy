@@ -19,7 +19,7 @@ import { getIngredientSuggestions, findIngredient } from '../modules/taxonomy.js
 import { setupTagAutocomplete } from '../views/recipe-list-view.js';
 import { detectMethodFromText, detectGlasswareFromText, detectGarnishFromText, detectTagsFromRecipe } from '../modules/auto-detect.js';
 import { isAuthenticated, migrateGuestData } from '../modules/auth.js';
-import { escapeHtml, showToast } from './toast.js';
+import { escapeHtml, showToast, CLOSE_ICON_SVG } from './toast.js';
 
 // Sensible starting directions per technique, so a new recipe doesn't open with
 // an empty field the user has to fill from scratch — they're a real (editable,
@@ -382,7 +382,7 @@ export function renderEditorSpecRows() {
           aria-label="ABV percentage"
           autocomplete="off"
         >
-        <button type="button" class="btn-remove-row" data-action="remove-row" data-index="${i}" title="Remove ingredient">✕</button>
+        <button type="button" class="btn-remove-row" data-action="remove-row" data-index="${i}" title="Remove ingredient">${CLOSE_ICON_SVG}</button>
       </div>
     `;
   }).join('');

@@ -24,7 +24,7 @@ export async function onRequestGet(context) {
   if (!recipe) {
     return htmlResponse(renderShell({
       appUrl: genericAppUrl,
-      title: 'Speakeasy: Cocktail Recipe Library',
+      title: 'Speakeasy: The Craft Cocktail Companion',
       description: 'This link is no longer valid or doesn’t exist.',
       imageUrl: null,
       canonicalUrl: genericAppUrl,

@@ -168,7 +168,7 @@ function brandMarkHtml() {
     </svg>
     <div>
       <div class="pw-brand-title">Speakeasy</div>
-      <div class="pw-brand-subtitle">Cocktail Recipe Library</div>
+      <div class="pw-brand-subtitle">The Craft Cocktail Companion</div>
     </div>
   `;
 }
