@@ -8,7 +8,7 @@ import { state, elements, HOME_DEFAULT_COLLECTIONS, getCachedInventoryAnalysis }
 import { getMenus, saveMenu, deleteMenu } from '../modules/storage.js';
 import { REFRIGERATED_INGREDIENT_IDS } from '../modules/taxonomy.js';
 import { renderShoppingCard, wireShoppingCardEvents } from '../components/backbar-modal.js';
-import { escapeHtml, showToast } from '../components/toast.js';
+import { escapeHtml, showToast, CLOSE_ICON_SVG } from '../components/toast.js';
 import { renderGlassSvg } from '../modules/glass-view.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
@@ -173,7 +173,7 @@ function renderListView(container) {
       </div>
       <div class="menu-builder-list-actions">
         <button type="button" class="btn btn-secondary btn-sm btn-load-menu" data-menu-id="${escapeHtml(menu.id)}">Load</button>
-        <button type="button" class="btn btn-ghost btn-sm btn-delete-menu" data-menu-id="${escapeHtml(menu.id)}" aria-label="Delete ${escapeHtml(menu.name)}">✕</button>
+        <button type="button" class="btn btn-ghost btn-sm btn-delete-menu" data-menu-id="${escapeHtml(menu.id)}" aria-label="Delete ${escapeHtml(menu.name)}">${CLOSE_ICON_SVG}</button>
       </div>
     </div>
   `).join('');
@@ -540,7 +540,7 @@ function renderSelectedList() {
         <span class="hidden-recipe-name">${escapeHtml(r.name)}</span>
         <span class="hidden-recipe-sub">${escapeHtml(r.glassware || 'Glass')}</span>
       </div>
-      <button type="button" class="btn btn-ghost btn-sm btn-remove-menu-recipe" data-id="${escapeHtml(r.id)}" aria-label="Remove ${escapeHtml(r.name)}">✕</button>
+      <button type="button" class="btn btn-ghost btn-sm btn-remove-menu-recipe" data-id="${escapeHtml(r.id)}" aria-label="Remove ${escapeHtml(r.name)}">${CLOSE_ICON_SVG}</button>
     </div>
   `).join('');
 

@@ -5,11 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Speakeasy: Cocktail Recipe Library</title>
+  <title>Speakeasy: The Craft Cocktail Companion</title>
   <meta name="description" content="Cocktail recipe library with interactive fluid layers and instant spec parsing.">
 
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Speakeasy: Cocktail Recipe Library">
+  <meta property="og:title" content="Speakeasy: The Craft Cocktail Companion">
   <meta property="og:description"
     content="Cocktail recipe library with interactive fluid layers and instant spec parsing.">
   <meta property="og:url" content="https://speakeasy.ryanmarch.me/app">
@@ -19,15 +19,15 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico?v=2">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png?v=2">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=2">
-  <link rel="manifest" href="manifest.webmanifest?v=2">
+  <link rel="manifest" href="manifest.webmanifest?v=3">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Speakeasy">
   <meta name="theme-color" content="#121110">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/index.css?v=64">
-  <link rel="stylesheet" href="css/theme-deco.css?v=11">
+  <link rel="stylesheet" href="css/index.css?v=79">
+  <link rel="stylesheet" href="css/theme-deco.css?v=12">
   <!--
     Import Map: cache-busts the entire internal ES module graph from ONE
     place. Every internal `import` specifier resolves to an absolute URL
@@ -45,16 +45,19 @@
     "imports": {
       "/js/components/auth-modal.js": "/js/components/auth-modal.js?v=1",
       "/js/components/backbar-modal.js": "/js/components/backbar-modal.js?v=1",
-      "/js/components/calculator-modal.js": "/js/components/calculator-modal.js?v=1",
-      "/js/components/editor-modal.js": "/js/components/editor-modal.js?v=1",
+      "/js/components/bar-basics-sheet.js": "/js/components/bar-basics-sheet.js?v=4",
+      "/js/components/calculator-modal.js": "/js/components/calculator-modal.js?v=6",
+      "/js/components/editor-modal.js": "/js/components/editor-modal.js?v=2",
       "/js/components/hidden-modal.js": "/js/components/hidden-modal.js?v=1",
-      "/js/components/print-window.js": "/js/components/print-window.js?v=10",
+      "/js/components/print-window.js": "/js/components/print-window.js?v=11",
       "/js/components/rating-modal.js": "/js/components/rating-modal.js?v=3",
-      "/js/components/timer-modal.js": "/js/components/timer-modal.js?v=1",
-      "/js/components/toast.js": "/js/components/toast.js?v=1",
+      "/js/components/timer-modal.js": "/js/components/timer-modal.js?v=2",
+      "/js/components/toast.js": "/js/components/toast.js?v=2",
       "/js/components/top-bar.js": "/js/components/top-bar.js?v=6",
+      "/js/data/bar-basics.js": "/js/data/bar-basics.js?v=5",
+      "/js/modules/bar-basics-format.js": "/js/modules/bar-basics-format.js?v=1",
       "/js/data/featured-cocktails.js": "/js/data/featured-cocktails.js?v=1",
-      "/js/data/seed-recipes.js": "/js/data/seed-recipes.js?v=1",
+      "/js/data/seed-recipes.js": "/js/data/seed-recipes.js?v=2",
       "/js/modules/abv.js": "/js/modules/abv.js?v=1",
       "/js/modules/auth.js": "/js/modules/auth.js?v=1",
       "/js/modules/auto-detect.js": "/js/modules/auto-detect.js?v=1",
@@ -66,16 +69,16 @@
       "/js/modules/glassware.js": "/js/modules/glassware.js?v=2",
       "/js/modules/history.js": "/js/modules/history.js?v=2",
       "/js/modules/parser.js": "/js/modules/parser.js?v=2",
-      "/js/modules/storage.js": "/js/modules/storage.js?v=1",
-      "/js/modules/taxonomy.js": "/js/modules/taxonomy.js?v=2",
+      "/js/modules/storage.js": "/js/modules/storage.js?v=2",
+      "/js/modules/taxonomy.js": "/js/modules/taxonomy.js?v=3",
       "/js/modules/telemetry.js": "/js/modules/telemetry.js?v=1",
-      "/js/modules/view-transition.js": "/js/modules/view-transition.js?v=1",
+      "/js/modules/view-transition.js": "/js/modules/view-transition.js?v=2",
       "/js/modules/mobile-search-focus.js": "/js/modules/mobile-search-focus.js?v=2",
-      "/js/router.js": "/js/router.js?v=4",
+      "/js/router.js": "/js/router.js?v=5",
       "/js/state.js": "/js/state.js?v=5",
-      "/js/views/counter-view.js": "/js/views/counter-view.js?v=13",
-      "/js/views/home-view.js": "/js/views/home-view.js?v=2",
-      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=8",
+      "/js/views/counter-view.js": "/js/views/counter-view.js?v=16",
+      "/js/views/home-view.js": "/js/views/home-view.js?v=6",
+      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=9",
       "/js/views/recipe-list-view.js": "/js/views/recipe-list-view.js?v=1",
       "/js/views/shared-recipe-view.js": "/js/views/shared-recipe-view.js?v=2"
     }
@@ -86,28 +89,28 @@
        Versions match the import map above so preloading actually lands on the
        same URL the module graph resolves to, rather than preloading a stale
        unversioned copy nothing ends up using. -->
-  <link rel="modulepreload" href="app.js?v=35">
+  <link rel="modulepreload" href="app.js?v=38">
   <link rel="modulepreload" href="/js/state.js?v=5">
-  <link rel="modulepreload" href="/js/router.js?v=4">
-  <link rel="modulepreload" href="/js/data/seed-recipes.js?v=1">
+  <link rel="modulepreload" href="/js/router.js?v=5">
+  <link rel="modulepreload" href="/js/data/seed-recipes.js?v=2">
   <link rel="modulepreload" href="/js/data/featured-cocktails.js?v=1">
   <link rel="modulepreload" href="/js/views/recipe-list-view.js?v=1">
-  <link rel="modulepreload" href="/js/views/home-view.js?v=1">
-  <link rel="modulepreload" href="/js/views/counter-view.js?v=13">
+  <link rel="modulepreload" href="/js/views/home-view.js?v=6">
+  <link rel="modulepreload" href="/js/views/counter-view.js?v=16">
   <link rel="modulepreload" href="/js/views/menu-builder-view.js?v=1">
   <link rel="modulepreload" href="/js/views/shared-recipe-view.js?v=2">
   <link rel="modulepreload" href="/js/components/top-bar.js?v=5">
   <link rel="modulepreload" href="/js/components/backbar-modal.js?v=1">
   <link rel="modulepreload" href="/js/components/hidden-modal.js?v=1">
-  <link rel="modulepreload" href="/js/components/editor-modal.js?v=1">
-  <link rel="modulepreload" href="/js/components/timer-modal.js?v=1">
-  <link rel="modulepreload" href="/js/components/toast.js?v=1">
+  <link rel="modulepreload" href="/js/components/editor-modal.js?v=2">
+  <link rel="modulepreload" href="/js/components/timer-modal.js?v=2">
+  <link rel="modulepreload" href="/js/components/toast.js?v=2">
   <link rel="modulepreload" href="/js/components/auth-modal.js?v=1">
   <link rel="modulepreload" href="/js/modules/auth.js?v=1">
-  <link rel="modulepreload" href="/js/modules/storage.js?v=1">
+  <link rel="modulepreload" href="/js/modules/storage.js?v=2">
   <link rel="modulepreload" href="/js/modules/parser.js?v=2">
   <link rel="modulepreload" href="/js/modules/colors.js?v=1">
-  <link rel="modulepreload" href="/js/modules/taxonomy.js?v=2">
+  <link rel="modulepreload" href="/js/modules/taxonomy.js?v=3">
   <link rel="modulepreload" href="/js/modules/glass-view.js?v=2">
   <link rel="modulepreload" href="/js/modules/abv.js?v=1">
   <link rel="modulepreload" href="/js/modules/glassware.js?v=2">
@@ -132,7 +135,7 @@
         </svg>
         <div>
           <h1 class="brand-title">Speakeasy</h1>
-          <div class="brand-subtitle">Cocktail Recipe Library</div>
+          <div class="brand-subtitle">The Craft Cocktail Companion</div>
         </div>
       </button>
 
@@ -276,7 +279,7 @@
             </svg>
             <input type="search" id="search-input" class="search-input" placeholder="Search drinks, spirits, flavors..."
               aria-label="Search recipes">
-            <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search">✕</button>
+            <button id="search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
           </div>
           <!-- <div class="sidebar-sort-select-wrap">
             <select id="sidebar-sort-select" class="sidebar-sort-select" aria-label="Sort cocktail list">
@@ -543,7 +546,7 @@
                 </button>
 
                 <button type="button" id="shortcut-calculators" class="vault-shortcut-card"
-                  title="Open Bartender Calculators: batching, acid adjustment, Brix">
+                  title="Open Bar Tools: batching, acid adjustment, Brix, bar basics">
                   <div class="vault-shortcut-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round">
@@ -558,8 +561,8 @@
                     </svg>
                   </div>
                   <div class="vault-shortcut-content">
-                    <div class="vault-shortcut-title">Bartender Calculators</div>
-                    <div class="vault-shortcut-count">Batching, acid adjustment, Brix</div>
+                    <div class="vault-shortcut-title">Bar Tools</div>
+                    <div class="vault-shortcut-count">Batching, Brix, syrup recipes</div>
                   </div>
                   <span class="vault-shortcut-arrow">→</span>
                 </button>
@@ -830,7 +833,7 @@
               in stock.</p>
           </div>
           <button id="btn-close-backbar" class="btn btn-ghost btn-sm close-modal-btn"
-            aria-label="Close modal">✕</button>
+            aria-label="Close modal"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
 
         <!-- Backbar View Switcher: My Bar vs Shopping List -->
@@ -907,7 +910,7 @@
             <p class="backbar-dialog-subtitle">Manage default recipes you've hidden from your library. Unhide anytime to
               restore.</p>
           </div>
-          <button id="btn-close-hidden-modal" class="btn btn-ghost btn-modal-close" aria-label="Close dialog">✕</button>
+          <button id="btn-close-hidden-modal" class="btn btn-ghost btn-modal-close" aria-label="Close dialog"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
 
         <div class="hidden-recipes-body" id="hidden-recipes-container">
@@ -930,7 +933,7 @@
         <div class="auth-dialog-header">
           <h2 class="auth-dialog-title" id="auth-modal-title">Account & Cloud Sync</h2>
           <button id="btn-close-auth-modal" class="btn btn-ghost btn-sm close-modal-btn"
-            aria-label="Close dialog">✕</button>
+            aria-label="Close dialog"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
 
         <!-- Step 1: Email Input Form -->
@@ -971,7 +974,7 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=35"></script>
+  <script type="module" src="app.js?v=38"></script>
 </body>
 
 </html>

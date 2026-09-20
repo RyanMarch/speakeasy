@@ -4,6 +4,8 @@
  * Allows user to freely scroll and view recipe while timer runs.
  */
 
+import { CLOSE_ICON_SVG } from './toast.js';
+
 let timerElement = null;
 let currentInterval = null;
 let autoDismissTimeout = null;
@@ -110,7 +112,7 @@ function renderToastContent(stateObj) {
         ` : ''}
         ${showDismiss ? /*html*/`
           <button type="button" id="btn-timer-dismiss" class="timer-toast-btn-dismiss" title="Dismiss" aria-label="Dismiss timer">
-            ✕
+            ${CLOSE_ICON_SVG}
           </button>
         ` : ''}
       </div>

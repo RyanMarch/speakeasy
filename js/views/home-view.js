@@ -203,7 +203,7 @@ export function renderHomeView() {
           <span>${ingredientCount === 1 ? 'Ingredient' : 'Ingredients'} in Bar</span>
         </div>
         <div class="home-quick-actions">
-        <button type="button" id="btn-open-calculators" class="btn btn-secondary btn-sm home-calculators-btn" data-action="open-calculators" title="Bartender Calculators: batching, acid adjustment, Brix">
+        <button type="button" id="btn-open-calculators" class="btn btn-secondary btn-sm home-calculators-btn" data-action="open-calculators" title="Bar Tools: batching, acid adjustment, Brix, bar basics">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="4" y="2" width="16" height="20" rx="2"></rect>
             <line x1="8" y1="6" x2="16" y2="6"></line>
@@ -214,7 +214,7 @@ export function renderHomeView() {
             <line x1="12" y1="14" x2="12.01" y2="14"></line>
             <line x1="16" y1="14" x2="16.01" y2="14"></line>
           </svg>
-          Calculators
+          Bar Tools
         </button>
         <button type="button" class="btn btn-secondary btn-sm home-menu-builder-btn" data-action="open-menu-builder">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -269,6 +269,14 @@ export function renderHomeView() {
     ` : ''}
 
     ${renderHomeCollectionsWithPinPrompt(allCollections, pinPromptIndex)}
+
+    <footer class="home-footer">
+      <span>&copy; 2026 <a href="https://ryanmarch.me" class="home-footer-link" target="_blank" rel="noopener">Ryan March</a></span>
+      <span class="home-footer-sep" aria-hidden="true">·</span>
+      <a href="/terms" class="home-footer-link">Terms</a>
+      <span class="home-footer-sep" aria-hidden="true">·</span>
+      <a href="/docs/" class="home-footer-link">Help</a>
+    </footer>
   `;
 
   setupHomeViewEvents(pinnableTags);

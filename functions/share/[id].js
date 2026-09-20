@@ -20,7 +20,7 @@ export async function onRequestGet(context) {
   if (!env || !env.speakeasy_db) {
     return htmlResponse(renderShell({
       appUrl: genericAppUrl,
-      title: 'Speakeasy: Cocktail Recipe Library',
+      title: 'Speakeasy: The Craft Cocktail Companion',
       description: 'Cocktail recipe library with interactive fluid layers and instant spec parsing.',
       imageUrl: null,
       canonicalUrl: genericAppUrl,
@@ -31,7 +31,7 @@ export async function onRequestGet(context) {
   if (!shareId || !SHARE_ID_PATTERN.test(shareId)) {
     return htmlResponse(renderShell({
       appUrl: genericAppUrl,
-      title: 'Speakeasy: Cocktail Recipe Library',
+      title: 'Speakeasy: The Craft Cocktail Companion',
       description: 'This link is no longer valid or doesn’t exist.',
       imageUrl: null,
       canonicalUrl: genericAppUrl,
@@ -56,7 +56,7 @@ export async function onRequestGet(context) {
   if (!row) {
     return htmlResponse(renderShell({
       appUrl: genericAppUrl,
-      title: 'Speakeasy: Cocktail Recipe Library',
+      title: 'Speakeasy: The Craft Cocktail Companion',
       description: 'This link is no longer valid or doesn’t exist.',
       imageUrl: null,
       canonicalUrl: genericAppUrl,
@@ -69,7 +69,7 @@ export async function onRequestGet(context) {
   } catch {
     return htmlResponse(renderShell({
       appUrl: genericAppUrl,
-      title: 'Speakeasy: Cocktail Recipe Library',
+      title: 'Speakeasy: The Craft Cocktail Companion',
       description: 'This link is no longer valid or doesn’t exist.',
       imageUrl: null,
       canonicalUrl: genericAppUrl,

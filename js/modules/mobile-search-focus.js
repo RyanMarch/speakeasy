@@ -12,7 +12,8 @@
 
 import { elements } from '../state.js';
 
-const root = document.documentElement;
+// Read lazily: this module is imported by Node-side tests, where `document` doesn't exist.
+const getRoot = () => document.documentElement;
 let active = false;
 let savedScrollY = 0;
 
@@ -22,8 +23,8 @@ const stackHeight = () =>
 
 function syncViewport() {
   const vv = window.visualViewport;
-  root.style.setProperty('--vv-top', `${vv ? vv.offsetTop : 0}px`);
-  root.style.setProperty('--vv-height', `${vv ? vv.height : window.innerHeight}px`);
+  getRoot().style.setProperty('--vv-top', `${vv ? vv.offsetTop : 0}px`);
+  getRoot().style.setProperty('--vv-height', `${vv ? vv.height : window.innerHeight}px`);
 }
 
 function enter() {
@@ -37,7 +38,7 @@ function enter() {
   const listDocTop = list.getBoundingClientRect().top + savedScrollY;
   const offset = Math.max(0, savedScrollY + stackHeight() - listDocTop);
   syncViewport();
-  root.classList.add('kbd-open');
+  getRoot().classList.add('kbd-open');
   list.scrollTop = offset;
 }
 
@@ -46,9 +47,9 @@ function leave() {
   active = false;
   const list = elements.recipeList;
   const listScroll = list?.scrollTop || 0;
-  root.classList.remove('kbd-open');
-  root.style.removeProperty('--vv-top');
-  root.style.removeProperty('--vv-height');
+  getRoot().classList.remove('kbd-open');
+  getRoot().style.removeProperty('--vv-top');
+  getRoot().style.removeProperty('--vv-height');
   // Navigating away (e.g. tapping a drink) hides the list; that path sets its
   // own scroll, so don't fight it.
   if (!list || elements.sidebar?.classList.contains('mobile-hidden')) return;
