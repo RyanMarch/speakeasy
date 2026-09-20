@@ -587,11 +587,16 @@
     view-transition-name: app-header;
   }
 
-  /* When a View Transition is animating the change, skip the per-element
-     slide-in fallbacks above so the two don't stack. */
-  :root.vt-active .sidebar,
-  :root.vt-active .main-stage {
-    animation: none;
+  /* Where View Transitions exist they do the animating, so switch off the
+     per-element slide-in fallbacks above. This has to be unconditional, not a
+     class toggled during a transition: removing an `animation: none` override
+     re-runs the animation, which showed up as a jolt right as a transition
+     ended. */
+  @supports (view-transition-name: none) {
+    .sidebar,
+    .main-stage {
+      animation: none;
+    }
   }
 
   /* Search keyboard open (js/modules/mobile-search-focus.js): no page scroll.
