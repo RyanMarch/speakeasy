@@ -182,6 +182,19 @@ export function getRecipes() {
               updatedStorage = true;
             }
           }
+          // Penicillin's syrup is honey-ginger syrup, not plain honey syrup. Only the
+          // exact old row and step wording is rewritten, so an edited copy is left alone.
+          if (r.id === 'penicillin') {
+            const plainHoney = Array.isArray(r.specs) ? r.specs.find(s => s.name === 'Honey Syrup') : null;
+            if (plainHoney) {
+              plainHoney.name = 'Honey-Ginger Syrup';
+              updatedStorage = true;
+            }
+            if (typeof r.instructions === 'string' && r.instructions.includes('and honey syrup to a shaker')) {
+              r.instructions = r.instructions.replace('and honey syrup to a shaker', 'and honey-ginger syrup to a shaker');
+              updatedStorage = true;
+            }
+          }
           // Update Shoulder Season to Tuxedo No. 2 specs if stored under the earlier draft
           if (r.id === 'shoulder-season' && r.source !== 'Tuxedo No. 2') {
             Object.assign(r, { ...seed });

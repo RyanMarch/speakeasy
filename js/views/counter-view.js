@@ -50,6 +50,8 @@ import { openTimerModal } from '../components/timer-modal.js';
 import { logDrinkMade, getDrinkHistory } from '../modules/history.js';
 import { openRatingModal, renderStarsHtml } from '../components/rating-modal.js';
 import { openCalculatorModal } from '../components/calculator-modal.js';
+import { openBarBasicsSheet } from '../components/bar-basics-sheet.js';
+import { getBarBasic } from '../data/bar-basics.js';
 import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
 
 let _selectRecipeFn = null;
@@ -706,6 +708,11 @@ export function renderCounterView() {
     const ingMeta = getIngredientMetadata(currentStockName);
     const isFridgeItem = ingMeta?.isRefrigerated;
 
+    // Made-at-home ingredients (syrups...) have a Bar Basics recipe: their name is
+    // tappable (dotted underline) and opens it. Plain text while riffing, where
+    // the row is being edited.
+    const barBasic = state.riffModeActive ? null : getBarBasic(ingMeta?.id);
+
     // Amount: editable in riff mode for every row (existing ingredients and
     // extras alike) — the base (1x, native-unit) value, not the servings-scaled
     // or ml-converted display value, so editing never has to fight that math.
@@ -722,7 +729,9 @@ export function renderCounterView() {
     const nameCellHtml = (state.riffModeActive && spec.isExtra)
       ? /*html*/`<input type="text" class="spec-name-input" data-extra-index="${spec.extraIndex}" value="${escapeHtml(spec.name)}" placeholder="Ingredient name" aria-label="Ingredient name">`
       : /*html*/`
-        <span class="spec-name">${escapeHtml(formatIngredientName(spec.name))}</span>
+        ${barBasic
+          ? /*html*/`<button type="button" class="spec-name spec-name-howto" data-basic-id="${escapeHtml(barBasic.id)}" aria-haspopup="dialog" title="How to make ${escapeHtml(barBasic.name)}">${escapeHtml(formatIngredientName(spec.name))}</button>`
+          : /*html*/`<span class="spec-name">${escapeHtml(formatIngredientName(spec.name))}</span>`}
         ${(isFridgeItem && !state.riffModeActive) ? `<span class="spec-fridge-tag" title="Keep refrigerated once opened">❄</span>` : ''}
         ${(isRiff && !state.riffModeActive) ? `<span class="spec-riff-badge" title="Substituted for ${escapeHtml(spec.originalName)}">sub</span>` : ''}
       `;
@@ -1335,6 +1344,13 @@ export function renderCounterView() {
   });
 
   // In-spec stock toggle buttons
+  elements.counterViewContainer.querySelectorAll('.spec-name-howto').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openBarBasicsSheet(btn.getAttribute('data-basic-id'));
+    });
+  });
+
   elements.counterViewContainer.querySelectorAll('.btn-stock-toggle').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();

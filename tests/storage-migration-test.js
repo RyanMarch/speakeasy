@@ -159,4 +159,25 @@ const storageMod = await import('../js/modules/storage.js');
   console.log('PASS: Sign out clears consolidated settings and per-bar inventory');
 }
 
+// 4. Stored Penicillin copies pick up the honey-ginger syrup fix without touching other edits
+{
+  const STORAGE_KEY_RECIPES = 'speakeasy_recipes';
+  const seedPen = storageMod.SEED_RECIPES.find(r => r.id === 'penicillin');
+  const oldCopy = {
+    ...seedPen,
+    instructions: seedPen.instructions.replace('honey-ginger syrup', 'honey syrup'),
+    notes: 'my own note',
+    specs: seedPen.specs.map(s => (s.name === 'Honey-Ginger Syrup' ? { ...s, name: 'Honey Syrup' } : { ...s })),
+  };
+  mockStorage.setItem(STORAGE_KEY_RECIPES, JSON.stringify([oldCopy]));
+
+  const migrated = storageMod.getRecipes().find(r => r.id === 'penicillin');
+  assert.ok(migrated.specs.some(s => s.name === 'Honey-Ginger Syrup'), 'Penicillin spec migrated to Honey-Ginger Syrup');
+  assert.ok(!migrated.specs.some(s => s.name === 'Honey Syrup'), 'Penicillin no longer lists plain Honey Syrup');
+  assert.ok(migrated.instructions.includes('honey-ginger syrup'), 'Penicillin method text migrated');
+  assert.strictEqual(migrated.notes, 'my own note', "the user's own edits to Penicillin are preserved");
+
+  console.log('PASS: Stored Penicillin migrates to honey-ginger syrup and keeps user edits');
+}
+
 console.log('All Storage Migration tests passed successfully!\n');

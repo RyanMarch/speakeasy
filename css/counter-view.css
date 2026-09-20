@@ -2538,6 +2538,38 @@
   padding-top: 0.1rem;
 }
 
+/* Made-at-home ingredients (syrups...) open their Bar Basics recipe when the name
+   is tapped. The only cue is a dotted gold line under the name, like a glossary
+   term, so the row stays clean; it firms up on hover/focus.
+   The dots are a drawn background pinned to the bottom of the text box rather than
+   a text-decoration: nothing to clip (phones give .spec-name overflow:hidden for
+   its ellipsis) and it paints the same in every engine. The padding, offset by
+   matching negative margins so the layout doesn't move, is what makes the tap
+   target roughly 44px tall. */
+.spec-name-howto {
+  padding: 10px 6px;
+  margin: -10px -6px;
+  background-color: transparent;
+  background-image: radial-gradient(circle at 50% 50%, rgba(212, 163, 89, 0.9) 0 1px, transparent 1.4px);
+  background-size: 5px 3px;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  background-origin: content-box;
+  background-clip: content-box;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.spec-name-howto:hover,
+.spec-name-howto:focus-visible {
+  color: var(--color-accent-light, var(--color-accent));
+  background-image: radial-gradient(circle at 50% 50%, var(--color-accent) 0 1px, transparent 1.4px);
+}
+
 /* Chill/Fridge Tag in Recipe Specs */
 .spec-fridge-tag {
   display: inline-flex;
