@@ -28,9 +28,6 @@ export function runViewTransition(update, direction = 'fade') {
   const root = document.documentElement;
   const isPhone = window.innerWidth <= 768;
   root.dataset.viewNav = isPhone && (direction === 'forward' || direction === 'back') ? direction : 'fade';
-  // Lets CSS switch off the per-element mobile slide-in animations that are the
-  // fallback when no transition runs, so the two don't stack.
-  root.classList.add('vt-active');
 
   const transition = document.startViewTransition(() => {
     insideUpdate = true;
@@ -46,7 +43,6 @@ export function runViewTransition(update, direction = 'fade') {
     if (window._activeViewTransition === transition) {
       window._activeViewTransition = null;
       delete root.dataset.viewNav;
-      root.classList.remove('vt-active');
     }
   });
 }
