@@ -67,6 +67,7 @@ import { scheduleCloudSync } from "./cloud-sync.js";
 import { sanitizeDietOverrides } from "./dietary.js";
 import { mergeMenuSets } from "./menu-merge.js";
 import { mergeInventory, recordInventoryChange } from "./inventory-merge.js";
+import { detectDominantSpiritTag } from "./auto-detect.js";
 export { SEED_RECIPES };
 
 // ==========================================
@@ -245,6 +246,10 @@ export function getRecipes() {
           });
           // Merge pack tags into existing stored tags if missing
           if (Array.isArray(seed.tags) && Array.isArray(r.tags)) {
+            if (seed.tags.includes('scotch-forward') && r.tags.includes('whiskey-forward')) {
+              r.tags = r.tags.filter(t => t !== 'whiskey-forward');
+              updatedStorage = true;
+            }
             seed.tags.forEach(t => {
               if (!r.tags.includes(t)) {
                 r.tags.push(t);
@@ -255,6 +260,20 @@ export function getRecipes() {
         } else if (!Array.isArray(r.tags)) {
           r.tags = [];
           updatedStorage = true;
+        }
+
+        // Custom recipes: if specs indicate scotch is the dominant spirit, upgrade whiskey-forward to scotch-forward
+        if (Array.isArray(r.tags) && Array.isArray(r.specs)) {
+          if (detectDominantSpiritTag(r.specs) === 'scotch-forward') {
+            if (r.tags.includes('whiskey-forward')) {
+              r.tags = r.tags.filter(t => t !== 'whiskey-forward');
+              updatedStorage = true;
+            }
+            if (!r.tags.includes('scotch-forward')) {
+              r.tags.push('scotch-forward');
+              updatedStorage = true;
+            }
+          }
         }
 
         // Clean up redundant/retired tags so drinks don't accumulate overlapping

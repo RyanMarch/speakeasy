@@ -9,6 +9,7 @@
  */
 
 import { SPIRITS } from './quiz.js';
+import { detectDominantSpiritTag } from './auto-detect.js';
 
 export const OTHER_SECTION = { key: 'other', heading: 'Liqueurs & more' };
 
@@ -25,6 +26,8 @@ const SECTION_ORDER = [...SPIRITS.map(s => ({ key: s.value, heading: s.heading, 
  * split-base drink lands in one place instead of appearing twice.
  */
 export function sectionKeyFor(recipe) {
+  const dominant = detectDominantSpiritTag(recipe?.specs);
+  if (dominant === 'scotch-forward') return 'scotch';
   for (const tag of recipe.tags || []) {
     const spirit = SPIRITS.find(s => s.tags.includes(tag));
     if (spirit) return spirit.value;
