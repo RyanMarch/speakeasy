@@ -112,6 +112,8 @@ export function resyncBarState() {
   state.inventory = new Set(getInventory());
   invalidateInventoryCache();
   state.bars = getBars();
+  // Pulled from the cloud along with the rest of the settings.
+  state.foamerForEgg = getFoamerPreference();
 }
 
 /**
