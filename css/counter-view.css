@@ -181,14 +181,6 @@
   font-size: 0.92rem;
   color: var(--color-text-muted);
   margin-top: 0.45rem;
-  /* Positioning context for .calorie-popover (below) — deliberately the whole
-     row, not just the little calorie-icon span, so the popover's right edge
-     anchors to the row's own right edge (always safely inside the page's
-     padding) rather than to wherever in the row the icon happens to land.
-     A fixed-width popover anchored to that tiny span could still overflow
-     the left edge of a narrow phone screen if the icon sat far enough
-     right — anchoring to the full row is what actually bounds that. */
-  position: relative;
 }
 
 /* Secondary meta row for lineage and canMake status */
@@ -221,32 +213,19 @@
 }
 
 .drink-meta-calories {
+  position: relative;
   gap: 0.3rem;
 }
 
 .calorie-popover {
   display: none;
   position: absolute;
-  /* Opens downward (below the icon) instead of upward: this icon sits in the
-     meta row directly under the title, i.e. near the very top of the page,
-     so opening upward — as this used to — ran the now-multi-line popover
-     straight behind the sticky nav bar above it (higher z-index, opaque
-     background), leaving only its last line or two poking out. There's
-     nothing but page content below the meta row, so downward always has
-     room. */
-  top: calc(100% + 8px);
-  /* Right-aligned (grows leftward) instead of left-aligned: the calorie info
-     icon is the last thing in the meta row, so anchoring its left edge and
-     growing right — as this used to — sent the popover straight off the
-     right edge of a narrow phone screen. Growing left from the icon, plus a
-     capped/wrapping width as a safety net, keeps it on-screen regardless of
-     where in the row the icon lands. */
-  right: 0.5rem;
-  left: auto;
-  /* Absolutely-positioned + wrapping text shrinks to fit its content by
-     default (no target width to grow into), which is why this stayed narrow
-     even after raising max-width alone — needs an actual width to fill,
-     with max-width only as the narrow-viewport safety cap. */
+  /* Default fallback position right below the calorie item.
+     wireCalorieInfoPopover in toast.js dynamically centers it on the info
+     icon and clamps it to stay inside the viewport. */
+  top: calc(100% + 6px);
+  left: 0;
+  right: auto;
   width: 300px;
   max-width: calc(100vw - 2.5rem);
   background: var(--color-surface-card);
@@ -256,8 +235,6 @@
   white-space: normal;
   font-size: 0.8rem;
   color: var(--color-text-muted);
-  /* Above the sticky mobile nav bar (z-index: 90) as a safety net, in case
-     the meta row is ever close enough to it for the two to overlap. */
   z-index: 95;
   box-shadow: var(--shadow-md);
   pointer-events: none;
@@ -2603,6 +2580,14 @@
   border-top: 1px solid var(--color-border);
   background: rgba(255, 255, 255, 0.02);
   flex-shrink: 0;
+  gap: 1rem;
+}
+
+.backbar-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
 }
 
 .backbar-summary-text {
@@ -2711,4 +2696,28 @@
 .animations-disabled .speakeasy-glass-svg.is-blending-forward .fluid-stack,
 .animations-disabled .speakeasy-glass-svg.is-blending-backward {
   animation: none !important;
+}
+/* ---- Dietary notes under the ingredients (shared with the guest page) -------- */
+.diet-notes {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.diet-notes p {
+  margin: 0.2rem 0;
+}
+
+.diet-notes-label {
+  margin-right: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.diet-notes-swap {
+  color: var(--color-accent-light);
+  font-weight: 600;
 }

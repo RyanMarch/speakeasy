@@ -1836,6 +1836,18 @@
   margin-top: 0.1rem;
 }
 
+.vault-pref-hint {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-accent-light);
+}
+
+.vault-pref-hint[hidden] {
+  display: none;
+}
+
 .vault-segmented-group {
   display: inline-flex;
   padding: 3px;

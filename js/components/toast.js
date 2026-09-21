@@ -114,6 +114,31 @@ export function wireCalorieInfoPopover(triggerId, popoverId) {
   if (_wiredCaloriePopovers.has(key)) return;
   _wiredCaloriePopovers.add(key);
 
+  function positionPopover(trigger, popover) {
+    popover.style.left = '0px';
+    popover.style.right = 'auto';
+    popover.style.top = '0px';
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const popoverRect = popover.getBoundingClientRect();
+    const margin = 8;
+
+    let targetLeft = triggerRect.left + (triggerRect.width / 2) - (popoverRect.width / 2);
+    let left = Math.max(margin, Math.min(targetLeft, window.innerWidth - popoverRect.width - margin));
+
+    let top = triggerRect.bottom + 6;
+    if (top + popoverRect.height > window.innerHeight - margin) {
+      top = triggerRect.top - popoverRect.height - 6;
+    }
+
+    const offsetParent = popover.offsetParent || document.body;
+    const parentRect = offsetParent.getBoundingClientRect();
+
+    popover.style.left = `${left - parentRect.left}px`;
+    popover.style.top = `${top - parentRect.top}px`;
+    popover.style.right = 'auto';
+  }
+
   document.addEventListener('click', (e) => {
     const popover = document.getElementById(popoverId);
     if (!popover) return;
@@ -122,10 +147,32 @@ export function wireCalorieInfoPopover(triggerId, popoverId) {
       e.stopPropagation();
       const isOpen = popover.classList.toggle('is-open');
       popover.setAttribute('aria-hidden', String(!isOpen));
+      if (isOpen) {
+        positionPopover(trigger, popover);
+      }
       return;
     }
     popover.classList.remove('is-open');
+    popover.setAttribute('aria-hidden', 'true');
   });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const popover = document.getElementById(popoverId);
+      if (popover && popover.classList.contains('is-open')) {
+        popover.classList.remove('is-open');
+        popover.setAttribute('aria-hidden', 'true');
+      }
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    const popover = document.getElementById(popoverId);
+    if (popover && popover.classList.contains('is-open')) {
+      popover.classList.remove('is-open');
+      popover.setAttribute('aria-hidden', 'true');
+    }
+  }, { passive: true });
 }
 
 export function escapeHtml(str) {

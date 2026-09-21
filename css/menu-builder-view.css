@@ -1,6 +1,6 @@
 /* Menu Builder Page (mirrors .home-view's page-column pattern) */
 .menu-builder-view {
-  max-width: 980px;
+  max-width: 1187px;
   width: 100%;
   margin: 0 auto 7rem;
   min-width: 0;
@@ -159,7 +159,9 @@
 
 /* Builder: toolbar + two-column body + footer */
 .menu-builder-toolbar {
-  padding: 0 0 1.25rem;
+  padding: 0 0 1rem;
+  background: none;
+  gap: 0.75rem;
 }
 
 .menu-builder-body {
@@ -168,9 +170,14 @@
   gap: 2rem;
 }
 
-.menu-builder-picker-container {
-  flex: 1 1 55%;
+.menu-builder-picker-column {
+  flex: 1 1 56%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-builder-picker-container {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -222,13 +229,48 @@
 }
 
 .menu-builder-summary {
-  flex: 1 1 45%;
+  flex: 1 1 44%;
   min-width: 0;
   position: sticky;
-  top: 0;
+  top: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.menu-builder-summary-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.15rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.menu-builder-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.menu-builder-summary-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+  margin: 0;
+}
+
+.menu-builder-summary-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(212, 163, 89, 0.15);
+  color: var(--color-accent-light);
 }
 
 .menu-builder-selected-container {
@@ -237,8 +279,32 @@
   gap: 0.5rem;
 }
 
+.menu-builder-empty-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.25rem 1.25rem;
+}
+
+.menu-builder-empty-icon {
+  color: var(--color-text-faint);
+  margin-bottom: 0.85rem;
+  opacity: 0.6;
+}
+
+.menu-builder-empty-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text-bright);
+  margin: 0 0 0.35rem;
+}
+
 .menu-builder-empty-hint {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin: 0;
 }
 
 .menu-builder-section-heading {
@@ -341,24 +407,67 @@
   color: var(--color-text-secondary);
 }
 
+.menu-builder-header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.menu-builder-header-nav .menu-builder-back-link {
+  margin-bottom: 0;
+}
+
+.menu-builder-hero-title-wrap {
+  margin-bottom: 0.35rem;
+}
+
+.menu-builder-hero-title-input {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.5rem;
+  margin-left: -0.5rem;
+  width: calc(100% + 1rem);
+  max-width: 680px;
+  outline: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.menu-builder-hero-title-input::placeholder {
+  color: var(--color-text-faint);
+  opacity: 0.5;
+}
+
+.menu-builder-hero-title-input:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.menu-builder-hero-title-input:focus {
+  border-color: var(--color-accent);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 0 3px rgba(212, 163, 89, 0.15);
+}
+
 .menu-builder-page-footer {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 2rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--color-border-subtle);
 }
 
-.menu-builder-name-input {
-  flex: 1;
-  min-width: 0;
-  padding: 0.45rem 0.75rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--color-text);
-  font-size: 0.85rem;
+.menu-builder-mobile-bar {
+  display: none;
 }
 
 @media (max-width: 768px) {
@@ -369,23 +478,50 @@
     padding-left: var(--mobile-inset, 1rem);
     padding-right: var(--mobile-inset, 1rem);
     margin-top: 2rem;
+    padding-bottom: 5.5rem;
   }
 
   .menu-builder-body {
     flex-direction: column;
   }
 
+  .menu-builder-picker-column {
+    flex-basis: auto;
+    width: 100%;
+  }
+
   .menu-builder-summary {
     position: static;
+    flex-basis: auto;
+    width: 100%;
   }
 
-  .menu-builder-page-footer {
-    flex-wrap: wrap;
+  .menu-builder-hero-title-input {
+    font-size: 1.65rem;
+    max-width: 100%;
   }
 
-  .menu-builder-name-input {
-    order: -1;
-    flex-basis: 100%;
+  .menu-builder-mobile-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.85rem 1.25rem;
+    background: rgba(13, 19, 32, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    z-index: 90;
+  }
+
+  .menu-builder-mobile-count {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-text-bright);
   }
 
   /* Compact the ingredient checklist down to a 1-2 line row per item — the
@@ -517,4 +653,580 @@
   .menu-builder-view .menu-builder-cocktail-meta {
     font-size: 0.85rem;
   }
+}
+
+/* Guest link (Hosting Mode) */
+.menu-builder-guest-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--color-border-active);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(212, 163, 89, 0.14), transparent 60%),
+    var(--color-surface-card);
+  box-shadow: var(--shadow-md);
+}
+
+.menu-builder-guest-link-body {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.menu-builder-guest-link-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.menu-builder-guest-link-url {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+}
+
+.menu-builder-guest-link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.menu-builder-guest-link-qr {
+  flex: 0 0 auto;
+  width: 148px;
+  height: 148px;
+  border-radius: var(--radius-lg);
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.menu-builder-guest-link-qr img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 520px) {
+  .menu-builder-guest-link {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .menu-builder-guest-link-actions {
+    justify-content: center;
+  }
+}
+
+/* Cocktail list: one calm card per drink. The switch has a fixed footprint so
+   flipping it never reflows the row or its neighbours. */
+.menu-builder-cocktail-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+  gap: 0.6rem;
+}
+
+.menu-builder-cocktail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-card);
+  transition: border-color var(--transition-fast), background var(--transition-fast), opacity var(--transition-fast);
+}
+
+.menu-builder-cocktail-item:hover,
+.menu-builder-cocktail-item:focus-within {
+  border-color: var(--color-border-active);
+  background: var(--color-surface-hover);
+}
+
+.menu-builder-cocktail-item .menu-builder-cocktail-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: transparent;
+  padding: 0.85rem 0 0.85rem 1rem;
+  gap: 0.2rem;
+}
+
+.menu-builder-cocktail-item .menu-builder-cocktail-row:hover,
+.menu-builder-cocktail-item .menu-builder-cocktail-row:focus-visible {
+  background: transparent;
+  border-color: transparent;
+}
+
+.menu-builder-cocktail-item .menu-builder-cocktail-name {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.menu-builder-cocktail-item .menu-builder-cocktail-meta {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+.menu-builder-out-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  min-width: 5.6rem;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-builder-switch-label {
+  min-width: 3.3rem;
+  text-align: right;
+}
+
+.menu-builder-switch-track {
+  position: relative;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--color-emerald);
+  transition: background var(--transition-fast);
+}
+
+.menu-builder-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 19px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  transition: left var(--transition-fast);
+}
+
+.menu-builder-out-toggle[aria-checked="false"] {
+  color: var(--color-crimson);
+}
+
+.menu-builder-out-toggle[aria-checked="false"] .menu-builder-switch-track {
+  background: rgba(245, 240, 230, 0.16);
+}
+
+.menu-builder-out-toggle[aria-checked="false"] .menu-builder-switch-knob {
+  left: 3px;
+}
+
+.menu-builder-out-toggle:focus-visible .menu-builder-switch-track {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.menu-builder-cocktail-item.is-out .menu-builder-cocktail-row {
+  opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .menu-builder-switch-track,
+  .menu-builder-switch-knob {
+    transition: none;
+  }
+}
+
+/* View-mode chrome: tighter, calmer actions and section headings. */
+.menu-builder-view-actions {
+  flex-wrap: wrap;
+}
+
+.menu-builder-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.85rem;
+}
+
+.menu-builder-section-heading::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.menu-builder-shopping-header .menu-builder-section-heading {
+  flex: 1 1 auto;
+}
+
+/* The QR in the guest card is a button that opens it full screen. */
+button.menu-builder-guest-link-qr {
+  border: 0;
+  cursor: zoom-in;
+}
+
+/* Full-screen QR */
+.qr-fullscreen {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.qr-fullscreen::backdrop {
+  background: var(--color-bg);
+}
+
+.qr-fullscreen[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-fullscreen-close {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top));
+  right: 1rem;
+  display: inline-flex;
+  padding: 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-card);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.qr-fullscreen-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.qr-fullscreen-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.qr-fullscreen-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  line-height: 1.1;
+  color: var(--color-text-bright);
+  overflow-wrap: anywhere;
+}
+
+/* As large as the shorter screen edge allows, leaving room for the text. */
+.qr-fullscreen-code-card {
+  width: min(84vw, 62dvh);
+  aspect-ratio: 1;
+  padding: 0.9rem;
+  border-radius: var(--radius-xl);
+  background: #fff;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.qr-fullscreen-code-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.qr-fullscreen-fallback {
+  max-width: 26rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.qr-fullscreen-fallback strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.05em;
+  letter-spacing: 0.06em;
+  color: var(--color-text-bright);
+  user-select: all;
+}
+
+/* Landscape phones: QR beside the text instead of stacked. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .qr-fullscreen-body {
+    flex-direction: row;
+    gap: 2rem;
+  }
+
+  .qr-fullscreen-code-card {
+    width: min(70dvh, 40vw);
+    flex: 0 0 auto;
+  }
+}
+
+/* Host's pick star: sits between the drink and its Pouring/Out switch. */
+.menu-builder-pick-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-builder-pick-toggle svg {
+  fill: none;
+  transition: fill var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.menu-builder-pick-toggle:hover,
+.menu-builder-pick-toggle:focus-visible {
+  color: var(--color-accent);
+  outline: none;
+}
+
+.menu-builder-pick-toggle[aria-pressed="true"] {
+  color: var(--color-accent);
+}
+
+.menu-builder-pick-toggle[aria-pressed="true"] svg {
+  fill: currentColor;
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-builder-pick-toggle svg {
+    transition: none;
+  }
+}
+/* ---- Dietary notes (per-drink corrections) --------------------------------- */
+.menu-builder-diet-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-builder-diet-toggle:hover,
+.menu-builder-diet-toggle:focus-visible,
+.menu-builder-diet-toggle[aria-pressed="true"] {
+  color: var(--color-accent);
+  outline: none;
+}
+
+.menu-builder-diet-dialog {
+  width: min(92vw, 380px);
+  /* Centered on screen. The app-wide `* { margin: 0 }` reset removes the browser's
+     automatic dialog margins, so they're restored here. */
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  padding: 1.25rem 1.25rem 1rem;
+  border: 1px solid var(--color-border-strong, rgba(245, 240, 230, 0.18));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--color-bg-elevated, var(--color-bg));
+  color: var(--color-text);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.menu-builder-diet-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.menu-builder-diet-title {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--color-text-bright);
+}
+
+.menu-builder-diet-lede {
+  margin: 0.2rem 0 1rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.menu-builder-diet-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.menu-builder-diet-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.menu-builder-diet-row select {
+  min-height: 40px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-text-bright);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.menu-builder-diet-swap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.95rem;
+}
+
+.menu-builder-diet-swap[hidden] {
+  display: none;
+}
+
+.menu-builder-diet-swap small {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.menu-builder-diet-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* ---- Add to Menu chooser (from a recipe's More actions) ---------------------- */
+.add-to-menu-dialog {
+  width: min(92vw, 360px);
+  /* Centered on screen. The app-wide `* { margin: 0 }` reset removes the browser's
+     automatic dialog margins, so they're restored here. */
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  padding: 1.25rem 1.25rem 1rem;
+  border: 1px solid var(--color-border-strong, rgba(245, 240, 230, 0.18));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--color-bg-elevated, var(--color-bg));
+  color: var(--color-text);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.add-to-menu-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.add-to-menu-title {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--color-text-bright);
+}
+
+.add-to-menu-lede {
+  margin: 0.2rem 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.add-to-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.add-to-menu-choice {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(245, 240, 230, 0.04);
+  color: var(--color-text-bright);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.add-to-menu-choice:hover:not(:disabled),
+.add-to-menu-choice:focus-visible {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.add-to-menu-choice:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.add-to-menu-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.add-to-menu-sub {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.add-to-menu-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.9rem;
 }

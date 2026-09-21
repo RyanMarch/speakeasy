@@ -209,7 +209,7 @@ async function runTests() {
   while ((match = importRegex.exec(indexCss)) !== null) {
     importedCss.push(match[1]);
   }
-  assert(importedCss.length === 10, `index.css imports 10 modular stylesheets (found: ${importedCss.length})`);
+  assert(importedCss.length === 12, `index.css imports 12 modular stylesheets (found: ${importedCss.length})`);
   for (const rawCssFile of importedCss) {
     // Each @import carries a `?v=N` cache-busting query string (see the
     // comment above the imports in index.css) — strip it back off to get an

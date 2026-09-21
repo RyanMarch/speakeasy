@@ -14,6 +14,7 @@ import {
 import { renderMenuBuilderView, resetMenuBuilderToList } from './views/menu-builder-view.js';
 import { renderVaultSettingsModal } from './components/top-bar.js';
 import { renderSharedRecipeView, setSharedRecipeViewCallbacks } from './views/shared-recipe-view.js';
+import { renderGuestMenuView } from './views/guest-menu-view.js';
 import { trackEvent } from './modules/telemetry.js';
 import { runViewTransition } from './modules/view-transition.js';
 
@@ -157,6 +158,17 @@ const VIEW_CONFIG = {
     render: () => renderSharedRecipeView(state.pendingShareId),
     wakeLock: 'release',
   },
+  'guest-menu': {
+    container: 'guestMenuViewContainer',
+    hideSidebar: true,
+    btnNewDrinkVisible: false,
+    disconnectScrollObserver: true,
+    resetScroll: true,
+    stickyClassesToRemove: ['visible', 'editor-mode'],
+    clearMobileSticky: true,
+    render: () => renderGuestMenuView(),
+    wakeLock: 'release',
+  },
   counter: {
     container: 'counterViewContainer',
     hideSidebar: false,
@@ -178,15 +190,19 @@ const VIEW_CONFIG = {
 
 const ALL_VIEW_CONTAINER_KEYS = [
   'homeViewContainer', 'counterViewContainer', 'menuBuilderViewContainer',
-  'accountViewContainer', 'editorViewContainer', 'sharedRecipeViewContainer',
+  'accountViewContainer', 'editorViewContainer', 'sharedRecipeViewContainer', 'guestMenuViewContainer',
 ];
 
-export function renderCurrentView() {
+export function renderCurrentView(direction = 'fade') {
   const applyView = () => {
     const config = VIEW_CONFIG[state.viewMode] || VIEW_CONFIG.counter;
 
     if (config.disconnectScrollObserver && window._counterScrollObserver) {
       window._counterScrollObserver.disconnect();
+    }
+    if (window._guestRecipeScrollObserver) {
+      window._guestRecipeScrollObserver.disconnect();
+      window._guestRecipeScrollObserver = null;
     }
     ALL_VIEW_CONTAINER_KEYS.forEach(key => {
       if (elements[key]) elements[key].style.display = key === config.container ? 'block' : 'none';
@@ -198,6 +214,9 @@ export function renderCurrentView() {
     if (config.hideSidebar && !sidebarWasHidden && elements.recipeList) {
       state.listScrollTop = elements.recipeList.scrollTop;
     }
+    // A guest scanning a QR code has no use for the host-app chrome (My Bar,
+    // account); see guest-menu-view.css.
+    document.documentElement.classList.toggle('guest-menu-mode', state.viewMode === 'guest-menu');
     elements.appMain?.classList.toggle('hide-sidebar', config.hideSidebar);
     if (!config.hideSidebar && sidebarWasHidden && elements.recipeList) {
       elements.recipeList.scrollTop = state.listScrollTop;
@@ -218,7 +237,7 @@ export function renderCurrentView() {
     }
   };
 
-  runViewTransition(applyView);
+  runViewTransition(applyView, direction);
 }
 
 /**

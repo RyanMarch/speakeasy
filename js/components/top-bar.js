@@ -23,6 +23,8 @@ import {
   saveWakeLockPreference,
   getFunPreference,
   saveFunPreference,
+  getFoamerPreference,
+  saveFoamerPreference,
   getMenus,
   exportData,
   importData,
@@ -60,6 +62,8 @@ import { openCalculatorModal } from './calculator-modal.js';
 import { openHiddenModal, closeHiddenModal } from './hidden-modal.js';
 import { closeBackbarModal } from './backbar-modal.js';
 import { closeAuthModal } from './auth-modal.js';
+import { pushMenuContents } from '../modules/menu-publish.js';
+import { applyBarDiet } from '../modules/dietary.js';
 import { showToast, showLevelUpCelebration, escapeHtml, wirePopoverTriggerPositioning } from './toast.js';
 
 export const MIXOLOGIST_RANKS = [
@@ -358,7 +362,18 @@ export function getUnifiedHomeCollectionsList() {
     }
   }
 
-  const items = [];
+  // "Ready to Pour" is computed from the bar, not a tag or history, and always
+  // leads Home; the only setting it has is whether it shows.
+  const items = [{
+    key: '__ready__',
+    title: 'Ready to Pour',
+    type: 'history',
+    badge: 'Your bar',
+    canRemove: false,
+    canToggle: true,
+    canReorder: false,
+    isHidden: state.hiddenHomeCollections.has('__ready__'),
+  }];
   const processed = new Set();
 
   for (const key of order) {
@@ -615,6 +630,11 @@ export function renderVaultSettingsModal() {
     elements.btnFunToggle.checked = getFunPreference();
   }
 
+  if (elements.btnFoamerToggle) {
+    elements.btnFoamerToggle.checked = state.foamerForEgg;
+  }
+  syncFoamerHint();
+
   // "Your Bar at a Glance" stat strip
   const historyEntries = Array.isArray(getDrinkHistory()) ? getDrinkHistory() : [];
   if (elements.accountStatDrinks) {
@@ -800,6 +820,52 @@ export function setGlassViewMode(mode) {
       console.warn('Failed to sync glass view mode to cloud:', err);
     });
   }
+}
+
+/**
+ * Offers the egg-drinks-use-foamer setting when the bar looks like it: cocktail
+ * foamer on the shelf, no egg. Only a suggestion; it changes nothing by itself,
+ * since it decides what guests are told.
+ */
+function syncFoamerHint() {
+  if (!elements.foamerHint) return;
+  const inventory = state.inventory;
+  const looksLikeIt = inventory instanceof Set
+    && inventory.has('cocktail_foamer') && !inventory.has('egg_white') && !inventory.has('whole_egg');
+  elements.foamerHint.hidden = state.foamerForEgg || !looksLikeIt;
+}
+
+/**
+ * Sets "egg-white drinks are made with cocktail foamer" for the whole bar, then
+ * brings everything that shows it up to date: the library, the open recipe, and
+ * every guest menu that's live (guests are told what's in each drink).
+ */
+export async function setFoamerForEgg(enabled) {
+  const bool = saveFoamerPreference(enabled);
+  state.foamerForEgg = bool;
+  if (elements.btnFoamerToggle) elements.btnFoamerToggle.checked = bool;
+  syncFoamerHint();
+
+  if (_renderRecipeListFn) _renderRecipeListFn();
+  if (_renderCounterViewFn && state.viewMode === 'counter') _renderCounterViewFn();
+
+  const live = getMenus().filter(menu => menu.share);
+  if (live.length === 0) {
+    showToast(bool ? 'Egg drinks now show as made with foamer' : 'Egg drinks show as containing egg again');
+    return;
+  }
+  const recipeById = new Map(state.recipes.map(recipe => [recipe.id, recipe]));
+  const results = await Promise.allSettled(live.map(menu => pushMenuContents(
+    menu.share,
+    menu.name,
+    menu.recipeIds.map(id => recipeById.get(id)).filter(Boolean).map(recipe => applyBarDiet(recipe, bool)),
+  )));
+  // A link the server no longer has (status 404) has nothing to update; the menu
+  // builder cleans those up when it's opened.
+  const failed = results.filter(r => r.status === 'rejected' && r.reason?.status !== 404).length;
+  showToast(failed === 0
+    ? `Guest menu${live.length === 1 ? '' : 's'} updated`
+    : `Saved here, but ${failed} guest menu${failed === 1 ? '' : 's'} couldn't be updated`);
 }
 
 /**
@@ -1155,6 +1221,11 @@ export function setupTopBarEventListeners() {
   // Preferences: More Fun Animation Toggle
   elements.btnFunToggle?.addEventListener('change', (e) => {
     setFunAnimations(e.target.checked);
+  });
+
+  // Preferences: egg-white drinks are made with cocktail foamer
+  elements.btnFoamerToggle?.addEventListener('change', (e) => {
+    setFoamerForEgg(e.target.checked);
   });
 
   // Data Portability

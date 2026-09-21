@@ -1350,6 +1350,306 @@ body.legal-body {
   margin-top: 0.4rem;
 }
 
+/* Hosting Mode Preview */
+.guest-preview-mockup {
+  background: rgba(2, 15, 32, 0.75);
+  border: 1px solid var(--color-border-subtle, rgba(235, 188, 114, 0.22));
+  border-radius: var(--radius-md, 8px);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.guest-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(235, 188, 114, 0.22));
+}
+
+.guest-preview-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-on-accent, #192331);
+  background: var(--color-accent, #ebbc72);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.guest-preview-title {
+  font-family: var(--font-display, 'Gurmukhi MN', Georgia, serif);
+  font-size: 0.95rem;
+  color: var(--color-text-bright, #ffffff);
+}
+
+.guest-drink-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm, 4px);
+  padding: 1rem 1.15rem;
+  transition: opacity 200ms ease, filter 200ms ease, border-color 200ms ease;
+}
+
+.guest-drink-card.is-out {
+  opacity: 0.45;
+  filter: grayscale(0.8);
+  border-style: dashed;
+}
+
+.guest-drink-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.guest-drink-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.guest-drink-name {
+  font-family: var(--font-display, 'Gurmukhi MN', Georgia, serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-bright, #ffffff);
+}
+
+.guest-pick-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent-light, #f3cf8e);
+  background: rgba(235, 188, 114, 0.12);
+  border: 1px solid rgba(235, 188, 114, 0.25);
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.guest-out-badge {
+  display: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ff8585;
+  background: rgba(255, 80, 80, 0.15);
+  border: 1px solid rgba(255, 80, 80, 0.35);
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.guest-drink-card.is-out .guest-out-badge {
+  display: inline-block;
+}
+
+.guest-drink-card.is-out .guest-pick-badge {
+  display: none;
+}
+
+.guest-drink-desc {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary, #f0eae1);
+}
+
+.guest-order-btn {
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-on-accent, #192331);
+  background: var(--color-accent, #ebbc72);
+  border: 1px solid var(--color-accent-light, #f3cf8e);
+  border-radius: var(--radius-sm, 4px);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 150ms ease;
+}
+
+.guest-order-btn:hover:not(:disabled) {
+  background: var(--color-accent-light, #f3cf8e);
+  transform: translateY(-1px);
+}
+
+.guest-order-btn:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--color-text-faint, #9fb0c4);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.guest-host-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(235, 188, 114, 0.25);
+  font-size: 0.82rem;
+}
+
+.guest-host-label {
+  color: var(--color-text-faint, #9fb0c4);
+}
+
+.guest-toggle-btn {
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-bright, #ffffff);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.guest-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-accent, #ebbc72);
+}
+
+.guest-toggle-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success, #4d8363);
+  transition: background-color 150ms ease;
+}
+
+.guest-toggle-btn.is-out .guest-toggle-dot {
+  background: #ff6b6b;
+}
+
+/* Dietary Needs & Calorie Estimates Section */
+.diet-calorie-section {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+}
+
+.diet-calorie-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.diet-calorie-card {
+  background: var(--color-surface, #2c3c54);
+  border: 1px solid var(--color-border, rgba(235, 188, 114, 0.45));
+  border-radius: var(--radius-lg, 10px);
+  padding: 2.25rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.diet-calorie-card h3 {
+  font-family: var(--font-display, 'Gurmukhi MN', Georgia, serif);
+  font-size: clamp(1.4rem, 2.2vw, 1.75rem);
+  color: var(--color-text-bright, #ffffff);
+  line-height: 1.25;
+  margin-bottom: 0.75rem;
+}
+
+.diet-calorie-card p {
+  color: var(--color-text-secondary, #f0eae1);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.diet-chips-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.diet-chip {
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #f0eae1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  padding: 0.4rem 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.diet-chip-swap {
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.diet-chip-swap.active {
+  background: rgba(235, 188, 114, 0.14);
+  border-color: var(--color-accent, #ebbc72);
+  color: var(--color-accent-light, #f3cf8e);
+}
+
+.calorie-estimate-preview {
+  background: rgba(2, 15, 32, 0.55);
+  border: 1px solid var(--color-border-subtle, rgba(235, 188, 114, 0.22));
+  border-radius: var(--radius-sm, 4px);
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: auto;
+}
+
+.calorie-preview-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calorie-drink-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text-bright, #ffffff);
+}
+
+.calorie-total-badge {
+  font-family: var(--font-display, 'Gurmukhi MN', Georgia, serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-accent-light, #f3cf8e);
+}
+
+.calorie-preview-breakdown {
+  font-size: 0.8rem;
+  color: var(--color-text-faint, #9fb0c4);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.calorie-sep {
+  color: rgba(235, 188, 114, 0.4);
+}
+
 /* ==========================================================================
    Documentation & User Guides Section
    ========================================================================== */
@@ -1836,6 +2136,7 @@ body.legal-body {
 @media (max-width: 900px) {
 
   .feature-row-grid,
+  .diet-calorie-grid,
   .closing-pair-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;

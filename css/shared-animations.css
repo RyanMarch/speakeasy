@@ -112,3 +112,44 @@
     transform: rotate(0deg) scale(1) translateY(0);
   }
 }
+
+/* Full-screen dialogs (order card, fullscreen QR): see js/components/dialog-motion.js. */
+.dialog-motion[open] {
+  animation: dialog-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.dialog-motion[open]::backdrop {
+  animation: dialog-backdrop-in 200ms ease both;
+}
+
+.dialog-motion.is-closing {
+  animation: dialog-out 180ms ease both;
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+
+@keyframes dialog-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+
+@keyframes dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-motion[open],
+  .dialog-motion[open]::backdrop,
+  .dialog-motion.is-closing {
+    animation: none;
+  }
+}

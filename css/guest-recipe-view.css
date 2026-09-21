@@ -1,0 +1,632 @@
+/* Guest recipe page, "Save" hearts on the menu, and the order card.
+   Phone-first, like the rest of guest mode. */
+
+/* ---- Saved marker on a menu card -------------------------------------------- */
+/* Hearting happens on a drink's own page; on the menu a saved drink just wears
+   a small filled heart in its corner. */
+.guest-menu-card-saved {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.5rem;
+  z-index: 1;
+  display: inline-flex;
+  color: var(--color-crimson);
+  pointer-events: none;
+  scale: 1.8;
+}
+
+.guest-menu-card-saved svg {
+  fill: currentColor;
+}
+
+/* The "Saved" view: what's saved, plus the way to show it to the bartender. */
+.guest-menu-saved-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border-active);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-glow);
+}
+
+.guest-menu-saved-bar p {
+  margin: 0;
+  flex: 1 1 14rem;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+/* ---- Recipe page ------------------------------------------------------------- */
+.guest-recipe {
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+/* Sticky topbar: pins to the top of the screen as the guest scrolls.
+   The recipe name appears once they scroll past the card's main title,
+   matching the counter view's mobile sticky header. */
+.guest-recipe-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  margin: 0 -1rem 1rem;
+  padding: max(0.5rem, env(safe-area-inset-top, 0px)) 1rem 0.5rem;
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.guest-recipe-topbar.is-scrolled,
+.guest-recipe-topbar:has(.guest-recipe-sticky-title.visible) {
+  border-bottom-color: var(--color-border-subtle);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.guest-recipe-topbar .menu-builder-back-link {
+  min-height: 40px;
+  min-width: 40px;
+  margin-bottom: 0;
+  flex: 0 0 auto;
+}
+
+/* Once the drink name is showing beside it, "Menu" is redundant context and
+   the width it costs is what a long name needs to avoid truncating sooner than
+   it has to on small screens. */
+.guest-recipe-topbar:has(.guest-recipe-sticky-title.visible) .guest-recipe-back-text,
+.guest-recipe-topbar.is-scrolled .guest-recipe-back-text {
+  display: none;
+}
+
+/* Inline scrolled drink title in the sticky topbar */
+.guest-recipe-sticky-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+
+.guest-recipe-sticky-title.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.guest-recipe-sticky-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Balances the Back button on the left so the title remains centered */
+.guest-recipe-topbar-spacer {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 1px;
+  pointer-events: none;
+}
+
+@media (min-width: 620px) {
+  .guest-recipe-topbar:has(.guest-recipe-sticky-title.visible) .guest-recipe-back-text,
+  .guest-recipe-topbar.is-scrolled .guest-recipe-back-text {
+    display: inline;
+  }
+
+  .guest-recipe-topbar-spacer {
+    width: 60px;
+  }
+}
+
+@media (min-width: 900px) {
+  .guest-recipe-topbar {
+    top: 0.75rem;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0.6rem 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+  }
+
+  .guest-recipe-topbar.is-scrolled,
+  .guest-recipe-topbar:has(.guest-recipe-sticky-title.visible) {
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.guest-recipe-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.25rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(90% 40% at 50% 0%, rgba(212, 163, 89, 0.10), transparent 70%),
+    var(--color-surface-card);
+}
+
+.guest-recipe-badge {
+  align-self: flex-start;
+  margin-bottom: 0.7rem;
+  padding: 0.22rem 0.65rem;
+  border: 1px solid rgba(212, 163, 89, 0.5);
+  border-radius: var(--radius-full);
+  background: rgba(212, 163, 89, 0.14);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-accent-light);
+}
+
+.guest-recipe-badge.is-out {
+  border-color: rgba(199, 98, 94, 0.5);
+  background: rgba(199, 98, 94, 0.14);
+  color: var(--color-crimson);
+}
+
+.guest-recipe-name {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8.5vw, 2.9rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--color-text-bright);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  text-transform: uppercase;
+}
+
+.guest-recipe-moods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.guest-recipe-mood {
+  padding: 0.22rem 0.6rem;
+  border: 1px solid rgba(245, 240, 230, 0.16);
+  border-radius: var(--radius-md);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.guest-recipe-desc {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.guest-recipe-glass {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0 0.9rem;
+}
+
+.guest-recipe-glass .glass-wrapper {
+  max-width: 200px;
+}
+
+.guest-recipe-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.guest-recipe-dot {
+  color: var(--color-text-faint);
+}
+
+.guest-recipe-heading {
+  margin: 0 0 0.6rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.guest-recipe-specs {
+  list-style: none;
+  margin: 0 0 1.4rem;
+  padding: 0;
+}
+
+.guest-recipe-specs li {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.guest-recipe-amount {
+  flex: 0 0 5.4rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-accent-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.guest-recipe-ingredient {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.98rem;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.guest-recipe-specs li.is-garnish .guest-recipe-amount {
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.guest-recipe-method {
+  margin: 0.4rem 0 1.5rem;
+  border: 1px solid var(--color-border-active);
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* Tucked away, but a real part of the page: a full-width, thumb-sized row
+   with a title and a hint of what's inside, not a line of fine print. */
+.guest-recipe-method summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 60px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.guest-recipe-method summary::-webkit-details-marker {
+  display: none;
+}
+
+.guest-recipe-method summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+
+.guest-recipe-method-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.guest-recipe-method-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.guest-recipe-method-hint {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.guest-recipe-method-chevron {
+  flex: 0 0 auto;
+  color: var(--color-accent);
+  transition: transform var(--transition-normal);
+}
+
+.guest-recipe-method[open] .guest-recipe-method-chevron {
+  transform: rotate(180deg);
+}
+
+/* Numbered steps, in the same gold-numeral style as the recipe card. */
+.guest-recipe-steps {
+  margin: 0;
+  padding: 0.25rem 1rem 1.1rem;
+  list-style: none;
+  counter-reset: guest-step;
+}
+
+.guest-recipe-steps li {
+  display: flex;
+  gap: 0.85rem;
+  padding: 0.5rem 0;
+  counter-increment: guest-step;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.guest-recipe-steps li::before {
+  content: counter(guest-step) '.';
+  flex: 0 0 1.5rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.guest-recipe-steps.is-bulleted li::before {
+  content: '•';
+}
+
+.guest-recipe-steps-prose {
+  margin: 0;
+  padding: 0.25rem 1rem 1.1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.guest-recipe-library {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+/* Save + ask, pinned to the bottom of the screen while the page scrolls. */
+.guest-recipe-actionbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  gap: 0.6rem;
+  margin: 1rem -1rem 0;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  border-top: 1px solid var(--color-border);
+}
+
+.guest-recipe-save {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 48px;
+  padding: 0 1.05rem;
+  border: 1px solid rgba(245, 240, 230, 0.18);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.guest-recipe-save svg {
+  fill: none;
+  transition: fill var(--transition-fast);
+}
+
+.guest-recipe-save.is-saved {
+  border-color: rgba(199, 98, 94, 0.55);
+  color: var(--color-crimson);
+}
+
+.guest-recipe-save.is-saved svg {
+  fill: currentColor;
+}
+
+.guest-recipe-order {
+  flex: 1 1 auto;
+  min-height: 48px;
+  font-size: 1rem;
+}
+
+@media (min-width: 900px) {
+  .guest-recipe-actionbar {
+    margin-left: 0;
+    margin-right: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    bottom: 0.75rem;
+  }
+}
+
+/* ---- Order card ------------------------------------------------------------- */
+.guest-order {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  overflow-y: auto;
+}
+
+.guest-order::backdrop {
+  background: var(--color-bg);
+}
+
+.guest-order[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guest-order-close {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top));
+  right: 1rem;
+  z-index: 2;
+  display: inline-flex;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-card);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.guest-order-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: min(100%, 30rem);
+  padding: 4.5rem 1.5rem 2rem;
+  text-align: center;
+}
+
+.guest-order-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.guest-order-for {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.guest-order-glass {
+  height: min(38dvh, 260px);
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.55));
+}
+
+.guest-order-glass svg {
+  height: 100%;
+  width: auto;
+}
+
+/* Big enough to read across a counter. */
+.guest-order-name {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 11vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--color-accent-light);
+  text-shadow: 0 0 30px rgba(212, 163, 89, 0.45);
+  overflow-wrap: anywhere;
+}
+
+.guest-order-list {
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 8vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-text-bright);
+}
+
+.guest-order-list li+li {
+  margin-top: 0.35rem;
+}
+
+.guest-order-namefield {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 20rem;
+  text-align: left;
+}
+
+.guest-order-namefield span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.guest-order-nameinput {
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--color-text-bright);
+  /* 16px: anything smaller makes iOS Safari zoom the page on focus. */
+  font-size: 1rem;
+}
+
+.guest-order-nameinput:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.guest-order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .guest-recipe-save svg,
+  .guest-recipe-method-chevron,
+  .guest-recipe-topbar,
+  .guest-recipe-sticky-title {
+    transition: none;
+  }
+}
+
+/* Where the recipe comes from: plain attribution, not a link. */
+.guest-recipe-source {
+  margin: 0 0 0.6rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.guest-recipe-source-label {
+  margin-right: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+/* ---- Dietary notes: sits a little closer to the ingredients on the guest page ---- */
+.guest-recipe .diet-notes {
+  margin: -0.6rem 0 1.4rem;
+  font-size: 0.92rem;
+}

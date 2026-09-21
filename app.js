@@ -45,6 +45,8 @@ import {
   updateAuthIndicator,
 } from './js/components/top-bar.js';
 import { trackEvent } from './js/modules/telemetry.js';
+import { openDietSheet } from './js/views/guest-diet-sheet.js';
+import { DIET_KEYS, saveAvoid, LIBRARY_AVOID_KEY } from './js/modules/dietary.js';
 import { initMobileSearchFocus } from './js/modules/mobile-search-focus.js';
 import { runViewTransition } from './js/modules/view-transition.js';
 
@@ -61,6 +63,7 @@ import {
   setHiddenModalCallbacks,
 } from './js/components/hidden-modal.js';
 
+import { parseGuestMenuHash, guestNavDirection } from './js/views/guest-menu-view.js';
 import {
   setMenuBuilderCallbacks,
   applyMenuBuilderHash,
@@ -106,8 +109,9 @@ function init() {
     }
   }
 
+  const guestMenuRoute = parseGuestMenuHash(urlHash);
   const deepLinkedToShare = urlHash === 'share' || urlHash.startsWith('share/');
-  const deepLinkedToRecipe = !deepLinkedToShare && Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
+  const deepLinkedToRecipe = !deepLinkedToShare && !guestMenuRoute && Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
   const deepLinkedToMenuBuilder = !deepLinkedToShare && (urlHash === 'menus' || urlHash.startsWith('menus/'));
   const deepLinkedToAccount = !deepLinkedToShare && (urlHash === 'account' || urlHash === 'vault');
   const deepLinkedToNew = !deepLinkedToShare && urlHash === 'new';
@@ -118,13 +122,18 @@ function init() {
   }
 
   state.activeRecipeId = initialId;
-  state.viewMode = deepLinkedToShare
+  state.viewMode = guestMenuRoute
+    ? 'guest-menu'
+    : deepLinkedToShare
     ? 'shared-recipe'
     : (deepLinkedToNew || deepLinkedToEdit)
       ? 'edit'
       : (deepLinkedToRecipe
         ? 'counter'
         : (deepLinkedToMenuBuilder ? 'menu-builder' : (deepLinkedToAccount ? 'account' : 'home')));
+  if (guestMenuRoute) {
+    state.pendingGuestMenu = guestMenuRoute;
+  }
   if (deepLinkedToShare) {
     state.pendingShareId = urlHash === 'share' ? null : urlHash.slice('share/'.length);
   }
@@ -381,6 +390,20 @@ function setupGlobalEventListeners() {
     }
   });
 
+  // Leave out drinks with egg, dairy, tree nuts, or honey. Remembered on this
+  // device, and kept apart from the guest menu's own filter.
+  elements.sidebarDietBtn?.addEventListener('click', () => {
+    openDietSheet({
+      flags: DIET_KEYS,
+      avoid: state.avoidFilter,
+      returnFocusTo: elements.sidebarDietBtn,
+      onChange: () => {
+        saveAvoid(state.avoidFilter, LIBRARY_AVOID_KEY);
+        renderRecipeList();
+      },
+    });
+  });
+
   elements.searchClearBtn?.addEventListener('click', () => {
     if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
     if (elements.searchInput) elements.searchInput.value = '';
@@ -436,6 +459,18 @@ function setupGlobalEventListeners() {
         state.viewMode = 'account';
         renderCurrentView();
       }
+      elements.sidebar?.classList.add('mobile-hidden');
+      elements.mainStage?.classList.remove('mobile-hidden');
+      return;
+    }
+    const guestMenuHashRoute = parseGuestMenuHash(rawHash);
+    if (guestMenuHashRoute) {
+      // Slide forward going deeper (menu > quiz > drink) and back coming out,
+      // which also covers the phone's back gesture; see guestNavDirection().
+      const previousRoute = state.viewMode === 'guest-menu' ? state.pendingGuestMenu : null;
+      state.pendingGuestMenu = guestMenuHashRoute;
+      state.viewMode = 'guest-menu';
+      renderCurrentView(guestNavDirection(previousRoute, guestMenuHashRoute));
       elements.sidebar?.classList.add('mobile-hidden');
       elements.mainStage?.classList.remove('mobile-hidden');
       return;

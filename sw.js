@@ -5,7 +5,7 @@
  * Storage and Fetch APIs.
  */
 
-const CACHE_NAME = 'speakeasy-v8';
+const CACHE_NAME = 'speakeasy-v10';
 
 // Core shell files precached at install time, so the app has *something* to serve
 // on a cold offline open even before the fetch handler below has had a chance to
@@ -36,6 +36,8 @@ const PRECACHE_URLS = [
   'css/counter-view.css',
   'css/home-view.css',
   'css/menu-builder-view.css',
+  'css/guest-menu-view.css',
+  'css/guest-recipe-view.css',
   'css/editor.css',
   'css/modals.css',
   'css/responsive.css',
@@ -51,6 +53,8 @@ const PRECACHE_URLS = [
   'js/components/print-window.js',
   'js/components/rating-modal.js',
   'js/components/timer-modal.js',
+  'js/components/site-footer.js',
+  'js/components/dialog-motion.js',
   'js/components/toast.js',
   'js/components/top-bar.js',
   'js/data/bar-basics.js',
@@ -62,6 +66,7 @@ const PRECACHE_URLS = [
   'js/modules/bar-basics-format.js',
   'js/modules/balance.js',
   'js/modules/calculators.js',
+  'js/modules/cloud-sync.js',
   'js/modules/colors.js',
   'js/modules/garnishes.js',
   'js/modules/glass-view.js',
@@ -69,6 +74,16 @@ const PRECACHE_URLS = [
   'js/modules/history.js',
   'js/modules/parser.js',
   'js/modules/share-card.js',
+  'js/modules/menu-publish.js',
+  'js/modules/moods.js',
+  'js/modules/quiz.js',
+  'js/modules/guest-search.js',
+  'js/modules/menu-sections.js',
+  'js/modules/guest-saved.js',
+  'js/modules/guest-order.js',
+  'js/modules/dietary.js',
+  'js/components/diet-notes.js',
+  'js/modules/shuffle-schedule.js',
   'js/modules/storage.js',
   'js/modules/taxonomy.js',
   'js/modules/telemetry.js',
@@ -79,6 +94,12 @@ const PRECACHE_URLS = [
   'js/views/menu-builder-view.js',
   'js/views/recipe-list-view.js',
   'js/views/shared-recipe-view.js',
+  'js/views/guest-menu-view.js',
+  'js/views/surprise-overlay.js',
+  'js/views/guest-recipe-view.js',
+  'js/views/guest-diet-sheet.js',
+  'js/views/add-to-menu.js',
+  'js/views/order-card.js',
   'assets/icon.svg',
   'assets/icon-192.png',
   'assets/icon-512.png',
