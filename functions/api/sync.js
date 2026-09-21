@@ -7,6 +7,18 @@
 import { jsonResponse } from './_lib/http.js';
 import { requireSession } from './_lib/auth.js';
 import { mapRecipeRow } from './_lib/recipes.js';
+import { mergeMenuSets } from '../../js/modules/menu-merge.js';
+import { mergeInventory } from '../../js/modules/inventory-merge.js';
+
+function parseSettings(value) {
+  if (!value) return {};
+  try {
+    const parsed = typeof value === 'object' ? value : JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -35,6 +47,16 @@ export async function onRequestPost(context) {
   const statements = [];
   let inventoryCount = 0;
   let barsCount = 0;
+
+  // The user's stored settings JSON also holds the sync bookkeeping that doesn't
+  // have a table of its own (saved menus, and when bottles were added or removed).
+  // Read it once; the bars below and the settings write at the end both use it.
+  const settingsRow = await env.speakeasy_db.prepare(
+    `SELECT settings FROM users WHERE id = ?`
+  ).bind(userId).first();
+  const currentSettings = parseSettings(settingsRow && settingsRow.settings);
+  const inventorySync = { ...(currentSettings.inventorySync && typeof currentSettings.inventorySync === 'object' ? currentSettings.inventorySync : {}) };
+  let inventorySyncChanged = false;
 
   // 2. Upsert bars + their inventories, if provided as a multi-bar payload
   if (Array.isArray(payload.bars) && payload.bars.length > 0) {
@@ -82,9 +104,24 @@ export async function onRequestPost(context) {
       const uniqueTaxonomyIds = Array.from(
         new Set((b.inventory || []).filter(id => typeof id === 'string' && id.trim().length > 0))
       );
-      inventoryCount += uniqueTaxonomyIds.length;
 
-      for (const ingredientId of uniqueTaxonomyIds) {
+      // Merge with the bottles already stored instead of only adding: a bottle
+      // this device removed on purpose is removed here too, and a device that
+      // simply hasn't heard about a removal can't put it back.
+      const existingRows = await env.speakeasy_db.prepare(
+        `SELECT ingredient_id FROM bar_inventory WHERE bar_id = ?`
+      ).bind(barId).all();
+      const existingIds = (existingRows.results || []).map(r => r.ingredient_id);
+      const merged = mergeInventory(
+        { items: existingIds, ...inventorySync[barId] },
+        { items: uniqueTaxonomyIds, ...(payload.inventoryChanges && payload.inventoryChanges[barId]) },
+      );
+      inventoryCount += merged.items.length;
+
+      const stored = new Set(existingIds);
+      const keep = new Set(merged.items);
+      for (const ingredientId of merged.items) {
+        if (stored.has(ingredientId)) continue;
         statements.push(
           env.speakeasy_db.prepare(
             `INSERT INTO bar_inventory (bar_id, ingredient_id, is_low_stock)
@@ -93,6 +130,20 @@ export async function onRequestPost(context) {
           ).bind(barId, ingredientId)
         );
       }
+      for (const ingredientId of existingIds) {
+        if (keep.has(ingredientId)) continue;
+        statements.push(
+          env.speakeasy_db.prepare(
+            `DELETE FROM bar_inventory WHERE bar_id = ? AND ingredient_id = ?`
+          ).bind(barId, ingredientId)
+        );
+      }
+      if (Object.keys(merged.added).length > 0 || Object.keys(merged.removed).length > 0) {
+        inventorySync[barId] = { added: merged.added, removed: merged.removed };
+      } else {
+        delete inventorySync[barId];
+      }
+      inventorySyncChanged = true;
     }
   } else if (Array.isArray(payload.inventory)) {
     // Legacy v1 client fallback: upsert into the single default bar.
@@ -194,13 +245,28 @@ export async function onRequestPost(context) {
     }
   }
 
-  // 5. Update user's settings JSON column if provided
-  if (payload.settings && typeof payload.settings === 'object') {
-    const settingsJson = JSON.stringify(payload.settings);
+  // 5. Update user's settings JSON column if provided. Saved menus ride along in
+  // the same JSON (under `menuSync`), so this needs no schema change: they're
+  // merged with what's already stored rather than replaced, so one device can
+  // never wipe the menus another one built.
+  const hasSettings = payload.settings && typeof payload.settings === 'object';
+  const hasMenus = Array.isArray(payload.menus) || (payload.deletedMenus && typeof payload.deletedMenus === 'object');
+  if (hasSettings || hasMenus || inventorySyncChanged) {
+    const current = currentSettings;
+    const next = hasSettings ? { ...payload.settings } : { ...current };
+    // Stored bookkeeping is kept even when this client doesn't know about it (older app).
+    delete next.menuSync;
+    delete next.inventorySync;
+    const merged = mergeMenuSets(
+      current.menuSync,
+      hasMenus ? { menus: payload.menus, deleted: payload.deletedMenus } : {},
+    );
+    if (merged.menus.length > 0 || Object.keys(merged.deleted).length > 0) next.menuSync = merged;
+    if (Object.keys(inventorySync).length > 0) next.inventorySync = inventorySync;
     statements.push(
       env.speakeasy_db.prepare(
         `UPDATE users SET settings = ? WHERE id = ?`
-      ).bind(settingsJson, userId)
+      ).bind(JSON.stringify(next), userId)
     );
   }
 
@@ -306,6 +372,10 @@ export async function onRequestGet(context) {
       // Keep default settings
     }
   }
+  // Saved menus travel inside the settings JSON; hand them back as their own
+  // fields, like the rest of a backup, and keep them out of `settings`.
+  const { menuSync, inventorySync, ...settingsWithoutBookkeeping } = settings && typeof settings === 'object' ? settings : {};
+  settings = settingsWithoutBookkeeping;
 
   // 5. Query active global recipes and globally hidden recipes
   let globalRecipes = [];
@@ -336,6 +406,9 @@ export async function onRequestGet(context) {
       bars,
       hiddenRecipes: [],
       settings,
+      menus: Array.isArray(menuSync?.menus) ? menuSync.menus : [],
+      deletedMenus: menuSync?.deleted && typeof menuSync.deleted === 'object' ? menuSync.deleted : {},
+      inventoryChanges: inventorySync && typeof inventorySync === 'object' ? inventorySync : {},
       customRecipes,
       globalRecipes,
       globallyHiddenIds,

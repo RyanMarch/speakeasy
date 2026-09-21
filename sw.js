@@ -82,6 +82,8 @@ const PRECACHE_URLS = [
   'js/modules/guest-saved.js',
   'js/modules/guest-order.js',
   'js/modules/dietary.js',
+  'js/modules/menu-merge.js',
+  'js/modules/inventory-merge.js',
   'js/components/diet-notes.js',
   'js/modules/shuffle-schedule.js',
   'js/modules/storage.js',
