@@ -125,7 +125,7 @@ const SPIRIT_ID_OVERRIDES = {
 // which a tie (or a 3-way even split) never reaches.
 const DOMINANT_SHARE_THRESHOLD = 0.5;
 
-function detectDominantSpiritTag(specs) {
+export function detectDominantSpiritTag(specs) {
   const candidates = [];
   let totalOz = 0;
   for (const spec of specs || []) {
