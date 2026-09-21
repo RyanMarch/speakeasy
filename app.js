@@ -45,7 +45,7 @@ import {
   updateAuthIndicator,
 } from './js/components/top-bar.js';
 import { trackEvent } from './js/modules/telemetry.js';
-import { openDietSheet } from './js/views/guest-diet-sheet.js';
+import { openLibraryFilterSheet } from './js/views/library-filter-sheet.js';
 import { DIET_KEYS, saveAvoid, LIBRARY_AVOID_KEY } from './js/modules/dietary.js';
 import { initMobileSearchFocus } from './js/modules/mobile-search-focus.js';
 import { runViewTransition } from './js/modules/view-transition.js';
@@ -390,14 +390,17 @@ function setupGlobalEventListeners() {
     }
   });
 
-  // Leave out drinks with egg, dairy, tree nuts, or honey. Remembered on this
-  // device, and kept apart from the guest menu's own filter.
+  // Filter library list by sort preference or avoid ingredients (egg, dairy, tree nuts, honey).
   elements.sidebarDietBtn?.addEventListener('click', () => {
-    openDietSheet({
+    openLibraryFilterSheet({
       flags: DIET_KEYS,
       avoid: state.avoidFilter,
+      currentSort: state.sortPreference,
       returnFocusTo: elements.sidebarDietBtn,
-      onChange: () => {
+      onSortChange: (sort) => {
+        setLibrarySort(sort);
+      },
+      onAvoidChange: () => {
         saveAvoid(state.avoidFilter, LIBRARY_AVOID_KEY);
         renderRecipeList();
       },

@@ -8,6 +8,7 @@ import { recipeMatchesQuery, calculateRecipeSearchScore } from '../modules/taxon
 import { escapeHtml, showToast } from '../components/toast.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { clashesWith, applyBarDiet } from '../modules/dietary.js';
+import { calculateCocktailAbv, calculateCocktailCalories } from '../modules/abv.js';
 
 let _openEditorFn = null;
 let _updateVaultStatsFn = null;
@@ -46,11 +47,25 @@ export function updateCustomFilterVisibility() {
   }
 }
 
-/** The avoid button beside the search box: lit, with a count, while anything is being avoided. */
+const recipeMetricsCache = new WeakMap();
+
+function getCocktailMetrics(recipe) {
+  let cached = recipeMetricsCache.get(recipe);
+  if (!cached) {
+    const abv = Math.round(calculateCocktailAbv(recipe.specs, recipe.method).estimatedAbv);
+    const calories = calculateCocktailCalories(recipe.specs).totalKcal;
+    cached = { abv, calories };
+    recipeMetricsCache.set(recipe, cached);
+  }
+  return cached;
+}
+
+/** The filter & sort button beside the search box: lit with a count while sort is non-default or ingredients are avoided. */
 export function syncDietButton() {
   const btn = elements.sidebarDietBtn;
   if (!btn) return;
-  const count = state.avoidFilter.size;
+  const isSortActive = Boolean(state.sortPreference && state.sortPreference !== 'curated');
+  const count = (isSortActive ? 1 : 0) + (state.avoidFilter ? state.avoidFilter.size : 0);
   btn.setAttribute('aria-pressed', String(count > 0));
   if (elements.sidebarDietCount) {
     elements.sidebarDietCount.hidden = count === 0;
@@ -125,6 +140,14 @@ export function renderRecipeList() {
         const lenB = (b.recipe.specs || []).length;
         if (lenA !== lenB) return lenA - lenB;
         return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+      } else if (sortMode === 'abv-asc') {
+        const diff = getCocktailMetrics(a.recipe).abv - getCocktailMetrics(b.recipe).abv;
+        if (diff !== 0) return diff;
+        return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+      } else if (sortMode === 'calories-asc') {
+        const diff = getCocktailMetrics(a.recipe).calories - getCocktailMetrics(b.recipe).calories;
+        if (diff !== 0) return diff;
+        return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
       }
 
       // Curated tie-breaker: ready to make first, then name
@@ -155,6 +178,18 @@ export function renderRecipeList() {
       const lenA = (a.recipe.specs || []).length;
       const lenB = (b.recipe.specs || []).length;
       if (lenA !== lenB) return lenA - lenB;
+      return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+    });
+  } else if (sortMode === 'abv-asc') {
+    filtered.sort((a, b) => {
+      const diff = getCocktailMetrics(a.recipe).abv - getCocktailMetrics(b.recipe).abv;
+      if (diff !== 0) return diff;
+      return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+    });
+  } else if (sortMode === 'calories-asc') {
+    filtered.sort((a, b) => {
+      const diff = getCocktailMetrics(a.recipe).calories - getCocktailMetrics(b.recipe).calories;
+      if (diff !== 0) return diff;
       return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
     });
   }

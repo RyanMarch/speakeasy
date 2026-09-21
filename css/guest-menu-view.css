@@ -1469,7 +1469,7 @@
 }
 
 .guest-diet-sheet {
-  width: min(300px, calc(100vw - 24px));
+  width: min(310px, calc(100vw - 24px));
   /* Centered when it has no button to open from; anchored ones override this. */
   inset: 0;
   margin: auto;

@@ -1496,7 +1496,7 @@ export function recordRecentlyViewed(recipeId) {
 }
 
 const SORT_PREFERENCE_STORAGE_KEY = 'speakeasy_library_sort';
-const VALID_SORT_OPTIONS = new Set(['curated', 'name-asc', 'name-desc', 'ready', 'specs-asc']);
+const VALID_SORT_OPTIONS = new Set(['curated', 'name-asc', 'name-desc', 'ready', 'specs-asc', 'abv-asc', 'calories-asc']);
 
 export function getSortPreference() {
   const settings = getAppSettings();
