@@ -3343,6 +3343,155 @@ export function recipeMatchesQuery(recipe, query = '') {
 }
 
 /**
+ * Calculates a search relevance score for a recipe given a query string.
+ * Higher scores represent higher relevance.
+ *
+ * Weighting:
+ * - Exact recipe name match: +1000
+ * - Recipe name starts with query: +500
+ * - Recipe name contains query as whole word: +300
+ * - Recipe name contains query as substring: +150
+ * - Direct ingredient match: +80 to +100
+ * - Taxonomy alias / family / category match: +40
+ * - Tag match: +30 to +50 (or +150 to +500 for explicit #tag query)
+ * - Description match: +10 to +20
+ * - Glassware / Method match: +10
+ * - Instructions / Source / Notes match: +5
+ */
+export function calculateRecipeSearchScore(recipe, query = '') {
+  if (!recipe || !query) return 0;
+  const q = query.trim().toLowerCase();
+  if (!q) return 0;
+
+  // 1. Explicit hashtag search (#tag)
+  if (q.startsWith('#')) {
+    const tagTerm = q.slice(1).trim().toLowerCase();
+    if (!tagTerm) return 0;
+    if (!Array.isArray(recipe.tags)) return 0;
+    let maxTagScore = 0;
+    for (const tag of recipe.tags) {
+      const t = (tag || '').toLowerCase().trim();
+      if (t === tagTerm) {
+        maxTagScore = Math.max(maxTagScore, 500);
+      } else if (t.startsWith(tagTerm)) {
+        maxTagScore = Math.max(maxTagScore, 300);
+      } else if (t.includes(tagTerm)) {
+        maxTagScore = Math.max(maxTagScore, 150);
+      }
+    }
+    return maxTagScore;
+  }
+
+  const nName = normalizeSearchText(recipe.name || '');
+  const nDesc = normalizeSearchText(recipe.description || '');
+  const nGlass = normalizeSearchText(recipe.glassware || '');
+  const nMethod = normalizeSearchText(recipe.method || '');
+  const nSource = normalizeSearchText(recipe.source || '');
+  const nInstr = normalizeSearchText(recipe.instructions || '');
+  const nNotes = normalizeSearchText(recipe.notes || '');
+
+  const hasWordBoundaryMatch = (text, term) => {
+    if (!text || !term) return false;
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`(^|\\s)${escaped}(\\s|$)`).test(text);
+  };
+
+  const scoreIngredientsForTerm = (term) => {
+    let best = 0;
+    const cleanTerm = normalizeText(term);
+    if (!cleanTerm) return 0;
+    const specs = recipe.specs || [];
+    for (const spec of specs) {
+      const cleanIngredient = normalizeText(spec.name || '');
+      if (cleanIngredient) {
+        if (cleanIngredient === cleanTerm) {
+          best = Math.max(best, 100);
+        } else if (cleanIngredient.startsWith(cleanTerm + ' ') || cleanIngredient === cleanTerm) {
+          best = Math.max(best, 90);
+        } else if (hasWordBoundaryMatch(cleanIngredient, cleanTerm)) {
+          best = Math.max(best, 80);
+        } else if (cleanIngredient.includes(cleanTerm)) {
+          best = Math.max(best, 60);
+        }
+      }
+      if (best < 40 && ingredientMatchesQuery(spec.name || '', term)) {
+        best = Math.max(best, 40);
+      }
+    }
+    return best;
+  };
+
+  const scoreTagsForTerm = (term) => {
+    let best = 0;
+    const cleanTerm = normalizeText(term);
+    if (!cleanTerm) return 0;
+    if (Array.isArray(recipe.tags)) {
+      for (const tag of recipe.tags) {
+        const t = normalizeText(tag || '');
+        if (t === cleanTerm) {
+          best = Math.max(best, 50);
+        } else if (hasWordBoundaryMatch(t, cleanTerm)) {
+          best = Math.max(best, 40);
+        } else if (t.includes(cleanTerm)) {
+          best = Math.max(best, 30);
+        }
+      }
+    }
+    return best;
+  };
+
+  const scoreTerm = (term) => {
+    const nterm = normalizeSearchText(term);
+    if (!nterm) return 0;
+    let score = 0;
+
+    // Recipe name matching
+    if (nName === nterm) {
+      score += 1000;
+    } else if (nName.startsWith(nterm + ' ') || nName.startsWith(nterm)) {
+      score += 500;
+    } else if (hasWordBoundaryMatch(nName, nterm)) {
+      score += 300;
+    } else if (nName.includes(nterm)) {
+      score += 150;
+    }
+
+    // Ingredient matching
+    score += scoreIngredientsForTerm(term);
+
+    // Tag matching
+    score += scoreTagsForTerm(term);
+
+    // Description, glassware, method, instructions, notes
+    if (hasWordBoundaryMatch(nDesc, nterm)) {
+      score += 20;
+    } else if (nDesc.includes(nterm)) {
+      score += 10;
+    }
+
+    if (hasWordBoundaryMatch(nGlass, nterm) || nGlass.includes(nterm)) score += 10;
+    if (hasWordBoundaryMatch(nMethod, nterm) || nMethod.includes(nterm)) score += 10;
+    if (hasWordBoundaryMatch(nInstr, nterm) || nInstr.includes(nterm)) score += 5;
+    if (hasWordBoundaryMatch(nSource, nterm) || nSource.includes(nterm)) score += 5;
+    if (hasWordBoundaryMatch(nNotes, nterm) || nNotes.includes(nterm)) score += 5;
+
+    return score;
+  };
+
+  let totalScore = scoreTerm(q);
+
+  const tokens = q.split(/\s+/).filter(Boolean);
+  if (tokens.length > 1) {
+    for (const token of tokens) {
+      totalScore += scoreTerm(token);
+    }
+  }
+
+  return totalScore;
+}
+
+
+/**
  * Resolves logical ingredient substitutes from the taxonomy based on family or parent grouping.
  * Used by the Smart Ingredient Swapper ("Riff Mode").
  */

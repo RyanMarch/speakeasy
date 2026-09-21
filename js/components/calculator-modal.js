@@ -11,7 +11,7 @@ import {
   calculateAcidAdjustment,
   calculateBrix,
 } from '../modules/calculators.js';
-import { recipeMatchesQuery } from '../modules/taxonomy.js';
+import { recipeMatchesQuery, calculateRecipeSearchScore } from '../modules/taxonomy.js';
 import { escapeHtml, setupDialogLightDismiss, CLOSE_ICON_SVG } from './toast.js';
 import { BAR_BASICS, BAR_BASICS_GROUPS, getBarBasic } from '../data/bar-basics.js';
 import { renderBarBasicBody, wireBarBasicBody, resetBatchScale } from './bar-basics-sheet.js';
@@ -221,7 +221,12 @@ function renderBatchPanel() {
 
   const renderSuggestions = () => {
     const query = batchSearchQuery.trim();
-    const matches = (query ? recipes.filter(r => recipeMatchesQuery(r, query)) : recipes).slice(0, BATCH_SEARCH_RESULT_CAP);
+    const matches = (query
+      ? recipes
+          .filter(r => recipeMatchesQuery(r, query))
+          .sort((a, b) => calculateRecipeSearchScore(b, query) - calculateRecipeSearchScore(a, query))
+      : recipes
+    ).slice(0, BATCH_SEARCH_RESULT_CAP);
 
     if (matches.length === 0) {
       suggestList.innerHTML = /*html*/`<li class="tag-suggest-item-empty">No cocktails match "${escapeHtml(query)}"</li>`;
