@@ -112,6 +112,10 @@ const SPIRIT_ID_OVERRIDES = {
   cognac: 'cognac-forward',
   cachaca: 'cachaca-forward',
   mezcal: 'mezcal-forward',
+  blended_scotch: 'scotch-forward',
+  single_malt_scotch: 'scotch-forward',
+  peated_scotch: 'scotch-forward',
+  scotch: 'scotch-forward',
 };
 
 // A "-forward" tag should mean one spirit actually leads the drink, not just

@@ -332,7 +332,7 @@ export const SEED_RECIPES = [
     source: "Sam Ross, Milk & Honey NYC (2005)",
     sourceUrl: "",
     notes: "",
-    tags: ["classic", "whiskey-forward", "sour", "smoky"],
+    tags: ["classic", "scotch-forward", "sour", "smoky"],
     specs: [
       { amount: 2, unit: "oz", name: "Blended Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
@@ -1280,7 +1280,7 @@ export const SEED_RECIPES = [
     source: "Harry Craddock, The Savoy Cocktail Book (1930)",
     sourceUrl: "",
     notes: "",
-    tags: ["prohibition-era", "whiskey-forward", "fruity", "equal-parts"],
+    tags: ["prohibition-era", "scotch-forward", "fruity", "equal-parts"],
     specs: [
       { amount: 0.75, unit: "oz", name: "Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Sweet Vermouth" },
@@ -1301,7 +1301,7 @@ export const SEED_RECIPES = [
     notes: "Created to commemorate the premiere of an operetta based on Scottish folk hero Rob Roy MacGregor.",
     riffOfId: "manhattan",
     riffOfName: "Manhattan",
-    tags: ["prohibition-era", "whiskey-forward", "smoky", "slow-sipper"],
+    tags: ["prohibition-era", "scotch-forward", "smoky", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Scotch Whisky" },
       { amount: 1, unit: "oz", name: "Sweet Vermouth" },
@@ -1773,7 +1773,7 @@ export const SEED_RECIPES = [
     source: "21 Club, New York City (c. 1960s)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps", "whiskey-forward", "sweet", "slow-sipper"],
+    tags: ["nightcaps", "scotch-forward", "sweet", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Drambuie" },
@@ -1790,7 +1790,7 @@ export const SEED_RECIPES = [
     source: "1970s Classic (named after the film The Godfather)",
     sourceUrl: "",
     notes: "",
-    tags: ["nightcaps", "whiskey-forward", "sweet", "slow-sipper"],
+    tags: ["nightcaps", "scotch-forward", "sweet", "slow-sipper"],
     specs: [
       { amount: 2, unit: "oz", name: "Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Amaretto" },
@@ -2734,7 +2734,7 @@ export const SEED_RECIPES = [
     notes: "Celebrated annually on Burns Night (January 25).",
     riffOfId: "rob-roy",
     riffOfName: "Rob Roy",
-    tags: ["classic", "whiskey-forward", "herbal", "slow-sipper", "riff"],
+    tags: ["classic", "scotch-forward", "herbal", "slow-sipper", "riff"],
     specs: [
       { amount: 2, unit: "oz", name: "Blended Scotch Whisky" },
       { amount: 0.75, unit: "oz", name: "Sweet Vermouth" },
@@ -3196,7 +3196,7 @@ export const SEED_RECIPES = [
     source: "Jeffrey Morgenthaler, Clyde Common Portland (c. 2010)",
     sourceUrl: "",
     notes: "Morgenthaler's celebrated autumn Scotch, cider, and amaro sour.",
-    tags: ["modern-craft", "whiskey-forward", "nightcaps", "autumn", "comforting"],
+    tags: ["modern-craft", "scotch-forward", "nightcaps", "autumn", "comforting"],
     specs: [
       { amount: 1.75, unit: "oz", name: "Blended Scotch Whisky" },
       { amount: 1.5, unit: "oz", name: "Apple Cider" },
@@ -3823,7 +3823,7 @@ export const SEED_RECIPES = [
     source: "Damon Boelte, Grand Army, Brooklyn",
     sourceUrl: "https://www.liquor.com/storm-king-cocktail-recipe-6751860",
     notes: "",
-    tags: ["modern-craft", "whiskey-forward", "sweet", "slow-sipper", "autumn", "herbal", "nutty"],
+    tags: ["modern-craft", "scotch-forward", "sweet", "slow-sipper", "autumn", "herbal", "nutty"],
     specs: [
       { amount: 2, unit: "oz", name: "Blended Scotch Whisky" },
       { amount: 0.5, unit: "oz", name: "Nocino" },
