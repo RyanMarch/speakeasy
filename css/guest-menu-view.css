@@ -1470,6 +1470,10 @@
 
 .guest-diet-sheet {
   width: min(300px, calc(100vw - 24px));
+  /* Centered when it has no button to open from; anchored ones override this. */
+  inset: 0;
+  margin: auto;
+  height: fit-content;
   padding: 1rem 1.1rem 0.9rem;
   border: 1px solid rgba(245, 240, 230, 0.16);
   border-radius: 16px;

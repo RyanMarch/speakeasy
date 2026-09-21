@@ -1063,6 +1063,11 @@ button.menu-builder-guest-link-qr {
 
 .menu-builder-diet-dialog {
   width: min(92vw, 380px);
+  /* Centered on screen. The app-wide `* { margin: 0 }` reset removes the browser's
+     automatic dialog margins, so they're restored here. */
+  inset: 0;
+  margin: auto;
+  height: fit-content;
   padding: 1.25rem 1.25rem 1rem;
   border: 1px solid var(--color-border-strong, rgba(245, 240, 230, 0.18));
   border-radius: var(--radius-lg, 16px);
@@ -1138,4 +1143,90 @@ button.menu-builder-guest-link-qr {
   display: flex;
   justify-content: flex-end;
   margin-top: 1rem;
+}
+
+/* ---- Add to Menu chooser (from a recipe's More actions) ---------------------- */
+.add-to-menu-dialog {
+  width: min(92vw, 360px);
+  /* Centered on screen. The app-wide `* { margin: 0 }` reset removes the browser's
+     automatic dialog margins, so they're restored here. */
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  padding: 1.25rem 1.25rem 1rem;
+  border: 1px solid var(--color-border-strong, rgba(245, 240, 230, 0.18));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--color-bg-elevated, var(--color-bg));
+  color: var(--color-text);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.add-to-menu-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.add-to-menu-title {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--color-text-bright);
+}
+
+.add-to-menu-lede {
+  margin: 0.2rem 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.add-to-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.add-to-menu-choice {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(245, 240, 230, 0.04);
+  color: var(--color-text-bright);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.add-to-menu-choice:hover:not(:disabled),
+.add-to-menu-choice:focus-visible {
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.add-to-menu-choice:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.add-to-menu-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.add-to-menu-sub {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.add-to-menu-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.9rem;
 }

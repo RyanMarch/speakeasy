@@ -98,6 +98,7 @@ const PRECACHE_URLS = [
   'js/views/surprise-overlay.js',
   'js/views/guest-recipe-view.js',
   'js/views/guest-diet-sheet.js',
+  'js/views/add-to-menu.js',
   'js/views/order-card.js',
   'assets/icon.svg',
   'assets/icon-192.png',

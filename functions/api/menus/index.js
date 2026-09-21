@@ -2,11 +2,13 @@
  * Cloudflare Pages Function: POST /api/menus
  *
  * Publishes a host's menu for guests and returns a short public link plus a
- * one-time edit token. No account is required: the token (stored hashed) is
- * the host's only credential for updating or unpublishing the menu later.
+ * one-time edit token. Creating a menu needs a signed-in session; after that the
+ * token (stored hashed) is the host's credential for updating or unpublishing it,
+ * so a guest link keeps working for the host even if their session lapses.
  */
 
 import { jsonResponse } from '../_lib/http.js';
+import { requireSession } from '../_lib/auth.js';
 import {
   generateMenuId, generateEditToken, hashEditToken,
   sanitizeMenuName, sanitizeMenuRecipes, sanitizeUnavailable, sanitizeFeatured,
@@ -18,6 +20,12 @@ export async function onRequestPost(context) {
   if (!env || !env.speakeasy_db) {
     return jsonResponse({ error: 'Database binding (speakeasy_db) is unavailable.' }, 500);
   }
+
+  // Building a menu is part of having an account. Guests only ever read a menu
+  // (GET) and the host edits or removes theirs with the edit token, so only
+  // creating one needs a session.
+  const session = await requireSession(request, env);
+  if (session instanceof Response) return session;
 
   let body;
   try {

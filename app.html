@@ -26,7 +26,7 @@
   <meta name="theme-color" content="#121110">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/index.css?v=121">
+  <link rel="stylesheet" href="css/index.css?v=123">
   <link rel="stylesheet" href="css/theme-deco.css?v=12">
   <!--
     Import Map: cache-busts the entire internal ES module graph from ONE
@@ -78,9 +78,9 @@
       "/js/modules/mobile-search-focus.js": "/js/modules/mobile-search-focus.js?v=2",
       "/js/router.js": "/js/router.js?v=8",
       "/js/state.js": "/js/state.js?v=8",
-      "/js/views/counter-view.js": "/js/views/counter-view.js?v=18",
+      "/js/views/counter-view.js": "/js/views/counter-view.js?v=19",
       "/js/views/home-view.js": "/js/views/home-view.js?v=8",
-      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=19",
+      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=20",
       "/js/views/recipe-list-view.js": "/js/views/recipe-list-view.js?v=3",
       "/js/views/shared-recipe-view.js": "/js/views/shared-recipe-view.js?v=4",
       "/js/views/guest-menu-view.js": "/js/views/guest-menu-view.js?v=30",
@@ -92,6 +92,7 @@
       "/js/modules/guest-saved.js": "/js/modules/guest-saved.js?v=1",
       "/js/components/diet-notes.js": "/js/components/diet-notes.js?v=2",
       "/js/modules/dietary.js": "/js/modules/dietary.js?v=3",
+      "/js/views/add-to-menu.js": "/js/views/add-to-menu.js?v=1",
       "/js/views/guest-diet-sheet.js": "/js/views/guest-diet-sheet.js?v=2",
       "/js/modules/guest-order.js": "/js/modules/guest-order.js?v=3",
       "/js/views/guest-recipe-view.js": "/js/views/guest-recipe-view.js?v=6",
@@ -106,15 +107,15 @@
        Versions match the import map above so preloading actually lands on the
        same URL the module graph resolves to, rather than preloading a stale
        unversioned copy nothing ends up using. -->
-  <link rel="modulepreload" href="app.js?v=42">
+  <link rel="modulepreload" href="app.js?v=43">
   <link rel="modulepreload" href="/js/state.js?v=8">
   <link rel="modulepreload" href="/js/router.js?v=8">
   <link rel="modulepreload" href="/js/data/seed-recipes.js?v=3">
   <link rel="modulepreload" href="/js/data/featured-cocktails.js?v=1">
   <link rel="modulepreload" href="/js/views/recipe-list-view.js?v=3">
   <link rel="modulepreload" href="/js/views/home-view.js?v=8">
-  <link rel="modulepreload" href="/js/views/counter-view.js?v=18">
-  <link rel="modulepreload" href="/js/views/menu-builder-view.js?v=19">
+  <link rel="modulepreload" href="/js/views/counter-view.js?v=19">
+  <link rel="modulepreload" href="/js/views/menu-builder-view.js?v=20">
   <link rel="modulepreload" href="/js/views/shared-recipe-view.js?v=4">
   <link rel="modulepreload" href="/js/views/guest-menu-view.js?v=30">
   <link rel="modulepreload" href="/js/components/top-bar.js?v=7">
@@ -1021,7 +1022,7 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=42"></script>
+  <script type="module" src="app.js?v=43"></script>
 </body>
 
 </html>

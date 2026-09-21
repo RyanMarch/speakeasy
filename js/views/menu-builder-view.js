@@ -14,6 +14,8 @@ import { renderShoppingCard, wireShoppingCardEvents } from '../components/backba
 import { escapeHtml, showToast, CLOSE_ICON_SVG } from '../components/toast.js';
 import { closeDialog, enhanceDialog } from '../components/dialog-motion.js';
 import { renderGlassSvg } from '../modules/glass-view.js';
+import { isAuthenticated, AUTH_EVENT_NAME } from '../modules/auth.js';
+import { openAuthModal } from '../components/auth-modal.js';
 import { DIET_FLAGS, detectDiet, applyBarDiet, usesFoamer, sanitizeDietOverride } from '../modules/dietary.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
@@ -98,6 +100,14 @@ export function renderMenuBuilderView() {
   const container = elements.menuBuilderViewContainer;
   if (!container) return;
 
+  // Menus belong to an account: they're saved with it and are what a guest link
+  // is published from. Anyone signed out lands here whichever way they arrived
+  // (the Menus shortcut, "Build a Menu", or a #menus link).
+  if (!isAuthenticated()) {
+    renderSignInGate(container);
+    return;
+  }
+
   if (builderView === 'list') {
     renderListView(container);
   } else if (builderView === 'view') {
@@ -105,6 +115,31 @@ export function renderMenuBuilderView() {
   } else {
     renderEditMode(container);
   }
+}
+
+function renderSignInGate(container) {
+  container.innerHTML = /*html*/`
+    <div class="menu-builder-page-header">
+      <h1 class="menu-builder-page-title">Menus</h1>
+    </div>
+    <div class="menu-builder-empty-state-card">
+      <svg class="menu-builder-empty-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 22h8m-4-10v10M5 2l7 10 7-10H5z"></path>
+      </svg>
+      <p class="empty-state-title">Sign in to build menus</p>
+      <p class="card-content-text">Menus are saved to your Speakeasy account, so you can share them with guests and keep them on every device.</p>
+      <button type="button" class="btn btn-primary" data-action="menus-sign-in">Sign in</button>
+    </div>
+  `;
+  container.querySelector('[data-action="menus-sign-in"]')?.addEventListener('click', () => openAuthModal());
+}
+
+// Signing in (or out) while Menus is open swaps the sign-in prompt for the real
+// thing, and back, without a reload.
+if (typeof window !== 'undefined') {
+  window.addEventListener(AUTH_EVENT_NAME, () => {
+    if (state.viewMode === 'menu-builder') renderMenuBuilderView();
+  });
 }
 
 /**
@@ -468,7 +503,12 @@ async function handlePublishMenu() {
     setMenuShare(activeMenu.id, share);
     showToast('Guest link created');
   } catch (err) {
-    showToast(err.message);
+    if (err.status === 401) {
+      showToast('Your session has ended. Sign in again to create a guest link.');
+      openAuthModal();
+    } else {
+      showToast(err.message);
+    }
   }
   renderMenuBuilderView();
 }

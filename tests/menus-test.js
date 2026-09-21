@@ -21,6 +21,7 @@ const MENU_ID_PATTERN = /^[a-z]+-[a-z]+-[a-z]+$/;
 class MockD1 {
   constructor() {
     this.menus = new Map();
+    this.sessions = new Map();
   }
 
   prepare(sql) {
@@ -42,6 +43,10 @@ class MockStatement {
 
   async first() {
     const sql = this.sql;
+    if (sql.startsWith('SELECT user_id, expires_at FROM sessions WHERE token = ?')) {
+      const session = this.db.sessions.get(this.params[0]);
+      return session ? { user_id: session.user_id, expires_at: session.expires_at } : null;
+    }
     if (sql.startsWith('SELECT') && sql.includes('FROM menus WHERE menu_id = ?')) {
       return this.db.menus.get(this.params[0]) || null;
     }
@@ -51,6 +56,10 @@ class MockStatement {
   async run() {
     const sql = this.sql;
     const params = this.params;
+    if (sql.startsWith('DELETE FROM sessions WHERE token = ?')) {
+      this.db.sessions.delete(params[0]);
+      return { success: true };
+    }
     if (sql.startsWith('INSERT INTO menus')) {
       const [menuId, hash, name, recipes, unavailable, featured] = params;
       if (this.db.menus.has(menuId)) throw new Error('UNIQUE constraint failed: menus.menu_id');
@@ -79,11 +88,14 @@ class MockStatement {
   }
 }
 
-const jsonRequest = (method, body, token) => new Request('https://example.com/api/menus', {
+// Creating a menu needs a signed-in session; editing one uses the edit token.
+const SESSION_COOKIE = 'speakeasy_session=valid-token';
+const jsonRequest = (method, body, token, cookie = method === 'POST' ? SESSION_COOKIE : '') => new Request('https://example.com/api/menus', {
   method,
   headers: new Headers({
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(cookie ? { Cookie: cookie } : {}),
   }),
   body: body === undefined ? undefined : JSON.stringify(body),
 });
@@ -98,7 +110,22 @@ const drink = (id, name, extra = {}) => ({
 });
 
 const db = new MockD1();
+db.sessions.set('valid-token', { user_id: 'user-1', expires_at: new Date(Date.now() + 3600 * 1000).toISOString() });
+db.sessions.set('expired-token', { user_id: 'user-1', expires_at: new Date(Date.now() - 3600 * 1000).toISOString() });
 const env = { speakeasy_db: db };
+
+// Menus are part of an account: creating one without a session is refused, and nothing is stored.
+{
+  const body = { name: 'Nope', recipes: [{ id: 'a', name: 'A', specs: [] }] };
+  const none = await onRequestPost({ request: jsonRequest('POST', body, undefined, ''), env });
+  assert.equal(none.status, 401);
+  const bogus = await onRequestPost({ request: jsonRequest('POST', body, undefined, 'speakeasy_session=bogus'), env });
+  assert.equal(bogus.status, 401);
+  const expired = await onRequestPost({ request: jsonRequest('POST', body, undefined, 'speakeasy_session=expired-token'), env });
+  assert.equal(expired.status, 401);
+  assert.equal(db.menus.size, 0, 'A refused request stores nothing');
+  console.log('PASS: creating a menu requires a signed-in session');
+}
 
 // Test 1: publishing returns a link, a one-time token, and stores only the token's hash
 let menuId;
@@ -141,7 +168,7 @@ let token;
   const empty = await onRequestPost({ request: jsonRequest('POST', { name: 'X', recipes: [] }), env });
   assert.equal(empty.status, 400);
   const badJson = await onRequestPost({
-    request: new Request('https://example.com/api/menus', { method: 'POST', body: '{nope' }),
+    request: new Request('https://example.com/api/menus', { method: 'POST', headers: { Cookie: SESSION_COOKIE }, body: '{nope' }),
     env,
   });
   assert.equal(badJson.status, 400);
