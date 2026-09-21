@@ -83,4 +83,24 @@ const traits = buildTraits(SEED_RECIPES);
   console.log('PASS: only offered drinks are recommended; tiny and empty menus are handled');
 }
 
+// Test 7: the host's picks break ties but never beat a real preference
+{
+  const none = { vibe: 'any', strength: 'any', sweetness: 'any', spirit: 'any' };
+  const pickA = SEED_RECIPES.find(r => r.id === 'daiquiri');
+  const pickB = SEED_RECIPES.find(r => r.id === 'manhattan');
+  // With no preferences every drink ties, so a starred drink should always lead.
+  for (let seed = 1; seed <= 25; seed++) {
+    const results = rankForQuiz(SEED_RECIPES, traits, none, seededRng(seed), { featured: new Set([pickA.id, pickB.id]) });
+    assert.deepEqual(new Set(results.slice(0, 2).map(r => r.recipe.id)), new Set([pickA.id, pickB.id]), `Seed ${seed}: the two picks should lead a full tie`);
+  }
+  // ...but a real match still wins: ask for gin and the (whiskey/rum) picks must not top the list
+  const ginResults = rankForQuiz(SEED_RECIPES, traits, { ...none, spirit: 'gin' }, seededRng(3), { featured: new Set([pickA.id, pickB.id]) });
+  assert.ok(traits.get(ginResults[0].recipe.id).tags.has('gin-forward'), 'A real spirit request outranks the host\'s picks');
+  // and no picks at all behaves exactly as before
+  const plain = rankForQuiz(SEED_RECIPES, traits, none, seededRng(9)).map(r => r.recipe.id);
+  const empty = rankForQuiz(SEED_RECIPES, traits, none, seededRng(9), { featured: new Set() }).map(r => r.recipe.id);
+  assert.deepEqual(plain, empty, 'An empty picks set changes nothing');
+  console.log('PASS: host picks win ties but never outrank a real preference');
+}
+
 console.log('All quiz tests passed.');

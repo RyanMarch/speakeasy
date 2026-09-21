@@ -1,6 +1,6 @@
 /* Menu Builder Page (mirrors .home-view's page-column pattern) */
 .menu-builder-view {
-  max-width: 980px;
+  max-width: 1187px;
   width: 100%;
   margin: 0 auto 7rem;
   min-width: 0;
@@ -654,6 +654,7 @@
     font-size: 0.85rem;
   }
 }
+
 /* Guest link (Hosting Mode) */
 .menu-builder-guest-link {
   display: flex;
@@ -724,6 +725,7 @@
     justify-content: center;
     text-align: center;
   }
+
   .menu-builder-guest-link-actions {
     justify-content: center;
   }
@@ -852,6 +854,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .menu-builder-switch-track,
   .menu-builder-switch-knob {
     transition: none;
@@ -987,8 +990,51 @@ button.menu-builder-guest-link-qr {
     flex-direction: row;
     gap: 2rem;
   }
+
   .qr-fullscreen-code-card {
     width: min(70dvh, 40vw);
     flex: 0 0 auto;
+  }
+}
+
+/* Host's pick star: sits between the drink and its Pouring/Out switch. */
+.menu-builder-pick-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-builder-pick-toggle svg {
+  fill: none;
+  transition: fill var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.menu-builder-pick-toggle:hover,
+.menu-builder-pick-toggle:focus-visible {
+  color: var(--color-accent);
+  outline: none;
+}
+
+.menu-builder-pick-toggle[aria-pressed="true"] {
+  color: var(--color-accent);
+}
+
+.menu-builder-pick-toggle[aria-pressed="true"] svg {
+  fill: currentColor;
+  transform: scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-builder-pick-toggle svg {
+    transition: none;
   }
 }

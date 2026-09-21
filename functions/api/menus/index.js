@@ -9,7 +9,7 @@
 import { jsonResponse } from '../_lib/http.js';
 import {
   generateMenuId, generateEditToken, hashEditToken,
-  sanitizeMenuName, sanitizeMenuRecipes, sanitizeUnavailable,
+  sanitizeMenuName, sanitizeMenuRecipes, sanitizeUnavailable, sanitizeFeatured,
 } from './_lib.js';
 
 export async function onRequestPost(context) {
@@ -32,6 +32,7 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'A menu needs at least one cocktail (and must be a reasonable size).' }, 400);
   }
   const unavailable = sanitizeUnavailable(body.unavailable, recipes);
+  const featured = sanitizeFeatured(body.featured, recipes);
 
   const editToken = generateEditToken();
   const editTokenHash = await hashEditToken(editToken);
@@ -41,8 +42,8 @@ export async function onRequestPost(context) {
     const menuId = generateMenuId();
     try {
       await env.speakeasy_db.prepare(
-        `INSERT INTO menus (menu_id, edit_token_hash, name, recipes, unavailable) VALUES (?, ?, ?, ?, ?)`
-      ).bind(menuId, editTokenHash, name, JSON.stringify(recipes), JSON.stringify(unavailable)).run();
+        `INSERT INTO menus (menu_id, edit_token_hash, name, recipes, unavailable, featured) VALUES (?, ?, ?, ?, ?, ?)`
+      ).bind(menuId, editTokenHash, name, JSON.stringify(recipes), JSON.stringify(unavailable), JSON.stringify(featured)).run();
 
       const origin = new URL(request.url).origin;
       return jsonResponse({

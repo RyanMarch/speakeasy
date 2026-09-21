@@ -52,10 +52,10 @@ class MockStatement {
     const sql = this.sql;
     const params = this.params;
     if (sql.startsWith('INSERT INTO menus')) {
-      const [menuId, hash, name, recipes, unavailable] = params;
+      const [menuId, hash, name, recipes, unavailable, featured] = params;
       if (this.db.menus.has(menuId)) throw new Error('UNIQUE constraint failed: menus.menu_id');
       this.db.menus.set(menuId, {
-        menu_id: menuId, edit_token_hash: hash, name, recipes, unavailable, updated_at: 'now',
+        menu_id: menuId, edit_token_hash: hash, name, recipes, unavailable, featured, updated_at: 'now',
       });
       return { success: true };
     }
@@ -242,6 +242,62 @@ let token;
     assert.equal(parseMenuCode(bad), null, `Expected ${JSON.stringify(bad)} to be rejected`);
   }
   console.log('PASS: parseMenuCode accepts codes and menu links and rejects everything else');
+}
+
+// Test 11: a menu's saved share keeps both its Out list and its picks
+{
+  const { saveMenu, getMenus, setMenuShare } = await import('../js/modules/storage.js');
+  const saved = saveMenu({ name: 'Party', recipeIds: ['a', 'b', 'c'], share: { id: 'AAAAAAAAAA', token: 'tok', outIds: ['a'], featuredIds: ['b', 'c'] } });
+  assert.deepEqual(getMenus().find(m => m.id === saved.id).share, { id: 'AAAAAAAAAA', token: 'tok', outIds: ['a'], featuredIds: ['b', 'c'] });
+  setMenuShare(saved.id, { id: 'AAAAAAAAAA', token: 'tok', outIds: [], featuredIds: ['c'] });
+  assert.deepEqual(getMenus().find(m => m.id === saved.id).share.featuredIds, ['c'], 'Updating a share replaces the picks');
+  const legacy = saveMenu({ name: 'Old', recipeIds: ['a'], share: { id: 'BBBBBBBBBB', token: 't', outIds: [] } });
+  assert.deepEqual(getMenus().find(m => m.id === legacy.id).share.featuredIds, [], 'A share saved before picks existed reads as none');
+  setMenuShare(saved.id, null);
+  assert.equal(getMenus().find(m => m.id === saved.id).share, undefined, 'Clearing the share removes it');
+  console.log('PASS: a saved menu keeps its Out list and picks, and older shares read as having none');
+}
+
+// Test 10: host's picks
+{
+  const menuOf = (n) => Array.from({ length: n }, (_, i) => drink(`d${i}`, `Drink ${i}`));
+  const publish = async (body) => (await onRequestPost({ request: jsonRequest('POST', { name: 'Picks', recipes: menuOf(6), ...body }), env })).json();
+  const stored = (id) => JSON.parse(db.menus.get(id).featured);
+
+  // Validated, deduped, ordered, and capped at three
+  const first = await publish({ featured: ['d4', 'nope', 'd1', 'd4', 'd2', 'd0'] });
+  assert.deepEqual(stored(first.menuId), ['d4', 'd1', 'd2'], 'Expected valid ids only, deduped, in the order chosen, capped at 3');
+  const none = await publish({});
+  assert.deepEqual(stored(none.menuId), [], 'A menu published without picks has none');
+  const junk = await publish({ featured: 'd1' });
+  assert.deepEqual(stored(junk.menuId), [], 'A non-array is ignored, not an error');
+
+  // Guests receive them
+  const got = await (await onRequestGet({ params: { id: first.menuId }, env })).json();
+  assert.deepEqual(got.menu.featured, ['d4', 'd1', 'd2']);
+
+  // Only the token holder can change them, and a picks-only update leaves the rest alone
+  const denied = await onRequestPut({ params: { id: first.menuId }, request: jsonRequest('PUT', { featured: ['d5'] }), env });
+  assert.equal(denied.status, 403);
+  assert.deepEqual(stored(first.menuId), ['d4', 'd1', 'd2'], 'A rejected update changes nothing');
+  const update = await onRequestPut({ params: { id: first.menuId }, request: jsonRequest('PUT', { featured: ['d5', 'd0'] }, first.editToken), env });
+  assert.equal(update.status, 200);
+  assert.deepEqual(stored(first.menuId), ['d5', 'd0']);
+  assert.equal(JSON.parse(db.menus.get(first.menuId).recipes).length, 6, 'A picks toggle must not touch the recipes');
+  const cleared = await onRequestPut({ params: { id: first.menuId }, request: jsonRequest('PUT', { featured: [] }, first.editToken), env });
+  assert.equal(cleared.status, 200);
+  assert.deepEqual(stored(first.menuId), []);
+
+  // Removing a starred drink from the menu drops it from the picks
+  await onRequestPut({ params: { id: first.menuId }, request: jsonRequest('PUT', { featured: ['d1', 'd2', 'd3'] }, first.editToken), env });
+  await onRequestPut({ params: { id: first.menuId }, request: jsonRequest('PUT', { recipes: menuOf(6).filter(r => r.id !== 'd2') }, first.editToken), env });
+  assert.deepEqual(stored(first.menuId), ['d1', 'd3'], 'A drink taken off the menu must leave the picks');
+
+  // Menus published before the column existed read as "no picks"
+  db.menus.get(first.menuId).featured = undefined;
+  const legacy = await (await onRequestGet({ params: { id: first.menuId }, env })).json();
+  assert.deepEqual(legacy.menu.featured, [], 'A pre-migration menu has no picks');
+  console.log('PASS: host picks are validated, capped at 3, ordered, token-protected, pruned, and backward compatible');
 }
 
 // Test 9: a guest's remembered copy of the last menus they loaded

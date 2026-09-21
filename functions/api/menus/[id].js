@@ -2,14 +2,14 @@
  * Cloudflare Pages Function: /api/menus/:id
  *
  *   GET    public — the menu as guests see it (no edit token in the response)
- *   PUT    host   — update name / recipes / "out" list (Bearer edit token)
+ *   PUT    host   — update name / recipes / "out" list / host's picks (Bearer edit token)
  *   DELETE host   — unpublish (Bearer edit token)
  */
 
 import { jsonResponse } from '../_lib/http.js';
 import {
   MENU_ID_PATTERN, extractEditToken, hashEditToken, hashesMatch,
-  sanitizeMenuName, sanitizeMenuRecipes, sanitizeUnavailable,
+  sanitizeMenuName, sanitizeMenuRecipes, sanitizeUnavailable, sanitizeFeatured,
 } from './_lib.js';
 
 function menuIdFrom(params) {
@@ -40,7 +40,7 @@ export async function onRequestGet(context) {
   if (!menuId) return jsonResponse({ error: 'Menu not found.' }, 404);
 
   const row = await env.speakeasy_db.prepare(
-    `SELECT name, recipes, unavailable, updated_at FROM menus WHERE menu_id = ?`
+    `SELECT name, recipes, unavailable, featured, updated_at FROM menus WHERE menu_id = ?`
   ).bind(menuId).first();
   if (!row) return jsonResponse({ error: 'Menu not found.' }, 404);
 
@@ -55,6 +55,7 @@ export async function onRequestGet(context) {
       name: row.name,
       recipes,
       unavailable: safeParse(row.unavailable, []),
+      featured: safeParse(row.featured, []),
       updatedAt: row.updated_at,
     },
   }, 200, { 'Cache-Control': 'no-store' });
@@ -69,7 +70,7 @@ export async function onRequestPut(context) {
   if (!menuId) return jsonResponse({ error: 'Menu not found.' }, 404);
 
   const row = await env.speakeasy_db.prepare(
-    `SELECT edit_token_hash, recipes, unavailable FROM menus WHERE menu_id = ?`
+    `SELECT edit_token_hash, recipes, unavailable, featured FROM menus WHERE menu_id = ?`
   ).bind(menuId).first();
   if (!row) return jsonResponse({ error: 'Menu not found.' }, 404);
   if (!(await authorize(request, row))) return jsonResponse({ error: 'Not authorized.' }, 403);
@@ -105,10 +106,15 @@ export async function onRequestPut(context) {
     // Re-validate the "out" list against the new recipes even when the caller
     // didn't resend it, so a removed drink can't linger in it.
     if (body.unavailable === undefined) body.unavailable = safeParse(row.unavailable, []);
+    if (body.featured === undefined) body.featured = safeParse(row.featured, []);
   }
   if (body.unavailable !== undefined) {
     sets.push('unavailable = ?');
     binds.push(JSON.stringify(sanitizeUnavailable(body.unavailable, recipes)));
+  }
+  if (body.featured !== undefined) {
+    sets.push('featured = ?');
+    binds.push(JSON.stringify(sanitizeFeatured(body.featured, recipes)));
   }
   if (sets.length === 0) return jsonResponse({ error: 'Nothing to update.' }, 400);
 

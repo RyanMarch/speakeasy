@@ -7,11 +7,12 @@
 import { state, elements, HOME_DEFAULT_COLLECTIONS, getCachedInventoryAnalysis } from '../state.js';
 import { getMenus, saveMenu, deleteMenu, setMenuShare } from '../modules/storage.js';
 import {
-  publishMenu, pushMenuContents, pushMenuAvailability, unpublishMenu, guestMenuUrl, qrImageUrl,
+  publishMenu, pushMenuContents, pushMenuAvailability, pushMenuFeatured, unpublishMenu, guestMenuUrl, qrImageUrl,
 } from '../modules/menu-publish.js';
 import { REFRIGERATED_INGREDIENT_IDS } from '../modules/taxonomy.js';
 import { renderShoppingCard, wireShoppingCardEvents } from '../components/backbar-modal.js';
 import { escapeHtml, showToast, CLOSE_ICON_SVG } from '../components/toast.js';
+import { closeDialog, enhanceDialog } from '../components/dialog-motion.js';
 import { renderGlassSvg } from '../modules/glass-view.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
@@ -269,6 +270,11 @@ function renderViewMode(container) {
               <span class="menu-builder-cocktail-meta">${escapeHtml(r.glassware || 'Glass')}${r.glassware && r.method ? ' · ' : ''}${escapeHtml(r.method || '')}</span>
             </button>
             ${share ? `
+              <button type="button" class="menu-builder-pick-toggle" data-recipe-id="${escapeHtml(r.id)}"
+                aria-pressed="${(share.featuredIds || []).includes(r.id)}" aria-label="${escapeHtml(r.name)} is a host's pick"
+                title="Star up to ${MAX_HOST_PICKS} drinks as your picks. Guests see them first.">
+                <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2.6 14.9 8.9 21.7 9.6 16.6 14.2 18 21 12 17.5 6 21 7.4 14.2 2.3 9.6 9.1 8.9"></polygon></svg>
+              </button>
               <button type="button" role="switch" class="menu-builder-out-toggle" data-recipe-id="${escapeHtml(r.id)}"
                 aria-checked="${!share.outIds.includes(r.id)}" aria-label="${escapeHtml(r.name)} available to guests"
                 title="Turn off when you run out. Guests can't order a drink that's out.">
@@ -328,6 +334,9 @@ function renderViewMode(container) {
   container.querySelectorAll('.menu-builder-out-toggle').forEach(btn => {
     btn.addEventListener('click', () => toggleDrinkOut(btn.getAttribute('data-recipe-id')));
   });
+  container.querySelectorAll('.menu-builder-pick-toggle').forEach(btn => {
+    btn.addEventListener('click', () => toggleDrinkPick(btn.getAttribute('data-recipe-id')));
+  });
 
   renderGuestLinkSection();
   renderGlasswareTally();
@@ -376,7 +385,7 @@ function renderGuestLinkSection() {
           ${typeof navigator !== 'undefined' && navigator.share ? '<button type="button" class="btn btn-secondary btn-sm" data-action="share-guest-link">Share…</button>' : ''}
           <button type="button" class="btn btn-ghost btn-sm" data-action="stop-sharing">Stop sharing</button>
         </div>
-        <p class="card-content-text">Flip a drink to <strong>Out</strong> below when you run out. Guests see it within a few seconds.</p>
+        <p class="card-content-text">Flip a drink to <strong>Out</strong> below when you run out, and star up to three as your <strong>picks</strong>. Guests see changes within a few seconds.</p>
       </div>
     </div>
   `;
@@ -403,7 +412,8 @@ function renderGuestLinkSection() {
 
 /**
  * Full-viewport QR for guests to scan from across a room or off a propped-up
- * phone. Also shows the plain menu code, for anyone whose camera won't scan.
+ * phone. Also shows the link as a short address to type, for anyone whose
+ * camera won't scan.
  * Closes on tap, Escape, or the close button, and keeps the screen awake while
  * it's up (a dimmed phone is a useless QR code).
  */
@@ -417,9 +427,10 @@ async function openQrFullscreen(url, menuName, code) {
       <div class="qr-fullscreen-eyebrow">Scan for tonight’s menu</div>
       <h2 class="qr-fullscreen-title">${escapeHtml(menuName)}</h2>
       <div class="qr-fullscreen-code-card"><img src="${escapeHtml(qrImageUrl(url, 1024))}" alt="QR code for the guest menu"></div>
-      <div class="qr-fullscreen-fallback">Or connect to Speakeasy with code: <strong>${escapeHtml(code)}</strong></div>
+      <div class="qr-fullscreen-fallback">Can’t scan? Type this into a browser:<br><strong>${escapeHtml(window.location.host)}/menu/${escapeHtml(code)}</strong></div>
     </div>
   `;
+  enhanceDialog(dialog);
   document.body.appendChild(dialog);
 
   let wakeLock = null;
@@ -433,7 +444,7 @@ async function openQrFullscreen(url, menuName, code) {
     dialog.remove();
   };
   dialog.addEventListener('close', cleanup);
-  dialog.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', () => closeDialog(dialog));
   dialog.showModal();
 }
 
@@ -468,6 +479,42 @@ async function handleStopSharing() {
   setMenuShare(activeMenu.id, null);
   showToast('Guest link removed');
   renderMenuBuilderView();
+}
+
+// Same cap the server enforces (functions/api/menus/_lib.js).
+const MAX_HOST_PICKS = 3;
+
+async function toggleDrinkPick(recipeId) {
+  const share = getActiveShare();
+  if (!share || !recipeId) return;
+  const current = share.featuredIds || [];
+  const wasPick = current.includes(recipeId);
+  if (!wasPick && current.length >= MAX_HOST_PICKS) {
+    showToast(`You can pick up to ${MAX_HOST_PICKS}. Un-star one first.`);
+    return;
+  }
+  const next = wasPick ? current.filter(id => id !== recipeId) : [...current, recipeId];
+
+  // Optimistic, like the Out switch: paint in place, roll back if guests never got it.
+  const paint = (ids) => {
+    setMenuShare(activeMenu.id, { ...share, featuredIds: ids });
+    document.querySelectorAll('.menu-builder-pick-toggle').forEach(btn => {
+      btn.setAttribute('aria-pressed', String(ids.includes(btn.getAttribute('data-recipe-id'))));
+    });
+  };
+  paint(next);
+  try {
+    await pushMenuFeatured(share, next);
+    const name = getSelectedRecipes().find(r => r.id === recipeId)?.name || 'Drink';
+    showToast(wasPick ? `${name} is no longer a pick` : `${name} is now a host’s pick`);
+  } catch (err) {
+    if (err.status === 404) {
+      forgetDeadGuestLink();
+      return;
+    }
+    paint(current);
+    showToast(`Couldn't update guests: ${err.message}`);
+  }
 }
 
 // The server no longer has this menu (a wiped database, say), so the saved
@@ -992,7 +1039,15 @@ function handleSaveMenu() {
   }
   const name = document.getElementById('menu-builder-name-input')?.value || '';
   const previous = activeMenu.id ? getMenus().find(m => m.id === activeMenu.id) : null;
-  const saved = saveMenu({ id: activeMenu.id, name, recipeIds: activeMenu.recipeIds, createdAt: previous?.createdAt, share: previous?.share });
+  // A drink taken off the menu can't stay starred or marked out (the server
+  // drops them too; this keeps the local copy in step).
+  const stillOnMenu = new Set(activeMenu.recipeIds);
+  const share = previous?.share ? {
+    ...previous.share,
+    outIds: (previous.share.outIds || []).filter(id => stillOnMenu.has(id)),
+    featuredIds: (previous.share.featuredIds || []).filter(id => stillOnMenu.has(id)),
+  } : undefined;
+  const saved = saveMenu({ id: activeMenu.id, name, recipeIds: activeMenu.recipeIds, createdAt: previous?.createdAt, share });
   activeMenu = { id: saved.id, name: saved.name, recipeIds: [...saved.recipeIds] };
   showToast(`Saved "${saved.name}"`);
   if (saved.share) {

@@ -21,6 +21,7 @@ import {
 import { renderGlassSvg } from '../modules/glass-view.js';
 import { setupTagAutocomplete } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
+import { renderSiteFooterHtml } from '../components/site-footer.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { getDrinkHistory, HISTORY_UPDATED_EVENT } from '../modules/history.js';
 import { renderStarsHtml } from '../components/rating-modal.js';
@@ -299,13 +300,7 @@ export function renderHomeView() {
 
     ${renderHomeCollectionsWithPinPrompt(allCollections, pinPromptIndex)}
 
-    <footer class="home-footer">
-      <span>&copy; 2026 <a href="https://ryanmarch.me" class="home-footer-link" target="_blank" rel="noopener">Ryan March</a></span>
-      <span class="home-footer-sep" aria-hidden="true">·</span>
-      <a href="/terms" class="home-footer-link">Terms</a>
-      <span class="home-footer-sep" aria-hidden="true">·</span>
-      <a href="/docs/" class="home-footer-link">Help</a>
-    </footer>
+    ${renderSiteFooterHtml()}
   `;
 
   setupHomeViewEvents(pinnableTags);

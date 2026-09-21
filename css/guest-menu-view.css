@@ -197,11 +197,11 @@
   font-size: 0.78rem;
   line-height: 1.45;
   color: var(--color-text-muted);
-  /* Two lines keeps a card short enough that a phone screen shows several
-     drinks at once; the full description is one tap away. */
+  /* Four lines: with the glass/method line gone there's room to actually read
+     what a drink is, and the full recipe is still one tap away. */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -378,9 +378,16 @@
    within reach on a long menu. It needs a real (near-opaque) background, or
    the cards scrolling underneath show through and collide with the chips.
    The header is hidden for guests, so top: 0 is the top of the screen. */
+.guest-menu-view {
+  /* Where the sticky bar pins (0 on a phone, a little inset on desktop). The
+     section headings add the bar's measured height to this to stack under it. */
+  --guest-bar-top: 0px;
+  overflow-anchor: none;
+}
+
 .guest-menu-filters {
   position: sticky;
-  top: 0;
+  top: var(--guest-bar-top);
   z-index: 5;
   margin: 0 -1rem 1.25rem;
   padding: 0.7rem 1rem 0.65rem;
@@ -495,8 +502,10 @@
 
 /* Wide screens show every chip at once, in a floating panel. */
 @media (min-width: 900px) {
+  .guest-menu-view {
+    --guest-bar-top: 0.75rem;
+  }
   .guest-menu-filters {
-    top: 0.75rem;
     margin: 0 0 1.5rem;
     padding: 1rem 1.25rem 0.9rem;
     border: 1px solid var(--color-border);
@@ -776,7 +785,7 @@
 
 /* A background refresh (host toggled a drink) shouldn't replay the cards'
    entrance animation. */
-.guest-menu-grid.no-enter .guest-menu-card {
+.guest-menu-results.no-enter .guest-menu-card {
   animation: none;
 }
 
@@ -805,8 +814,10 @@
   inset: 0;
   z-index: 1000;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  /* If the content is ever taller than the screen (a landscape phone), it has
+     to be reachable: scroll, and let the stage's auto margins do the centering
+     (which, unlike align-items: center, never cuts off the top). */
+  overflow-y: auto;
   padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
   /* Deliberately no backdrop-filter: this overlay is its own View Transition
      layer when it hands off to the recipe, and a backdrop blur can't be
@@ -816,7 +827,7 @@
     radial-gradient(70% 55% at 50% 38%, rgba(212, 163, 89, 0.26), transparent 72%),
     color-mix(in srgb, var(--color-bg) 97%, transparent);
   overscroll-behavior: contain;
-  touch-action: none;
+  touch-action: pan-y;
   cursor: pointer;
   animation: shuffleIn 240ms ease both;
 }
@@ -844,6 +855,8 @@
   align-items: center;
   gap: 0.9rem;
   width: min(100%, 26rem);
+  margin: auto;
+  padding: 3.25rem 0 1rem;
   text-align: center;
 }
 
@@ -1051,4 +1064,225 @@
 /* Handing off to the recipe: stop taking taps while it loads underneath. */
 .guest-shuffle.is-leaving {
   pointer-events: none;
+}
+
+/* The site footer sits under the "made with" line, so tighten the gap. */
+.guest-menu-footer + .home-footer {
+  margin-top: 1.25rem;
+}
+
+/* ---- Search -------------------------------------------------------------- */
+.guest-menu-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.55rem;
+}
+
+.guest-menu-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--color-text-faint);
+  pointer-events: none;
+}
+
+.guest-menu-search-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 2.6rem 0 2.45rem;
+  border: 1px solid rgba(245, 240, 230, 0.14);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--color-text-bright);
+  /* 16px: anything smaller makes iOS Safari zoom the page when this is focused. */
+  font-size: 1rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.guest-menu-search-input::placeholder {
+  color: var(--color-text-faint);
+}
+
+.guest-menu-search-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/* We draw our own clear button. */
+.guest-menu-search-input::-webkit-search-cancel-button,
+.guest-menu-search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  display: none;
+}
+
+.guest-menu-search-clear {
+  position: absolute;
+  right: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.guest-menu-search-clear[hidden] {
+  display: none;
+}
+
+/* Scrolled down the list: slide the bar up so its search row is tucked out of
+   view, leaving the chips pinned. A transform, not a height change, so the page
+   flow never moves (see setupBarCompacting). Slides back on scroll up. */
+.guest-menu-filters {
+  transition: transform 260ms cubic-bezier(0.22, 0.8, 0.25, 1);
+}
+
+.guest-menu-filters.is-compact {
+  transform: translateY(calc(-1 * var(--guest-search-shift, 0px)));
+}
+
+.guest-menu-mood-blurb[hidden] {
+  display: none;
+}
+
+.guest-menu-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.guest-menu-empty-title {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--color-text-bright);
+}
+
+.guest-menu-empty-hint {
+  margin: 0 0 1.1rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+/* ---- Sections ------------------------------------------------------------ */
+.guest-menu-section {
+  margin-bottom: 1.75rem;
+}
+
+/* Pinned just beneath the bar (whose height is measured in JS), so as you scroll
+   a long menu the heading of the section you're in stays in view. */
+.guest-menu-section-heading {
+  position: sticky;
+  top: calc(var(--guest-bar-top) + var(--guest-bar-h, 0px));
+  /* Rides up and down with the bar as it slides. */
+  transition: top 260ms cubic-bezier(0.22, 0.8, 0.25, 1);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0 -1rem 0.8rem;
+  padding: 0.6rem 1rem;
+  background: color-mix(in srgb, var(--color-bg) 97%, transparent);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.guest-menu-section-heading::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--color-border-active);
+  opacity: 0.6;
+}
+
+@media (min-width: 900px) {
+  /* Flush under the bar: any gap would be a strip where cards scroll through. */
+  .guest-menu-section-heading {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+}
+
+/* ---- Host's picks --------------------------------------------------------- */
+.guest-menu-card.is-pick {
+  border-color: rgba(212, 163, 89, 0.4);
+  /* Room above the glass for the badge, so it doesn't sit on the rim. */
+  padding-top: 2.7rem;
+}
+
+.guest-menu-card-pick {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  z-index: 1;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid rgba(212, 163, 89, 0.5);
+  border-radius: var(--radius-full);
+  background: rgba(212, 163, 89, 0.16);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-accent-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guest-menu-filters,
+  .guest-menu-section-heading {
+    transition: none;
+  }
+}
+
+/* A drink's page ends in its own sticky action bar, which handles the iPhone's
+   home-indicator inset itself; the page's usual bottom padding would leave dead
+   scroll space beneath it. */
+.guest-menu-view.is-recipe {
+  padding-bottom: 0;
+}
+
+/* On phones the app reserves 3.5rem at the bottom of its main stage (sized to
+   clear the iPhone's home indicator) with an !important rule in responsive.css.
+   Guest pages already handle that inset themselves (the menu's own bottom
+   padding, the recipe page's action bar), so here it's just dead scroll under
+   the last thing on the page. */
+.guest-menu-mode .main-stage {
+  padding-bottom: 0 !important;
+}
+
+/* Landscape phones are short and wide: put the glass beside the text so the
+   reveal (and its buttons) fits without scrolling. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .guest-shuffle-stage {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "arena caption"
+      "arena name"
+      "arena reveal"
+      "arena skip";
+    align-content: center;
+    align-items: center;
+    justify-items: start;
+    column-gap: 1.75rem;
+    row-gap: 0.5rem;
+    width: min(100%, 46rem);
+    padding: 1rem 0;
+    text-align: left;
+  }
+  .guest-shuffle-arena { grid-area: arena; }
+  .guest-shuffle-caption { grid-area: caption; }
+  .guest-shuffle-name { grid-area: name; font-size: clamp(1.6rem, 5vw, 2.2rem); }
+  .guest-shuffle-name.is-final { font-size: clamp(1.8rem, 5.5vw, 2.4rem); }
+  .guest-shuffle-reveal { grid-area: reveal; align-items: flex-start; gap: 0.4rem; }
+  .guest-shuffle-actions { justify-content: flex-start; margin-top: 0.3rem; }
+  .guest-shuffle-skip { grid-area: skip; }
+  .guest-shuffle-blurb { font-size: 0.86rem; line-height: 1.4; }
 }

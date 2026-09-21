@@ -1597,6 +1597,7 @@ export function saveMenu(menu) {
       id: menu.share.id,
       token: menu.share.token,
       outIds: Array.isArray(menu.share.outIds) ? menu.share.outIds.map(String) : [],
+      featuredIds: Array.isArray(menu.share.featuredIds) ? menu.share.featuredIds.map(String) : [],
     };
   }
 

@@ -98,7 +98,7 @@ export async function publishMenu(name, recipes) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, recipes: recipes.map(toSnapshot) }),
   });
-  return { id: data.menuId, token: data.editToken, outIds: [] };
+  return { id: data.menuId, token: data.editToken, outIds: [], featuredIds: [] };
 }
 
 /** Push a menu's current name + drinks to its guest link. */
@@ -106,7 +106,7 @@ export function pushMenuContents(share, name, recipes) {
   return requestJson(`/api/menus/${encodeURIComponent(share.id)}`, {
     method: 'PUT',
     headers: authHeaders(share),
-    body: JSON.stringify({ name, recipes: recipes.map(toSnapshot), unavailable: share.outIds || [] }),
+    body: JSON.stringify({ name, recipes: recipes.map(toSnapshot), unavailable: share.outIds || [], featured: share.featuredIds || [] }),
   });
 }
 
@@ -116,6 +116,15 @@ export function pushMenuAvailability(share, outIds) {
     method: 'PUT',
     headers: authHeaders(share),
     body: JSON.stringify({ unavailable: outIds }),
+  });
+}
+
+/** Push just the host's picks — the fast path for a star toggle. */
+export function pushMenuFeatured(share, featuredIds) {
+  return requestJson(`/api/menus/${encodeURIComponent(share.id)}`, {
+    method: 'PUT',
+    headers: authHeaders(share),
+    body: JSON.stringify({ featured: featuredIds }),
   });
 }
 

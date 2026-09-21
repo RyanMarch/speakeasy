@@ -13,13 +13,19 @@
 import { state, elements, SEED_RECIPE_IDS } from '../state.js';
 import { runViewTransition } from '../modules/view-transition.js';
 import { openSurpriseOverlay, shouldAnimateSurprise } from './surprise-overlay.js';
-import { escapeHtml } from '../components/toast.js';
+import { escapeHtml, showToast } from '../components/toast.js';
+import { renderSiteFooterHtml } from '../components/site-footer.js';
 import { renderGlassSvg } from '../modules/glass-view.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { fetchGuestMenu, parseMenuCode, rememberGuestMenu, recallGuestMenu, forgetGuestMenu } from '../modules/menu-publish.js';
 import { summarizeMoods } from '../modules/moods.js';
 import { buildTraits, buildQuizQuestions, rankForQuiz } from '../modules/quiz.js';
-import { renderRecipe } from './shared-recipe-view.js';
+import { buildSearchIndex, searchRecipes } from '../modules/guest-search.js';
+import { groupBySpirit, shouldUseSections } from '../modules/menu-sections.js';
+import { getSaved, toggleSaved, pruneSaved } from '../modules/guest-saved.js';
+import { getRecipes, saveRecipe, sanitizeImportedRecipes } from '../modules/storage.js';
+import { renderGuestRecipe, heartSvg } from './guest-recipe-view.js';
+import { openOrderCard } from './order-card.js';
 
 // A guest who leaves the tab open all evening should still see "out" changes
 // the next time they look at it, without polling in the background.
@@ -47,7 +53,9 @@ async function loadMenu(menuId) {
   }
 }
 
-const DESCRIPTION_PREVIEW_CHARS = 90;
+// Generous: the card's own line clamp (see guest-menu-view.css) decides where it
+// really ends, so this only keeps a very long description out of the page.
+const DESCRIPTION_PREVIEW_CHARS = 220;
 
 let cached = null; // { menuId, menu, fetchedAt }
 
@@ -306,54 +314,242 @@ const MIN_DRINKS_FOR_QUIZ = 6;
 // menu, but not across different menus.
 let activeMood = { menuId: null, key: null };
 
+// The search box and the mood chips share one sticky bar. Search only earns
+// its space once a menu is long enough to be worth searching.
+const MIN_DRINKS_FOR_SEARCH = 8;
+
+// The "♥ Saved" chip is a filter like the moods, so it shares their state.
+const SAVED_KEY = '__saved__';
+
+// What the guest has typed, remembered while they open a drink and come back
+// (but not across different menus).
+let activeQuery = { menuId: null, text: '' };
+const searchIndexCache = new WeakMap();
+
+function getSearchIndex(menu) {
+  if (!searchIndexCache.has(menu)) searchIndexCache.set(menu, buildSearchIndex(menu.recipes));
+  return searchIndexCache.get(menu);
+}
+
+// A background refresh that lands while the guest is typing would rebuild the
+// page and take their keyboard away, so it waits until they're done.
+let pendingQuietRender = false;
+
+function searchInputIsFocused() {
+  return Boolean(document.activeElement?.classList?.contains('guest-menu-search-input'));
+}
+
+// The bar slides its search row up out of view as you scroll down and back in
+// as you scroll up, so the pinned area stays small on a phone. It moves with a
+// transform rather than by changing its height: the bar keeps its full size in
+// the page flow, so nothing below it shifts and there's no scroll position to
+// correct (which would also interrupt an iPhone's scroll momentum). The section
+// headings follow it via --guest-bar-h; see guest-menu-view.css.
+let detachBarScroll = null;
+const COMPACT_AFTER_SCROLL_DOWN_PX = 70;
+const EXPAND_AFTER_SCROLL_UP_PX = 28;
+
+function currentScrollY() {
+  const scroller = scrollElement();
+  return scroller === window ? window.scrollY : scroller.scrollTop;
+}
+
+// The bar only slides once it's actually pinned; before that it's just sitting
+// in the page under the header and moving it would drag it over the buttons.
+function barIsPinned(bar) {
+  const scroller = scrollElement();
+  const scrollerTop = scroller === window ? 0 : scroller.getBoundingClientRect().top;
+  const pinnedTop = scrollerTop + (parseFloat(getComputedStyle(bar).top) || 0);
+  return bar.getBoundingClientRect().top <= pinnedTop + 1;
+}
+
+function setupBarCompacting(bar, hasQuery, onChange) {
+  detachBarScroll?.();
+  const searchRow = bar.querySelector('.guest-menu-search');
+  let lastY = currentScrollY();
+  let downTravel = 0;
+  let upTravel = 0;
+  let compact = false;
+
+  // How far the bar has to slide to tuck the search row away: its height plus
+  // the gap beneath it, so the chips end up where the search row was.
+  const measureShift = () => {
+    if (!searchRow) return 0;
+    return searchRow.offsetHeight + (parseFloat(getComputedStyle(searchRow).marginBottom) || 0);
+  };
+
+  const setCompact = (next) => {
+    if (next === compact) return;
+    compact = next;
+    bar.style.setProperty('--guest-search-shift', `${measureShift()}px`);
+    bar.classList.toggle('is-compact', compact);
+    onChange?.();
+  };
+
+  const onScroll = () => {
+    if (!bar.isConnected) {
+      detachBarScroll?.();
+      return;
+    }
+    const y = currentScrollY();
+    const dy = y - lastY;
+    lastY = y;
+    if (dy > 0) {
+      downTravel += dy;
+      upTravel = 0;
+    } else if (dy < 0) {
+      upTravel -= dy;
+      downTravel = 0;
+    }
+    // Never tuck it away while it's in use: typing, or a query in effect.
+    const inUse = searchInputIsFocused() || hasQuery();
+    const pinned = barIsPinned(bar);
+    if (!compact && searchRow && !inUse && pinned && downTravel > COMPACT_AFTER_SCROLL_DOWN_PX) setCompact(true);
+    else if (compact && (inUse || !pinned || upTravel > EXPAND_AFTER_SCROLL_UP_PX)) setCompact(false);
+  };
+
+  const targets = [window, elements.mainStage].filter(Boolean);
+  targets.forEach(t => t.addEventListener('scroll', onScroll, { passive: true }));
+  detachBarScroll = () => {
+    targets.forEach(t => t.removeEventListener('scroll', onScroll));
+    detachBarScroll = null;
+  };
+}
+
 function renderMenu(container, menuId, menu, { quiet = false } = {}) {
   const { moods, byRecipe } = summarizeMoods(menu.recipes.filter(r => !isOut(menu, r.id)));
   const showChips = menu.recipes.length >= MIN_DRINKS_FOR_MOOD_CHIPS && moods.length >= 2;
+  const showSearch = menu.recipes.length >= MIN_DRINKS_FOR_SEARCH;
   const showQuiz = menu.recipes.filter(r => !isOut(menu, r.id)).length >= MIN_DRINKS_FOR_QUIZ;
 
+  // What this guest has saved on this device, minus anything the host has
+  // since taken off the menu.
+  let savedIds = pruneSaved(menuId, menu.recipes.map(r => r.id));
+
   // A remembered filter that no longer applies (different menu, or the host
-  // just marked its last drink out) quietly falls back to "All".
-  if (activeMood.menuId !== menuId || !showChips || !moods.some(m => m.key === activeMood.key)) {
+  // just marked its last drink out, or nothing is saved any more) quietly
+  // falls back to "All".
+  const moodStillApplies = moods.some(m => m.key === activeMood.key) || (activeMood.key === SAVED_KEY && savedIds.length > 0);
+  if (activeMood.menuId !== menuId || !showChips || !moodStillApplies) {
     activeMood = { menuId, key: null };
   }
+  if (activeQuery.menuId !== menuId || !showSearch) activeQuery = { menuId, text: '' };
 
-  const matchesMood = (recipe) => !activeMood.key || (byRecipe.get(recipe.id) || []).includes(activeMood.key);
+  const matchesMood = (recipe) => {
+    if (!activeMood.key) return true;
+    if (activeMood.key === SAVED_KEY) return savedIds.includes(recipe.id);
+    return (byRecipe.get(recipe.id) || []).includes(activeMood.key);
+  };
 
-  const cardHtml = (recipe, idx) => {
+  // The host's picks, in the order they chose them (only drinks still on the menu).
+  const recipeById = new Map(menu.recipes.map(r => [r.id, r]));
+  const featuredOrder = (Array.isArray(menu.featured) ? menu.featured : []).filter(id => recipeById.has(id));
+  const featuredSet = new Set(featuredOrder);
+
+  let cardIndex = 0;
+  const cardHtml = (recipe) => {
+    const idx = cardIndex++;
     const unavailable = isOut(menu, recipe.id);
+    const isPick = featuredSet.has(recipe.id) && !unavailable;
+    // Saving happens on a drink's own page. On the menu a saved drink just
+    // wears a small filled heart, so the list stays uncluttered.
+    const isSaved = !unavailable && savedIds.includes(recipe.id);
     return /*html*/`
-      <button type="button" class="guest-menu-card${unavailable ? ' is-out' : ''}" style="--i:${Math.min(idx, 11)}"
+      <button type="button" class="guest-menu-card${unavailable ? ' is-out' : ''}${isPick ? ' is-pick' : ''}" style="--i:${Math.min(idx, 11)}"
         data-recipe-id="${escapeHtml(recipe.id)}" ${unavailable ? 'disabled aria-disabled="true"' : ''}>
-        <span class="guest-menu-card-glass">${renderGlassSvg(recipe, `guest-glass-${idx}`, { mode: state.glassViewMode })}</span>
+        ${isPick ? '<span class="guest-menu-card-pick">★ Host’s pick</span>' : ''}
+        ${isSaved ? `<span class="guest-menu-card-saved" role="img" aria-label="Saved">${heartSvg(16)}</span>` : ''}
+        <span class="guest-menu-card-glass" data-glass-index="${idx}"></span>
         <span class="guest-menu-card-name">${escapeHtml(recipe.name)}</span>
-        <span class="guest-menu-card-meta">${escapeHtml([recipe.glassware, recipe.method].filter(Boolean).join(' · '))}</span>
         <span class="guest-menu-card-blurb">${escapeHtml(cardBlurb(recipe))}</span>
         ${unavailable ? '<span class="guest-menu-card-out">Out for now</span>' : ''}
       </button>
     `;
   };
 
-  // The list under the current filter: available drinks first, then "out"
+  // Each card's glass is a full SVG (thousands of elements across a big menu),
+  // so drawing all of them up front made an 87-drink menu slow to appear and
+  // slow to filter. Cards render as text at once; a glass is drawn only as its
+  // card comes within a couple of screens of the viewport. The holder has a
+  // fixed height in CSS, so nothing shifts when it fills in.
+  let glassObserver = null;
+
+  const drawGlass = (card) => {
+    const holder = card.querySelector('.guest-menu-card-glass');
+    const recipe = recipeById.get(card.getAttribute('data-recipe-id'));
+    if (!holder || !recipe || holder.hasChildNodes()) return;
+    holder.innerHTML = renderGlassSvg(recipe, `guest-glass-${holder.getAttribute('data-glass-index')}`, { mode: state.glassViewMode });
+  };
+
+  const drawGlassesLazily = () => {
+    glassObserver?.disconnect();
+    const cards = [...results.querySelectorAll('.guest-menu-card')];
+    if (typeof IntersectionObserver === 'undefined') {
+      cards.forEach(drawGlass);
+      return;
+    }
+    // On desktop the app scrolls inside its main stage, not the window. An
+    // observer left on the window ignores its margin for anything inside a
+    // nested scroller, so glasses would only draw once they were already on
+    // screen. Observing relative to the real scroller keeps the head start.
+    const scroller = scrollElement();
+    glassObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        drawGlass(entry.target);
+        glassObserver.unobserve(entry.target);
+      });
+    }, { root: scroller === window ? null : scroller, rootMargin: '900px 0px' });
+    cards.forEach(card => glassObserver.observe(card));
+  };
+
+  // The drinks under the current mood and search: available first, then "out"
   // drinks (kept visible so nothing seems to vanish, but dimmed and last).
   const visibleDrinks = () => {
-    const inMood = menu.recipes.filter(matchesMood);
+    const searchIds = activeQuery.text ? searchRecipes(getSearchIndex(menu), activeQuery.text) : null;
+    const inFilter = menu.recipes.filter(r => matchesMood(r) && (!searchIds || searchIds.has(r.id)));
     return {
-      available: inMood.filter(r => !isOut(menu, r.id)),
-      out: inMood.filter(r => isOut(menu, r.id)),
+      available: inFilter.filter(r => !isOut(menu, r.id)),
+      out: inFilter.filter(r => isOut(menu, r.id)),
+      filtering: Boolean(activeMood.key) || searchIds !== null,
     };
+  };
+
+  // How the results are laid out. Unfiltered long menus get a pinned "Host's
+  // picks" section and base-spirit sections; anything filtered (or short) is a
+  // single list with the picks first.
+  const layoutFor = ({ available, out, filtering }) => {
+    if (!filtering && shouldUseSections(menu.recipes)) {
+      const picks = featuredOrder.map(id => recipeById.get(id)).filter(r => !isOut(menu, r.id));
+      const pickIds = new Set(picks.map(r => r.id));
+      const sections = groupBySpirit(menu.recipes.filter(r => !pickIds.has(r.id))).map(section => ({
+        key: section.key,
+        heading: section.heading,
+        recipes: [...section.recipes.filter(r => !isOut(menu, r.id)), ...section.recipes.filter(r => isOut(menu, r.id))],
+      }));
+      return picks.length > 0 ? [{ key: 'picks', heading: '★ Host’s picks', recipes: picks }, ...sections] : sections;
+    }
+    const picksFirst = [...available.filter(r => featuredSet.has(r.id)), ...available.filter(r => !featuredSet.has(r.id))];
+    return [{ key: 'all', heading: null, recipes: [...picksFirst, ...out] }];
   };
 
   const totalAvailable = menu.recipes.filter(r => !isOut(menu, r.id)).length;
   const chipHtml = (key, label) => /*html*/`
     <button type="button" class="guest-menu-chip" data-mood="${escapeHtml(key)}" aria-pressed="${(activeMood.key || '') === key}">${escapeHtml(label)}</button>
   `;
+  // All, then ♥ Saved once there's something saved, then the moods.
+  const chipsHtml = () => [
+    chipHtml('', 'All'),
+    savedIds.length > 0 ? chipHtml(SAVED_KEY, '♥ Saved') : '',
+    ...moods.map(m => chipHtml(m.key, m.label)),
+  ].join('');
 
   container.innerHTML = /*html*/`
     ${cached?.offline ? '<div class="guest-menu-offline" role="status">Showing a saved copy of this menu. Reconnecting…</div>' : ''}
     <div class="guest-menu-header">
       <div class="guest-menu-eyebrow"><span>Tonight’s menu</span></div>
       <h1 class="guest-menu-title">${escapeHtml(menu.name)}</h1>
-      <p class="guest-menu-subtitle" data-role="subtitle"></p>
+      <p class="guest-menu-subtitle" data-role="subtitle" aria-live="polite"></p>
       ${totalAvailable > 1 ? /*html*/`
         <div class="guest-menu-actions">
           ${showQuiz ? /*html*/`
@@ -362,83 +558,227 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
               Find my drink
             </button>
           ` : ''}
-          <button type="button" class="btn ${showQuiz ? 'btn-secondary' : 'btn-primary'} guest-menu-surprise" data-action="surprise">
+          <button type="button" class="btn ${showQuiz ? 'btn-secondary' : 'btn-primary'} guest-menu-surprise" data-action="surprise" data-role="surprise-button">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="8.5" cy="8.5" r="1"></circle><circle cx="15.5" cy="15.5" r="1"></circle><circle cx="12" cy="12" r="1"></circle></svg>
-            <span data-role="surprise-label">Surprise me</span>
+            Surprise me
           </button>
         </div>
       ` : ''}
     </div>
-    ${showChips ? /*html*/`
+    ${showSearch || showChips ? /*html*/`
       <div class="guest-menu-filters">
-        <div class="guest-menu-chips" role="group" aria-label="Filter drinks by mood">
-          ${chipHtml('', 'All')}
-          ${moods.map(m => chipHtml(m.key, m.label)).join('')}
-        </div>
-        <p class="guest-menu-mood-blurb" data-role="mood-blurb" aria-live="polite"></p>
+        ${showSearch ? /*html*/`
+          <div class="guest-menu-search" role="search">
+            <svg class="guest-menu-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <!-- Not a form, and named/attributed like nothing a password manager
+                 wants to fill: see the menu-code box for why. -->
+            <input class="guest-menu-search-input" type="search" name="guest-menu-find" aria-label="Search this menu"
+              placeholder="Search drinks, ingredients, moods…" value="${escapeHtml(activeQuery.text)}"
+              autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search"
+              data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other">
+            <button type="button" class="guest-menu-search-clear" data-action="clear-search" aria-label="Clear search" ${activeQuery.text ? '' : 'hidden'}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
+            </button>
+          </div>
+        ` : ''}
+        ${showChips ? /*html*/`
+          <div class="guest-menu-chips" role="group" aria-label="Filter drinks by mood">${chipsHtml()}</div>
+          <p class="guest-menu-mood-blurb" data-role="mood-blurb"></p>
+        ` : ''}
       </div>
     ` : ''}
-    <div class="guest-menu-grid"></div>
+    <div class="guest-menu-results"></div>
     <footer class="guest-menu-footer">
       Made with <a href="/" class="home-footer-link">Speakeasy</a>, the craft cocktail companion.
     </footer>
+    ${renderSiteFooterHtml()}
   `;
 
-  const grid = container.querySelector('.guest-menu-grid');
+  const results = container.querySelector('.guest-menu-results');
+  const bar = container.querySelector('.guest-menu-filters');
   const subtitle = container.querySelector('[data-role="subtitle"]');
   const blurb = container.querySelector('[data-role="mood-blurb"]');
-  const surpriseLabel = container.querySelector('[data-role="surprise-label"]');
-  const activeMoodInfo = () => moods.find(m => m.key === activeMood.key);
-
-  // Repaints only what the filter changes, so the sticky chip bar and the
-  // guest's place on the page aren't rebuilt under their thumb.
-  const paint = () => {
-    const { available, out } = visibleDrinks();
-    grid.innerHTML = [...available, ...out].map((r, i) => cardHtml(r, i)).join('');
-    const info = activeMoodInfo();
-    subtitle.textContent = info
-      ? `${available.length} of ${totalAvailable} drinks.`
-      : `${totalAvailable} drink${totalAvailable === 1 ? '' : 's'} pouring.`;
-    if (blurb) {
-      blurb.classList.toggle('is-hint', !info);
-      blurb.innerHTML = info
-        ? `<strong>${escapeHtml(info.label)}</strong>${escapeHtml(info.blurb)}`
-        : 'Pick a mood to narrow the list.';
-    }
-    if (surpriseLabel) surpriseLabel.textContent = info ? `Surprise me · ${info.label}` : 'Surprise me';
+  const surpriseButton = container.querySelector('[data-role="surprise-button"]');
+  const searchInput = container.querySelector('.guest-menu-search-input');
+  const clearButton = container.querySelector('[data-action="clear-search"]');
+  const activeMoodInfo = () => (activeMood.key === SAVED_KEY
+    ? { label: 'Saved', blurb: 'The drinks you’ve saved on this device.' }
+    : moods.find(m => m.key === activeMood.key));
+  const syncChipPressed = () => {
     container.querySelectorAll('.guest-menu-chip').forEach(chip => {
       chip.setAttribute('aria-pressed', String((chip.getAttribute('data-mood') || '') === (activeMood.key || '')));
     });
   };
+  const searchActive = () => activeQuery.text.length > 0;
+  // Set once the bar exists; called after anything that changes its height.
+  let syncBarHeight = () => {};
+
+  // Repaints only what the filter changes, so the sticky bar and the guest's
+  // place on the page aren't rebuilt under their thumb.
+  const paint = () => {
+    const visible = visibleDrinks();
+    cardIndex = 0;
+    const layout = layoutFor(visible);
+    const cardsShown = layout.reduce((n, s) => n + s.recipes.length, 0);
+
+    if (cardsShown === 0) {
+      const what = searchActive() ? `“${escapeHtml(activeQuery.text)}”` : 'that mood';
+      results.innerHTML = /*html*/`
+        <div class="guest-menu-empty">
+          <p class="guest-menu-empty-title">Nothing matches ${what}.</p>
+          <p class="guest-menu-empty-hint">Try an ingredient (gin, lime), a mood, or part of a drink’s name.</p>
+          ${searchActive() ? '<button type="button" class="btn btn-secondary btn-sm" data-action="clear-search">Clear search</button>' : ''}
+        </div>
+      `;
+    } else {
+      const savedBar = activeMood.key === SAVED_KEY ? /*html*/`
+        <div class="guest-menu-saved-bar">
+          <p>These are the drinks you’ve saved. When you’re ready, show them to your bartender.</p>
+          <button type="button" class="btn btn-primary btn-sm" data-action="order-saved">Show my order</button>
+        </div>
+      ` : '';
+      results.innerHTML = savedBar + layout.map(section => {
+        const cards = section.recipes.map(cardHtml).join('');
+        return section.heading
+          ? `<section class="guest-menu-section" data-section="${escapeHtml(section.key)}"><h2 class="guest-menu-section-heading">${escapeHtml(section.heading)}</h2><div class="guest-menu-grid">${cards}</div></section>`
+          : `<div class="guest-menu-grid">${cards}</div>`;
+      }).join('');
+    }
+    drawGlassesLazily();
+
+    const info = activeMoodInfo();
+    subtitle.textContent = visible.filtering
+      ? `${visible.available.length} of ${totalAvailable} drinks.`
+      : `${totalAvailable} drink${totalAvailable === 1 ? '' : 's'} pouring.`;
+    // The mood's description appears only while a mood is selected.
+    if (blurb) {
+      blurb.hidden = !info;
+      blurb.innerHTML = info ? `<strong>${escapeHtml(info.label)}</strong>${escapeHtml(info.blurb)}` : '';
+    }
+    // The button's visible label never changes: a longer label wraps and shoves
+    // both header buttons around while someone searches or filters. What it will
+    // draw from is spoken to screen readers and shown on hover instead.
+    if (surpriseButton) {
+      const scope = visible.filtering
+        ? `Surprise me with one of the ${visible.available.length} drinks shown`
+        : 'Surprise me with a random drink';
+      surpriseButton.setAttribute('aria-label', scope);
+      surpriseButton.setAttribute('title', scope);
+    }
+    syncChipPressed();
+    if (clearButton) clearButton.hidden = !searchActive();
+    syncBarHeight();
+  };
+
+  // Where the list starts after the filter changes: a shorter list shouldn't
+  // strand the guest below it, so bring the top of the results back into view
+  // just under the sticky bar. Measured against the bar's real position, not
+  // its height: it sticks a little below the top of the scroller on desktop.
+  const reanchor = () => {
+    const gap = results.getBoundingClientRect().top - (bar ? bar.getBoundingClientRect().bottom : 0) - 8;
+    if (gap < 0) scrollByPx(gap);
+  };
+
   // A background refresh (the host changed something) shouldn't replay the
   // cards' entrance animation and make the whole page flash.
-  grid.classList.toggle('no-enter', quiet);
+  results.classList.toggle('no-enter', quiet);
   paint();
   softEnter(container, { quiet });
 
   const chipRow = container.querySelector('.guest-menu-chips');
   if (chipRow) setupChipRowAffordances(chipRow, menuId);
 
-  grid.addEventListener('click', (e) => {
+  // The sticky bar's height feeds the section headings' own sticky offset, so
+  // they stack neatly beneath it whether or not the search row is folded away.
+  if (bar) {
+    syncBarHeight = () => {
+      const shift = bar.classList.contains('is-compact') ? (parseFloat(bar.style.getPropertyValue('--guest-search-shift')) || 0) : 0;
+      container.style.setProperty('--guest-bar-h', `${bar.offsetHeight - shift}px`);
+    };
+    syncBarHeight();
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(syncBarHeight).observe(bar);
+    setupBarCompacting(bar, searchActive, syncBarHeight);
+  } else {
+    detachBarScroll?.();
+    container.style.removeProperty('--guest-bar-h');
+  }
+
+  const orderSaved = (button) => {
+    const drinks = savedIds.map(id => recipeById.get(id)).filter(r => r && !isOut(menu, r.id));
+    if (drinks.length === 0) {
+      showToast('None of your saved drinks are available right now');
+      return;
+    }
+    openOrderCard({ drinks, menuName: menu.name, glassMode: state.glassViewMode, returnFocusTo: button });
+  };
+
+  results.addEventListener('click', (e) => {
+    const orderButton = e.target.closest('[data-action="order-saved"]');
+    if (orderButton) {
+      orderSaved(orderButton);
+      return;
+    }
     const card = e.target.closest('.guest-menu-card:not(.is-out)');
-    if (card) window.location.hash = menuHash(menuId, card.getAttribute('data-recipe-id'));
+    if (card) {
+      window.location.hash = menuHash(menuId, card.getAttribute('data-recipe-id'));
+      return;
+    }
+    if (e.target.closest('[data-action="clear-search"]')) applyQuery('');
   });
 
-  container.querySelectorAll('.guest-menu-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const key = chip.getAttribute('data-mood') || null;
-      // Tapping the active chip again clears it, the way most filters do.
-      activeMood = { menuId, key: key === activeMood.key ? null : key };
-      grid.classList.remove('no-enter');
-      paint();
-      // A shorter list shouldn't strand the guest below it: bring the top of
-      // the grid back into view, just under the sticky chip bar.
-      // Measured against the bar's real position, not its height: the bar
-      // sticks a little below the top of the scroller on desktop.
-      const bar = container.querySelector('.guest-menu-filters');
-      const gap = grid.getBoundingClientRect().top - (bar ? bar.getBoundingClientRect().bottom : 0) - 8;
-      if (gap < 0) scrollByPx(gap);
+  chipRow?.addEventListener('click', (e) => {
+    const chip = e.target.closest('.guest-menu-chip');
+    if (!chip) return;
+    const key = chip.getAttribute('data-mood') || null;
+    // Tapping the active chip again clears it, the way most filters do.
+    activeMood = { menuId, key: key === activeMood.key ? null : key };
+    results.classList.remove('no-enter');
+    paint();
+    reanchor();
+  });
+
+  // ---- Search ----
+  const applyQuery = (text) => {
+    activeQuery = { menuId, text: text.trim() };
+    if (searchInput && searchInput.value !== text) searchInput.value = text;
+    // Typing shouldn't replay the cards' entrance animation on every keystroke.
+    results.classList.add('no-enter');
+    paint();
+    reanchor();
+  };
+
+  if (searchInput) {
+    let debounce = null;
+    // Build the index as the guest taps into the box, so the first keystroke isn't the slow one.
+    searchInput.addEventListener('focus', () => getSearchIndex(menu));
+    searchInput.addEventListener('input', () => {
+      if (clearButton) clearButton.hidden = searchInput.value.trim() === '';
+      clearTimeout(debounce);
+      debounce = setTimeout(() => applyQuery(searchInput.value), 110);
     });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchInput.blur(); // lowers the phone keyboard so the results are visible
+      } else if (e.key === 'Escape' && searchInput.value) {
+        e.preventDefault();
+        applyQuery('');
+      }
+    });
+    searchInput.addEventListener('blur', () => {
+      if (!pendingQuietRender) return;
+      // Wait out the tap that caused the blur: re-rendering under it would
+      // swallow the tap on a card.
+      setTimeout(() => {
+        if (!pendingQuietRender || searchInputIsFocused()) return;
+        pendingQuietRender = false;
+        renderGuestMenuView({ quiet: true });
+      }, 450);
+    });
+  }
+  clearButton?.addEventListener('click', () => {
+    applyQuery('');
+    searchInput?.focus();
   });
 
   container.querySelector('[data-action="quiz"]')?.addEventListener('click', () => {
@@ -544,7 +884,7 @@ function renderQuiz(container, menuId, menu, { quiet = false } = {}) {
     // If the host ran out of a recommended drink while it was on screen, pick
     // again from what's left rather than showing something no one can order.
     if (quiz.results && quiz.results.some(r => !orderable.some(o => o.id === r.recipe.id))) quiz.results = null;
-    if (!quiz.results) quiz.results = rankForQuiz(orderable, traits, quiz.answers);
+    if (!quiz.results) quiz.results = rankForQuiz(orderable, traits, quiz.answers, Math.random, { featured: new Set(menu.featured || []) });
     const [top, ...runnersUp] = quiz.results;
     const reasonsHtml = (reasons) => reasons.length
       ? `<span class="guest-quiz-reasons">${reasons.map(r => `<span class="guest-quiz-reason">${escapeHtml(r)}</span>`).join('')}</span>`
@@ -571,7 +911,6 @@ function renderQuiz(container, menuId, menu, { quiet = false } = {}) {
               <button type="button" class="guest-menu-card" data-recipe-id="${escapeHtml(r.recipe.id)}">
                 <span class="guest-menu-card-glass">${renderGlassSvg(r.recipe, `quiz-runner-${i}`, { mode: state.glassViewMode })}</span>
                 <span class="guest-menu-card-name">${escapeHtml(r.recipe.name)}</span>
-                <span class="guest-menu-card-meta">${escapeHtml([r.recipe.glassware, r.recipe.method].filter(Boolean).join(' · '))}</span>
                 ${reasonsHtml(r.reasons)}
               </button>
             `).join('')}
@@ -638,24 +977,35 @@ function renderQuiz(container, menuId, menu, { quiet = false } = {}) {
   softEnter(container, { quiet });
 }
 
+// A guest adding a custom drink to their own Speakeasy library. Drops the host's
+// id (so it can't collide with anything they have) and any riff pointer into
+// the host's library, like the shared-recipe page does.
+function addToLibrary(recipe) {
+  const normalized = sanitizeImportedRecipes([recipe])[0];
+  delete normalized.id;
+  normalized.riffOfId = null;
+  const saved = saveRecipe(normalized);
+  state.recipes = getRecipes();
+  showToast('Added to your library');
+  return saved.id;
+}
+
 function renderDrink(container, menuId, menu, drinkId, { quiet = false } = {}) {
   const recipe = menu.recipes.find(r => r.id === drinkId);
   if (!recipe) {
     window.location.hash = menuHash(menuId);
     return;
   }
-  // Both this and the shared-recipe page render the same detail card, which
-  // looks its glass/popover elements up by id — make sure a stale copy in the
-  // other (hidden) container can't be the one that gets found.
-  if (elements.sharedRecipeViewContainer) elements.sharedRecipeViewContainer.innerHTML = '';
+  const out = isOut(menu, recipe.id);
 
-  renderRecipe(container, recipe, {
-    badge: isOut(menu, recipe.id) ? 'Out for now' : `On the menu · ${menu.name}`,
-    backLabel: 'Menu',
+  renderGuestRecipe(container, recipe, {
+    menuName: menu.name,
+    isPick: !out && Array.isArray(menu.featured) && menu.featured.includes(recipe.id),
+    isOut: out,
+    saved: getSaved(menuId).includes(recipe.id),
     // A bundled cocktail is already in every guest's library, so "Add to My
     // Library" would only create a duplicate copy.
     libraryAction: SEED_RECIPE_IDS.has(recipe.id) ? 'open' : 'add',
-    onOpenInLibrary: () => { window.location.hash = `#${recipe.id}`; },
     onBack: () => {
       // Real history "back" when we got here from the menu, so the guest's
       // scroll position in the grid is restored; a fresh deep link to a drink
@@ -663,6 +1013,15 @@ function renderDrink(container, menuId, menu, drinkId, { quiet = false } = {}) {
       if (window.history.length > 1) window.history.back();
       else window.location.hash = menuHash(menuId);
     },
+    onToggleSave: () => toggleSaved(menuId, recipe.id).saved,
+    onOrder: () => openOrderCard({
+      drinks: [recipe],
+      menuName: menu.name,
+      glassMode: state.glassViewMode,
+      returnFocusTo: document.getElementById('guest-recipe-order'),
+    }),
+    onAddToLibrary: () => addToLibrary(recipe),
+    onOpenInLibrary: (id) => { window.location.hash = `#${id || recipe.id}`; },
   });
   container.scrollIntoView?.({ block: 'start' });
   softEnter(container, { quiet });
@@ -677,7 +1036,16 @@ export async function renderGuestMenuView({ quiet = false } = {}) {
   const container = getContainer();
   if (!container) return;
 
+  // Don't rebuild the page under someone who's typing a search: wait until they stop.
+  if (quiet && searchInputIsFocused()) {
+    pendingQuietRender = true;
+    return;
+  }
+
   const { menuId, drinkId, quiz: quizRoute } = state.pendingGuestMenu || {};
+  // A drink's page ends in its own sticky action bar, so it needs none of the
+  // page's usual bottom padding (which would leave dead scroll space under it).
+  container.classList.toggle('is-recipe', Boolean(drinkId) && !quizRoute);
   if (!menuId) {
     renderUnavailable(container, 'This link is missing a menu');
     return;

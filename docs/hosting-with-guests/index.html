@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="../../assets/icon-192.png?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="../../manifest.webmanifest?v=2">
+    <meta name="apple-mobile-web-app-title" content="Speakeasy" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="google" content="notranslate">
+    <script src="../docs-theme-loader.js"></script>
+
+    <!-- Preconnect Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Josefin+Sans:ital,wght@0,300..700;1,300..700&family=Jost:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+        rel="stylesheet">
+
+    <title>Hosting with Guests — Speakeasy Docs</title>
+    <meta name="description"
+        content="Share a menu with guests by link or QR code: they browse, search, take a quiz, and show you what they'd like, all from their own phones.">
+    <meta name="category" content="Guides">
+    <meta name="doc-id" content="hosting-with-guests">
+    <link rel="canonical" href="https://speakeasy.ryanmarch.me/docs/hosting-with-guests/">
+
+
+
+
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Hosting with Guests — Speakeasy Docs">
+    <meta property="og:description" content="Share a menu with guests by link or QR code: they browse, search, take a quiz, and show you what they'd like, all from their own phones.">
+    <meta property="og:url" content="https://speakeasy.ryanmarch.me/docs/hosting-with-guests/">
+    <meta property="og:image" content="https://speakeasy.ryanmarch.me/assets/og-home.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Docs Style Sheet -->
+    <link rel="stylesheet" href="../style.css">
+    <script src="../docs-components.js" type="module"></script>
+</head>
+
+<body class="user-docs-page">
+    <div class="app-container">
+        <!-- Mobile Navigation Overlay -->
+        <div id="mobile-overlay" class="mobile-overlay"></div>
+
+        <main class="page-container-sidebar user-docs">
+            <!-- Sidebar Navigation -->
+            <docs-sidebar></docs-sidebar>
+
+            <!-- Right-side Content & Header Wrapper -->
+            <div class="page-content-wrapper">
+                <docs-header></docs-header>
+
+                <!-- Content Area -->
+                <docs-anchor-helper>
+                    <section class="page-content" aria-label="Hosting with Guests Content">
+
+                        <!-- Overview -->
+                        <article id="overview" class="doc-section">
+                            <h1>Hosting with Guests</h1>
+                            <p class="lead">
+                                Hand every guest a menu that fits in their pocket. Share a link or QR code, and they
+                                can browse, search, and pick a drink on their own phones, without you handing over
+                                yours or answering “what do you have?” all night.
+                            </p>
+                            <p>
+                                Guests don’t install anything or sign in. They see only the drinks you put on the
+                                menu, and you stay in control from your own device: mark a drink out when you run
+                                short, and star a few favorites to point people toward.
+                            </p>
+                        </article>
+
+                        <!-- Table of Contents -->
+                        <docs-table-of-contents></docs-table-of-contents>
+
+                        <hr class="section-divider">
+
+                        <!-- Sharing a Menu -->
+                        <article id="sharing-a-menu" class="doc-section">
+                            <h2>Sharing a Menu</h2>
+                            <p>
+                                Start with a saved menu in the <strong>Menu Builder</strong> (see
+                                <a href="../menu-builder/">Menu Builder &amp; Event Menus</a>). Tip: the
+                                <strong>Add all ready</strong> button in the drink picker adds every cocktail you can
+                                make with your current bar in one tap.
+                            </p>
+                            <ol>
+                                <li>Open the saved menu and, in the <strong>Guests</strong> card, select
+                                    <strong>Create guest link</strong>.</li>
+                                <li>Share it however suits the moment. Show the <strong>QR code</strong> (tap it, or
+                                    choose <strong>Show QR full screen</strong>, for a large code that keeps your screen
+                                    awake), <strong>Copy link</strong>, or use <strong>Share…</strong> to send it
+                                    in a message.</li>
+                                <li>Guests scan the code with their phone’s camera and the menu opens in their
+                                    browser.</li>
+                            </ol>
+                            <p>
+                                The full-screen QR also shows the link as a short web address. If a guest’s
+                                camera can’t scan, they can type it into their browser instead.
+                            </p>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- What Guests See -->
+                        <article id="what-guests-see" class="doc-section">
+                            <h2>What Guests See</h2>
+                            <p>
+                                The guest menu is designed for a phone held in one hand:
+                            </p>
+                            <ul>
+                                <li><strong>Picture cards.</strong> Each drink is drawn in its own glass with a short
+                                    description, so people who don’t know a Sazerac from a Sidecar can still
+                                    choose.</li>
+                                <li><strong>Search.</strong> Guests can search by drink name, ingredient, or mood
+                                    (“gin,” “lime,” “smoky”). It matches whole
+                                    words, so “gin” finds gin drinks rather than everything with ginger.
+                                    Search appears once a menu has 8 or more drinks.</li>
+                                <li><strong>Mood chips.</strong> Tap <em>Bright &amp; refreshing</em>,
+                                    <em>Bittersweet</em>, <em>Rich &amp; cozy</em>, and more to narrow the list to the
+                                    kind of drink they’re in the mood for.</li>
+                                <li><strong>Sections.</strong> On longer menus (24 or more drinks), the list is grouped
+                                    by base spirit—Whiskey, Gin, Rum, and so on—with headings that stay in
+                                    view as you scroll.</li>
+                                <li><strong>Find my drink.</strong> A short quiz about mood, strength, sweetness, and
+                                    favorite spirit that suggests a top pick and two runners-up from what’s
+                                    actually available.</li>
+                                <li><strong>Surprise me.</strong> A little shuffle that lands on a random drink
+                                    (respecting any mood or search the guest has chosen).</li>
+                            </ul>
+                            <h3>A drink’s page</h3>
+                            <p>
+                                Tapping a drink opens a page built for guests: what it tastes like, what’s in it, a
+                                flavor chart, a collapsed <strong>How it’s made</strong> for the curious, and where the
+                                recipe comes from when it has a source. Two
+                                buttons stay at the bottom of the screen:
+                            </p>
+                            <ul>
+                                <li><strong>Save</strong> (a heart) keeps a drink on the guest’s shortlist. Saved
+                                    drinks get a small heart on the menu and a <em>Saved</em> filter, so someone
+                                    comparing a few can find them again. This list lives only on their own phone.</li>
+                                <li><strong>I’d like this</strong> opens a full-screen card with the drink’s
+                                    name in large type, ready to show you across the room. Guests can add their name (it
+                                    shows as “For Alex”) or send the request to you through their
+                                    phone’s share sheet. From the Saved view, <strong>Show my order</strong> lists
+                                    everything they’ve saved on one card.</li>
+                            </ul>
+                            <p>
+                                Speakeasy doesn’t take or track orders. The card is a clear, friendly way to ask,
+                                so you stay the bartender, not a queue.
+                            </p>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Running the Party -->
+                        <article id="running-the-party" class="doc-section">
+                            <h2>Running the Party</h2>
+                            <p>
+                                Once the link is live, your controls sit right in the Menu Builder, next to each drink:
+                            </p>
+                            <ul>
+                                <li><strong>Pouring / Out.</strong> Flip a drink to <em>Out</em> when you run out of
+                                    something. Guests see it grayed out at the end of its section within a few seconds,
+                                    and it can’t be requested.</li>
+                                <li><strong>Host’s picks.</strong> Tap the star on up to three drinks. Guests see
+                                    them first, under a <em>Host’s picks</em> heading with a badge, and the
+                                    quiz leans toward them when it’s a close call.</li>
+                                <li><strong>Editing the menu.</strong> Add or remove drinks and save; the same link and
+                                    QR code keep working and update for everyone.</li>
+                                <li><strong>Stop sharing.</strong> Removes the guest link. The QR code and link stop
+                                    working right away. Deleting the menu does the same.</li>
+                            </ul>
+                            <p>
+                                Guests’ phones remember the last few menus they opened, so a refresh on spotty Wi-Fi
+                                brings the menu back (with a small notice that it’s a saved copy) instead of an
+                                error.
+                            </p>
+                            <p>
+                                Prefer paper? <strong>Print Guest Menu</strong> still works as before, and never includes
+                                your ingredient checklist or bar contents.
+                            </p>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Privacy -->
+                        <article id="privacy-and-sharing" class="doc-section">
+                            <h2>What’s Shared and What Isn’t</h2>
+                            <p>
+                                Publishing a menu makes a copy of just those drinks (names, glassware, ingredients,
+                                descriptions, and directions) available to anyone who has the link. Your custom recipes
+                                work the same as bundled ones.
+                            </p>
+                            <ul>
+                                <li><strong>Never shared:</strong> your bar’s contents, your private recipe notes,
+                                    the rest of your recipe library, ratings and history, and your account details.</li>
+                                <li><strong>No sign-in for guests.</strong> A guest’s saved drinks and name stay on
+                                    their own device.</li>
+                                <li><strong>Anyone with the link can view it.</strong> Treat it like a private photo
+                                    link: it isn’t listed anywhere, but it isn’t password-protected either.
+                                    Use <em>Stop sharing</em> when the party’s over.</li>
+                            </ul>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- See Also -->
+                        <article id="see-also" class="doc-section">
+                            <h2>See Also</h2>
+                            <ul>
+                                <li><a href="../menu-builder/">Menu Builder &amp; Event Menus:</a> Build the menu you
+                                    want to share.</li>
+                                <li><a href="../backbar-and-inventory/">Managing Your Backbar &amp; Shopping
+                                        List:</a> Keep your stock current so <em>Add all ready</em> is accurate.</li>
+                                <li><a href="../editing-drinks/">Creating &amp; Editing Drinks:</a> Add your own
+                                    signature drinks to put on the menu.</li>
+                            </ul>
+                        </article>
+
+                    </section>
+                </docs-anchor-helper>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <docs-footer></docs-footer>
+
+        <!-- Lightbox Modal -->
+        <div id="lightbox-modal" class="lightbox-modal" aria-hidden="true" role="dialog" aria-label="Image Viewer">
+            <button class="lightbox-close" aria-label="Close image viewer">&times;</button>
+            <img class="lightbox-content" id="lightbox-img" alt="">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+    </div>
+</body>
+
+</html>

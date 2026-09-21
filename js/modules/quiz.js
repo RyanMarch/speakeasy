@@ -40,19 +40,24 @@ const VIBES = [
   { value: 'smoky', label: 'Smoky & spicy', hint: 'Mezcal, peat, a little heat', moods: ['smoky'] },
 ];
 
-const SPIRITS = [
-  { value: 'whiskey', label: 'Whiskey', tags: ['whiskey-forward'] },
-  { value: 'gin', label: 'Gin', tags: ['gin-forward'] },
-  { value: 'rum', label: 'Rum', tags: ['rum-forward', 'cachaca-forward'] },
-  { value: 'agave', label: 'Tequila or mezcal', tags: ['tequila-forward', 'mezcal-forward', 'agave-forward'] },
-  { value: 'vodka', label: 'Vodka', tags: ['vodka-forward'] },
-  { value: 'brandy', label: 'Brandy or cognac', tags: ['cognac-forward', 'brandy-forward'] },
+// `label` reads as a quiz answer; `heading` reads as a section title on a menu.
+// Shared with menu-sections.js so "what counts as gin" is defined once.
+export const SPIRITS = [
+  { value: 'whiskey', label: 'Whiskey', heading: 'Whiskey', tags: ['whiskey-forward'] },
+  { value: 'gin', label: 'Gin', heading: 'Gin', tags: ['gin-forward'] },
+  { value: 'rum', label: 'Rum', heading: 'Rum', tags: ['rum-forward', 'cachaca-forward'] },
+  { value: 'agave', label: 'Tequila or mezcal', heading: 'Tequila & mezcal', tags: ['tequila-forward', 'mezcal-forward', 'agave-forward'] },
+  { value: 'vodka', label: 'Vodka', heading: 'Vodka', tags: ['vodka-forward'] },
+  { value: 'brandy', label: 'Brandy or cognac', heading: 'Brandy & cognac', tags: ['cognac-forward', 'brandy-forward'] },
 ];
 
 const ANY = { value: 'any', label: 'Surprise me', hint: 'No preference' };
 
 // Weights: a spirit or vibe someone names outranks a strength/sweetness
 // leaning, and partial credit on the ordered scales breaks the rest.
+// Host's picks nudge a tie their way but never outrank a real match.
+const PICK_BONUS = 0.5;
+
 const WEIGHTS = { vibe: 4, spirit: 4, strengthExact: 2, strengthNear: 1, sweetExact: 2, sweetNear: 1 };
 
 /** Computes traits for every recipe once, keyed by recipe id. */
@@ -156,10 +161,16 @@ function scoreRecipe(recipe, t, answers) {
  * different good option instead of always the alphabetically-first one; with
  * no preferences at all it's simply a random three.
  */
-export function rankForQuiz(recipes, traits, answers, rng = Math.random) {
+export function rankForQuiz(recipes, traits, answers, rng = Math.random, { featured = null } = {}) {
   const scored = (recipes || [])
     .filter(r => traits.has(r.id))
-    .map(r => ({ ...scoreRecipe(r, traits.get(r.id), answers), tiebreak: rng() }));
+    .map(r => {
+      const scoredRecipe = scoreRecipe(r, traits.get(r.id), answers);
+      // The host's picks win close calls: worth less than any real preference
+      // (the smallest is 1), so they break ties without overriding a guest.
+      if (featured && featured.has(r.id)) scoredRecipe.score += PICK_BONUS;
+      return { ...scoredRecipe, tiebreak: rng() };
+    });
 
   scored.sort((a, b) => b.score - a.score || a.tiebreak - b.tiebreak);
   return scored.slice(0, QUIZ_RESULT_COUNT).map(({ recipe, score, reasons }) => ({ recipe, score, reasons }));

@@ -70,6 +70,19 @@ export function sanitizeMenuRecipes(recipes) {
   return cleaned;
 }
 
+// A menu with everything starred has no picks; three keeps them meaningful.
+export const MAX_FEATURED = 3;
+
+/**
+ * The host's starred drinks: only ids that are actually on the menu, without
+ * duplicates, in the order the host chose them, capped at MAX_FEATURED.
+ */
+export function sanitizeFeatured(ids, recipes) {
+  if (!Array.isArray(ids)) return [];
+  const valid = new Set(recipes.map(r => r.id));
+  return Array.from(new Set(ids.map(String))).filter(id => valid.has(id)).slice(0, MAX_FEATURED);
+}
+
 export function sanitizeUnavailable(ids, recipes) {
   if (!Array.isArray(ids)) return [];
   const valid = new Set(recipes.map(r => r.id));

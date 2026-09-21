@@ -63,6 +63,23 @@
     "lastUpdated": "2026-09-17"
   },
   {
+    "id": "hosting-with-guests",
+    "title": "Hosting with Guests",
+    "path": "hosting-with-guests/",
+    "category": "Guides",
+    "headings": [
+      "Overview",
+      "Sharing a Menu",
+      "What Guests See",
+      "A drink’s page",
+      "Running the Party",
+      "What’s Shared and What Isn’t",
+      "See Also"
+    ],
+    "excerpt": "Share a menu with guests by link or QR code: they browse, search, take a quiz, and show you what they'd like, all from their own phones.",
+    "lastUpdated": "2026-09-21"
+  },
+  {
     "id": "menu-builder",
     "title": "Menu Builder & Event Menus",
     "path": "menu-builder/",
@@ -74,7 +91,7 @@
       "See Also"
     ],
     "excerpt": "Compose cocktail menus for home parties, tastings, and dinner gatherings, checked against what's in your bar.",
-    "lastUpdated": "2026-09-17"
+    "lastUpdated": "2026-09-21"
   },
   {
     "id": "settings",

@@ -145,6 +145,7 @@ CREATE TABLE IF NOT EXISTS menus (
     name TEXT NOT NULL,
     recipes TEXT NOT NULL,
     unavailable TEXT NOT NULL DEFAULT '[]',
+    featured TEXT NOT NULL DEFAULT '[]',   -- host's picks (see migrations/0012_add_menu_featured.sql)
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

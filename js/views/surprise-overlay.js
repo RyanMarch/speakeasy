@@ -200,10 +200,23 @@ export function openSurpriseOverlay({ pool, glassMode, describe, onSeeRecipe, re
     returnFocusTo?.focus?.({ preventScroll: true });
   };
 
+  // Dismissing with the X or Escape fades it out; the handoff to a recipe
+  // (`dismiss`) removes it at once, inside the page transition.
+  const closeAnimated = () => {
+    if (closed) return;
+    if (!shouldAnimateSurprise()) {
+      close();
+      return;
+    }
+    overlay.classList.add('is-leaving');
+    overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, easing: 'ease-out', fill: 'forwards' });
+    setTimeout(close, 190);
+  };
+
   const onKeydown = (e) => {
     if (e.key === 'Escape') {
       e.preventDefault();
-      close();
+      closeAnimated();
     } else if (e.key === 'Tab') {
       // Keep keyboard focus inside the dialog while it's open.
       const focusable = [...overlay.querySelectorAll('button')].filter(b => !b.closest('[hidden]'));
@@ -223,7 +236,7 @@ export function openSurpriseOverlay({ pool, glassMode, describe, onSeeRecipe, re
 
   overlay.addEventListener('click', (e) => {
     const action = e.target.closest('[data-action]')?.getAttribute('data-action');
-    if (action === 'shuffle-close') close();
+    if (action === 'shuffle-close') closeAnimated();
     else if (action === 'shuffle-open') {
       // Navigate first and keep the overlay up: closing it now would expose the
       // menu for the few frames before the recipe page takes over. The caller
