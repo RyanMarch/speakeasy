@@ -65,6 +65,8 @@ import { SEED_RECIPES } from "../data/seed-recipes.js";
 import { normalizeUnit } from "./parser.js";
 import { scheduleCloudSync } from "./cloud-sync.js";
 import { sanitizeDietOverrides } from "./dietary.js";
+import { mergeMenuSets } from "./menu-merge.js";
+import { mergeInventory, recordInventoryChange } from "./inventory-merge.js";
 export { SEED_RECIPES };
 
 // ==========================================
@@ -465,12 +467,15 @@ export function buildBackupPayload() {
       wakeLockPref: getWakeLockPreference(),
       funPref: getFunPreference(),
       avatarRecipeId: getAvatarRecipeId(),
+      foamerForEgg: getFoamerPreference(),
     },
     pinnedTags: getPinnedTags(),
     homeCollectionsOrder: getHomeCollectionsOrder(),
     hiddenHomeCollections: getHiddenHomeCollections(),
     lowStock: getLowStockIds(),
     menus: getMenus(),
+    deletedMenus: getDeletedMenus(),
+    inventoryChanges: getInventoryChanges(),
     customRecipes: getCustomRecipesForBackup(),
   };
 }
@@ -576,21 +581,30 @@ export function importData(jsonString) {
       // are the SAME conceptual bar under two unrelated generated ids — match
       // them by role rather than id so they merge instead of appearing as a
       // bogus duplicate. Any other (deliberately created) bar still matches by id.
+      // Bottles merge rather than overwrite, but a bottle either side removed on
+      // purpose stays removed (see inventory-merge.js). Nothing here counts as the
+      // user's own change, so none of it is recorded as one.
+      const mergeIntoLocalBar = (localBarId) => {
+        const local = { items: readInventoryForBar(localBarId), ...getInventoryChanges()[localBarId] };
+        // A backup that carries no add/remove records (a file exported before they
+        // existed) is a person restoring bottles on purpose: they count as added
+        // now, so it behaves as the plain merge it always was.
+        const remote = parsed.inventoryChanges && typeof parsed.inventoryChanges === 'object'
+          ? { items: incomingInventory, ...parsed.inventoryChanges[remoteBar.id] }
+          : { items: incomingInventory, added: Object.fromEntries(incomingInventory.filter(id => typeof id === 'string').map(id => [id, Date.now()])) };
+        const merged = mergeInventory(local, remote);
+        inventoryAddedCount += Math.max(0, merged.items.filter(id => !local.items.includes(id)).length);
+        writeInventoryForBar(localBarId, merged.items);
+        setInventoryChangesForBar(localBarId, merged);
+      };
+
       if (remoteBar.isDefault && localDefaultBar && !localBarIds.has(remoteBar.id)) {
-        const merged = new Set(readInventoryForBar(localDefaultBar.id));
-        const before = merged.size;
-        incomingInventory.forEach(id => { if (typeof id === 'string') merged.add(id); });
-        inventoryAddedCount += merged.size - before;
-        writeInventoryForBar(localDefaultBar.id, Array.from(merged));
+        mergeIntoLocalBar(localDefaultBar.id);
         return;
       }
 
       if (localBarIds.has(remoteBar.id)) {
-        const merged = new Set(readInventoryForBar(remoteBar.id));
-        const before = merged.size;
-        incomingInventory.forEach(id => { if (typeof id === 'string') merged.add(id); });
-        inventoryAddedCount += merged.size - before;
-        writeInventoryForBar(remoteBar.id, Array.from(merged));
+        mergeIntoLocalBar(remoteBar.id);
       } else {
         newBars.push({
           id: remoteBar.id,
@@ -599,6 +613,7 @@ export function importData(jsonString) {
           createdAt: Date.now(),
         });
         writeInventoryForBar(remoteBar.id, incomingInventory.filter(id => typeof id === 'string'));
+        setInventoryChangesForBar(remoteBar.id, (parsed.inventoryChanges || {})[remoteBar.id]);
         inventoryAddedCount += incomingInventory.length;
       }
     });
@@ -641,6 +656,7 @@ export function importData(jsonString) {
   if (incomingGlassMode) saveGlassViewPreference(incomingGlassMode);
   if (typeof settingsRaw.wakeLockPref === 'boolean') saveWakeLockPreference(settingsRaw.wakeLockPref);
   if (typeof settingsRaw.funPref === 'boolean') saveFunPreference(settingsRaw.funPref);
+  if (typeof settingsRaw.foamerForEgg === 'boolean') saveFoamerPreference(settingsRaw.foamerForEgg);
   if (typeof settingsRaw.avatarRecipeId === 'string' && settingsRaw.avatarRecipeId) {
     saveAvatarRecipeId(settingsRaw.avatarRecipeId);
   }
@@ -666,15 +682,14 @@ export function importData(jsonString) {
     parsed.lowStock.forEach(id => { if (typeof id === 'string') mergedLowStock.add(id); });
     saveLowStockIds(Array.from(mergedLowStock));
   }
-  if (Array.isArray(parsed.menus)) {
-    const localMenus = getMenus();
-    const menuMap = new Map(localMenus.map(m => [m.id, m]));
-    parsed.menus.forEach(m => {
-      if (m && typeof m.id === 'string' && typeof m.name === 'string' && Array.isArray(m.recipeIds)) {
-        menuMap.set(m.id, m);
-      }
-    });
-    saveMenus(Array.from(menuMap.values()));
+  if (Array.isArray(parsed.menus) || (parsed.deletedMenus && typeof parsed.deletedMenus === 'object')) {
+    // The newest copy of each menu wins, and a deletion (on either side) sticks.
+    const merged = mergeMenuSets(
+      { menus: getMenus(), deleted: getDeletedMenus() },
+      { menus: Array.isArray(parsed.menus) ? parsed.menus : [], deleted: parsed.deletedMenus },
+    );
+    saveDeletedMenus(merged.deleted);
+    saveMenus(merged.menus);
   }
 
   return {
@@ -724,6 +739,8 @@ export function clearUserDataOnSignOut() {
       localStorage.removeItem(RECENTLY_VIEWED_STORAGE_KEY);
       localStorage.removeItem(LOW_STOCK_STORAGE_KEY);
       localStorage.removeItem(MENUS_STORAGE_KEY);
+      localStorage.removeItem(DELETED_MENUS_STORAGE_KEY);
+      localStorage.removeItem(INVENTORY_CHANGES_STORAGE_KEY);
       localStorage.removeItem('speakeasy_drink_history');
       localStorage.removeItem('speakeasy_last_active_recipe');
       localStorage.removeItem(SETTINGS_STORAGE_KEY);
@@ -792,8 +809,52 @@ function readInventoryForBar(barId) {
   }
 }
 
-function writeInventoryForBar(barId, ids) {
+// When each bottle was last deliberately added to or removed from each bar, so a
+// removal syncs to other devices instead of being undone by them. See
+// inventory-merge.js. { [barId]: { added: {id: ms}, removed: {id: ms} } }
+const INVENTORY_CHANGES_STORAGE_KEY = 'speakeasy_inventory_changes';
+
+export function getInventoryChanges() {
   try {
+    const parsed = JSON.parse(localStorage.getItem(INVENTORY_CHANGES_STORAGE_KEY) || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveInventoryChanges(changes) {
+  try {
+    localStorage.setItem(INVENTORY_CHANGES_STORAGE_KEY, JSON.stringify(changes || {}));
+  } catch (err) {
+    console.error('Failed to save inventory change records to localStorage:', err);
+  }
+}
+
+/** Replaces one bar's change records (used when merging in what the cloud knows). */
+function setInventoryChangesForBar(barId, records) {
+  const all = getInventoryChanges();
+  if (records && (Object.keys(records.added || {}).length || Object.keys(records.removed || {}).length)) {
+    all[barId] = { added: records.added || {}, removed: records.removed || {} };
+  } else {
+    delete all[barId];
+  }
+  saveInventoryChanges(all);
+}
+
+/**
+ * Writes a bar's bottle list. Pass `{ track: true }` only for a change the user
+ * made: it records what was added and removed so the change syncs. Anything that
+ * merely reconciles with stored or cloud data must not, or it would look like the
+ * user removing (or re-adding) bottles.
+ */
+function writeInventoryForBar(barId, ids, { track = false } = {}) {
+  try {
+    if (track) {
+      const all = getInventoryChanges();
+      all[barId] = recordInventoryChange(all[barId], readInventoryForBar(barId), ids);
+      saveInventoryChanges(all);
+    }
     const list = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
     localStorage.setItem(`${INVENTORY_KEY_PREFIX}${barId}`, JSON.stringify(list));
     scheduleCloudSync();
@@ -1085,6 +1146,7 @@ export function deleteBar(barId) {
   }
   saveBars(remaining);
 
+  setInventoryChangesForBar(barId, null);
   try {
     localStorage.removeItem(`${INVENTORY_KEY_PREFIX}${barId}`);
   } catch (err) {
@@ -1110,7 +1172,7 @@ export function getInventoryForBar(barId) {
 }
 
 export function saveInventory(ids) {
-  return writeInventoryForBar(getActiveBarId(), ids);
+  return writeInventoryForBar(getActiveBarId(), ids, { track: true });
 }
 
 export function toggleInventoryItem(id) {
@@ -1571,6 +1633,26 @@ export function clearLowStock(id) {
 // derived views (glassware tally, a shopping list scoped to just that subset)
 // rather than acting as another browsable tag on every recipe in it.
 const MENUS_STORAGE_KEY = 'speakeasy_menus';
+// Menus deleted on this device, remembered so a sync doesn't bring them back from
+// another device: { [menuId]: deletedAtMs }. See menu-merge.js.
+const DELETED_MENUS_STORAGE_KEY = 'speakeasy_deleted_menus';
+
+export function getDeletedMenus() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(DELETED_MENUS_STORAGE_KEY) || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveDeletedMenus(deleted) {
+  try {
+    localStorage.setItem(DELETED_MENUS_STORAGE_KEY, JSON.stringify(deleted || {}));
+  } catch (err) {
+    console.error('Failed to save deleted menus to localStorage:', err);
+  }
+}
 
 export function getMenus() {
   try {
@@ -1605,6 +1687,8 @@ export function saveMenu(menu) {
     name: String(menu.name || '').trim() || 'Untitled Menu',
     recipeIds,
     createdAt: menu.createdAt || Date.now(),
+    // When it was last saved: how another device decides which copy is newer.
+    updatedAt: Date.now(),
   };
   // Guest-link credentials for a published menu (see menu-publish.js).
   // Optional: most menus are never published.
@@ -1646,6 +1730,7 @@ export function setMenuShare(id, share) {
 
 export function deleteMenu(id) {
   const filtered = getMenus().filter(m => m.id !== id);
+  saveDeletedMenus({ ...getDeletedMenus(), [id]: Date.now() });
   saveMenus(filtered);
   return filtered;
 }

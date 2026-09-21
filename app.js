@@ -4,7 +4,7 @@
  */
 
 import { state, elements, initElements } from './js/state.js';
-import { getRecipes } from './js/modules/storage.js';
+import { getRecipes, getMenus } from './js/modules/storage.js';
 import {
   selectRecipe,
   goHome,
@@ -83,11 +83,28 @@ import {
   closeAuthModal,
 } from './js/components/auth-modal.js';
 
-import { checkSession, pullRemoteData } from './js/modules/auth.js';
+import { checkSession, pullRemoteData, migrateGuestData } from './js/modules/auth.js';
 
 /**
  * Initialize application
  */
+/**
+ * Menus built before menus synced exist only on the device that made them, and
+ * nothing would push them until something else changed. Once, after the first
+ * pull on a signed-in device, send the merged set up so they reach the other
+ * devices without waiting for an edit.
+ */
+async function pushMenusOnce() {
+  const FLAG = 'speakeasy_menus_pushed_v1';
+  try {
+    if (localStorage.getItem(FLAG) || getMenus().length === 0) return;
+    await migrateGuestData();
+    localStorage.setItem(FLAG, '1');
+  } catch (err) {
+    console.warn('Could not push saved menus yet:', err);
+  }
+}
+
 function init() {
   initElements();
   state.recipes = getRecipes();
@@ -226,6 +243,7 @@ function init() {
       try {
         await pullRemoteData();
         renderRecipeList();
+        await pushMenusOnce();
       } catch (err) {
         console.warn('Initial session pull error:', err);
       }
