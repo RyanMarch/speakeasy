@@ -14,7 +14,7 @@ Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(
 
 console.log('--- Testing /functions/api/menus/* Endpoints ---');
 
-const MENU_ID_PATTERN = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{10}$/;
+const MENU_ID_PATTERN = /^[a-z]+-[a-z]+-[a-z]+$/;
 
 // In-memory mock D1, scoped to the `menus` table. UPDATE is interpreted from
 // its SET clause so the test exercises the real partial-update SQL.
@@ -326,6 +326,27 @@ let token;
   localStorage.setItem('speakeasy_guest_menu_FFFFFFFFFF', JSON.stringify({ menu: { name: 'x' } }));
   assert.equal(recallGuestMenu('FFFFFFFFFF'), null, 'A copy with no recipes array is unusable');
   console.log('PASS: the last few menus are remembered, pruned, forgotten on removal, and tolerate bad data');
+}
+
+{
+  const { generateMenuId, normalizeMenuId, MENU_ID_PATTERN: serverPattern } = await import('../functions/api/menus/_lib.js');
+  const ids = new Set(Array.from({ length: 300 }, () => generateMenuId()));
+  assert.ok(ids.size > 295, 'Generated ids should almost never repeat');
+  for (const id of ids) {
+    assert.match(id, /^[a-z]+-[a-z]+-[a-z]+$/);
+    assert.ok(serverPattern.test(id));
+  }
+  assert.ok(serverPattern.test('zesty-zesty-zest'));
+  assert.ok(serverPattern.test('BoYMe6PLKv'), 'Older random ids stay valid');
+  assert.ok(!serverPattern.test('velvet-smoky') && !serverPattern.test('a/b-c-d') && !serverPattern.test('velvet-smoky-night cap'));
+  assert.equal(normalizeMenuId('Velvet-Smoky-Nightcap'), 'velvet-smoky-nightcap');
+  assert.equal(normalizeMenuId('BoYMe6PLKv'), 'BoYMe6PLKv', 'Older ids are case-sensitive and untouched');
+  assert.equal(parseMenuCode('Velvet-Smoky-Nightcap'), 'velvet-smoky-nightcap');
+  assert.equal(parseMenuCode('https://x.com/menu/velvet-smoky-nightcap'), 'velvet-smoky-nightcap');
+  assert.equal(parseMenuCode('x.com/app#menu/Velvet-Smoky-Nightcap'), 'velvet-smoky-nightcap');
+  assert.equal(parseMenuCode('BoYMe6PLKv'), 'BoYMe6PLKv');
+  assert.equal(parseMenuCode('velvet-smoky'), null);
+  console.log('PASS: menu ids are themed three-word codes, older ids still work, case is forgiven');
 }
 
 console.log('All menus tests passed.');

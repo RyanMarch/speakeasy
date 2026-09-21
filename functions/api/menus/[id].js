@@ -8,13 +8,14 @@
 
 import { jsonResponse } from '../_lib/http.js';
 import {
-  MENU_ID_PATTERN, extractEditToken, hashEditToken, hashesMatch,
+  MENU_ID_PATTERN, normalizeMenuId, extractEditToken, hashEditToken, hashesMatch,
   sanitizeMenuName, sanitizeMenuRecipes, sanitizeUnavailable, sanitizeFeatured,
 } from './_lib.js';
 
 function menuIdFrom(params) {
   const id = typeof params.id === 'string' ? params.id.trim() : '';
-  return id && MENU_ID_PATTERN.test(id) ? id : null;
+  const menuId = normalizeMenuId(id);
+  return menuId && MENU_ID_PATTERN.test(menuId) ? menuId : null;
 }
 
 function safeParse(json, fallback) {

@@ -10,7 +10,7 @@
 
 import { escapeHtml, showToast } from '../components/toast.js';
 import { renderGlassSvg } from '../modules/glass-view.js';
-import { buildOrderMessage, getGuestName, setGuestName, MAX_NAME_LENGTH } from '../modules/guest-order.js';
+import { buildOrderMessage, randomNamePlaceholder, getGuestName, setGuestName, MAX_NAME_LENGTH } from '../modules/guest-order.js';
 import { closeDialog, enhanceDialog } from '../components/dialog-motion.js';
 
 /**
@@ -45,7 +45,7 @@ export async function openOrderCard({ drinks, menuName, glassMode, returnFocusTo
       <label class="guest-order-namefield">
         <span>Add your name (optional)</span>
         <input type="text" class="guest-order-nameinput" name="order-for" maxlength="${MAX_NAME_LENGTH}"
-          value="${escapeHtml(getGuestName())}" placeholder="e.g. Alex"
+          value="${escapeHtml(getGuestName())}" placeholder="${escapeHtml(randomNamePlaceholder())}"
           autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="done"
           data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other">
       </label>

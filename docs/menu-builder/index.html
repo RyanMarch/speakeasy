@@ -32,7 +32,8 @@
 
     <meta property="og:type" content="article">
     <meta property="og:title" content="Menu Builder &amp; Event Menus — Speakeasy Docs">
-    <meta property="og:description" content="Compose cocktail menus for home parties, tastings, and dinner gatherings, checked against what's in your bar.">
+    <meta property="og:description"
+        content="Compose cocktail menus for home parties, tastings, and dinner gatherings, checked against what's in your bar.">
     <meta property="og:url" content="https://speakeasy.ryanmarch.me/docs/menu-builder/">
     <meta property="og:image" content="https://speakeasy.ryanmarch.me/assets/og-home.png">
     <meta property="og:image:width" content="1200">
@@ -90,8 +91,6 @@
                                     via <em>Saved Event Menus</em> in Settings.</li>
                                 <li>Select <strong>Create Menu</strong> and assign a festive title (such as <em>Autumn
                                         Tasting Night</em> or <em>Rooftop Soirée</em>).</li>
-                                <li>Add an optional welcome subtitle or greeting to introduce your drink selection to
-                                    guests.</li>
                             </ol>
                             <figure class="doc-screenshot-figure">
                                 <picture>
@@ -108,24 +107,22 @@
 
                         <!-- Selecting Cocktails & Organizing Courses -->
                         <article id="selecting-cocktails" class="doc-section">
-                            <h2>Selecting Cocktails &amp; Courses</h2>
+                            <h2>Selecting Cocktails</h2>
                             <p>
-                                Curate a balanced lineup suited to your evening:
+                                Curate a lineup suited to your evening:
                             </p>
                             <ul>
                                 <li><strong>Browse Your Catalog:</strong> Pick from classic staples or your own
                                     signature custom riffs.</li>
-                                <li><strong>Check Backbar Feasibility:</strong> Speakeasy highlights which drinks on
-                                    your proposed menu are fully supported by your current stock so you never run dry
-                                    mid-event.</li>
-                                <li><strong>Group by Sections:</strong> Organize drinks into courses such as <em>Welcome
-                                        Aperitifs</em>, <em>Main Features</em>, and <em>After-Dinner Nightcaps</em>.
-                                </li>
-                                <li><strong>Print Menu:</strong> Print clean physical menus directly from the menu
-                                    action bar or browser print preview.</li>
-                                <li><strong>Share With Guests:</strong> Create a link or QR code so guests can browse
+                                <li><strong>Check Backbar Feasibility:</strong> Speakeasy lets you easily add all
+                                    recipes that are ready to make with your current stock.</li>
+                                <li><strong>Print Guest Menu:</strong> Print clean physical menus directly from the menu
+                                    action bar or browser print preview. See <a href="#printing-menus">Printing
+                                        Menus</a> below.</li>
+                                <li><strong>Share With Guests:</strong> Create a link and QR code so guests can browse
                                     the menu on their own phones. See
-                                    <a href="../hosting-with-guests/">Hosting with Guests</a>.</li>
+                                    <a href="../hosting-with-guests/">Hosting with Guests</a>.
+                                </li>
                             </ul>
                             <figure class="doc-screenshot-figure">
                                 <picture>
@@ -137,6 +134,73 @@
                                 <figcaption>A saved menu with its glassware count and combined ingredient checklist.
                                 </figcaption>
                             </figure>
+                        </article>
+
+                        <article id="glassware-and-ingredients" class="doc-section">
+                            <h2>Glassware and Ingredients</h2>
+                            <p>
+                                As you add drinks, Speakeasy automatically tallies the required glassware and
+                                ingredients. This makes it easy to see what you need to stock up on for your event.
+                            </p>
+                            <p>Click on <strong>Need to Buy</strong> to see a only the ingredients you don't have on
+                                hand. </p>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Printing Menus -->
+                        <article id="printing-menus" class="doc-section">
+                            <h2>Printing Menus</h2>
+                            <p>
+                                Print menus allow guests to browse your menu's drink selections. Speakeasy generates a
+                                paper-formatted version of your menu directly from
+                                your saved event menu.
+                            </p>
+
+                            <aside class="info-aside">
+                                <span class="aside-badge">Pop-up Window</span>
+                                <p>Speakeasy opens the print view in an isolated pop-up window to avoid browser layout
+                                    defects and ensure correct margins and colors. If your browser blocks pop-ups, allow
+                                    them for Speakeasy to display the print window.</p>
+                            </aside>
+
+                            <h3>How to Print</h3>
+                            <ol>
+                                <li>Navigate to <strong>Menu Builder</strong> and select your saved event menu.</li>
+                                <li>Select <strong>Print Guest Menu</strong> from the action bar at the top of the menu
+                                    details.</li>
+                                <li>A dedicated print window opens. Your browser's print dialog will appear, or you can
+                                    trigger it with <kbd>Cmd</kbd>+<kbd>P</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>P</kbd>
+                                    (Windows).</li>
+                                <li>Choose your physical printer, or select <strong>Save as PDF</strong> to generate a
+                                    digital file.</li>
+                            </ol>
+
+                            <h3>Design and Formatting</h3>
+                            <ul>
+                                <li><strong>Midnight Navy and Gold theme:</strong> Printed menus carry the app's Art
+                                    Deco card design, complete with the Speakeasy brand header, menu title, drink names,
+                                    and glassware illustrations.</li>
+                                <li><strong>Flavor summaries:</strong> Each cocktail entry lists its glassware alongside
+                                    a concise summary of up to four key ingredients so guests understand the flavor
+                                    profile at a glance.</li>
+                                <li><strong>Host details excluded:</strong> Internal host information, such as the
+                                    backbar inventory tally, glassware counts, and shopping checklists, is omitted from
+                                    the printout.</li>
+                            </ul>
+
+                            <h3>Page Capacity and Print Settings</h3>
+                            <ul>
+                                <li><strong>Recommended limit:</strong> The two-column layout fits up to 10 to 12
+                                    cocktails cleanly on a single standard Letter or A4 page. Speakeasy prompts with a
+                                    confirmation notice if your menu contains more than 10 cocktails to let you know it
+                                    may run onto a second page.</li>
+                                <li><strong>Background graphics:</strong> Speakeasy enforces exact color rendering in
+                                    CSS, but certain browsers require enabling the <strong>Background graphics</strong>
+                                    option in their print dialog to print dark backgrounds.</li>
+                                <li><strong>Margins:</strong> Page margins are preset to 0.5 inches. Keep browser
+                                    margins set to <em>Default</em> for proper alignment.</li>
+                            </ul>
                         </article>
 
                         <hr class="section-divider">

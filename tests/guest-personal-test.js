@@ -83,4 +83,12 @@ console.log('--- Testing the guest Saved list and order card ---');
   console.log('PASS: glass names read naturally ("Rocks glass", "Tiki Mug"), and never double up');
 }
 
+{
+  const { randomNamePlaceholder } = await import('../js/modules/guest-order.js');
+  assert.match(randomNamePlaceholder(), /^e\.g\. \S/);
+  assert.notEqual(randomNamePlaceholder(() => 0), randomNamePlaceholder(() => 0.99), 'Different rolls give different examples');
+  assert.ok(randomNamePlaceholder(() => 0.9999999).length > 5, 'The top of the range is still a valid pick');
+  console.log('PASS: the name field shows a random example placeholder');
+}
+
 console.log('All guest personal tests passed.');

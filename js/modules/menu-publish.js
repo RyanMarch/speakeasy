@@ -30,19 +30,30 @@ export function qrImageUrl(content, size = 480) {
   return `${QR_ENDPOINT}?${params.toString()}`;
 }
 
-// Same alphabet/length as the server's menu ids (functions/api/shares/_lib.js).
-const MENU_CODE_PATTERN = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{10}$/;
+// Mirrors the server's menu ids (functions/api/menus/_lib.js): themed words
+// like "velvet-smoky-nightcap", or the older random 10-character codes.
+const WORD_CODE_PATTERN = /^[a-z]{3,12}(?:-[a-z]{3,12}){2}$/;
+const LEGACY_CODE_PATTERN = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{10}$/;
+
+// Word codes are lowercase, so typing them with capitals still works; the older
+// codes are case-sensitive and are left exactly as typed.
+function normalizeCode(text) {
+  if (LEGACY_CODE_PATTERN.test(text)) return text;
+  const lower = text.toLowerCase();
+  return WORD_CODE_PATTERN.test(lower) ? lower : null;
+}
 
 /**
  * Pulls a menu id out of whatever a guest typed or pasted: the bare code, a
  * /menu/<id> link, or an /app#menu/<id> link. Returns null if it isn't one.
- * Ids are case-sensitive, so the case is preserved.
+ * Word codes are lowercased; the older random codes keep their case.
  */
 export function parseMenuCode(input) {
   const text = String(input || '').trim();
-  if (MENU_CODE_PATTERN.test(text)) return text;
+  const bare = normalizeCode(text);
+  if (bare) return bare;
   const match = text.match(/(?:\/menu\/|#menu\/)([^/?#\s]+)/);
-  return match && MENU_CODE_PATTERN.test(match[1]) ? match[1] : null;
+  return match ? normalizeCode(match[1]) : null;
 }
 
 function toSnapshot(recipe) {

@@ -4,9 +4,33 @@
  * links look and behave like every other Speakeasy link.
  */
 
-import { SHARE_ID_ALPHABET, SHARE_ID_PATTERN, generateShareId, sanitizeSharedRecipe } from '../shares/_lib.js';
+import { SHARE_ID_ALPHABET, SHARE_ID_PATTERN, sanitizeSharedRecipe } from '../shares/_lib.js';
+import { MENU_WORDS_FIRST, MENU_WORDS_SECOND, MENU_WORDS_THIRD } from './menu-words.js';
 
-export { SHARE_ID_PATTERN as MENU_ID_PATTERN, generateShareId as generateMenuId };
+// New menus get a themed three-word id ("velvet-smoky-nightcap"). Older menus
+// keep their random 10-character ids, so both shapes stay valid. The client
+// mirrors this pattern in js/modules/menu-publish.js.
+const WORD_ID_PATTERN = /^[a-z]{3,12}(?:-[a-z]{3,12}){2}$/;
+export const MENU_ID_PATTERN = {
+  test: (id) => WORD_ID_PATTERN.test(id) || SHARE_ID_PATTERN.test(id),
+};
+
+function pick(list) {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return list[buf[0] % list.length];
+}
+
+export function generateMenuId() {
+  // "zesty-zesty-zest" can happen, and that's a feature.
+  return `${pick(MENU_WORDS_FIRST)}-${pick(MENU_WORDS_SECOND)}-${pick(MENU_WORDS_THIRD)}`;
+}
+
+/** Word ids are lowercase, so a hand-typed "Velvet-Smoky-Nightcap" still finds the menu. */
+export function normalizeMenuId(id) {
+  const text = String(id || '');
+  return /^[A-Za-z]+(?:-[A-Za-z]+){2}$/.test(text) ? text.toLowerCase() : text;
+}
 
 const MAX_MENU_RECIPES = 100;
 const MAX_MENU_JSON_BYTES = 300 * 1024;

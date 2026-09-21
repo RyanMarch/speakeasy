@@ -168,8 +168,10 @@ function renderUnavailable(container, notice) {
  */
 export function parseGuestMenuHash(rawHash) {
   if (!rawHash || !rawHash.startsWith('menu/')) return null;
-  const [menuId, drinkId] = rawHash.slice('menu/'.length).split('/');
-  if (!menuId) return null;
+  const [rawMenuId, drinkId] = rawHash.slice('menu/'.length).split('/');
+  if (!rawMenuId) return null;
+  // Word codes are lowercase; a capitalized one from a hand-typed link still resolves.
+  const menuId = parseMenuCode(rawMenuId) || rawMenuId;
   // `~quiz` can't collide with a drink: ids are slugs, which never contain '~'.
   if (drinkId === QUIZ_SEGMENT) return { menuId, drinkId: null, quiz: true };
   let decodedDrink = null;
@@ -457,7 +459,7 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
     return /*html*/`
       <button type="button" class="guest-menu-card${unavailable ? ' is-out' : ''}${isPick ? ' is-pick' : ''}" style="--i:${Math.min(idx, 11)}"
         data-recipe-id="${escapeHtml(recipe.id)}" ${unavailable ? 'disabled aria-disabled="true"' : ''}>
-        ${isPick ? '<span class="guest-menu-card-pick">★ Host’s pick</span>' : ''}
+        ${isPick ? '<span class="guest-menu-card-pick">★ Host pick</span>' : ''}
         ${isSaved ? `<span class="guest-menu-card-saved" role="img" aria-label="Saved">${heartSvg(16)}</span>` : ''}
         <span class="guest-menu-card-glass" data-glass-index="${idx}"></span>
         <span class="guest-menu-card-name">${escapeHtml(recipe.name)}</span>
@@ -611,7 +613,7 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
   };
   const searchActive = () => activeQuery.text.length > 0;
   // Set once the bar exists; called after anything that changes its height.
-  let syncBarHeight = () => {};
+  let syncBarHeight = () => { };
 
   // Repaints only what the filter changes, so the sticky bar and the guest's
   // place on the page aren't rebuilt under their thumb.

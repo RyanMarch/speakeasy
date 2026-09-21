@@ -9,7 +9,7 @@
  */
 
 import { renderShell, htmlResponse } from '../_lib/og-shell.js';
-import { MENU_ID_PATTERN } from '../api/menus/_lib.js';
+import { MENU_ID_PATTERN, normalizeMenuId } from '../api/menus/_lib.js';
 
 const GENERIC_TITLE = 'Speakeasy: The Craft Cocktail Companion';
 
@@ -36,7 +36,7 @@ export async function onRequestGet(context) {
     }));
   }
 
-  const menuId = typeof params.id === 'string' ? params.id.trim() : '';
+  const menuId = typeof params.id === 'string' ? normalizeMenuId(params.id.trim()) : '';
   if (!menuId || !MENU_ID_PATTERN.test(menuId)) return notFound();
 
   const row = await env.speakeasy_db.prepare(

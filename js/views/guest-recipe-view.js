@@ -71,7 +71,7 @@ export function renderGuestRecipe(container, recipe, ctx) {
   const profile = calculateBalanceProfile(specs);
   const moodKeys = new Set(getRecipeMoods(recipe));
   const moods = MOODS.filter(m => moodKeys.has(m.key)).slice(0, 3);
-  const badge = ctx.isOut ? 'Out for now' : ctx.isPick ? '★ Host’s pick' : '';
+  const badge = ctx.isOut ? 'Out for now' : ctx.isPick ? '★ Host pick' : '';
 
   container.innerHTML = /*html*/`
     <div class="guest-recipe">
