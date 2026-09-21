@@ -39,6 +39,7 @@ export function normalizeTagName(rawTag) {
 
 import { SEED_RECIPES } from "../data/seed-recipes.js";
 import { normalizeUnit } from "./parser.js";
+import { scheduleCloudSync } from "./cloud-sync.js";
 export { SEED_RECIPES };
 
 // ==========================================
@@ -107,6 +108,7 @@ export function saveHiddenRecipeIds(ids) {
   try {
     const clean = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
     localStorage.setItem(HIDDEN_RECIPES_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save hidden recipes to localStorage:', err);
@@ -319,6 +321,7 @@ export function slugifyRecipeName(name, existingIds = new Set()) {
 export function saveRecipes(recipes) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+    scheduleCloudSync();
   } catch (err) {
     console.error('Failed to save recipes to localStorage:', err);
   }
@@ -434,7 +437,15 @@ export function buildBackupPayload() {
       sortPref: getSortPreference(),
       glassViewMode: getGlassViewPreference(),
       glassViewPref: getGlassViewPreference(),
+      wakeLockPref: getWakeLockPreference(),
+      funPref: getFunPreference(),
+      avatarRecipeId: getAvatarRecipeId(),
     },
+    pinnedTags: getPinnedTags(),
+    homeCollectionsOrder: getHomeCollectionsOrder(),
+    hiddenHomeCollections: getHiddenHomeCollections(),
+    lowStock: getLowStockIds(),
+    menus: getMenus(),
     customRecipes: getCustomRecipesForBackup(),
   };
 }
@@ -603,6 +614,43 @@ export function importData(jsonString) {
   if (settingsRaw.sortPref) saveSortPreference(settingsRaw.sortPref);
   const incomingGlassMode = settingsRaw.glassViewMode || settingsRaw.glassViewPref;
   if (incomingGlassMode) saveGlassViewPreference(incomingGlassMode);
+  if (typeof settingsRaw.wakeLockPref === 'boolean') saveWakeLockPreference(settingsRaw.wakeLockPref);
+  if (typeof settingsRaw.funPref === 'boolean') saveFunPreference(settingsRaw.funPref);
+  if (typeof settingsRaw.avatarRecipeId === 'string' && settingsRaw.avatarRecipeId) {
+    saveAvatarRecipeId(settingsRaw.avatarRecipeId);
+  }
+
+  // Pinned tags / Home layout: merge (union) rather than overwrite, same
+  // rationale as inventory/hidden recipes above — never lose a local pin.
+  if (Array.isArray(parsed.pinnedTags)) {
+    const mergedPins = new Set(getPinnedTags());
+    parsed.pinnedTags.forEach(t => { if (typeof t === 'string') mergedPins.add(t); });
+    savePinnedTags(Array.from(mergedPins));
+  }
+  if (Array.isArray(parsed.homeCollectionsOrder) && parsed.homeCollectionsOrder.length > 0
+      && (!Array.isArray(getHomeCollectionsOrder()) || getHomeCollectionsOrder().length === 0)) {
+    saveHomeCollectionsOrder(parsed.homeCollectionsOrder.filter(k => typeof k === 'string'));
+  }
+  if (Array.isArray(parsed.hiddenHomeCollections)) {
+    const mergedHiddenCollections = new Set(getHiddenHomeCollections());
+    parsed.hiddenHomeCollections.forEach(k => { if (typeof k === 'string') mergedHiddenCollections.add(k); });
+    saveHiddenHomeCollections(Array.from(mergedHiddenCollections));
+  }
+  if (Array.isArray(parsed.lowStock)) {
+    const mergedLowStock = new Set(getLowStockIds());
+    parsed.lowStock.forEach(id => { if (typeof id === 'string') mergedLowStock.add(id); });
+    saveLowStockIds(Array.from(mergedLowStock));
+  }
+  if (Array.isArray(parsed.menus)) {
+    const localMenus = getMenus();
+    const menuMap = new Map(localMenus.map(m => [m.id, m]));
+    parsed.menus.forEach(m => {
+      if (m && typeof m.id === 'string' && typeof m.name === 'string' && Array.isArray(m.recipeIds)) {
+        menuMap.set(m.id, m);
+      }
+    });
+    saveMenus(Array.from(menuMap.values()));
+  }
 
   return {
     recipes: Array.from(recipeMap.values()),
@@ -723,6 +771,7 @@ function writeInventoryForBar(barId, ids) {
   try {
     const list = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
     localStorage.setItem(`${INVENTORY_KEY_PREFIX}${barId}`, JSON.stringify(list));
+    scheduleCloudSync();
     return list;
   } catch (err) {
     console.error('Failed to save bar inventory to localStorage:', err);
@@ -926,6 +975,7 @@ export function getBars() {
 export function saveBars(bars) {
   try {
     localStorage.setItem(BARS_STORAGE_KEY, JSON.stringify(bars));
+    scheduleCloudSync();
     return bars;
   } catch (err) {
     console.error('Failed to save bars registry to localStorage:', err);
@@ -1149,6 +1199,7 @@ export function saveAppSettings(updates) {
     const current = getAppSettings();
     const updated = { ...current, ...updates };
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updated));
+    scheduleCloudSync();
     return updated;
   } catch (err) {
     console.error('Failed to save app settings:', err);
@@ -1237,6 +1288,7 @@ export function getAvatarRecipeId() {
 export function saveAvatarRecipeId(recipeId) {
   try {
     localStorage.setItem(AVATAR_RECIPE_STORAGE_KEY, recipeId);
+    scheduleCloudSync();
   } catch (err) {
     console.error('Failed to save avatar recipe id:', err);
   }
@@ -1315,6 +1367,7 @@ export function savePinnedTags(tags) {
   try {
     const clean = Array.isArray(tags) ? tags.filter(t => typeof t === 'string') : [];
     localStorage.setItem(PINNED_TAGS_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save pinned tags:', err);
@@ -1338,6 +1391,7 @@ export function saveHomeCollectionsOrder(order) {
   try {
     const clean = Array.isArray(order) ? order.filter(k => typeof k === 'string') : [];
     localStorage.setItem(HOME_COLLECTIONS_ORDER_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save home collections order:', err);
@@ -1361,6 +1415,7 @@ export function saveHiddenHomeCollections(hiddenKeys) {
   try {
     const clean = Array.isArray(hiddenKeys) ? hiddenKeys.filter(k => typeof k === 'string') : [];
     localStorage.setItem(HIDDEN_HOME_COLLECTIONS_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save hidden home collections:', err);
@@ -1438,6 +1493,7 @@ export function saveLowStockIds(ids) {
   try {
     const clean = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
     localStorage.setItem(LOW_STOCK_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save low-stock ids to localStorage:', err);
@@ -1485,6 +1541,7 @@ export function getMenus() {
 export function saveMenus(menus) {
   try {
     localStorage.setItem(MENUS_STORAGE_KEY, JSON.stringify(menus || []));
+    scheduleCloudSync();
     return menus;
   } catch (err) {
     console.error('Failed to save menus to localStorage:', err);
