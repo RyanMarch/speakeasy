@@ -13,6 +13,7 @@
 
 import { calculateBalanceProfile } from './balance.js';
 import { calculateCocktailAbv } from './abv.js';
+import { detectDominantSpiritTag } from './auto-detect.js';
 
 /**
  * `tags`: any one is enough. `matches(profile, abv, tagSet)`: an extra
@@ -100,8 +101,16 @@ export function getRecipeMoods(recipe) {
 export function computeRecipeTraits(recipe) {
   const specs = recipe?.specs || [];
   if (specs.length === 0) return null;
+  const tags = new Set(recipe?.tags || []);
+  const dominant = detectDominantSpiritTag(specs);
+  if (dominant === 'scotch-forward') {
+    tags.delete('whiskey-forward');
+    tags.add('scotch-forward');
+  } else if (dominant) {
+    tags.add(dominant);
+  }
   return {
-    tags: new Set(recipe?.tags || []),
+    tags,
     profile: calculateBalanceProfile(specs),
     abv: Math.round(calculateCocktailAbv(specs, recipe?.method).estimatedAbv),
   };
