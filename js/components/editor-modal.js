@@ -18,7 +18,6 @@ import { calculateCocktailAbv, estimateIngredientAbv } from '../modules/abv.js';
 import { getIngredientSuggestions, findIngredient } from '../modules/taxonomy.js';
 import { setupTagAutocomplete } from '../views/recipe-list-view.js';
 import { detectMethodFromText, detectGlasswareFromText, detectGarnishFromText, detectTagsFromRecipe } from '../modules/auto-detect.js';
-import { isAuthenticated, migrateGuestData } from '../modules/auth.js';
 import { escapeHtml, showToast, CLOSE_ICON_SVG } from './toast.js';
 
 // Sensible starting directions per technique, so a new recipe doesn't open with
@@ -1019,10 +1018,6 @@ export function saveCurrentEditor(existingId) {
   state.recipes = getRecipes();
   if (_selectRecipeFn) _selectRecipeFn(saved.id);
   showToast(`Saved "${saved.name}"`);
-
-  if (isAuthenticated()) {
-    migrateGuestData().catch(err => {
-      console.warn('Failed to sync recipe save to cloud:', err);
-    });
-  }
+  // Cloud push now happens automatically via saveRecipe -> scheduleCloudSync
+  // (see js/modules/cloud-sync.js) rather than an explicit call here.
 }
