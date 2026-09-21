@@ -4,10 +4,11 @@
 
 import { state, elements, getCachedInventoryAnalysis, SEED_RECIPE_IDS } from '../state.js';
 import { isAuthenticated } from '../modules/auth.js';
-import { recipeMatchesQuery } from '../modules/taxonomy.js';
+import { recipeMatchesQuery, calculateRecipeSearchScore } from '../modules/taxonomy.js';
 import { escapeHtml, showToast } from '../components/toast.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { clashesWith, applyBarDiet } from '../modules/dietary.js';
+import { calculateCocktailAbv, calculateCocktailCalories } from '../modules/abv.js';
 
 let _openEditorFn = null;
 let _updateVaultStatsFn = null;
@@ -46,11 +47,25 @@ export function updateCustomFilterVisibility() {
   }
 }
 
-/** The avoid button beside the search box: lit, with a count, while anything is being avoided. */
+const recipeMetricsCache = new WeakMap();
+
+function getCocktailMetrics(recipe) {
+  let cached = recipeMetricsCache.get(recipe);
+  if (!cached) {
+    const abv = Math.round(calculateCocktailAbv(recipe.specs, recipe.method).estimatedAbv);
+    const calories = calculateCocktailCalories(recipe.specs).totalKcal;
+    cached = { abv, calories };
+    recipeMetricsCache.set(recipe, cached);
+  }
+  return cached;
+}
+
+/** The filter & sort button beside the search box: lit with a count while sort is non-default or ingredients are avoided. */
 export function syncDietButton() {
   const btn = elements.sidebarDietBtn;
   if (!btn) return;
-  const count = state.avoidFilter.size;
+  const isSortActive = Boolean(state.sortPreference && state.sortPreference !== 'curated');
+  const count = (isSortActive ? 1 : 0) + (state.avoidFilter ? state.avoidFilter.size : 0);
   btn.setAttribute('aria-pressed', String(count > 0));
   if (elements.sidebarDietCount) {
     elements.sidebarDietCount.hidden = count === 0;
@@ -65,6 +80,7 @@ export function renderRecipeList() {
   updateCustomFilterVisibility();
   syncDietButton();
 
+  const hasSearch = Boolean(state.searchQuery && state.searchQuery.trim());
   const queryMatched = state.recipes.map(recipe => {
     const matchesSearch = (!state.searchQuery || recipeMatchesQuery(recipe, state.searchQuery))
       && !clashesWith(applyBarDiet(recipe, state.foamerForEgg), state.avoidFilter);
@@ -73,7 +89,10 @@ export function renderRecipeList() {
         ? !SEED_RECIPE_IDS.has(recipe.id)
         : (Array.isArray(recipe.tags) && recipe.tags.includes(state.packFilter)));
     const invAnalysis = getCachedInventoryAnalysis(recipe);
-    return { recipe, matchesSearch, matchesPack, invAnalysis };
+    const searchScore = (matchesSearch && hasSearch)
+      ? calculateRecipeSearchScore(recipe, state.searchQuery)
+      : 0;
+    return { recipe, matchesSearch, matchesPack, invAnalysis, searchScore };
   });
 
   let allCount = 0;
@@ -98,7 +117,46 @@ export function renderRecipeList() {
 
   // Apply library list sort
   const sortMode = state.sortPreference || 'curated';
-  if (sortMode === 'name-asc') {
+  if (hasSearch) {
+    filtered.sort((a, b) => {
+      // 1. Relevance score descending
+      const scoreDiff = (b.searchScore || 0) - (a.searchScore || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+
+      // 2. Secondary tie-breakers based on active sortMode
+      if (sortMode === 'ready') {
+        if (a.invAnalysis.canMake !== b.invAnalysis.canMake) {
+          return a.invAnalysis.canMake ? -1 : 1;
+        }
+        if (a.invAnalysis.isBottleNext !== b.invAnalysis.isBottleNext) {
+          return a.invAnalysis.isBottleNext ? -1 : 1;
+        }
+      } else if (sortMode === 'name-asc') {
+        return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+      } else if (sortMode === 'name-desc') {
+        return b.recipe.name.localeCompare(a.recipe.name, undefined, { sensitivity: 'base' });
+      } else if (sortMode === 'specs-asc') {
+        const lenA = (a.recipe.specs || []).length;
+        const lenB = (b.recipe.specs || []).length;
+        if (lenA !== lenB) return lenA - lenB;
+        return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+      } else if (sortMode === 'abv-asc') {
+        const diff = getCocktailMetrics(a.recipe).abv - getCocktailMetrics(b.recipe).abv;
+        if (diff !== 0) return diff;
+        return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+      } else if (sortMode === 'calories-asc') {
+        const diff = getCocktailMetrics(a.recipe).calories - getCocktailMetrics(b.recipe).calories;
+        if (diff !== 0) return diff;
+        return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+      }
+
+      // Curated tie-breaker: ready to make first, then name
+      if (a.invAnalysis.canMake !== b.invAnalysis.canMake) {
+        return a.invAnalysis.canMake ? -1 : 1;
+      }
+      return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+    });
+  } else if (sortMode === 'name-asc') {
     filtered.sort((a, b) => a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' }));
   } else if (sortMode === 'name-desc') {
     filtered.sort((a, b) => b.recipe.name.localeCompare(a.recipe.name, undefined, { sensitivity: 'base' }));
@@ -120,6 +178,18 @@ export function renderRecipeList() {
       const lenA = (a.recipe.specs || []).length;
       const lenB = (b.recipe.specs || []).length;
       if (lenA !== lenB) return lenA - lenB;
+      return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+    });
+  } else if (sortMode === 'abv-asc') {
+    filtered.sort((a, b) => {
+      const diff = getCocktailMetrics(a.recipe).abv - getCocktailMetrics(b.recipe).abv;
+      if (diff !== 0) return diff;
+      return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
+    });
+  } else if (sortMode === 'calories-asc') {
+    filtered.sort((a, b) => {
+      const diff = getCocktailMetrics(a.recipe).calories - getCocktailMetrics(b.recipe).calories;
+      if (diff !== 0) return diff;
       return a.recipe.name.localeCompare(b.recipe.name, undefined, { sensitivity: 'base' });
     });
   }

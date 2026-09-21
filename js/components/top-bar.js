@@ -908,10 +908,12 @@ export function setLibrarySort(sortOption) {
   if (_renderRecipeListFn) _renderRecipeListFn();
 
   const labels = {
-    'curated': 'Curated',
+    'curated': 'Default',
     'ready': 'Ready to Make',
     'specs-asc': 'Fewest Ingredients',
     'name-asc': 'Alphabetical (A–Z)',
+    'abv-asc': 'Lowest Proof',
+    'calories-asc': 'Fewest Calories',
   };
   const label = labels[sortOption] || 'Selected';
   showToast(`Sorted by ${label}`);
