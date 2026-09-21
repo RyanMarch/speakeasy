@@ -64,6 +64,7 @@ export function normalizeTagName(rawTag) {
 import { SEED_RECIPES } from "../data/seed-recipes.js";
 import { normalizeUnit } from "./parser.js";
 import { scheduleCloudSync } from "./cloud-sync.js";
+import { sanitizeDietOverrides } from "./dietary.js";
 export { SEED_RECIPES };
 
 // ==========================================
@@ -1355,6 +1356,21 @@ export function saveWakeLockPreference(enabled) {
   return bool;
 }
 
+/**
+ * "I make egg-white drinks with cocktail foamer" — a habit of the whole bar, not of
+ * one menu. Egg drinks are then shown as made with foamer (guests and the library
+ * alike) instead of as containing egg. Off unless the bartender turns it on.
+ */
+export function getFoamerPreference() {
+  return getAppSettings().foamerForEgg === true;
+}
+
+export function saveFoamerPreference(enabled) {
+  const bool = Boolean(enabled);
+  saveAppSettings({ foamerForEgg: bool });
+  return bool;
+}
+
 const FUN_STORAGE_KEY = 'speakeasy_fun_animations_enabled';
 
 export function getFunPreference() {
@@ -1593,11 +1609,14 @@ export function saveMenu(menu) {
   // Guest-link credentials for a published menu (see menu-publish.js).
   // Optional: most menus are never published.
   if (menu.share && typeof menu.share.id === 'string' && typeof menu.share.token === 'string') {
+    const dietOverrides = sanitizeDietOverrides(menu.share.dietOverrides);
     updatedMenu.share = {
       id: menu.share.id,
       token: menu.share.token,
       outIds: Array.isArray(menu.share.outIds) ? menu.share.outIds.map(String) : [],
       featuredIds: Array.isArray(menu.share.featuredIds) ? menu.share.featuredIds.map(String) : [],
+      // The host's dietary corrections; absent until they make one.
+      ...(Object.keys(dietOverrides).length > 0 ? { dietOverrides } : {}),
     };
   }
 

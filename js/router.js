@@ -200,6 +200,10 @@ export function renderCurrentView(direction = 'fade') {
     if (config.disconnectScrollObserver && window._counterScrollObserver) {
       window._counterScrollObserver.disconnect();
     }
+    if (window._guestRecipeScrollObserver) {
+      window._guestRecipeScrollObserver.disconnect();
+      window._guestRecipeScrollObserver = null;
+    }
     ALL_VIEW_CONTAINER_KEYS.forEach(key => {
       if (elements[key]) elements[key].style.display = key === config.container ? 'block' : 'none';
     });

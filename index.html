@@ -299,9 +299,51 @@
       </div>
     </section>
 
-    <!-- Designed for the Counter — real countdown timer -->
-    <section class="feature-row feature-row-reverse" aria-labelledby="counter-heading">
+    <!-- Hosting Mode — guest menus on their phones -->
+    <section class="feature-row feature-row-reverse" aria-labelledby="hosting-heading">
       <div class="feature-row-grid">
+        <div class="feature-row-visual">
+          <div class="guest-preview-mockup" id="guest-preview-mockup">
+            <div class="guest-preview-header">
+              <span class="guest-preview-badge">Guest Menu</span>
+              <span class="guest-preview-title">Saturday Night Bar</span>
+            </div>
+            <div class="guest-drink-card" id="guest-drink-card">
+              <div class="guest-drink-info">
+                <div class="guest-drink-name-row">
+                  <span class="guest-drink-name">Negroni</span>
+                  <span class="guest-pick-badge" title="Host's pick">★ Host's Pick</span>
+                  <span class="guest-out-badge">Out</span>
+                </div>
+                <div class="guest-drink-desc">Gin, Sweet Vermouth, Campari</div>
+              </div>
+              <button type="button" class="guest-order-btn" id="guest-order-btn">I'd like this</button>
+            </div>
+            <div class="guest-host-bar">
+              <span class="guest-host-label">Host controls:</span>
+              <button type="button" class="guest-toggle-btn" id="guest-out-toggle" aria-pressed="false">
+                <span class="guest-toggle-dot"></span>
+                <span class="guest-toggle-text">Status: Pouring</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="feature-row-content">
+          <p class="content-eyebrow">Hosting mode</p>
+          <h2 id="hosting-heading">Hand guests a menu on their phone.</h2>
+          <p>Put your party menu on a QR code or share the link. Guests browse drinks, take a quick quiz to find their next cocktail, and tap &ldquo;I'd like this&rdquo; to show you what to pour. No app downloads or accounts needed.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Designed for the Counter — real countdown timer -->
+    <section class="feature-row" aria-labelledby="counter-heading">
+      <div class="feature-row-grid">
+        <div class="feature-row-content">
+          <p class="content-eyebrow">Designed for the counter</p>
+          <h2 id="counter-heading">Built for easy preparation.</h2>
+          <p>Big, readable numbers and inline timers keep you on track while shaking or stirring.</p>
+        </div>
         <div class="feature-row-visual">
           <div class="counter-timer" id="counter-timer" role="timer" aria-label="30-second shake timer">
             <div class="counter-timer-gauge">
@@ -316,10 +358,40 @@
             </div>
           </div>
         </div>
-        <div class="feature-row-content">
-          <p class="content-eyebrow">Designed for the counter</p>
-          <h2 id="counter-heading">Built for easy preparation.</h2>
-          <p>Big, readable numbers and inline timers keep you on track while shaking or stirring.</p>
+      </div>
+    </section>
+
+    <!-- Dietary & Calorie Estimates — smaller module -->
+    <section class="diet-calorie-section" aria-labelledby="diet-calorie-heading">
+      <div class="diet-calorie-grid">
+        <div class="diet-calorie-card">
+          <p class="content-eyebrow">Dietary needs</p>
+          <h3 id="diet-calorie-heading">Know what is in the glass.</h3>
+          <p>Speakeasy automatically flags egg, dairy, tree nuts, and honey. Switch to cocktail foamer or aquafaba when someone wants an egg-free sour.</p>
+          <div class="diet-chips-preview" id="diet-chips-preview">
+            <button type="button" class="diet-chip diet-chip-swap active" id="diet-foamer-btn">
+              <span>🥚</span>
+              <span id="diet-foamer-text">Foamer swap active</span>
+            </button>
+            <span class="diet-chip">Dairy-free</span>
+            <span class="diet-chip">Nut-free</span>
+          </div>
+        </div>
+        <div class="diet-calorie-card">
+          <p class="content-eyebrow">Calorie estimates</p>
+          <h3>Real numbers, no guessing.</h3>
+          <p>Per-serving calorie calculations based on alcohol proof and sugar content give you an honest tally for every drink.</p>
+          <div class="calorie-estimate-preview" id="calorie-estimate-preview">
+            <div class="calorie-preview-main">
+              <span class="calorie-drink-label">Negroni</span>
+              <span class="calorie-total-badge">~185 kcal</span>
+            </div>
+            <div class="calorie-preview-breakdown">
+              <span>~135 kcal alcohol</span>
+              <span class="calorie-sep">&bull;</span>
+              <span>~50 kcal sugar</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -894,6 +966,54 @@
           <div><strong>${bottleSet.size}</strong> bottles needed</div>
           <div class="party-menu-glass">${glassText}</div>
         `;
+      }
+
+      // --- Hosting Mode Preview ---
+      const guestOutToggleEl = document.getElementById("guest-out-toggle");
+      const guestDrinkCardEl = document.getElementById("guest-drink-card");
+      const guestOrderBtnEl = document.getElementById("guest-order-btn");
+      if (guestOutToggleEl && guestDrinkCardEl && guestOrderBtnEl) {
+        let isOut = false;
+        guestOutToggleEl.addEventListener("click", () => {
+          isOut = !isOut;
+          guestOutToggleEl.setAttribute("aria-pressed", String(isOut));
+          guestOutToggleEl.classList.toggle("is-out", isOut);
+          const toggleText = guestOutToggleEl.querySelector(".guest-toggle-text");
+          if (toggleText) {
+            toggleText.textContent = isOut ? "Status: Out" : "Status: Pouring";
+          }
+          guestDrinkCardEl.classList.toggle("is-out", isOut);
+          if (isOut) {
+            guestOrderBtnEl.disabled = true;
+            guestOrderBtnEl.textContent = "Unavailable";
+          } else {
+            guestOrderBtnEl.disabled = false;
+            guestOrderBtnEl.textContent = "I'd like this";
+          }
+        });
+
+        guestOrderBtnEl.addEventListener("click", () => {
+          if (isOut) return;
+          const originalText = guestOrderBtnEl.textContent;
+          guestOrderBtnEl.textContent = "Order card ready!";
+          setTimeout(() => {
+            if (!isOut) guestOrderBtnEl.textContent = originalText;
+          }, 1600);
+        });
+      }
+
+      // --- Dietary Foamer Swap Demo ---
+      const dietFoamerBtnEl = document.getElementById("diet-foamer-btn");
+      const dietFoamerTextEl = document.getElementById("diet-foamer-text");
+      if (dietFoamerBtnEl && dietFoamerTextEl) {
+        let foamerActive = true;
+        dietFoamerBtnEl.addEventListener("click", () => {
+          foamerActive = !foamerActive;
+          dietFoamerBtnEl.classList.toggle("active", foamerActive);
+          dietFoamerTextEl.textContent = foamerActive
+            ? "Foamer swap active"
+            : "Contains Egg (tap to swap)";
+        });
       }
 
       // --- Designed for the Counter — real countdown timer with circular gauge ---

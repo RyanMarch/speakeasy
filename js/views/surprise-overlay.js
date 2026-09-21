@@ -144,7 +144,7 @@ export function openSurpriseOverlay({ pool, glassMode, describe, onSeeRecipe, re
     clearTimers();
     stage.classList.remove('is-spinning');
     stage.classList.add('is-landed');
-    caption.textContent = 'Tonight, you’re having…';
+    caption.textContent = 'You should try…';
     nameEl.classList.add('is-final');
     overlay.querySelector('.guest-shuffle-meta').textContent = [pick.glassware, pick.method].filter(Boolean).join(' · ');
     overlay.querySelector('.guest-shuffle-blurb').textContent = describe(pick);

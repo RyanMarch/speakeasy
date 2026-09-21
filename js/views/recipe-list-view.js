@@ -7,6 +7,7 @@ import { isAuthenticated } from '../modules/auth.js';
 import { recipeMatchesQuery } from '../modules/taxonomy.js';
 import { escapeHtml, showToast } from '../components/toast.js';
 import { formatIngredientName } from '../modules/parser.js';
+import { clashesWith, applyBarDiet } from '../modules/dietary.js';
 
 let _openEditorFn = null;
 let _updateVaultStatsFn = null;
@@ -45,14 +46,28 @@ export function updateCustomFilterVisibility() {
   }
 }
 
+/** The avoid button beside the search box: lit, with a count, while anything is being avoided. */
+export function syncDietButton() {
+  const btn = elements.sidebarDietBtn;
+  if (!btn) return;
+  const count = state.avoidFilter.size;
+  btn.setAttribute('aria-pressed', String(count > 0));
+  if (elements.sidebarDietCount) {
+    elements.sidebarDietCount.hidden = count === 0;
+    elements.sidebarDietCount.textContent = String(count);
+  }
+}
+
 /**
  * Filter and render recipe list in sidebar with inventory counts and status badges
  */
 export function renderRecipeList() {
   updateCustomFilterVisibility();
+  syncDietButton();
 
   const queryMatched = state.recipes.map(recipe => {
-    const matchesSearch = !state.searchQuery || recipeMatchesQuery(recipe, state.searchQuery);
+    const matchesSearch = (!state.searchQuery || recipeMatchesQuery(recipe, state.searchQuery))
+      && !clashesWith(applyBarDiet(recipe, state.foamerForEgg), state.avoidFilter);
     const matchesPack = state.packFilter === 'all'
       || (state.packFilter === 'custom'
         ? !SEED_RECIPE_IDS.has(recipe.id)

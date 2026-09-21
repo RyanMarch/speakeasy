@@ -1038,3 +1038,104 @@ button.menu-builder-guest-link-qr {
     transition: none;
   }
 }
+/* ---- Dietary notes (per-drink corrections) --------------------------------- */
+.menu-builder-diet-toggle {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-builder-diet-toggle:hover,
+.menu-builder-diet-toggle:focus-visible,
+.menu-builder-diet-toggle[aria-pressed="true"] {
+  color: var(--color-accent);
+  outline: none;
+}
+
+.menu-builder-diet-dialog {
+  width: min(92vw, 380px);
+  padding: 1.25rem 1.25rem 1rem;
+  border: 1px solid var(--color-border-strong, rgba(245, 240, 230, 0.18));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--color-bg-elevated, var(--color-bg));
+  color: var(--color-text);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.menu-builder-diet-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.menu-builder-diet-title {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--color-text-bright);
+}
+
+.menu-builder-diet-lede {
+  margin: 0.2rem 0 1rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.menu-builder-diet-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.menu-builder-diet-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.menu-builder-diet-row select {
+  min-height: 40px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--color-text-bright);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.menu-builder-diet-swap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.95rem;
+}
+
+.menu-builder-diet-swap[hidden] {
+  display: none;
+}
+
+.menu-builder-diet-swap small {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.menu-builder-diet-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}

@@ -52,6 +52,8 @@ import { openRatingModal, renderStarsHtml } from '../components/rating-modal.js'
 import { openCalculatorModal } from '../components/calculator-modal.js';
 import { openBarBasicsSheet } from '../components/bar-basics-sheet.js';
 import { getBarBasic } from '../data/bar-basics.js';
+import { dietNotesHtml } from '../components/diet-notes.js';
+import { applyBarDiet } from '../modules/dietary.js';
 import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
 
 let _selectRecipeFn = null;
@@ -1107,6 +1109,7 @@ export function renderCounterView() {
             ${addRiffIngredientRowHtml}
             ${garnishRowHtml}
           </div>
+          ${dietNotesHtml(applyBarDiet({ ...recipe, specs: effectiveSpecs }, state.foamerForEgg))}
         </div>
 
         <!-- Method Section -->

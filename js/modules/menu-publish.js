@@ -56,7 +56,7 @@ export function parseMenuCode(input) {
   return match ? normalizeCode(match[1]) : null;
 }
 
-function toSnapshot(recipe) {
+function toSnapshot(recipe, diet) {
   return {
     id: recipe.id,
     name: recipe.name,
@@ -70,6 +70,9 @@ function toSnapshot(recipe) {
     riffOfName: recipe.riffOfName,
     tags: recipe.tags,
     specs: recipe.specs,
+    // Dietary notes for this drink: the bar-wide habit (already on the recipe when
+    // the host makes egg drinks with foamer) plus the host's own per-drink corrections.
+    ...(diet || recipe.diet ? { diet: { ...recipe.diet, ...diet } } : {}),
   };
 }
 
@@ -117,7 +120,12 @@ export function pushMenuContents(share, name, recipes) {
   return requestJson(`/api/menus/${encodeURIComponent(share.id)}`, {
     method: 'PUT',
     headers: authHeaders(share),
-    body: JSON.stringify({ name, recipes: recipes.map(toSnapshot), unavailable: share.outIds || [], featured: share.featuredIds || [] }),
+    body: JSON.stringify({
+      name,
+      recipes: recipes.map(recipe => toSnapshot(recipe, share.dietOverrides?.[recipe.id])),
+      unavailable: share.outIds || [],
+      featured: share.featuredIds || [],
+    }),
   });
 }
 

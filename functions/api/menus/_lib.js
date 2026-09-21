@@ -70,6 +70,22 @@ export function sanitizeMenuName(name) {
   return typeof name === 'string' ? name.trim().slice(0, MAX_NAME_LENGTH) : '';
 }
 
+// The host's dietary corrections for a drink (see js/modules/dietary.js, which
+// owns the meaning; only the allowed shape is enforced here).
+const DIET_KEYS = ['egg', 'dairy', 'nuts', 'honey'];
+const DIET_LEVELS = ['contains', 'may', 'none'];
+
+export function sanitizeDiet(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const clean = {};
+  for (const key of DIET_KEYS) {
+    if (DIET_LEVELS.includes(value[key])) clean[key] = value[key];
+  }
+  if (value.swap === true) clean.swap = true;
+  if (value.foamer === true) clean.foamer = true;
+  return Object.keys(clean).length > 0 ? clean : null;
+}
+
 /**
  * Sanitizes a menu's recipe snapshots. Each keeps the id the host's library
  * uses (the guest page needs a stable handle for "out" toggles and deep links),
@@ -87,7 +103,8 @@ export function sanitizeMenuRecipes(recipes) {
     seen.add(id);
     // Notes are the host's private scratchpad ("too sweet last time") —
     // never part of what a guest sees.
-    cleaned.push({ ...recipe, id, notes: '' });
+    const diet = sanitizeDiet(raw.diet);
+    cleaned.push({ ...recipe, id, notes: '', ...(diet ? { diet } : {}) });
   }
   const json = JSON.stringify(cleaned);
   if (json.length > MAX_MENU_JSON_BYTES) return null;

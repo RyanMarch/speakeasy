@@ -58,7 +58,7 @@ Building a menu for a party? Pick a handful of cocktails and Speakeasy tallies e
 </p>
 
 ### Host your party without handing over your phone
-Turn any saved menu into a guest link or QR code. Guests browse picture cards on their own phones (no app, no sign-in), search by ingredient or mood, take a short "find my drink" quiz, or hit Surprise me. They save favorites and show you a full-screen "I'd like this" card, while you mark drinks out and star your picks from your own device. Guests never see your bar, your notes, or the rest of your library.
+Turn any saved menu into a guest link or QR code. Guests browse picture cards on their own phones (no app, no sign-in), search by ingredient or mood, take a short "find my drink" quiz, or hit Surprise me. They can leave out egg, dairy, tree nuts, or honey, save favorites, and show you a full-screen "I'd like this" card, while you mark drinks out and star your picks from your own device. Guests never see your bar, your notes, or the rest of your library.
 
 ### Private and yours wherever you go
 Everything works in your browser, and even better when added to your home screen. Sign in to sync your bar and custom recipes across every device, keep separate setups for a home bar and an office bar, log the drinks you've made, and share a link to any creation you're proud of. Back up your whole library anytime with one export.

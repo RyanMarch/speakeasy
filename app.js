@@ -45,6 +45,8 @@ import {
   updateAuthIndicator,
 } from './js/components/top-bar.js';
 import { trackEvent } from './js/modules/telemetry.js';
+import { openDietSheet } from './js/views/guest-diet-sheet.js';
+import { DIET_KEYS, saveAvoid, LIBRARY_AVOID_KEY } from './js/modules/dietary.js';
 import { initMobileSearchFocus } from './js/modules/mobile-search-focus.js';
 import { runViewTransition } from './js/modules/view-transition.js';
 
@@ -386,6 +388,20 @@ function setupGlobalEventListeners() {
       e.preventDefault();
       firstCardBtn.focus();
     }
+  });
+
+  // Leave out drinks with egg, dairy, tree nuts, or honey. Remembered on this
+  // device, and kept apart from the guest menu's own filter.
+  elements.sidebarDietBtn?.addEventListener('click', () => {
+    openDietSheet({
+      flags: DIET_KEYS,
+      avoid: state.avoidFilter,
+      returnFocusTo: elements.sidebarDietBtn,
+      onChange: () => {
+        saveAvoid(state.avoidFilter, LIBRARY_AVOID_KEY);
+        renderRecipeList();
+      },
+    });
   });
 
   elements.searchClearBtn?.addEventListener('click', () => {

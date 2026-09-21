@@ -24,8 +24,10 @@ import { buildSearchIndex, searchRecipes } from '../modules/guest-search.js';
 import { groupBySpirit, shouldUseSections } from '../modules/menu-sections.js';
 import { getSaved, toggleSaved, pruneSaved } from '../modules/guest-saved.js';
 import { getRecipes, saveRecipe, sanitizeImportedRecipes } from '../modules/storage.js';
-import { renderGuestRecipe, heartSvg } from './guest-recipe-view.js';
+import { renderGuestRecipe, teardownGuestRecipeStickyHeader, heartSvg } from './guest-recipe-view.js';
 import { openOrderCard } from './order-card.js';
+import { openDietSheet } from './guest-diet-sheet.js';
+import { flagsOnMenu, clashesWith, needsEggSwap, orderedAs, loadAvoid, saveAvoid } from '../modules/dietary.js';
 
 // A guest who leaves the tab open all evening should still see "out" changes
 // the next time they look at it, without polling in the background.
@@ -427,6 +429,8 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
   // What this guest has saved on this device, minus anything the host has
   // since taken off the menu.
   let savedIds = pruneSaved(menuId, menu.recipes.map(r => r.id));
+  const dietFlags = dietFlagsFor(menu);
+  const avoid = activeAvoid(menu);
 
   // A remembered filter that no longer applies (different menu, or the host
   // just marked its last drink out, or nothing is saved any more) quietly
@@ -464,6 +468,7 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
         <span class="guest-menu-card-glass" data-glass-index="${idx}"></span>
         <span class="guest-menu-card-name">${escapeHtml(recipe.name)}</span>
         <span class="guest-menu-card-blurb">${escapeHtml(cardBlurb(recipe))}</span>
+        ${!unavailable && needsEggSwap(recipe, avoid) ? '<span class="guest-menu-card-note">Egg-free version</span>' : ''}
         ${unavailable ? '<span class="guest-menu-card-out">Out for now</span>' : ''}
       </button>
     `;
@@ -509,11 +514,11 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
   // drinks (kept visible so nothing seems to vanish, but dimmed and last).
   const visibleDrinks = () => {
     const searchIds = activeQuery.text ? searchRecipes(getSearchIndex(menu), activeQuery.text) : null;
-    const inFilter = menu.recipes.filter(r => matchesMood(r) && (!searchIds || searchIds.has(r.id)));
+    const inFilter = menu.recipes.filter(r => matchesMood(r) && !clashesWith(r, avoid) && (!searchIds || searchIds.has(r.id)));
     return {
       available: inFilter.filter(r => !isOut(menu, r.id)),
       out: inFilter.filter(r => isOut(menu, r.id)),
-      filtering: Boolean(activeMood.key) || searchIds !== null,
+      filtering: Boolean(activeMood.key) || searchIds !== null || avoid.size > 0,
     };
   };
 
@@ -571,16 +576,24 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
       <div class="guest-menu-filters">
         ${showSearch ? /*html*/`
           <div class="guest-menu-search" role="search">
+            <div class="guest-menu-search-field">
             <svg class="guest-menu-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             <!-- Not a form, and named/attributed like nothing a password manager
                  wants to fill: see the menu-code box for why. -->
             <input class="guest-menu-search-input" type="search" name="guest-menu-find" aria-label="Search this menu"
-              placeholder="Search drinks, ingredients, moods…" value="${escapeHtml(activeQuery.text)}"
+              placeholder="Search drinks, ingredients…" value="${escapeHtml(activeQuery.text)}"
               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search"
               data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other">
             <button type="button" class="guest-menu-search-clear" data-action="clear-search" aria-label="Clear search" ${activeQuery.text ? '' : 'hidden'}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>
             </button>
+            </div>
+            ${dietFlags.length > 0 ? /*html*/`
+              <button type="button" class="guest-menu-diet-btn" data-action="diet" aria-label="Avoid certain ingredients" aria-haspopup="dialog" aria-pressed="${avoid.size > 0}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="10" y1="17" x2="14" y2="17"></line></svg>
+                <span class="guest-menu-diet-count" data-role="diet-count" ${avoid.size > 0 ? '' : 'hidden'}>${avoid.size}</span>
+              </button>
+            ` : ''}
           </div>
         ` : ''}
         ${showChips ? /*html*/`
@@ -603,6 +616,8 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
   const surpriseButton = container.querySelector('[data-role="surprise-button"]');
   const searchInput = container.querySelector('.guest-menu-search-input');
   const clearButton = container.querySelector('[data-action="clear-search"]');
+  const dietButton = container.querySelector('[data-action="diet"]');
+  const dietCount = container.querySelector('[data-role="diet-count"]');
   const activeMoodInfo = () => (activeMood.key === SAVED_KEY
     ? { label: 'Saved', blurb: 'The drinks you’ve saved on this device.' }
     : moods.find(m => m.key === activeMood.key));
@@ -624,7 +639,7 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
     const cardsShown = layout.reduce((n, s) => n + s.recipes.length, 0);
 
     if (cardsShown === 0) {
-      const what = searchActive() ? `“${escapeHtml(activeQuery.text)}”` : 'that mood';
+      const what = searchActive() ? `“${escapeHtml(activeQuery.text)}”` : activeMood.key ? 'that mood' : 'what you’re avoiding';
       results.innerHTML = /*html*/`
         <div class="guest-menu-empty">
           <p class="guest-menu-empty-title">Nothing matches ${what}.</p>
@@ -651,7 +666,7 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
     const info = activeMoodInfo();
     subtitle.textContent = visible.filtering
       ? `${visible.available.length} of ${totalAvailable} drinks.`
-      : `${totalAvailable} drink${totalAvailable === 1 ? '' : 's'} pouring.`;
+      : `${totalAvailable} drink${totalAvailable === 1 ? '' : 's'} to choose from.`;
     // The mood's description appears only while a mood is selected.
     if (blurb) {
       blurb.hidden = !info;
@@ -668,6 +683,11 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
       surpriseButton.setAttribute('title', scope);
     }
     syncChipPressed();
+    if (dietButton) {
+      dietButton.setAttribute('aria-pressed', String(avoid.size > 0));
+      dietCount.hidden = avoid.size === 0;
+      dietCount.textContent = String(avoid.size);
+    }
     if (clearButton) clearButton.hidden = !searchActive();
     syncBarHeight();
   };
@@ -706,7 +726,7 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
   }
 
   const orderSaved = (button) => {
-    const drinks = savedIds.map(id => recipeById.get(id)).filter(r => r && !isOut(menu, r.id));
+    const drinks = savedIds.map(id => recipeById.get(id)).filter(r => r && !isOut(menu, r.id)).map(r => orderedAs(r, avoid));
     if (drinks.length === 0) {
       showToast('None of your saved drinks are available right now');
       return;
@@ -737,6 +757,20 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
     results.classList.remove('no-enter');
     paint();
     reanchor();
+  });
+
+  dietButton?.addEventListener('click', () => {
+    openDietSheet({
+      flags: dietFlags,
+      avoid,
+      returnFocusTo: dietButton,
+      onChange: () => {
+        saveAvoid(avoid);
+        results.classList.add('no-enter');
+        paint();
+        reanchor();
+      },
+    });
   });
 
   // ---- Search ----
@@ -813,6 +847,26 @@ function renderMenu(container, menuId, menu, { quiet = false } = {}) {
   });
 }
 
+// ---- What this guest avoids (egg, dairy, tree nuts, honey) --------------------
+// Kept once per device, not per menu: an allergy doesn't change by party. The
+// filter only exists on menus long enough to have search, so it only applies there.
+let avoidChoice = null;
+const MIN_DRINKS_FOR_DIET = 8;
+
+function getAvoidChoice() {
+  if (!avoidChoice) avoidChoice = loadAvoid();
+  return avoidChoice;
+}
+
+function dietFlagsFor(menu) {
+  return menu.recipes.length >= MIN_DRINKS_FOR_DIET ? flagsOnMenu(menu.recipes) : [];
+}
+
+/** What's in effect on this menu: the guest's choice, when the menu offers the filter. */
+function activeAvoid(menu) {
+  return dietFlagsFor(menu).length > 0 ? getAvoidChoice() : new Set();
+}
+
 // ---- "Find my drink" quiz -------------------------------------------------
 // Progress lives here (not in the URL) so a guest can open a result, go back,
 // and find their answers and picks still there. Each step is an in-page swap;
@@ -827,7 +881,9 @@ function traitsFor(menu) {
 }
 
 function renderQuiz(container, menuId, menu, { quiet = false } = {}) {
-  const orderable = menu.recipes.filter(r => !isOut(menu, r.id));
+  const avoid = activeAvoid(menu);
+  const inStock = menu.recipes.filter(r => !isOut(menu, r.id));
+  const orderable = inStock.filter(r => !clashesWith(r, avoid));
   const traits = traitsFor(menu);
   const questions = buildQuizQuestions(orderable, traits);
 
@@ -858,7 +914,8 @@ function renderQuiz(container, menuId, menu, { quiet = false } = {}) {
   };
 
   if (orderable.length === 0 || questions.length === 0) {
-    renderMessage(container, 'Nothing to pick from right now', 'Every drink on this menu is out. Check back soon.');
+    if (inStock.length > 0) renderMessage(container, 'Nothing fits what you’re avoiding', 'Every drink left has something on your list.');
+    else renderMessage(container, 'Nothing to pick from right now', 'Every drink on this menu is out. Check back soon.');
     return;
   }
 
@@ -1017,7 +1074,7 @@ function renderDrink(container, menuId, menu, drinkId, { quiet = false } = {}) {
     },
     onToggleSave: () => toggleSaved(menuId, recipe.id).saved,
     onOrder: () => openOrderCard({
-      drinks: [recipe],
+      drinks: [orderedAs(recipe, activeAvoid(menu))],
       menuName: menu.name,
       glassMode: state.glassViewMode,
       returnFocusTo: document.getElementById('guest-recipe-order'),
@@ -1077,9 +1134,15 @@ export async function renderGuestMenuView({ quiet = false } = {}) {
   const current = state.pendingGuestMenu;
   if (state.viewMode !== 'guest-menu' || !current || current.menuId !== menuId || current.drinkId !== drinkId || Boolean(current.quiz) !== Boolean(quizRoute)) return;
 
-  if (quizRoute) renderQuiz(container, menuId, cached.menu, { quiet });
-  else if (drinkId) renderDrink(container, menuId, cached.menu, drinkId, { quiet });
-  else renderMenu(container, menuId, cached.menu, { quiet });
+  if (quizRoute) {
+    teardownGuestRecipeStickyHeader();
+    renderQuiz(container, menuId, cached.menu, { quiet });
+  } else if (drinkId) {
+    renderDrink(container, menuId, cached.menu, drinkId, { quiet });
+  } else {
+    teardownGuestRecipeStickyHeader();
+    renderMenu(container, menuId, cached.menu, { quiet });
+  }
 }
 
 // There's no push channel: while a guest has the menu open and visible, check

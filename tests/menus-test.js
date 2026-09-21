@@ -253,6 +253,8 @@ let token;
   assert.deepEqual(getMenus().find(m => m.id === saved.id).share.featuredIds, ['c'], 'Updating a share replaces the picks');
   const legacy = saveMenu({ name: 'Old', recipeIds: ['a'], share: { id: 'BBBBBBBBBB', token: 't', outIds: [] } });
   assert.deepEqual(getMenus().find(m => m.id === legacy.id).share.featuredIds, [], 'A share saved before picks existed reads as none');
+  const withDiet = setMenuShare(saved.id, { id: 'AAAAAAAAAA', token: 'tok', outIds: [], featuredIds: [], dietOverrides: { a: { nuts: 'none', junk: 1 }, b: {} } });
+  assert.deepEqual(withDiet.share.dietOverrides, { a: { nuts: 'none' } }, 'Dietary corrections are kept, cleaned, and empty ones dropped');
   setMenuShare(saved.id, null);
   assert.equal(getMenus().find(m => m.id === saved.id).share, undefined, 'Clearing the share removes it');
   console.log('PASS: a saved menu keeps its Out list and picks, and older shares read as having none');

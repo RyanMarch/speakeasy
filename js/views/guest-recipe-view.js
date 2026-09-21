@@ -19,6 +19,7 @@ import { MOODS, getRecipeMoods } from '../modules/moods.js';
 import { glassLabel } from '../modules/glassware.js';
 import { escapeHtml } from '../components/toast.js';
 import { renderSiteFooterHtml } from '../components/site-footer.js';
+import { dietNotesHtml } from '../components/diet-notes.js';
 
 /** The heart used for "Save" on cards and on the recipe page. */
 export function heartSvg(size = 18) {
@@ -73,13 +74,17 @@ export function renderGuestRecipe(container, recipe, ctx) {
   const moods = MOODS.filter(m => moodKeys.has(m.key)).slice(0, 3);
   const badge = ctx.isOut ? 'Out for now' : ctx.isPick ? '★ Host pick' : '';
 
-  container.innerHTML = /*html*/`
+  container.innerHTML =  /*html*/`
     <div class="guest-recipe">
-      <div class="guest-recipe-topbar">
-        <button type="button" class="menu-builder-back-link" id="guest-recipe-back">
+      <div class="guest-recipe-topbar" id="guest-recipe-topbar">
+        <button type="button" class="menu-builder-back-link" id="guest-recipe-back" aria-label="Back to menu">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          Menu
+          <span class="guest-recipe-back-text">Menu</span>
         </button>
+        <div class="guest-recipe-sticky-title" id="guest-recipe-sticky-title" aria-hidden="true">
+          <span class="guest-recipe-sticky-name">${escapeHtml(recipe.name)}</span>
+        </div>
+        <div class="guest-recipe-topbar-spacer" aria-hidden="true"></div>
       </div>
 
       <article class="guest-recipe-card">
@@ -114,6 +119,8 @@ export function renderGuestRecipe(container, recipe, ctx) {
   }).join('')}
           ${recipe.garnish ? `<li class="is-garnish"><span class="guest-recipe-amount">Garnish</span><span class="guest-recipe-ingredient">${escapeHtml(recipe.garnish)}</span></li>` : ''}
         </ul>
+
+        ${dietNotesHtml(recipe)}
 
         <div class="flavor-radar-card">
           <span class="flavor-radar-title">Flavor Profile</span>
@@ -169,7 +176,10 @@ export function renderGuestRecipe(container, recipe, ctx) {
     });
   });
 
-  container.querySelector('#guest-recipe-back').addEventListener('click', () => ctx.onBack());
+  container.querySelector('#guest-recipe-back').addEventListener('click', () => {
+    teardownGuestRecipeStickyHeader();
+    ctx.onBack();
+  });
 
   const saveButton = container.querySelector('#guest-recipe-save');
   saveButton.addEventListener('click', () => {
@@ -198,4 +208,54 @@ export function renderGuestRecipe(container, recipe, ctx) {
     libraryButton.setAttribute('data-id', addedId);
     libraryButton.textContent = 'Added. Open in Speakeasy';
   });
+
+  // Sticky Header Title Observer
+  teardownGuestRecipeStickyHeader();
+
+  const topbar = container.querySelector('#guest-recipe-topbar');
+  const stickyTitle = container.querySelector('#guest-recipe-sticky-title');
+  const recipeHeading = container.querySelector('.guest-recipe-name');
+
+  if (topbar && stickyTitle && recipeHeading) {
+    const getScrollParent = (node) => {
+      let el = node?.parentElement;
+      while (el && el !== document.body && el !== document.documentElement) {
+        const overflowY = window.getComputedStyle(el).overflowY;
+        if (overflowY === 'auto' || overflowY === 'scroll') return el;
+        el = el.parentElement;
+      }
+      return null;
+    };
+
+    const scrollRoot = getScrollParent(container);
+    const topbarHeight = topbar.offsetHeight || 44;
+    const topOffset = topbarHeight + (parseFloat(window.getComputedStyle(topbar).top) || 0);
+
+    window._guestRecipeScrollObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const rootTop = entry.rootBounds ? entry.rootBounds.top : topOffset;
+        const isPast = !entry.isIntersecting && entry.boundingClientRect.bottom <= (rootTop + 10);
+        if (isPast) {
+          stickyTitle.classList.add('visible');
+          topbar.classList.add('is-scrolled');
+        } else {
+          stickyTitle.classList.remove('visible');
+          topbar.classList.remove('is-scrolled');
+        }
+      });
+    }, {
+      root: scrollRoot,
+      rootMargin: `-${topOffset}px 0px 0px 0px`,
+      threshold: 0,
+    });
+
+    window._guestRecipeScrollObserver.observe(recipeHeading);
+  }
+}
+
+export function teardownGuestRecipeStickyHeader() {
+  if (window._guestRecipeScrollObserver) {
+    window._guestRecipeScrollObserver.disconnect();
+    window._guestRecipeScrollObserver = null;
+  }
 }

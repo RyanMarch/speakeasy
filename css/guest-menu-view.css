@@ -85,6 +85,7 @@
   .guest-menu-view {
     padding-top: 3rem;
   }
+
   .guest-menu-grid {
     grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
     gap: 1rem;
@@ -124,6 +125,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -182,6 +184,7 @@
   color: var(--color-text-bright);
   overflow-wrap: anywhere;
   text-wrap: balance;
+  text-transform: uppercase;
 }
 
 .guest-menu-card-meta {
@@ -213,7 +216,7 @@
   animation-name: none;
 }
 
-.guest-menu-card.is-out > :not(.guest-menu-card-out) {
+.guest-menu-card.is-out> :not(.guest-menu-card-out) {
   opacity: 0.4;
 }
 
@@ -256,6 +259,7 @@
   .guest-menu-card {
     animation: none;
   }
+
   .guest-menu-card,
   .guest-menu-card-glass {
     transition: none;
@@ -428,9 +432,11 @@
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent 100%);
     mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-left), #000 calc(100% - var(--fade-right)), transparent 100%);
   }
+
   .guest-menu-chips.can-scroll-left {
     --fade-left: 28px;
   }
+
   .guest-menu-chips.can-scroll-right {
     --fade-right: 44px;
   }
@@ -505,6 +511,7 @@
   .guest-menu-view {
     --guest-bar-top: 0.75rem;
   }
+
   .guest-menu-filters {
     margin: 0 0 1.5rem;
     padding: 1rem 1.25rem 0.9rem;
@@ -512,6 +519,7 @@
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
   }
+
   .guest-menu-chips {
     flex-wrap: wrap;
     justify-content: center;
@@ -833,7 +841,9 @@
 }
 
 @keyframes shuffleIn {
-  from { opacity: 0; }
+  from {
+    opacity: 0;
+  }
 }
 
 .guest-shuffle-close {
@@ -890,13 +900,33 @@
   animation: shuffleRing 1.5s ease-out infinite;
 }
 
-.guest-shuffle-ring:nth-child(1) { width: 170px; height: 170px; }
-.guest-shuffle-ring:nth-child(2) { width: 230px; height: 230px; animation-delay: 0.5s; }
-.guest-shuffle-ring:nth-child(3) { width: 290px; height: 290px; animation-delay: 1s; }
+.guest-shuffle-ring:nth-child(1) {
+  width: 170px;
+  height: 170px;
+}
+
+.guest-shuffle-ring:nth-child(2) {
+  width: 230px;
+  height: 230px;
+  animation-delay: 0.5s;
+}
+
+.guest-shuffle-ring:nth-child(3) {
+  width: 290px;
+  height: 290px;
+  animation-delay: 1s;
+}
 
 @keyframes shuffleRing {
-  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }
-  100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 0;
+  }
 }
 
 .guest-shuffle-sparkles {
@@ -919,12 +949,19 @@
 }
 
 @keyframes shuffleOrbit {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes shuffleTwinkle {
-  from { opacity: 0.35; }
-  to { opacity: 1; }
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .guest-shuffle-glass {
@@ -974,8 +1011,17 @@
 }
 
 @keyframes shuffleFlash {
-  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; border-width: 3px; }
-  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; border-width: 1px; }
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 1;
+    border-width: 3px;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+    border-width: 1px;
+  }
 }
 
 /* The sparkles keep drifting for a moment after the drink is picked, then
@@ -1053,12 +1099,33 @@
 
 /* Short screens (landscape phones): shrink the glass so the reveal fits. */
 @media (max-height: 640px) {
-  .guest-shuffle-arena { width: 220px; height: 170px; }
-  .guest-shuffle-glass { height: 140px; }
-  .guest-shuffle-sparkles i { transform: rotate(var(--a)) translateY(-84px); }
-  .guest-shuffle-ring:nth-child(1) { width: 120px; height: 120px; }
-  .guest-shuffle-ring:nth-child(2) { width: 165px; height: 165px; }
-  .guest-shuffle-ring:nth-child(3) { width: 210px; height: 210px; }
+  .guest-shuffle-arena {
+    width: 220px;
+    height: 170px;
+  }
+
+  .guest-shuffle-glass {
+    height: 140px;
+  }
+
+  .guest-shuffle-sparkles i {
+    transform: rotate(var(--a)) translateY(-84px);
+  }
+
+  .guest-shuffle-ring:nth-child(1) {
+    width: 120px;
+    height: 120px;
+  }
+
+  .guest-shuffle-ring:nth-child(2) {
+    width: 165px;
+    height: 165px;
+  }
+
+  .guest-shuffle-ring:nth-child(3) {
+    width: 210px;
+    height: 210px;
+  }
 }
 
 /* Handing off to the recipe: stop taking taps while it loads underneath. */
@@ -1067,16 +1134,26 @@
 }
 
 /* The site footer sits under the "made with" line, so tighten the gap. */
-.guest-menu-footer + .home-footer {
+.guest-menu-footer+.home-footer {
   margin-top: 1.25rem;
 }
 
 /* ---- Search -------------------------------------------------------------- */
 .guest-menu-search {
-  position: relative;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.55rem;
+}
+
+/* The input, its icon, and its clear button. The icon and clear button are
+   positioned against this, so the avoid button beside it never overlaps them. */
+.guest-menu-search-field {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
 }
 
 .guest-menu-search-icon {
@@ -1203,6 +1280,7 @@
 }
 
 @media (min-width: 900px) {
+
   /* Flush under the bar: any gap would be a strip where cards scroll through. */
   .guest-menu-section-heading {
     margin-left: 0;
@@ -1235,17 +1313,25 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .guest-menu-filters,
   .guest-menu-section-heading {
     transition: none;
   }
 }
 
-/* A drink's page ends in its own sticky action bar, which handles the iPhone's
-   home-indicator inset itself; the page's usual bottom padding would leave dead
-   scroll space beneath it. */
+/* A drink's page has a sticky topbar and sticky action bar, which handle
+   the insets themselves; the page's usual vertical padding would leave dead
+   scroll space. */
 .guest-menu-view.is-recipe {
+  padding-top: 0;
   padding-bottom: 0;
+}
+
+@media (min-width: 900px) {
+  .guest-menu-view.is-recipe {
+    padding-top: 0.75rem;
+  }
 }
 
 /* On phones the app reserves 3.5rem at the bottom of its main stage (sized to
@@ -1277,12 +1363,201 @@
     padding: 1rem 0;
     text-align: left;
   }
-  .guest-shuffle-arena { grid-area: arena; }
-  .guest-shuffle-caption { grid-area: caption; }
-  .guest-shuffle-name { grid-area: name; font-size: clamp(1.6rem, 5vw, 2.2rem); }
-  .guest-shuffle-name.is-final { font-size: clamp(1.8rem, 5.5vw, 2.4rem); }
-  .guest-shuffle-reveal { grid-area: reveal; align-items: flex-start; gap: 0.4rem; }
-  .guest-shuffle-actions { justify-content: flex-start; margin-top: 0.3rem; }
-  .guest-shuffle-skip { grid-area: skip; }
-  .guest-shuffle-blurb { font-size: 0.86rem; line-height: 1.4; }
+
+  .guest-shuffle-arena {
+    grid-area: arena;
+  }
+
+  .guest-shuffle-caption {
+    grid-area: caption;
+  }
+
+  .guest-shuffle-name {
+    grid-area: name;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+  }
+
+  .guest-shuffle-name.is-final {
+    font-size: clamp(1.8rem, 5.5vw, 2.4rem);
+  }
+
+  .guest-shuffle-reveal {
+    grid-area: reveal;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .guest-shuffle-actions {
+    justify-content: flex-start;
+    margin-top: 0.3rem;
+  }
+
+  .guest-shuffle-skip {
+    grid-area: skip;
+  }
+
+  .guest-shuffle-blurb {
+    font-size: 0.86rem;
+    line-height: 1.4;
+  }
+}
+
+/* ---- Avoid (egg, dairy, tree nuts, honey) --------------------------------- */
+/* A fixed 44px square beside the search box: it never changes size or label, and
+   the count is a badge laid over its corner, so choosing something moves nothing. */
+.guest-menu-diet-btn {
+  position: relative;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(245, 240, 230, 0.14);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.guest-menu-diet-btn:hover {
+  color: var(--color-text);
+  border-color: rgba(245, 240, 230, 0.3);
+}
+
+.guest-menu-diet-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.guest-menu-diet-btn[aria-pressed="true"] {
+  border-color: rgba(212, 163, 89, 0.6);
+  background: rgba(212, 163, 89, 0.14);
+  color: var(--color-accent-light);
+}
+
+.guest-menu-diet-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--color-accent);
+  color: #1a1206;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.guest-menu-diet-count[hidden] {
+  display: none;
+}
+
+/* Shown only to a guest who is avoiding egg: this drink is here because the host
+   will make it without. */
+.guest-menu-card-note {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-accent-light);
+}
+
+.guest-diet-sheet {
+  width: min(300px, calc(100vw - 24px));
+  padding: 1rem 1.1rem 0.9rem;
+  border: 1px solid rgba(245, 240, 230, 0.16);
+  border-radius: 16px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+
+.guest-diet-sheet::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Anchored under the button that opened it (placed in guest-diet-sheet.js). It
+   grows out of that button and shrinks back into it, rather than rising from the
+   bottom of the screen. */
+.guest-diet-sheet.is-anchored {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  transform-origin: var(--diet-origin-x, 50%) var(--diet-origin-y, 0);
+}
+
+.guest-diet-sheet.dialog-motion.is-anchored[open] {
+  animation: diet-pop-in 300ms cubic-bezier(0.2, 1.1, 0.3, 1) both;
+}
+
+.guest-diet-sheet.dialog-motion.is-anchored.is-closing {
+  animation: diet-pop-out 170ms ease-in both;
+}
+
+@keyframes diet-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+}
+
+@keyframes diet-pop-out {
+  to {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .guest-diet-sheet.dialog-motion.is-anchored[open],
+  .guest-diet-sheet.dialog-motion.is-anchored.is-closing {
+    animation: none;
+  }
+}
+
+.guest-diet-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--color-text-bright);
+}
+
+.guest-diet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.guest-diet-chip {
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1px solid rgba(245, 240, 230, 0.18);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.guest-diet-chip[aria-pressed="true"] {
+  border-color: rgba(212, 163, 89, 0.6);
+  background: rgba(212, 163, 89, 0.16);
+  color: var(--color-accent-light);
+  font-weight: 600;
+}
+
+.guest-diet-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.1rem;
 }

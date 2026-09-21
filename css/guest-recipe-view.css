@@ -47,16 +47,112 @@
   margin: 0 auto;
 }
 
+/* Sticky topbar: pins to the top of the screen as the guest scrolls.
+   The recipe name appears once they scroll past the card's main title,
+   matching the counter view's mobile sticky header. */
 .guest-recipe-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
-  min-height: 40px;
-  margin-bottom: 1rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  margin: 0 -1rem 1rem;
+  padding: max(0.5rem, env(safe-area-inset-top, 0px)) 1rem 0.5rem;
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.guest-recipe-topbar.is-scrolled,
+.guest-recipe-topbar:has(.guest-recipe-sticky-title.visible) {
+  border-bottom-color: var(--color-border-subtle);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .guest-recipe-topbar .menu-builder-back-link {
   min-height: 40px;
+  min-width: 40px;
   margin-bottom: 0;
+  flex: 0 0 auto;
+}
+
+/* Once the drink name is showing beside it, "Menu" is redundant context and
+   the width it costs is what a long name needs to avoid truncating sooner than
+   it has to on small screens. */
+.guest-recipe-topbar:has(.guest-recipe-sticky-title.visible) .guest-recipe-back-text,
+.guest-recipe-topbar.is-scrolled .guest-recipe-back-text {
+  display: none;
+}
+
+/* Inline scrolled drink title in the sticky topbar */
+.guest-recipe-sticky-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+
+.guest-recipe-sticky-title.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.guest-recipe-sticky-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Balances the Back button on the left so the title remains centered */
+.guest-recipe-topbar-spacer {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 1px;
+  pointer-events: none;
+}
+
+@media (min-width: 620px) {
+  .guest-recipe-topbar:has(.guest-recipe-sticky-title.visible) .guest-recipe-back-text,
+  .guest-recipe-topbar.is-scrolled .guest-recipe-back-text {
+    display: inline;
+  }
+
+  .guest-recipe-topbar-spacer {
+    width: 60px;
+  }
+}
+
+@media (min-width: 900px) {
+  .guest-recipe-topbar {
+    top: 0.75rem;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0.6rem 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+  }
+
+  .guest-recipe-topbar.is-scrolled,
+  .guest-recipe-topbar:has(.guest-recipe-sticky-title.visible) {
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-md);
+  }
 }
 
 .guest-recipe-card {
@@ -99,6 +195,7 @@
   color: var(--color-text-bright);
   overflow-wrap: anywhere;
   text-wrap: balance;
+  text-transform: uppercase;
 }
 
 .guest-recipe-moods {
@@ -502,10 +599,13 @@
 @media (prefers-reduced-motion: reduce) {
 
   .guest-recipe-save svg,
-  .guest-recipe-method-chevron {
+  .guest-recipe-method-chevron,
+  .guest-recipe-topbar,
+  .guest-recipe-sticky-title {
     transition: none;
   }
 }
+
 /* Where the recipe comes from: plain attribution, not a link. */
 .guest-recipe-source {
   margin: 0 0 0.6rem;
@@ -523,4 +623,10 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-text-faint);
+}
+
+/* ---- Dietary notes: sits a little closer to the ingredients on the guest page ---- */
+.guest-recipe .diet-notes {
+  margin: -0.6rem 0 1.4rem;
+  font-size: 0.92rem;
 }

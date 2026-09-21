@@ -466,3 +466,55 @@
   color: var(--color-text-muted);
   font-weight: 500;
 }
+/* ---- Avoid (egg, dairy, tree nuts, honey), beside the search box ------------- */
+.sidebar-diet-btn {
+  position: relative;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #1a283c;
+  border: 1.5px solid rgba(235, 188, 114, 0.4);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+
+.sidebar-diet-btn:hover,
+.sidebar-diet-btn:focus-visible {
+  color: var(--color-text-bright);
+  border-color: var(--color-accent);
+  outline: none;
+}
+
+.sidebar-diet-btn[aria-pressed="true"] {
+  color: var(--color-accent-light);
+  border-color: var(--color-accent);
+  background: rgba(212, 163, 89, 0.16);
+}
+
+/* The count is laid over the corner, so lighting the button never resizes it. */
+.sidebar-diet-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: #1a1206;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+
+.sidebar-diet-count[hidden] {
+  display: none;
+}
