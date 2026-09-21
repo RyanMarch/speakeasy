@@ -441,3 +441,14 @@ export function isHotBeverage(recipe, glassware = null) {
 
   return false;
 }
+
+/**
+ * A glass's name as a person would say it in a sentence: "Rocks" becomes
+ * "Rocks glass", "Nick & Nora" becomes "Nick & Nora glass", while "Mug" and
+ * "Tiki Mug" already read fine and are left alone.
+ */
+export function glassLabel(glassware = '') {
+  const name = String(glassware || '').trim();
+  if (!name) return '';
+  return /\b(glass|mug|cup|bowl)$/i.test(name) ? name : `${name} glass`;
+}

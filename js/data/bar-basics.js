@@ -67,7 +67,7 @@ export const BAR_BASICS = [
     ],
     keeps: 'About 1 month',
     tips: [
-      'No stove? Shake equal parts sugar and very hot tap water in a sealed jar until clear.',
+      'Alternatively, shake equal parts sugar and very hot tap water in a sealed jar until clear.',
       'Weigh the sugar and water for the most consistent sweetness from batch to batch.',
     ],
   },
@@ -139,7 +139,7 @@ export const BAR_BASICS = [
     keeps: '2 to 4 weeks',
     tips: [
       'Use a mild honey such as clover or wildflower. Stronger honeys can take over a drink.',
-      'Prefer it thicker and richer? Use 3 parts honey to 1 part water, and pour a little less.',
+      'For a thicker, richer syrup, use 3 parts honey to 1 part water, and pour a little less.',
       'It thickens in the fridge. Warm the jar in your hands or in a bowl of warm water before measuring.',
     ],
   },

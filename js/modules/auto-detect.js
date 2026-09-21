@@ -145,7 +145,6 @@ function detectDominantSpiritTag(specs) {
 // for a descriptive tag — these aren't about which one dominates the drink,
 // just whether the character is there at all.
 const FAMILY_PRESENCE_TAGS = [
-  ['citrus_juice', 'citrus-forward'],
   ['floral_liqueur', 'floral'],
   ['fruit_juice', 'fruity'],
   ['fruit_liqueur', 'fruity'],
@@ -170,21 +169,41 @@ function detectIngredientPresenceTags(specs) {
 }
 
 // calculateBalanceProfile's scores are already rescaled against the seed
-// corpus so that ~55+ reliably reads as "this axis is a real part of the
-// drink's character," not just present in trace amounts.
-const FLAVOR_TAG_THRESHOLD = 55;
+// corpus, so each axis needs its own bar for "a real part of the drink's
+// character." These were tuned against the curated tags on the bundled library
+// (see tests/auto-detect-test.js): a tag that fires on most drinks tells a user
+// nothing, so `sweet` (fired on ~60% of recipes) and the old plain `bitter`
+// (~22%, against 4% curated) were retired. `bittersweet` at a high bar is the
+// bitter signal that actually tracks how the library uses the word.
+const FLAVOR_TAG_RULES = [
+  { axis: 'herbal', tag: 'herbal', min: 55 },
+  { axis: 'sour', tag: 'sour', min: 55 },
+  { axis: 'bitter', tag: 'bittersweet', min: 60 },
+];
 
 function detectFlavorTags(specs) {
   const profile = calculateBalanceProfile(specs);
-  return [
-    ['herbal', 'herbal'],
-    ['sweet', 'sweet'],
-    ['sour', 'sour'],
-    ['bitter', 'bitter'],
-  ]
-    .filter(([axis]) => (profile[axis] || 0) >= FLAVOR_TAG_THRESHOLD)
-    .sort((a, b) => profile[b[0]] - profile[a[0]])
-    .map(([, tag]) => tag);
+  return FLAVOR_TAG_RULES
+    .filter(({ axis, min }) => (profile[axis] || 0) >= min)
+    .sort((a, b) => profile[b.axis] - profile[a.axis])
+    .map(({ tag }) => tag);
+}
+
+// Citrus is in most sours, so mere presence says nothing; "citrus-forward"
+// should mean citrus is a large part of what's in the glass.
+const CITRUS_FORWARD_MIN_SHARE = 0.3;
+
+function detectCitrusForwardTag(specs) {
+  let citrusOz = 0;
+  let totalOz = 0;
+  for (const spec of specs || []) {
+    if (!spec?.name?.trim()) continue;
+    const oz = normalizeVolumeToOz(spec.amount, spec.unit);
+    if (oz <= 0) continue;
+    totalOz += oz;
+    if (findIngredient(spec.name)?.family === 'citrus_juice') citrusOz += oz;
+  }
+  return totalOz > 0 && citrusOz / totalOz >= CITRUS_FORWARD_MIN_SHARE ? 'citrus-forward' : null;
 }
 
 function detectAbvTag(specs, method) {
@@ -194,7 +213,7 @@ function detectAbvTag(specs, method) {
   // High-proof and built/stirred (not shaken with juice) matches how
   // "slow-sipper" is already used across the seed library: strong,
   // all-spirits drinks meant to be nursed, not gulped.
-  if (estimatedAbv >= 28 && (method === 'Stirred' || method === 'Built')) return 'slow-sipper';
+  if (estimatedAbv >= 26 && (method === 'Stirred' || method === 'Built')) return 'slow-sipper';
   return null;
 }
 
@@ -238,8 +257,14 @@ function detectSpicyTag(specs) {
 }
 
 // A recipe qualifies as split-base when two or more distinct spirit families
-// each contribute at least this share of the total spirit volume.
-const SPLIT_BASE_MIN_SHARE = 0.25;
+// each contribute at least this share of the total base-spirit volume.
+const SPLIT_BASE_MIN_SHARE = 0.35;
+
+// Only true base spirits count. Vermouth, sherry, wine, and amaro are
+// modifiers even at equal volume: a Negroni is not a "split base."
+const SPLIT_BASE_FAMILIES = new Set([
+  'whiskey', 'gin', 'rum', 'tequila', 'neutral_spirits', 'brandy', 'cane_spirits', 'agave_spirits',
+]);
 
 /**
  * Returns 'split-base' when two or more distinct spirit families each hold at
@@ -254,7 +279,7 @@ function detectSplitBaseTag(specs) {
   for (const spec of specs || []) {
     if (!spec?.name?.trim()) continue;
     const item = findIngredient(spec.name);
-    if (!item || !BASE_SPIRIT_FAMILY_TAGS[item.family]) continue;
+    if (!item || !SPLIT_BASE_FAMILIES.has(item.family)) continue;
     const oz = normalizeVolumeToOz(spec.amount, spec.unit);
     if (oz <= 0) continue;
     familyVolumes[item.family] = (familyVolumes[item.family] || 0) + oz;
@@ -269,19 +294,76 @@ function detectSplitBaseTag(specs) {
   return qualifyingFamilies.length >= 2 ? 'split-base' : null;
 }
 
+// Ingredient-name signals for tags with no dedicated taxonomy family. Matching
+// on the typed name (not a resolved id) is deliberate: "orgeat", "falernum",
+// and "espresso" are exactly how these drinks get written, and each pattern was
+// measured for precision against the curated tags on the bundled library.
+const TROPICAL_PATTERN = /pineapple|coconut|passion|orgeat|falernum|guava|mango|banana|papaya|allspice dram/i;
+const COFFEE_PATTERN = /espresso|coffee|kahl[uú]a|mr\.? black/i;
+const EGG_PATTERN = /egg white|aquafaba|whole egg|\begg\b/i;
+const SPICE_PATTERN = /allspice|cinnamon|clove|cardamom|nutmeg|spiced rum|pimento|falernum|\bdram\b/i;
+const BUBBLY_PATTERN = /soda water|club soda|tonic|ginger beer|ginger ale|prosecco|champagne|sparkling|cava|\bcola\b/i;
+const CREAMY_PATTERN = /cream|milk|half.?and.?half/i;
+
+// A drink is "refreshing" when it's long and/or bubbly and not rich or very
+// strong. Deliberately generous on classics like a French 75 or Aperol Spritz,
+// which the curated library under-tags.
+const REFRESHING_MAX_ABV = 22;
+
+function specNamesMatch(specs, pattern) {
+  return (specs || []).some(spec => spec?.name && pattern.test(spec.name));
+}
+
+function detectNameSignalTags(specs, { glassware } = {}) {
+  const tags = [];
+  const isLongGlass = /highball|collins/i.test(glassware || '');
+  const isMug = /mug/i.test(glassware || '');
+
+  if (isLongGlass) tags.push('highball');
+  if (isMug || specNamesMatch(specs, TROPICAL_PATTERN)) {
+    // A mug alone is only tropical if it isn't a hot drink (those get 'hot').
+    if (specNamesMatch(specs, TROPICAL_PATTERN) || /tiki/i.test(glassware || '')) tags.push('tropical-tiki');
+  }
+  if (specNamesMatch(specs, COFFEE_PATTERN)) tags.push('coffee');
+  if (specNamesMatch(specs, EGG_PATTERN)) tags.push('silky');
+  if (specNamesMatch(specs, SPICE_PATTERN)) tags.push('spiced');
+  return tags;
+}
+
+function detectRefreshingTag(specs, method, { glassware } = {}) {
+  if (/mug/i.test(glassware || '')) return null;
+  const isLongOrBubbly = /highball|collins/i.test(glassware || '') || specNamesMatch(specs, BUBBLY_PATTERN);
+  if (!isLongOrBubbly || specNamesMatch(specs, CREAMY_PATTERN)) return null;
+  const { estimatedAbv } = calculateCocktailAbv(specs, method);
+  return estimatedAbv <= REFRESHING_MAX_ABV ? 'refreshing' : null;
+}
+
+// Tags are capped because "more tags" is not "a better experience": each one
+// is a thing a user has to read and a filter that has to mean something.
+const MAX_AUTO_TAGS = 6;
+
 /**
  * Suggests a small, capped set of tags from a recipe's ingredients, computed
  * flavor balance, and ABV. Always additive (the caller should only use this to
- * add tags, never remove existing ones) and ordered most-defining-first:
- * dominant spirit, then flavor character, then other ingredient signals, then
- * strength — so if the cap trims the list, what's cut is the least specific.
+ * add tags, never remove existing ones) and ordered most-defining-first so
+ * that if the cap trims the list, what's cut is the least specific:
+ *
+ *   1. dominant spirit          (what it's made of)
+ *   2. structure                (highball, tropical, hot)
+ *   3. character                (refreshing, bittersweet, herbal, sour, …)
+ *   4. strength and structure   (slow-sipper, low-abv, split-base)
+ *
+ * Rules are tuned against the curated tags on the bundled library; see
+ * tests/auto-detect-test.js for the measured precision/recall floors.
  */
 export function detectTagsFromRecipe(specs, method, extraContext = {}) {
   const tags = [];
   const spiritTag = detectDominantSpiritTag(specs);
   if (spiritTag) tags.push(spiritTag);
-  tags.push(...detectFlavorTags(specs));
-  tags.push(...detectIngredientPresenceTags(specs));
+
+  const nameSignals = detectNameSignalTags(specs, extraContext);
+  const structural = nameSignals.filter(t => t === 'highball' || t === 'tropical-tiki');
+  tags.push(...structural);
 
   // Detect hot beverage tag from ingredients or context
   const hasHotIngredient = (specs || []).some(s => HOT_INGREDIENT_PATTERN.test(s?.name || ''));
@@ -291,16 +373,26 @@ export function detectTagsFromRecipe(specs, method, extraContext = {}) {
     tags.push('hot');
   }
 
+  const refreshingTag = detectRefreshingTag(specs, method, extraContext);
+  if (refreshingTag) tags.push(refreshingTag);
+
+  tags.push(...detectFlavorTags(specs));
+  const citrusTag = detectCitrusForwardTag(specs);
+  if (citrusTag) tags.push(citrusTag);
+  tags.push(...detectIngredientPresenceTags(specs));
+  tags.push(...nameSignals.filter(t => !structural.includes(t)));
+
   const smokyTag = detectSmokyTag(specs);
   if (smokyTag) tags.push(smokyTag);
 
   const spicyTag = detectSpicyTag(specs);
   if (spicyTag) tags.push(spicyTag);
 
+  const abvTag = detectAbvTag(specs, method);
+  if (abvTag) tags.push(abvTag);
+
   const splitBaseTag = detectSplitBaseTag(specs);
   if (splitBaseTag) tags.push(splitBaseTag);
 
-  const abvTag = detectAbvTag(specs, method);
-  if (abvTag) tags.push(abvTag);
-  return Array.from(new Set(tags)).slice(0, 8);
+  return Array.from(new Set(tags)).slice(0, MAX_AUTO_TAGS);
 }

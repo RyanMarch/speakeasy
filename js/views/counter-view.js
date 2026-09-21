@@ -52,6 +52,9 @@ import { openRatingModal, renderStarsHtml } from '../components/rating-modal.js'
 import { openCalculatorModal } from '../components/calculator-modal.js';
 import { openBarBasicsSheet } from '../components/bar-basics-sheet.js';
 import { getBarBasic } from '../data/bar-basics.js';
+import { dietNotesHtml } from '../components/diet-notes.js';
+import { applyBarDiet } from '../modules/dietary.js';
+import { canAddToMenu, startAddToMenu } from './add-to-menu.js';
 import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
 
 let _selectRecipeFn = null;
@@ -926,6 +929,18 @@ export function renderCounterView() {
                 </button>
               `}
 
+              ${canAddToMenu() ? /*html*/ `
+                <button type="button" id="btn-add-to-menu" class="vault-action-item" role="menuitem">
+                  <span class="vault-action-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="14 3 14 9 20 9"></polyline><line x1="12" y1="12" x2="12" y2="18"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                  </span>
+                  <span class="vault-action-meta">
+                    <span class="vault-action-label">Add to Menu</span>
+                    <span class="vault-action-sub">Put this drink on an event menu</span>
+                  </span>
+                </button>
+              ` : ''}
+
               <button type="button" id="btn-print-recipe-card" class="vault-action-item" role="menuitem">
                 <span class="vault-action-icon">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1107,6 +1122,7 @@ export function renderCounterView() {
             ${addRiffIngredientRowHtml}
             ${garnishRowHtml}
           </div>
+          ${dietNotesHtml(applyBarDiet({ ...recipe, specs: effectiveSpecs }, state.foamerForEgg))}
         </div>
 
         <!-- Method Section -->
@@ -1553,6 +1569,13 @@ export function renderCounterView() {
     if (entryId) {
       openRatingModal(entryId, recipe.name, { onSaved: () => renderCounterView() });
     }
+  });
+
+  // Add to Menu: one menu, straight in; several, a small chooser.
+  document.getElementById('btn-add-to-menu')?.addEventListener('click', (e) => {
+    const trigger = e.currentTarget;
+    moreActionsPopover?.hidePopover();
+    startAddToMenu(recipe, { returnFocusTo: document.getElementById('btn-counter-more') || trigger });
   });
 
   // Print Recipe Card: opens a small standalone print window rather than

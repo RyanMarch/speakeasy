@@ -7,59 +7,14 @@
  */
 
 import { jsonResponse } from '../_lib/http.js';
-import { SHARE_ID_ALPHABET, SHARE_ID_LENGTH } from './_lib.js';
+import { generateShareId, sanitizeSharedRecipe } from './_lib.js';
 
 const MAX_RECIPE_JSON_BYTES = 50 * 1024;
-const MAX_ARRAY_ITEMS = 100;
 // The link-preview image is rendered client-side (see counter-view.js
 // shareCustomRecipe()) — a 1200x630 PNG of this card design typically lands
 // well under 200KB; this is a generous ceiling against a malformed/oversized
 // upload, not a tuned budget.
 const MAX_OG_IMAGE_BYTES = 500 * 1024;
-
-function generateShareId() {
-  const bytes = new Uint8Array(SHARE_ID_LENGTH);
-  crypto.getRandomValues(bytes);
-  let id = '';
-  for (let i = 0; i < SHARE_ID_LENGTH; i++) {
-    id += SHARE_ID_ALPHABET[bytes[i] % SHARE_ID_ALPHABET.length];
-  }
-  return id;
-}
-
-function sanitizeSharedRecipe(body) {
-  if (!body || typeof body !== 'object') return null;
-  if (typeof body.name !== 'string' || !body.name.trim()) return null;
-
-  const tags = Array.isArray(body.tags)
-    ? Array.from(new Set(body.tags.map(t => String(t).trim().toLowerCase()).filter(Boolean))).slice(0, MAX_ARRAY_ITEMS)
-    : [];
-
-  const specs = Array.isArray(body.specs)
-    ? body.specs.slice(0, MAX_ARRAY_ITEMS).map(s => ({
-        amount: s && s.amount !== null && s.amount !== undefined && !isNaN(Number(s.amount)) ? Number(s.amount) : null,
-        unit: (s && typeof s.unit === 'string') ? s.unit : '',
-        name: (s && typeof s.name === 'string') ? s.name : '',
-        abv: s && s.abv !== null && s.abv !== undefined && !isNaN(Number(s.abv)) ? Number(s.abv) : undefined,
-      }))
-    : [];
-
-  return {
-    name: body.name.trim(),
-    glassware: typeof body.glassware === 'string' ? body.glassware : 'Rocks',
-    method: typeof body.method === 'string' ? body.method : 'Stirred',
-    garnish: typeof body.garnish === 'string' ? body.garnish : '',
-    instructions: typeof body.instructions === 'string' ? body.instructions : '',
-    description: typeof body.description === 'string' ? body.description : '',
-    notes: typeof body.notes === 'string' ? body.notes : '',
-    source: typeof body.source === 'string' ? body.source : '',
-    sourceUrl: typeof body.sourceUrl === 'string' ? body.sourceUrl : '',
-    riffOfId: typeof body.riffOfId === 'string' ? body.riffOfId : null,
-    riffOfName: typeof body.riffOfName === 'string' ? body.riffOfName : '',
-    tags,
-    specs,
-  };
-}
 
 /**
  * Decodes the client's `data:image/png;base64,...` (or bare base64) upload

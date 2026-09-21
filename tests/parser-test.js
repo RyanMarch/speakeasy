@@ -150,7 +150,7 @@ console.log('Fluid layers count:', seaLegsLayers.length);
 const seaLegsAbv = calculateCocktailAbv(seaLegsSpecs, 'Shaken');
 console.log('Sea Legs ABV (Shaken):', seaLegsAbv.estimatedAbv, '% (Rounded:', Math.round(seaLegsAbv.estimatedAbv), '%)');
 
-import { findIngredient, getIngredientMetadata, ingredientMatchesQuery, recipeMatchesQuery } from '../js/modules/taxonomy.js';
+import { findIngredient, getIngredientMetadata, ingredientMatchesQuery, recipeMatchesQuery, calculateRecipeSearchScore } from '../js/modules/taxonomy.js';
 import { getIngredientColor } from '../js/modules/colors.js';
 
 console.log('--- Testing Taxonomy & Alias Resolution ---');
@@ -658,6 +658,55 @@ if (recipeMatchesQuery(darkNStormy, 'ginger lime tequila')) {
   throw new Error('recipeMatchesQuery should not match when an AND token is absent');
 }
 console.log('Multi-term recipe query matching verified.');
+
+// 4. Search relevance scoring (calculateRecipeSearchScore)
+const chocolateBananaRumhattan = {
+  name: 'Chocolate Banana Rumhattan',
+  specs: [
+    { amount: 2, unit: 'oz', name: 'Rum' },
+    { amount: 1, unit: 'oz', name: 'Sweet Vermouth' },
+    { amount: 0.5, unit: 'oz', name: 'Banana Liqueur' },
+  ],
+};
+const leftHand = {
+  name: 'Left Hand',
+  description: 'Anchoring fine bourbon and bitter Campari with chocolate bitters.',
+  instructions: 'Combine bourbon, Campari, sweet vermouth, and chocolate bitters.',
+  specs: [
+    { amount: 1.5, unit: 'oz', name: 'Bourbon' },
+    { amount: 0.75, unit: 'oz', name: 'Campari' },
+    { amount: 0.75, unit: 'oz', name: 'Sweet Vermouth' },
+    { amount: 2, unit: 'dashes', name: 'Chocolate Bitters' },
+  ],
+};
+const brandyAlexander = {
+  name: 'Brandy Alexander',
+  specs: [
+    { amount: 1.5, unit: 'oz', name: 'Cognac' },
+    { amount: 1, unit: 'oz', name: 'Crème De Cacao' },
+    { amount: 1, unit: 'oz', name: 'Heavy Cream' },
+  ],
+};
+
+const scoreName = calculateRecipeSearchScore(chocolateBananaRumhattan, 'chocolate');
+const scoreIngredient = calculateRecipeSearchScore(leftHand, 'chocolate');
+const scoreTaxonomy = calculateRecipeSearchScore(brandyAlexander, 'chocolate');
+
+if (scoreName <= scoreIngredient) {
+  throw new Error(`Name match score (${scoreName}) should be higher than ingredient match score (${scoreIngredient})`);
+}
+if (scoreIngredient <= scoreTaxonomy) {
+  throw new Error(`Direct ingredient score (${scoreIngredient}) should be higher than taxonomy score (${scoreTaxonomy})`);
+}
+
+// Exact name match vs prefix match
+const exactChocolate = { name: 'Chocolate', specs: [] };
+const scoreExact = calculateRecipeSearchScore(exactChocolate, 'chocolate');
+if (scoreExact <= scoreName) {
+  throw new Error(`Exact name match (${scoreExact}) should score higher than prefix name match (${scoreName})`);
+}
+
+console.log('Search relevance scoring and ranking verified.');
 
 
 console.log('--- Testing URL-Safe Slug Generation ---');

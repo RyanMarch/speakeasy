@@ -137,3 +137,15 @@ ON analytics_events (target_id);
 
 CREATE INDEX IF NOT EXISTS idx_analytics_events_query
 ON analytics_events (query);
+
+-- Published guest menus (Hosting Mode). See migrations/0011_add_menus.sql.
+CREATE TABLE IF NOT EXISTS menus (
+    menu_id TEXT PRIMARY KEY,
+    edit_token_hash TEXT NOT NULL,
+    name TEXT NOT NULL,
+    recipes TEXT NOT NULL,
+    unavailable TEXT NOT NULL DEFAULT '[]',
+    featured TEXT NOT NULL DEFAULT '[]',   -- host's picks (see migrations/0012_add_menu_featured.sql)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

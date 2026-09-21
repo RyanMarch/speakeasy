@@ -21,6 +21,7 @@ import {
 import { renderGlassSvg } from '../modules/glass-view.js';
 import { setupTagAutocomplete } from './recipe-list-view.js';
 import { escapeHtml, showToast } from '../components/toast.js';
+import { renderSiteFooterHtml } from '../components/site-footer.js';
 import { formatIngredientName } from '../modules/parser.js';
 import { getDrinkHistory, HISTORY_UPDATED_EVENT } from '../modules/history.js';
 import { renderStarsHtml } from '../components/rating-modal.js';
@@ -63,6 +64,21 @@ export function formatRelativeTime(dateInput) {
 // setupHomeViewEvents() to lazily fill in each shelf's cards.
 let homeCollectionsCache = [];
 
+// The "Ready to Pour" shelf isn't backed by a tag: its "See all" hands off to
+// the sidebar's Ready filter instead of a #tag search.
+const READY_SHELF_KEY = '__ready__';
+
+function openReadyList() {
+  state.inventoryFilter = 'can_make';
+  elements.sidebarInventoryFilter?.querySelectorAll('.inventory-filter-btn').forEach(btn => {
+    const isActive = btn.getAttribute('data-filter') === 'can_make';
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
+  // An empty query clears any leftover search that would silently narrow "Ready".
+  _showDrinksListMobileFn?.({ query: '' });
+}
+
 // Cap how many cards a shelf hydrates up front. Home is a landing page, not a
 // full library browse — anything beyond this defers to "See all" so we're not
 // paying render/DOM cost (or presenting a wall of cards) for shelves that can
@@ -81,6 +97,19 @@ export function renderHomeView() {
   const barName = getBarName();
   const ingredientCount = state.inventory.size;
   const cocktailCount = state.recipes.length;
+
+  // Everything the bar can make right now: the answer to "what can you make
+  // me?" without leaving Home. Hidden until there's a bar to speak of.
+  const readyRecipes = ingredientCount > 0 && !state.hiddenHomeCollections.has('__ready__')
+    ? state.recipes.filter(r => getCachedInventoryAnalysis(r).canMake)
+    : [];
+  const readyCollection = readyRecipes.length > 0 ? [{
+    key: READY_SHELF_KEY,
+    title: 'Ready to Pour',
+    pinned: false,
+    isDefault: false,
+    recipes: readyRecipes,
+  }] : [];
 
   const recentlyViewedIds = getRecentlyViewed();
   const recentlyViewedRecipes = recentlyViewedIds
@@ -174,6 +203,7 @@ export function renderHomeView() {
   }
 
   const allCollections = [
+    ...readyCollection,
     ...recentlyViewedCollection,
     ...recentlyMadeCollection,
     ...orderedMiddleCollections,
@@ -181,7 +211,7 @@ export function renderHomeView() {
   homeCollectionsCache = allCollections;
   const pinnableTags = getAllUniqueTags(state.recipes).filter(t => !state.pinnedTags.includes(t));
 
-  const topRowCount = recentlyViewedCollection.length + recentlyMadeCollection.length;
+  const topRowCount = readyCollection.length + recentlyViewedCollection.length + recentlyMadeCollection.length;
   const pinPromptIndex = topRowCount + orderedMiddleCollections.length;
 
   // "Almost Ready" is a compact banner, not a shelf — a full row of cards here
@@ -270,13 +300,7 @@ export function renderHomeView() {
 
     ${renderHomeCollectionsWithPinPrompt(allCollections, pinPromptIndex)}
 
-    <footer class="home-footer">
-      <span>&copy; 2026 <a href="https://ryanmarch.me" class="home-footer-link" target="_blank" rel="noopener">Ryan March</a></span>
-      <span class="home-footer-sep" aria-hidden="true">·</span>
-      <a href="/terms" class="home-footer-link">Terms</a>
-      <span class="home-footer-sep" aria-hidden="true">·</span>
-      <a href="/docs/" class="home-footer-link">Help</a>
-    </footer>
+    ${renderSiteFooterHtml()}
   `;
 
   setupHomeViewEvents(pinnableTags);
@@ -323,7 +347,9 @@ export function renderHomeShelf(col, idx) {
     <div class="similar-cocktails-shelf home-shelf">
       <div class="counter-card-header shelf-header">
         <div class="shelf-header-left">
-          ${!isNonTaggable ? `
+          ${col.key === READY_SHELF_KEY ? `
+            <button type="button" class="counter-card-title shelf-title-link" data-action="filter-ready" title="See everything you can make right now">${escapeHtml(col.title)}</button>
+          ` : !isNonTaggable ? `
             <button type="button" class="counter-card-title shelf-title-link" data-action="filter-shelf" data-tag="${escapeHtml(col.key)}" title="Search #${escapeHtml(col.key)}">${escapeHtml(col.title)}</button>
           ` : `
             <span class="counter-card-title">${escapeHtml(col.title)}</span>
@@ -440,6 +466,8 @@ export function setupHomeViewEvents(pinnableTags) {
     });
   });
 
+  container.querySelector('[data-action="filter-ready"]')?.addEventListener('click', openReadyList);
+
   // Lazily hydrate each shelf's cards only once it scrolls near viewport
   const hydrateShelf = (track) => {
     const idx = Number(track.dataset.shelfIdx);
@@ -473,7 +501,9 @@ export function setupHomeViewEvents(pinnableTags) {
 
     track.querySelector('.home-see-all-card')?.addEventListener('click', (e) => {
       const tag = e.currentTarget.getAttribute('data-tag');
-      if (tag && _showDrinksListMobileFn) _showDrinksListMobileFn({ query: `#${tag}` });
+      if (tag === READY_SHELF_KEY) {
+        openReadyList();
+      } else if (tag && _showDrinksListMobileFn) _showDrinksListMobileFn({ query: `#${tag}` });
     });
   };
 

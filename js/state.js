@@ -9,6 +9,7 @@ import {
   getUnitPreference,
   getGlassViewPreference,
   getFunPreference,
+  getFoamerPreference,
   getInventory,
   getSortPreference,
   getBars,
@@ -18,6 +19,7 @@ import {
 } from './modules/storage.js';
 
 import { analyzeRecipeInventory } from './modules/taxonomy.js';
+import { loadAvoid, LIBRARY_AVOID_KEY } from './modules/dietary.js';
 
 export const SEED_RECIPE_IDS = new Set(SEED_RECIPES.map(r => r.id));
 
@@ -56,14 +58,17 @@ export const state = {
   riffRemovedSpecs: new Set(), // Set<specIndex> — existing specs dropped from the recipe while riffing
   riffModeActive: false,
   searchQuery: '',
-  viewMode: 'counter', // 'home' | 'counter' | 'edit' | 'menu-builder' | 'account' | 'shared-recipe'
+  avoidFilter: loadAvoid(LIBRARY_AVOID_KEY), // Set<'egg'|'dairy'|'nuts'|'honey'>: drinks with these are hidden from the library list
+  viewMode: 'counter', // 'home' | 'counter' | 'edit' | 'menu-builder' | 'account' | 'shared-recipe' | 'guest-menu'
   pendingShareId: null, // share id to render when viewMode === 'shared-recipe'
+  pendingGuestMenu: null, // { menuId, drinkId } to render when viewMode === 'guest-menu'
   pinnedTags: getPinnedTags(),
   homeCollectionsOrder: getHomeCollectionsOrder(),
   hiddenHomeCollections: new Set(getHiddenHomeCollections()),
   unitSystem: getUnitPreference(), // 'oz' | 'ml'
   glassViewMode: getGlassViewPreference(), // 'layered' | 'blended'
   funAnimations: getFunPreference(), // boolean (default true)
+  foamerForEgg: getFoamerPreference(), // boolean: egg-white drinks are made with cocktail foamer, so they're not egg drinks
   servings: 1, // Serving multiplier (default 1, increments by 0.5)
   editorSpecs: [],
   editorTags: [],
@@ -138,6 +143,8 @@ export function initElements() {
   elements.recipeList = document.getElementById('recipe-list');
   elements.searchInput = document.getElementById('search-input');
   elements.searchClearBtn = document.getElementById('search-clear-btn');
+  elements.sidebarDietBtn = document.getElementById('sidebar-diet-btn');
+  elements.sidebarDietCount = document.getElementById('sidebar-diet-count');
   elements.btnNewDrink = document.getElementById('btn-new-drink');
   elements.btnPopoverNewDrink = document.getElementById('btn-popover-new-drink');
   elements.btnExportJson = document.getElementById('btn-export-json');
@@ -168,6 +175,7 @@ export function initElements() {
   elements.countCanMake = document.getElementById('count-can-make');
   elements.backbarModal = document.getElementById('backbar-modal');
   elements.backbarSearchInput = document.getElementById('backbar-search-input');
+  elements.backbarSearchClearBtn = document.getElementById('backbar-search-clear-btn');
   elements.backbarNavTabs = document.getElementById('backbar-nav-tabs');
   elements.backbarCategoriesContainer = document.getElementById('backbar-categories-container');
   elements.backbarSummaryText = document.getElementById('backbar-summary-text');
@@ -191,6 +199,7 @@ export function initElements() {
   elements.menuBuilderViewContainer = document.getElementById('menu-builder-view-container');
   elements.accountViewContainer = document.getElementById('account-view-container');
   elements.sharedRecipeViewContainer = document.getElementById('shared-recipe-view-container');
+  elements.guestMenuViewContainer = document.getElementById('guest-menu-view-container');
   elements.btnAccountBack = document.getElementById('btn-account-back');
 
   elements.btnSignIn = document.getElementById('btn-sign-in');
@@ -225,6 +234,8 @@ export function initElements() {
   elements.countSavedMenus = document.getElementById('count-saved-menus');
   elements.btnWakeLockToggle = document.getElementById('wake-lock-toggle');
   elements.btnFunToggle = document.getElementById('fun-toggle');
+  elements.btnFoamerToggle = document.getElementById('foamer-toggle');
+  elements.foamerHint = document.getElementById('foamer-hint');
   elements.btnAccountSignOut = document.getElementById('btn-account-sign-out');
   elements.btnDangerResetLocal = document.getElementById('btn-danger-reset-local');
   elements.btnDangerDeleteAccount = document.getElementById('btn-danger-delete-account');

@@ -9,6 +9,7 @@
  */
 
 import { buildBackupPayload, importData } from './storage.js';
+import { withSyncSuppressed } from './cloud-sync.js';
 
 export const AUTH_USER_KEY = 'speakeasy_user';
 export const AUTH_EVENT_NAME = 'speakeasy:auth-changed';
@@ -230,8 +231,12 @@ export async function pullRemoteData() {
     throw new Error(data.error || 'Failed to retrieve cloud data.');
   }
 
-  // Import and merge cloud backup into local storage
-  const summary = importData(JSON.stringify(data.backup));
+  // Import and merge cloud backup into local storage. Suppressed so hydrating
+  // from the cloud doesn't immediately schedule pushing the same data right
+  // back up (auto-sync fires from the same storage setters a manual JSON
+  // import uses, which SHOULD push — only this cloud-originated path needs
+  // to be quiet).
+  const summary = withSyncSuppressed(() => importData(JSON.stringify(data.backup)));
 
   // Dispatch auth event so UI components refresh reactive views (the
   // speakeasy:auth-changed listener in top-bar.js resyncs state.bars/

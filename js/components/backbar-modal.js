@@ -43,7 +43,7 @@ export function setBackbarModalCallbacks(cbs) {
 }
 
 /**
- * Dynamically manage disabled state and helpful tooltips for Starter Bar and Clear All buttons
+ * Dynamically manage disabled state and helpful tooltips for Starter Bar and Reset Bar buttons
  */
 export function updateBackbarActionButtons() {
   const count = state.inventory.size;
@@ -53,8 +53,8 @@ export function updateBackbarActionButtons() {
     elements.btnClearBar.disabled = !hasBottles;
     elements.btnClearBar.setAttribute('aria-disabled', !hasBottles ? 'true' : 'false');
     elements.btnClearBar.title = hasBottles
-      ? 'Clear all bottles from your backbar'
-      : 'No bottles in backbar to clear';
+      ? 'Reset all bottles in your backbar'
+      : 'No bottles in backbar to reset';
   }
 
   if (elements.btnStarterBar) {
@@ -74,6 +74,7 @@ export function openBackbarModal() {
   state.backbarSearchQuery = '';
   state.backbarCategoryFilter = 'all';
   if (elements.backbarSearchInput) elements.backbarSearchInput.value = '';
+  elements.backbarSearchClearBtn?.classList.remove('visible');
   if (elements.backbarNavTabs) {
     elements.backbarNavTabs.querySelectorAll('.backbar-nav-tab').forEach(tab => {
       const isAll = tab.getAttribute('data-cat-filter') === 'all';
@@ -580,7 +581,17 @@ export function setupBackbarEventListeners() {
   });
 
   elements.backbarSearchInput?.addEventListener('input', (e) => {
-    state.backbarSearchQuery = e.target.value.trim().toLowerCase();
+    const val = e.target.value || '';
+    state.backbarSearchQuery = val.trim().toLowerCase();
+    elements.backbarSearchClearBtn?.classList.toggle('visible', val.length > 0);
+    renderBackbarModalContent();
+  });
+
+  elements.backbarSearchClearBtn?.addEventListener('click', () => {
+    if (elements.backbarSearchInput) elements.backbarSearchInput.value = '';
+    state.backbarSearchQuery = '';
+    elements.backbarSearchClearBtn?.classList.remove('visible');
+    elements.backbarSearchInput?.focus();
     renderBackbarModalContent();
   });
 
@@ -607,10 +618,10 @@ export function setupBackbarEventListeners() {
 
   elements.btnClearBar?.addEventListener('click', () => {
     if (state.inventory.size === 0) return;
-    if (confirm('Clear all bottles from your backbar?')) {
+    if (confirm('Reset your backbar and remove all bottles?')) {
       state.inventory.clear();
       persistInventoryAndRefresh();
-      showToast('Cleared backbar inventory');
+      showToast('Reset backbar inventory');
     }
   });
 

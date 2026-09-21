@@ -7,6 +7,14 @@ const STORAGE_KEY = 'speakeasy_recipes';
 
 // Canonical renames for tags that have accumulated redundant variants over time
 // (e.g. singular/plural drift, or a freeform descriptor superseded by a themed pack tag).
+//
+// Tag conventions, so new tags don't drift again:
+//   - lowercase kebab-case
+//   - singular descriptors ("refreshing", "highball"), except pack names that
+//     read as a collection ("nightcaps"). Pack keys are also stored in pinned
+//     tags, Home order, and hidden-collection settings, so they don't get renamed.
+//   - one canonical spelling per idea; near-synonyms are folded together below
+//   - spirit tags are "<spirit>-forward"
 const TAG_RENAMES = {
   'modern-classic': 'modern-craft',
   'modern-classics': 'modern-craft',
@@ -16,11 +24,27 @@ const TAG_RENAMES = {
   'tiki': 'tropical-tiki',
   'tropical': 'tropical-tiki',
   'effervescent': 'sparkling',
+  // Near-synonyms folded into the tag the library uses most.
+  'low-proof': 'low-abv',
+  'tequila': 'tequila-forward',
+  'rhum-agricole': 'rum-forward',
+  'berry': 'fruity',
+  'anise': 'herbal',
+  'crowd-pleaser': 'party',
+  'celebratory': 'party',
+  'historic': 'classic',
+  'legendary': 'classic',
+  'adventurous': 'complex',
 };
 
 // Tags dropped outright because they're redundant with another tag/pack and add
 // no distinguishing information (e.g. "aperitivo" duplicating the "aperitivo-amaro" pack).
-const TAG_REMOVALS = new Set(['aperitivo']);
+const TAG_REMOVALS = new Set([
+  'aperitivo',
+  // One-off editorial flourishes and single-drink descriptors that no one would
+  // browse by; each was on exactly one bundled recipe.
+  'visually-stunning', 'elegant', 'minimalist', 'new-orleans', 'evening', 'dry', 'beer', 'digestif',
+]);
 
 // Tags kept on their recipes (they carry real editorial meaning) but hidden from the
 // "add tag" suggestion list because they're too niche/curatorial for general reuse
@@ -39,6 +63,8 @@ export function normalizeTagName(rawTag) {
 
 import { SEED_RECIPES } from "../data/seed-recipes.js";
 import { normalizeUnit } from "./parser.js";
+import { scheduleCloudSync } from "./cloud-sync.js";
+import { sanitizeDietOverrides } from "./dietary.js";
 export { SEED_RECIPES };
 
 // ==========================================
@@ -107,6 +133,7 @@ export function saveHiddenRecipeIds(ids) {
   try {
     const clean = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
     localStorage.setItem(HIDDEN_RECIPES_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save hidden recipes to localStorage:', err);
@@ -319,6 +346,7 @@ export function slugifyRecipeName(name, existingIds = new Set()) {
 export function saveRecipes(recipes) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+    scheduleCloudSync();
   } catch (err) {
     console.error('Failed to save recipes to localStorage:', err);
   }
@@ -434,7 +462,15 @@ export function buildBackupPayload() {
       sortPref: getSortPreference(),
       glassViewMode: getGlassViewPreference(),
       glassViewPref: getGlassViewPreference(),
+      wakeLockPref: getWakeLockPreference(),
+      funPref: getFunPreference(),
+      avatarRecipeId: getAvatarRecipeId(),
     },
+    pinnedTags: getPinnedTags(),
+    homeCollectionsOrder: getHomeCollectionsOrder(),
+    hiddenHomeCollections: getHiddenHomeCollections(),
+    lowStock: getLowStockIds(),
+    menus: getMenus(),
     customRecipes: getCustomRecipesForBackup(),
   };
 }
@@ -603,6 +639,43 @@ export function importData(jsonString) {
   if (settingsRaw.sortPref) saveSortPreference(settingsRaw.sortPref);
   const incomingGlassMode = settingsRaw.glassViewMode || settingsRaw.glassViewPref;
   if (incomingGlassMode) saveGlassViewPreference(incomingGlassMode);
+  if (typeof settingsRaw.wakeLockPref === 'boolean') saveWakeLockPreference(settingsRaw.wakeLockPref);
+  if (typeof settingsRaw.funPref === 'boolean') saveFunPreference(settingsRaw.funPref);
+  if (typeof settingsRaw.avatarRecipeId === 'string' && settingsRaw.avatarRecipeId) {
+    saveAvatarRecipeId(settingsRaw.avatarRecipeId);
+  }
+
+  // Pinned tags / Home layout: merge (union) rather than overwrite, same
+  // rationale as inventory/hidden recipes above — never lose a local pin.
+  if (Array.isArray(parsed.pinnedTags)) {
+    const mergedPins = new Set(getPinnedTags());
+    parsed.pinnedTags.forEach(t => { if (typeof t === 'string') mergedPins.add(t); });
+    savePinnedTags(Array.from(mergedPins));
+  }
+  if (Array.isArray(parsed.homeCollectionsOrder) && parsed.homeCollectionsOrder.length > 0
+      && (!Array.isArray(getHomeCollectionsOrder()) || getHomeCollectionsOrder().length === 0)) {
+    saveHomeCollectionsOrder(parsed.homeCollectionsOrder.filter(k => typeof k === 'string'));
+  }
+  if (Array.isArray(parsed.hiddenHomeCollections)) {
+    const mergedHiddenCollections = new Set(getHiddenHomeCollections());
+    parsed.hiddenHomeCollections.forEach(k => { if (typeof k === 'string') mergedHiddenCollections.add(k); });
+    saveHiddenHomeCollections(Array.from(mergedHiddenCollections));
+  }
+  if (Array.isArray(parsed.lowStock)) {
+    const mergedLowStock = new Set(getLowStockIds());
+    parsed.lowStock.forEach(id => { if (typeof id === 'string') mergedLowStock.add(id); });
+    saveLowStockIds(Array.from(mergedLowStock));
+  }
+  if (Array.isArray(parsed.menus)) {
+    const localMenus = getMenus();
+    const menuMap = new Map(localMenus.map(m => [m.id, m]));
+    parsed.menus.forEach(m => {
+      if (m && typeof m.id === 'string' && typeof m.name === 'string' && Array.isArray(m.recipeIds)) {
+        menuMap.set(m.id, m);
+      }
+    });
+    saveMenus(Array.from(menuMap.values()));
+  }
 
   return {
     recipes: Array.from(recipeMap.values()),
@@ -723,6 +796,7 @@ function writeInventoryForBar(barId, ids) {
   try {
     const list = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
     localStorage.setItem(`${INVENTORY_KEY_PREFIX}${barId}`, JSON.stringify(list));
+    scheduleCloudSync();
     return list;
   } catch (err) {
     console.error('Failed to save bar inventory to localStorage:', err);
@@ -926,6 +1000,7 @@ export function getBars() {
 export function saveBars(bars) {
   try {
     localStorage.setItem(BARS_STORAGE_KEY, JSON.stringify(bars));
+    scheduleCloudSync();
     return bars;
   } catch (err) {
     console.error('Failed to save bars registry to localStorage:', err);
@@ -1149,6 +1224,7 @@ export function saveAppSettings(updates) {
     const current = getAppSettings();
     const updated = { ...current, ...updates };
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updated));
+    scheduleCloudSync();
     return updated;
   } catch (err) {
     console.error('Failed to save app settings:', err);
@@ -1237,6 +1313,7 @@ export function getAvatarRecipeId() {
 export function saveAvatarRecipeId(recipeId) {
   try {
     localStorage.setItem(AVATAR_RECIPE_STORAGE_KEY, recipeId);
+    scheduleCloudSync();
   } catch (err) {
     console.error('Failed to save avatar recipe id:', err);
   }
@@ -1279,6 +1356,21 @@ export function saveWakeLockPreference(enabled) {
   return bool;
 }
 
+/**
+ * "I make egg-white drinks with cocktail foamer" — a habit of the whole bar, not of
+ * one menu. Egg drinks are then shown as made with foamer (guests and the library
+ * alike) instead of as containing egg. Off unless the bartender turns it on.
+ */
+export function getFoamerPreference() {
+  return getAppSettings().foamerForEgg === true;
+}
+
+export function saveFoamerPreference(enabled) {
+  const bool = Boolean(enabled);
+  saveAppSettings({ foamerForEgg: bool });
+  return bool;
+}
+
 const FUN_STORAGE_KEY = 'speakeasy_fun_animations_enabled';
 
 export function getFunPreference() {
@@ -1305,7 +1397,14 @@ export function getPinnedTags() {
   try {
     const raw = localStorage.getItem(PINNED_TAGS_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter(t => typeof t === 'string') : [];
+    if (!Array.isArray(parsed)) return [];
+    // Pinned tags follow renames too, or a pin on a retired spelling
+    // (say "historic") would quietly become an empty shelf on Home.
+    const seen = new Set();
+    return parsed
+      .filter(t => typeof t === 'string')
+      .map(normalizeTagName)
+      .filter(t => t && !seen.has(t) && seen.add(t));
   } catch {
     return [];
   }
@@ -1315,6 +1414,7 @@ export function savePinnedTags(tags) {
   try {
     const clean = Array.isArray(tags) ? tags.filter(t => typeof t === 'string') : [];
     localStorage.setItem(PINNED_TAGS_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save pinned tags:', err);
@@ -1338,6 +1438,7 @@ export function saveHomeCollectionsOrder(order) {
   try {
     const clean = Array.isArray(order) ? order.filter(k => typeof k === 'string') : [];
     localStorage.setItem(HOME_COLLECTIONS_ORDER_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save home collections order:', err);
@@ -1361,6 +1462,7 @@ export function saveHiddenHomeCollections(hiddenKeys) {
   try {
     const clean = Array.isArray(hiddenKeys) ? hiddenKeys.filter(k => typeof k === 'string') : [];
     localStorage.setItem(HIDDEN_HOME_COLLECTIONS_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save hidden home collections:', err);
@@ -1394,7 +1496,7 @@ export function recordRecentlyViewed(recipeId) {
 }
 
 const SORT_PREFERENCE_STORAGE_KEY = 'speakeasy_library_sort';
-const VALID_SORT_OPTIONS = new Set(['curated', 'name-asc', 'name-desc', 'ready', 'specs-asc']);
+const VALID_SORT_OPTIONS = new Set(['curated', 'name-asc', 'name-desc', 'ready', 'specs-asc', 'abv-asc', 'calories-asc']);
 
 export function getSortPreference() {
   const settings = getAppSettings();
@@ -1438,6 +1540,7 @@ export function saveLowStockIds(ids) {
   try {
     const clean = Array.from(new Set((ids || []).filter(id => typeof id === 'string')));
     localStorage.setItem(LOW_STOCK_STORAGE_KEY, JSON.stringify(clean));
+    scheduleCloudSync();
     return clean;
   } catch (err) {
     console.error('Failed to save low-stock ids to localStorage:', err);
@@ -1485,6 +1588,7 @@ export function getMenus() {
 export function saveMenus(menus) {
   try {
     localStorage.setItem(MENUS_STORAGE_KEY, JSON.stringify(menus || []));
+    scheduleCloudSync();
     return menus;
   } catch (err) {
     console.error('Failed to save menus to localStorage:', err);
@@ -1502,6 +1606,19 @@ export function saveMenu(menu) {
     recipeIds,
     createdAt: menu.createdAt || Date.now(),
   };
+  // Guest-link credentials for a published menu (see menu-publish.js).
+  // Optional: most menus are never published.
+  if (menu.share && typeof menu.share.id === 'string' && typeof menu.share.token === 'string') {
+    const dietOverrides = sanitizeDietOverrides(menu.share.dietOverrides);
+    updatedMenu.share = {
+      id: menu.share.id,
+      token: menu.share.token,
+      outIds: Array.isArray(menu.share.outIds) ? menu.share.outIds.map(String) : [],
+      featuredIds: Array.isArray(menu.share.featuredIds) ? menu.share.featuredIds.map(String) : [],
+      // The host's dietary corrections; absent until they make one.
+      ...(Object.keys(dietOverrides).length > 0 ? { dietOverrides } : {}),
+    };
+  }
 
   const existingIndex = menus.findIndex(m => m.id === id);
   let updatedList;
@@ -1514,6 +1631,17 @@ export function saveMenu(menu) {
 
   saveMenus(updatedList);
   return updatedMenu;
+}
+
+/**
+ * Attach (or, with `share = null`, remove) the published guest-link
+ * credentials on a saved menu without touching its name or drinks.
+ */
+export function setMenuShare(id, share) {
+  const menu = getMenus().find(m => m.id === id);
+  if (!menu) return null;
+  const { share: _previous, ...rest } = menu;
+  return saveMenu(share ? { ...rest, share } : rest);
 }
 
 export function deleteMenu(id) {
