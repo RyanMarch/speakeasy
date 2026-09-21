@@ -67,7 +67,11 @@ async function requestJson(url, options) {
   try {
     response = await fetch(url, options);
   } catch {
-    throw new Error('Could not reach Speakeasy — check your connection and try again.');
+    // No response at all (offline, server restarting), as opposed to a
+    // definite answer like 404: callers treat the two very differently.
+    const error = new Error('Could not reach Speakeasy — check your connection and try again.');
+    error.network = true;
+    throw error;
   }
   let data = null;
   try {
@@ -76,7 +80,9 @@ async function requestJson(url, options) {
     // Non-JSON error body; fall through to the generic message.
   }
   if (!response.ok || !data || data.success === false) {
-    throw new Error((data && data.error) || 'Something went wrong. Please try again.');
+    const error = new Error((data && data.error) || 'Something went wrong. Please try again.');
+    error.status = response.status;
+    throw error;
   }
   return data;
 }
@@ -124,4 +130,49 @@ export function unpublishMenu(share) {
 export async function fetchGuestMenu(menuId) {
   const data = await requestJson(`/api/menus/${encodeURIComponent(menuId)}`, { cache: 'no-store' });
   return data.menu;
+}
+
+// ---- Remembered copy of the last menu a guest successfully loaded ------------
+// A guest refreshing on flaky party Wi-Fi (or while the server restarts) should
+// land back on the menu, not a dead end. Only the last few menus are kept.
+const GUEST_COPY_PREFIX = 'speakeasy_guest_menu_';
+const GUEST_COPY_INDEX = 'speakeasy_guest_menu_index';
+const MAX_GUEST_COPIES = 3;
+
+function readIndex() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(GUEST_COPY_INDEX) || '[]');
+    return Array.isArray(parsed) ? parsed.filter(id => typeof id === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function rememberGuestMenu(menuId, menu) {
+  try {
+    localStorage.setItem(GUEST_COPY_PREFIX + menuId, JSON.stringify({ menu, savedAt: Date.now() }));
+    const index = [menuId, ...readIndex().filter(id => id !== menuId)];
+    index.slice(MAX_GUEST_COPIES).forEach(old => localStorage.removeItem(GUEST_COPY_PREFIX + old));
+    localStorage.setItem(GUEST_COPY_INDEX, JSON.stringify(index.slice(0, MAX_GUEST_COPIES)));
+  } catch {
+    // Storage full or unavailable (private mode): the menu still works, it just can't be remembered.
+  }
+}
+
+export function recallGuestMenu(menuId) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(GUEST_COPY_PREFIX + menuId) || 'null');
+    return saved && saved.menu && Array.isArray(saved.menu.recipes) ? saved.menu : null;
+  } catch {
+    return null;
+  }
+}
+
+export function forgetGuestMenu(menuId) {
+  try {
+    localStorage.removeItem(GUEST_COPY_PREFIX + menuId);
+    localStorage.setItem(GUEST_COPY_INDEX, JSON.stringify(readIndex().filter(id => id !== menuId)));
+  } catch {
+    // Nothing to clean up if storage isn't there.
+  }
 }

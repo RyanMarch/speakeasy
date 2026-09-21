@@ -15,7 +15,7 @@
     "og:seed:generate": "node scripts/generate-seed-og-images.js > migrations/seed-data/seed_drink_images.sql",
     "og:seed:apply:local": "wrangler d1 execute speakeasy-db --local --file=./migrations/seed-data/seed_drink_images.sql",
     "og:seed:apply:remote": "wrangler d1 execute speakeasy-db --remote --file=./migrations/seed-data/seed_drink_images.sql",
-    "test": "npm run lint:syntax && node tests/parser-test.js && node tests/architecture-test.js && node tests/storage-migration-test.js && node tests/rank-promotion-test.js && node tests/sync-test.js && node tests/auth-test.js && node tests/history-test.js && node tests/shares-test.js && node tests/admin-test.js && node tests/share-page-test.js && node tests/drink-page-test.js && node tests/calculator-test.js && node tests/sw-test.js && node tests/bar-basics-test.js && node tests/menus-test.js"
+    "test": "npm run lint:syntax && node tests/parser-test.js && node tests/architecture-test.js && node tests/storage-migration-test.js && node tests/rank-promotion-test.js && node tests/sync-test.js && node tests/auth-test.js && node tests/history-test.js && node tests/shares-test.js && node tests/admin-test.js && node tests/share-page-test.js && node tests/drink-page-test.js && node tests/calculator-test.js && node tests/sw-test.js && node tests/bar-basics-test.js && node tests/menus-test.js && node tests/moods-test.js && node tests/tags-test.js && node tests/quiz-test.js && node tests/shuffle-test.js"
   },
   "devDependencies": {
     "sharp": "^0.33.5",

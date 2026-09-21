@@ -7,6 +7,14 @@ const STORAGE_KEY = 'speakeasy_recipes';
 
 // Canonical renames for tags that have accumulated redundant variants over time
 // (e.g. singular/plural drift, or a freeform descriptor superseded by a themed pack tag).
+//
+// Tag conventions, so new tags don't drift again:
+//   - lowercase kebab-case
+//   - singular descriptors ("refreshing", "highball"), except pack names that
+//     read as a collection ("nightcaps"). Pack keys are also stored in pinned
+//     tags, Home order, and hidden-collection settings, so they don't get renamed.
+//   - one canonical spelling per idea; near-synonyms are folded together below
+//   - spirit tags are "<spirit>-forward"
 const TAG_RENAMES = {
   'modern-classic': 'modern-craft',
   'modern-classics': 'modern-craft',
@@ -16,11 +24,27 @@ const TAG_RENAMES = {
   'tiki': 'tropical-tiki',
   'tropical': 'tropical-tiki',
   'effervescent': 'sparkling',
+  // Near-synonyms folded into the tag the library uses most.
+  'low-proof': 'low-abv',
+  'tequila': 'tequila-forward',
+  'rhum-agricole': 'rum-forward',
+  'berry': 'fruity',
+  'anise': 'herbal',
+  'crowd-pleaser': 'party',
+  'celebratory': 'party',
+  'historic': 'classic',
+  'legendary': 'classic',
+  'adventurous': 'complex',
 };
 
 // Tags dropped outright because they're redundant with another tag/pack and add
 // no distinguishing information (e.g. "aperitivo" duplicating the "aperitivo-amaro" pack).
-const TAG_REMOVALS = new Set(['aperitivo']);
+const TAG_REMOVALS = new Set([
+  'aperitivo',
+  // One-off editorial flourishes and single-drink descriptors that no one would
+  // browse by; each was on exactly one bundled recipe.
+  'visually-stunning', 'elegant', 'minimalist', 'new-orleans', 'evening', 'dry', 'beer', 'digestif',
+]);
 
 // Tags kept on their recipes (they carry real editorial meaning) but hidden from the
 // "add tag" suggestion list because they're too niche/curatorial for general reuse
@@ -1357,7 +1381,14 @@ export function getPinnedTags() {
   try {
     const raw = localStorage.getItem(PINNED_TAGS_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter(t => typeof t === 'string') : [];
+    if (!Array.isArray(parsed)) return [];
+    // Pinned tags follow renames too, or a pin on a retired spelling
+    // (say "historic") would quietly become an empty shelf on Home.
+    const seen = new Set();
+    return parsed
+      .filter(t => typeof t === 'string')
+      .map(normalizeTagName)
+      .filter(t => t && !seen.has(t) && seen.add(t));
   } catch {
     return [];
   }

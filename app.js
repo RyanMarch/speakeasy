@@ -61,7 +61,7 @@ import {
   setHiddenModalCallbacks,
 } from './js/components/hidden-modal.js';
 
-import { parseGuestMenuHash } from './js/views/guest-menu-view.js';
+import { parseGuestMenuHash, guestNavDirection } from './js/views/guest-menu-view.js';
 import {
   setMenuBuilderCallbacks,
   applyMenuBuilderHash,
@@ -449,9 +449,12 @@ function setupGlobalEventListeners() {
     }
     const guestMenuHashRoute = parseGuestMenuHash(rawHash);
     if (guestMenuHashRoute) {
+      // Slide forward going deeper (menu > quiz > drink) and back coming out,
+      // which also covers the phone's back gesture; see guestNavDirection().
+      const previousRoute = state.viewMode === 'guest-menu' ? state.pendingGuestMenu : null;
       state.pendingGuestMenu = guestMenuHashRoute;
       state.viewMode = 'guest-menu';
-      renderCurrentView();
+      renderCurrentView(guestNavDirection(previousRoute, guestMenuHashRoute));
       elements.sidebar?.classList.add('mobile-hidden');
       elements.mainStage?.classList.remove('mobile-hidden');
       return;

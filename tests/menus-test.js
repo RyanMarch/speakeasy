@@ -2,7 +2,15 @@ import assert from 'node:assert/strict';
 import { onRequestPost } from '../functions/api/menus/index.js';
 import { onRequestGet, onRequestPut, onRequestDelete } from '../functions/api/menus/[id].js';
 import { onRequestGet as onRequestGetMenuPage } from '../functions/menu/[id].js';
-import { parseMenuCode } from '../js/modules/menu-publish.js';
+import { parseMenuCode, rememberGuestMenu, recallGuestMenu, forgetGuestMenu } from '../js/modules/menu-publish.js';
+
+class MockLocalStorage {
+  constructor() { this.store = new Map(); }
+  getItem(key) { return this.store.has(key) ? this.store.get(key) : null; }
+  setItem(key, value) { this.store.set(key, String(value)); }
+  removeItem(key) { this.store.delete(key); }
+}
+Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(), configurable: true, writable: true });
 
 console.log('--- Testing /functions/api/menus/* Endpoints ---');
 
@@ -234,6 +242,34 @@ let token;
     assert.equal(parseMenuCode(bad), null, `Expected ${JSON.stringify(bad)} to be rejected`);
   }
   console.log('PASS: parseMenuCode accepts codes and menu links and rejects everything else');
+}
+
+// Test 9: a guest's remembered copy of the last menus they loaded
+{
+  const menu = (name) => ({ name, recipes: [{ id: 'a', name: 'A' }], unavailable: [] });
+  assert.equal(recallGuestMenu('AAAAAAAAAA'), null, 'Nothing remembered yet');
+
+  rememberGuestMenu('AAAAAAAAAA', menu('One'));
+  assert.equal(recallGuestMenu('AAAAAAAAAA').name, 'One');
+
+  // Only the last three menus are kept, so storage can't grow without bound.
+  rememberGuestMenu('BBBBBBBBBB', menu('Two'));
+  rememberGuestMenu('CCCCCCCCCC', menu('Three'));
+  rememberGuestMenu('DDDDDDDDDD', menu('Four'));
+  assert.equal(recallGuestMenu('AAAAAAAAAA'), null, 'The oldest copy should have been dropped');
+  assert.equal(recallGuestMenu('DDDDDDDDDD').name, 'Four');
+  assert.equal(recallGuestMenu('BBBBBBBBBB').name, 'Two');
+
+  // A menu the host took down is forgotten, not served from the copy forever.
+  forgetGuestMenu('BBBBBBBBBB');
+  assert.equal(recallGuestMenu('BBBBBBBBBB'), null);
+
+  // Corrupt or malformed storage reads as "nothing remembered", never a crash.
+  localStorage.setItem('speakeasy_guest_menu_EEEEEEEEEE', '{not json');
+  assert.equal(recallGuestMenu('EEEEEEEEEE'), null);
+  localStorage.setItem('speakeasy_guest_menu_FFFFFFFFFF', JSON.stringify({ menu: { name: 'x' } }));
+  assert.equal(recallGuestMenu('FFFFFFFFFF'), null, 'A copy with no recipes array is unusable');
+  console.log('PASS: the last few menus are remembered, pruned, forgotten on removal, and tolerate bad data');
 }
 
 console.log('All menus tests passed.');

@@ -193,7 +193,7 @@ const ALL_VIEW_CONTAINER_KEYS = [
   'accountViewContainer', 'editorViewContainer', 'sharedRecipeViewContainer', 'guestMenuViewContainer',
 ];
 
-export function renderCurrentView() {
+export function renderCurrentView(direction = 'fade') {
   const applyView = () => {
     const config = VIEW_CONFIG[state.viewMode] || VIEW_CONFIG.counter;
 
@@ -233,7 +233,7 @@ export function renderCurrentView() {
     }
   };
 
-  runViewTransition(applyView);
+  runViewTransition(applyView, direction);
 }
 
 /**

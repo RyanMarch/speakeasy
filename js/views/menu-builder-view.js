@@ -470,6 +470,15 @@ async function handleStopSharing() {
   renderMenuBuilderView();
 }
 
+// The server no longer has this menu (a wiped database, say), so the saved
+// link and QR are dead. Drop the stale credentials so "Create guest link"
+// comes back instead of leaving a live-looking link that can never update.
+function forgetDeadGuestLink() {
+  setMenuShare(activeMenu.id, null);
+  renderMenuBuilderView();
+  showToast('That guest link no longer exists on the server. Create a new one.');
+}
+
 async function toggleDrinkOut(recipeId) {
   const share = getActiveShare();
   if (!share || !recipeId) return;
@@ -495,6 +504,10 @@ async function toggleDrinkOut(recipeId) {
     const name = getSelectedRecipes().find(r => r.id === recipeId)?.name || 'Drink';
     showToast(wasOut ? `${name} is back on the menu` : `${name} marked out for guests`);
   } catch (err) {
+    if (err.status === 404) {
+      forgetDeadGuestLink();
+      return;
+    }
     paint(share.outIds);
     showToast(`Couldn't update guests: ${err.message}`);
   }
@@ -985,7 +998,10 @@ function handleSaveMenu() {
   if (saved.share) {
     // A published menu keeps its link: push the edit so guests see it too.
     pushMenuContents(saved.share, saved.name, getSelectedRecipes())
-      .catch(err => showToast(`Saved here, but the guest link wasn't updated: ${err.message}`));
+      .catch(err => {
+        if (err.status === 404) forgetDeadGuestLink();
+        else showToast(`Saved here, but the guest link wasn't updated: ${err.message}`);
+      });
   }
   // There's now something worth summarizing — land on the read-first view
   // instead of leaving the picker open.

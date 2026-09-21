@@ -5,7 +5,7 @@
  * Storage and Fetch APIs.
  */
 
-const CACHE_NAME = 'speakeasy-v9';
+const CACHE_NAME = 'speakeasy-v10';
 
 // Core shell files precached at install time, so the app has *something* to serve
 // on a cold offline open even before the fetch handler below has had a chance to
@@ -72,6 +72,9 @@ const PRECACHE_URLS = [
   'js/modules/parser.js',
   'js/modules/share-card.js',
   'js/modules/menu-publish.js',
+  'js/modules/moods.js',
+  'js/modules/quiz.js',
+  'js/modules/shuffle-schedule.js',
   'js/modules/storage.js',
   'js/modules/taxonomy.js',
   'js/modules/telemetry.js',
@@ -83,6 +86,7 @@ const PRECACHE_URLS = [
   'js/views/recipe-list-view.js',
   'js/views/shared-recipe-view.js',
   'js/views/guest-menu-view.js',
+  'js/views/surprise-overlay.js',
   'assets/icon.svg',
   'assets/icon-192.png',
   'assets/icon-512.png',
