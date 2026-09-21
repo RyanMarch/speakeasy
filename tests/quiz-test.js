@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { SEED_RECIPES } from '../js/data/seed-recipes.js';
-import { buildTraits, buildQuizQuestions, rankForQuiz, strengthBand, sweetnessBand, QUIZ_RESULT_COUNT } from '../js/modules/quiz.js';
+import { buildTraits, buildQuizQuestions, rankForQuiz, strengthBand, QUIZ_RESULT_COUNT } from '../js/modules/quiz.js';
 
 console.log('--- Testing the "Find my drink" quiz ---');
 
@@ -17,16 +17,16 @@ function seededRng(seed) {
 
 const traits = buildTraits(SEED_RECIPES);
 
-// Test 1: a full menu asks all four questions, each with real choices
+// Test 1: a full menu asks all three questions, each with real choices
 {
   const questions = buildQuizQuestions(SEED_RECIPES, traits);
-  assert.deepEqual(questions.map(q => q.id), ['vibe', 'strength', 'sweetness', 'spirit']);
+  assert.deepEqual(questions.map(q => q.id), ['vibe', 'strength', 'spirit']);
   for (const q of questions) {
     assert.ok(q.options.length >= 3, `Question "${q.id}" needs real choices`);
     assert.ok(q.options.some(o => o.value === 'any'), `Question "${q.id}" needs a no-preference answer`);
     assert.equal(new Set(q.options.map(o => o.value)).size, q.options.length, `Question "${q.id}" has duplicate option values`);
   }
-  console.log('PASS: a full menu gets vibe, strength, sweetness, and spirit questions, each skippable');
+  console.log('PASS: a full menu gets vibe, strength, and spirit questions, each skippable');
 }
 
 // Test 2: a menu can't be asked about things it doesn't have
@@ -36,13 +36,13 @@ const traits = buildTraits(SEED_RECIPES);
   assert.ok(!questions.some(q => q.id === 'spirit'), 'A menu with one spirit should not ask which spirit');
   assert.ok(questions.some(q => q.id === 'strength'), 'Strength still applies');
   const spirits = buildQuizQuestions(SEED_RECIPES, traits).find(q => q.id === 'spirit').options.map(o => o.value);
-  assert.ok(spirits.includes('gin') && spirits.includes('whiskey'));
+  assert.ok(spirits.includes('gin') && spirits.includes('bourbon') && spirits.includes('scotch'));
   console.log('PASS: questions with fewer than two real choices are skipped');
 }
 
 // Test 3: named preferences drive the pick
 {
-  const answers = { vibe: 'refreshing', strength: 'light', sweetness: 'any', spirit: 'gin' };
+  const answers = { vibe: 'refreshing', strength: 'light', spirit: 'gin' };
   const results = rankForQuiz(SEED_RECIPES, traits, answers, seededRng(1));
   assert.equal(results.length, QUIZ_RESULT_COUNT);
   assert.equal(new Set(results.map(r => r.recipe.id)).size, QUIZ_RESULT_COUNT, 'Expected three different drinks');
@@ -53,18 +53,16 @@ const traits = buildTraits(SEED_RECIPES);
   console.log(`PASS: asking for a light, refreshing gin drink returns ${top.recipe.name} first, with reasons`);
 }
 
-// Test 4: strength and sweetness steer toward the right band
+// Test 4: strength steers toward the right band
 {
-  const strong = rankForQuiz(SEED_RECIPES, traits, { strength: 'strong', sweetness: 'any', vibe: 'any', spirit: 'any' }, seededRng(2));
+  const strong = rankForQuiz(SEED_RECIPES, traits, { strength: 'strong', vibe: 'any', spirit: 'any' }, seededRng(2));
   for (const r of strong) assert.equal(strengthBand(traits.get(r.recipe.id).abv), 'strong', `${r.recipe.name} isn't a strong drink`);
-  const dry = rankForQuiz(SEED_RECIPES, traits, { sweetness: 'dry', strength: 'any', vibe: 'any', spirit: 'any' }, seededRng(3));
-  for (const r of dry) assert.equal(sweetnessBand(traits.get(r.recipe.id).profile.sweet), 'dry', `${r.recipe.name} isn't a dry drink`);
-  console.log('PASS: strength and sweetness answers steer results into the right band');
+  console.log('PASS: strength answers steer results into the right band');
 }
 
 // Test 5: "no preference" everywhere is a random three, and varies between runs
 {
-  const anything = { vibe: 'any', strength: 'any', sweetness: 'any', spirit: 'any' };
+  const anything = { vibe: 'any', strength: 'any', spirit: 'any' };
   const a = rankForQuiz(SEED_RECIPES, traits, anything, seededRng(10)).map(r => r.recipe.id);
   const b = rankForQuiz(SEED_RECIPES, traits, anything, seededRng(11)).map(r => r.recipe.id);
   assert.equal(a.length, QUIZ_RESULT_COUNT);
@@ -75,7 +73,7 @@ const traits = buildTraits(SEED_RECIPES);
 // Test 6: only the drinks it's handed can be recommended (so "out" drinks can be excluded by the caller)
 {
   const menu = SEED_RECIPES.filter(r => !['negroni', 'daiquiri'].includes(r.id));
-  const results = rankForQuiz(menu, buildTraits(menu), { vibe: 'bittersweet', strength: 'any', sweetness: 'any', spirit: 'any' }, seededRng(4));
+  const results = rankForQuiz(menu, buildTraits(menu), { vibe: 'bittersweet', strength: 'any', spirit: 'any' }, seededRng(4));
   assert.ok(!results.some(r => ['negroni', 'daiquiri'].includes(r.recipe.id)));
   assert.deepEqual(rankForQuiz([], new Map(), {}), [], 'An empty menu recommends nothing');
   const two = SEED_RECIPES.slice(0, 2);
@@ -85,7 +83,7 @@ const traits = buildTraits(SEED_RECIPES);
 
 // Test 7: the host's picks break ties but never beat a real preference
 {
-  const none = { vibe: 'any', strength: 'any', sweetness: 'any', spirit: 'any' };
+  const none = { vibe: 'any', strength: 'any', spirit: 'any' };
   const pickA = SEED_RECIPES.find(r => r.id === 'daiquiri');
   const pickB = SEED_RECIPES.find(r => r.id === 'manhattan');
   // With no preferences every drink ties, so a starred drink should always lead.
@@ -101,6 +99,28 @@ const traits = buildTraits(SEED_RECIPES);
   const empty = rankForQuiz(SEED_RECIPES, traits, none, seededRng(9), { featured: new Set() }).map(r => r.recipe.id);
   assert.deepEqual(plain, empty, 'An empty picks set changes nothing');
   console.log('PASS: host picks win ties but never outrank a real preference');
+}
+
+// Test 8: asking for savory surfaces savory drinks with reason
+{
+  const answers = { vibe: 'savory', strength: 'any', spirit: 'any' };
+  const results = rankForQuiz(SEED_RECIPES, traits, answers, seededRng(7));
+  assert.equal(results.length, QUIZ_RESULT_COUNT);
+  const top = results[0];
+  assert.ok(traits.get(top.recipe.id).tags.has('savory'), `Top pick "${top.recipe.name}" should have savory tag`);
+  assert.ok(top.reasons.includes('Savory'), `Expected reasons to include "Savory", got ${top.reasons}`);
+  console.log(`PASS: asking for a savory drink returns ${top.recipe.name} with Savory reason`);
+}
+
+// Test 9: asking for scotch surfaces scotch drinks with reason
+{
+  const answers = { vibe: 'any', strength: 'any', spirit: 'scotch' };
+  const results = rankForQuiz(SEED_RECIPES, traits, answers, seededRng(8));
+  assert.equal(results.length, QUIZ_RESULT_COUNT);
+  const top = results[0];
+  assert.ok(traits.get(top.recipe.id).tags.has('scotch-forward'), `Top pick "${top.recipe.name}" should be scotch-forward`);
+  assert.ok(top.reasons.includes('Scotch'), `Expected reasons to include "Scotch", got ${top.reasons}`);
+  console.log(`PASS: asking for scotch returns ${top.recipe.name} with Scotch reason`);
 }
 
 console.log('All quiz tests passed.');
