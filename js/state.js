@@ -56,8 +56,9 @@ export const state = {
   riffRemovedSpecs: new Set(), // Set<specIndex> — existing specs dropped from the recipe while riffing
   riffModeActive: false,
   searchQuery: '',
-  viewMode: 'counter', // 'home' | 'counter' | 'edit' | 'menu-builder' | 'account' | 'shared-recipe'
+  viewMode: 'counter', // 'home' | 'counter' | 'edit' | 'menu-builder' | 'account' | 'shared-recipe' | 'guest-menu'
   pendingShareId: null, // share id to render when viewMode === 'shared-recipe'
+  pendingGuestMenu: null, // { menuId, drinkId } to render when viewMode === 'guest-menu'
   pinnedTags: getPinnedTags(),
   homeCollectionsOrder: getHomeCollectionsOrder(),
   hiddenHomeCollections: new Set(getHiddenHomeCollections()),
@@ -168,6 +169,7 @@ export function initElements() {
   elements.countCanMake = document.getElementById('count-can-make');
   elements.backbarModal = document.getElementById('backbar-modal');
   elements.backbarSearchInput = document.getElementById('backbar-search-input');
+  elements.backbarSearchClearBtn = document.getElementById('backbar-search-clear-btn');
   elements.backbarNavTabs = document.getElementById('backbar-nav-tabs');
   elements.backbarCategoriesContainer = document.getElementById('backbar-categories-container');
   elements.backbarSummaryText = document.getElementById('backbar-summary-text');
@@ -191,6 +193,7 @@ export function initElements() {
   elements.menuBuilderViewContainer = document.getElementById('menu-builder-view-container');
   elements.accountViewContainer = document.getElementById('account-view-container');
   elements.sharedRecipeViewContainer = document.getElementById('shared-recipe-view-container');
+  elements.guestMenuViewContainer = document.getElementById('guest-menu-view-container');
   elements.btnAccountBack = document.getElementById('btn-account-back');
 
   elements.btnSignIn = document.getElementById('btn-sign-in');

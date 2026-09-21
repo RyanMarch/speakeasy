@@ -1559,6 +1559,15 @@ export function saveMenu(menu) {
     recipeIds,
     createdAt: menu.createdAt || Date.now(),
   };
+  // Guest-link credentials for a published menu (see menu-publish.js).
+  // Optional: most menus are never published.
+  if (menu.share && typeof menu.share.id === 'string' && typeof menu.share.token === 'string') {
+    updatedMenu.share = {
+      id: menu.share.id,
+      token: menu.share.token,
+      outIds: Array.isArray(menu.share.outIds) ? menu.share.outIds.map(String) : [],
+    };
+  }
 
   const existingIndex = menus.findIndex(m => m.id === id);
   let updatedList;
@@ -1571,6 +1580,17 @@ export function saveMenu(menu) {
 
   saveMenus(updatedList);
   return updatedMenu;
+}
+
+/**
+ * Attach (or, with `share = null`, remove) the published guest-link
+ * credentials on a saved menu without touching its name or drinks.
+ */
+export function setMenuShare(id, share) {
+  const menu = getMenus().find(m => m.id === id);
+  if (!menu) return null;
+  const { share: _previous, ...rest } = menu;
+  return saveMenu(share ? { ...rest, share } : rest);
 }
 
 export function deleteMenu(id) {

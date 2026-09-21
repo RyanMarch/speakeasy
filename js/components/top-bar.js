@@ -358,7 +358,18 @@ export function getUnifiedHomeCollectionsList() {
     }
   }
 
-  const items = [];
+  // "Ready to Pour" is computed from the bar, not a tag or history, and always
+  // leads Home; the only setting it has is whether it shows.
+  const items = [{
+    key: '__ready__',
+    title: 'Ready to Pour',
+    type: 'history',
+    badge: 'Your bar',
+    canRemove: false,
+    canToggle: true,
+    canReorder: false,
+    isHidden: state.hiddenHomeCollections.has('__ready__'),
+  }];
   const processed = new Set();
 
   for (const key of order) {

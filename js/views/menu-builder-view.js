@@ -5,7 +5,10 @@
  */
 
 import { state, elements, HOME_DEFAULT_COLLECTIONS, getCachedInventoryAnalysis } from '../state.js';
-import { getMenus, saveMenu, deleteMenu } from '../modules/storage.js';
+import { getMenus, saveMenu, deleteMenu, setMenuShare } from '../modules/storage.js';
+import {
+  publishMenu, pushMenuContents, pushMenuAvailability, unpublishMenu, guestMenuUrl, qrImageUrl,
+} from '../modules/menu-publish.js';
 import { REFRIGERATED_INGREDIENT_IDS } from '../modules/taxonomy.js';
 import { renderShoppingCard, wireShoppingCardEvents } from '../components/backbar-modal.js';
 import { escapeHtml, showToast, CLOSE_ICON_SVG } from '../components/toast.js';
@@ -26,6 +29,19 @@ export function setMenuBuilderCallbacks(cbs) {
 let activeMenu = { id: null, name: '', recipeIds: [] };
 let builderView = 'list'; // 'list' | 'view' | 'edit'
 let builderSearchQuery = '';
+
+// Guest-link credentials for the open menu (null until it's been published).
+function getActiveShare() {
+  const menu = activeMenu.id ? getMenus().find(m => m.id === activeMenu.id) : null;
+  return menu && menu.share ? menu.share : null;
+}
+
+// Best-effort: the local menu is the source of truth, so a failed unpublish
+// (offline, say) must never block deleting it.
+function unpublishInBackground(menuId) {
+  const menu = getMenus().find(m => m.id === menuId);
+  if (menu && menu.share) unpublishMenu(menu.share).catch(() => { });
+}
 
 // Picker categories mirror the sidebar's own pack filter (see state.js's
 // `packFilter` and HOME_DEFAULT_COLLECTIONS) so "browse by category" here
@@ -207,6 +223,7 @@ function renderListView(container) {
       const id = btn.getAttribute('data-menu-id');
       const menu = getMenus().find(m => m.id === id);
       if (!id || !confirm(`Delete "${menu ? menu.name : 'this menu'}"?`)) return;
+      unpublishInBackground(id);
       deleteMenu(id);
       renderMenuBuilderView();
       showToast('Menu deleted');
@@ -222,6 +239,7 @@ function renderListView(container) {
  */
 function renderViewMode(container) {
   const selected = getSelectedRecipes();
+  const share = getActiveShare();
 
   container.innerHTML = /*html*/`
     <div class="menu-builder-page-header">
@@ -239,14 +257,26 @@ function renderViewMode(container) {
       <button type="button" class="btn btn-ghost btn-sm" data-action="delete-menu">Delete Menu</button>
     </div>
 
+    <div class="menu-builder-section" id="menu-builder-guest-link-container"></div>
+
     <div class="menu-builder-section">
       <div class="menu-builder-section-heading">Cocktails</div>
       <div class="menu-builder-cocktail-list">
         ${selected.map(r => `
-          <button type="button" class="menu-builder-cocktail-row" data-recipe-id="${escapeHtml(r.id)}">
-            <span class="menu-builder-cocktail-name">${escapeHtml(r.name)}</span>
-            <span class="menu-builder-cocktail-meta">${escapeHtml(r.glassware || 'Glass')}${r.glassware && r.method ? ' · ' : ''}${escapeHtml(r.method || '')}</span>
-          </button>
+          <div class="menu-builder-cocktail-item${share && share.outIds.includes(r.id) ? ' is-out' : ''}">
+            <button type="button" class="menu-builder-cocktail-row" data-recipe-id="${escapeHtml(r.id)}">
+              <span class="menu-builder-cocktail-name">${escapeHtml(r.name)}</span>
+              <span class="menu-builder-cocktail-meta">${escapeHtml(r.glassware || 'Glass')}${r.glassware && r.method ? ' · ' : ''}${escapeHtml(r.method || '')}</span>
+            </button>
+            ${share ? `
+              <button type="button" role="switch" class="menu-builder-out-toggle" data-recipe-id="${escapeHtml(r.id)}"
+                aria-checked="${!share.outIds.includes(r.id)}" aria-label="${escapeHtml(r.name)} available to guests"
+                title="Turn off when you run out. Guests can't order a drink that's out.">
+                <span class="menu-builder-switch-label">${share.outIds.includes(r.id) ? 'Out' : 'Pouring'}</span>
+                <span class="menu-builder-switch-track" aria-hidden="true"><span class="menu-builder-switch-knob"></span></span>
+              </button>
+            ` : ''}
+          </div>
         `).join('')}
       </div>
     </div>
@@ -280,6 +310,7 @@ function renderViewMode(container) {
   });
   container.querySelector('[data-action="delete-menu"]')?.addEventListener('click', () => {
     if (!confirm(`Delete "${activeMenu.name}"?`)) return;
+    unpublishInBackground(activeMenu.id);
     deleteMenu(activeMenu.id);
     builderView = 'list';
     setMenuBuilderHash(null);
@@ -294,8 +325,179 @@ function renderViewMode(container) {
     });
   });
 
+  container.querySelectorAll('.menu-builder-out-toggle').forEach(btn => {
+    btn.addEventListener('click', () => toggleDrinkOut(btn.getAttribute('data-recipe-id')));
+  });
+
+  renderGuestLinkSection();
   renderGlasswareTally();
   renderFullIngredientChecklist();
+}
+
+/**
+ * The "Guest link" card: publish a menu for guests, then show its link, QR
+ * code, and copy/share/stop controls.
+ */
+function renderGuestLinkSection() {
+  const section = document.getElementById('menu-builder-guest-link-container');
+  if (!section) return;
+  const share = getActiveShare();
+
+  if (!share) {
+    section.innerHTML = /*html*/`
+      <div class="menu-builder-section-heading">Guests</div>
+      <div class="menu-builder-guest-link">
+        <div class="menu-builder-guest-link-body">
+          <span class="menu-builder-guest-link-title">Let guests browse this menu on their own phones</span>
+          <p class="card-content-text">They scan a QR code and see these drinks as picture cards. No app or sign-in, and they never see your bar.</p>
+          <div class="menu-builder-guest-link-actions">
+            <button type="button" class="btn btn-primary btn-sm" data-action="publish-menu">Create guest link</button>
+          </div>
+        </div>
+      </div>
+    `;
+    section.querySelector('[data-action="publish-menu"]')?.addEventListener('click', handlePublishMenu);
+    return;
+  }
+
+  const url = guestMenuUrl(share.id);
+  section.innerHTML = /*html*/`
+    <div class="menu-builder-section-heading">Guests</div>
+    <div class="menu-builder-guest-link">
+      <button type="button" class="menu-builder-guest-link-qr" data-action="show-qr" aria-label="Show QR code full screen" title="Tap to show full screen">
+        <img src="${escapeHtml(qrImageUrl(url))}" alt="QR code for the guest menu" width="140" height="140">
+      </button>
+      <div class="menu-builder-guest-link-body">
+        <span class="menu-builder-guest-link-title">Guest link is live</span>
+        <input type="text" class="menu-builder-guest-link-url" readonly value="${escapeHtml(url)}" aria-label="Guest menu link">
+        <div class="menu-builder-guest-link-actions">
+          <button type="button" class="btn btn-secondary btn-sm" data-action="show-qr">Show QR full screen</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-action="copy-guest-link">Copy link</button>
+          ${typeof navigator !== 'undefined' && navigator.share ? '<button type="button" class="btn btn-secondary btn-sm" data-action="share-guest-link">Share…</button>' : ''}
+          <button type="button" class="btn btn-ghost btn-sm" data-action="stop-sharing">Stop sharing</button>
+        </div>
+        <p class="card-content-text">Flip a drink to <strong>Out</strong> below when you run out. Guests see it within a few seconds.</p>
+      </div>
+    </div>
+  `;
+
+  const urlInput = section.querySelector('.menu-builder-guest-link-url');
+  urlInput?.addEventListener('focus', () => urlInput.select());
+  section.querySelector('[data-action="copy-guest-link"]')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('Guest link copied');
+    } catch {
+      urlInput?.select();
+      showToast('Press copy to grab the link');
+    }
+  });
+  section.querySelector('[data-action="share-guest-link"]')?.addEventListener('click', () => {
+    navigator.share({ title: activeMenu.name, url }).catch(() => { });
+  });
+  section.querySelector('[data-action="stop-sharing"]')?.addEventListener('click', handleStopSharing);
+  section.querySelectorAll('[data-action="show-qr"]').forEach(el => {
+    el.addEventListener('click', () => openQrFullscreen(url, activeMenu.name, share.id));
+  });
+}
+
+/**
+ * Full-viewport QR for guests to scan from across a room or off a propped-up
+ * phone. Also shows the plain menu code, for anyone whose camera won't scan.
+ * Closes on tap, Escape, or the close button, and keeps the screen awake while
+ * it's up (a dimmed phone is a useless QR code).
+ */
+async function openQrFullscreen(url, menuName, code) {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'qr-fullscreen';
+  dialog.setAttribute('aria-label', 'Guest menu QR code');
+  dialog.innerHTML = /*html*/`
+    <button type="button" class="qr-fullscreen-close" aria-label="Close">${CLOSE_ICON_SVG}</button>
+    <div class="qr-fullscreen-body">
+      <div class="qr-fullscreen-eyebrow">Scan for tonight’s menu</div>
+      <h2 class="qr-fullscreen-title">${escapeHtml(menuName)}</h2>
+      <div class="qr-fullscreen-code-card"><img src="${escapeHtml(qrImageUrl(url, 1024))}" alt="QR code for the guest menu"></div>
+      <div class="qr-fullscreen-fallback">Or connect to Speakeasy with code: <strong>${escapeHtml(code)}</strong></div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+
+  let wakeLock = null;
+  try {
+    wakeLock = await navigator.wakeLock?.request('screen');
+  } catch {
+    // Not supported / not allowed: the QR still works, the screen may just dim.
+  }
+  const cleanup = () => {
+    wakeLock?.release().catch(() => { });
+    dialog.remove();
+  };
+  dialog.addEventListener('close', cleanup);
+  dialog.addEventListener('click', () => dialog.close());
+  dialog.showModal();
+}
+
+async function handlePublishMenu() {
+  const btn = document.querySelector('[data-action="publish-menu"]');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+  }
+  try {
+    const share = await publishMenu(activeMenu.name, getSelectedRecipes());
+    setMenuShare(activeMenu.id, share);
+    showToast('Guest link created');
+  } catch (err) {
+    showToast(err.message);
+  }
+  renderMenuBuilderView();
+}
+
+async function handleStopSharing() {
+  const share = getActiveShare();
+  if (!share) return;
+  if (!confirm('Stop sharing? Anyone with the link or QR code will no longer see this menu.')) return;
+  try {
+    await unpublishMenu(share);
+  } catch (err) {
+    // Keep the credentials if the server never confirmed, so the host can retry
+    // rather than being left with a live link they can no longer revoke.
+    showToast(err.message);
+    return;
+  }
+  setMenuShare(activeMenu.id, null);
+  showToast('Guest link removed');
+  renderMenuBuilderView();
+}
+
+async function toggleDrinkOut(recipeId) {
+  const share = getActiveShare();
+  if (!share || !recipeId) return;
+  const wasOut = share.outIds.includes(recipeId);
+  const nextOut = wasOut ? share.outIds.filter(id => id !== recipeId) : [...share.outIds, recipeId];
+
+  // Optimistic: the host is mid-pour and shouldn't wait on the network to see
+  // the toggle flip, but it must roll back if guests never actually get it.
+  // Painted in place rather than via a full re-render, which would throw the
+  // host back to the top of a long menu.
+  const paint = (outIds) => {
+    setMenuShare(activeMenu.id, { ...share, outIds });
+    const btn = document.querySelector(`.menu-builder-out-toggle[data-recipe-id="${CSS.escape(recipeId)}"]`);
+    const isOut = outIds.includes(recipeId);
+    btn?.setAttribute('aria-checked', String(!isOut));
+    const label = btn?.querySelector('.menu-builder-switch-label');
+    if (label) label.textContent = isOut ? 'Out' : 'Pouring';
+    btn?.closest('.menu-builder-cocktail-item')?.classList.toggle('is-out', isOut);
+  };
+  paint(nextOut);
+  try {
+    await pushMenuAvailability(share, nextOut);
+    const name = getSelectedRecipes().find(r => r.id === recipeId)?.name || 'Drink';
+    showToast(wasOut ? `${name} is back on the menu` : `${name} marked out for guests`);
+  } catch (err) {
+    paint(share.outIds);
+    showToast(`Couldn't update guests: ${err.message}`);
+  }
 }
 
 /**
@@ -305,44 +507,62 @@ function renderEditMode(container) {
   // An existing saved menu backs out to its summary; a brand-new unsaved one
   // backs out to the menu list (there's nothing yet worth summarizing).
   const backLabel = activeMenu.id ? 'Menu' : 'Menus';
+  const selected = getSelectedRecipes();
 
   container.innerHTML = /*html*/`
     <div class="menu-builder-page-header">
-      <button type="button" class="menu-builder-back-link" data-action="back">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        ${backLabel}
-      </button>
-      <h1 class="menu-builder-page-title">${escapeHtml(activeMenu.name) || 'New Menu'}</h1>
+      <div class="menu-builder-header-nav">
+        <button type="button" class="menu-builder-back-link" data-action="back">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          ${backLabel}
+        </button>
+        <div class="menu-builder-header-actions">
+          <button type="button" class="btn btn-primary btn-sm" data-action="save-menu">Save Menu</button>
+        </div>
+      </div>
+      <div class="menu-builder-hero-title-wrap">
+        <input type="text" id="menu-builder-name-input" class="menu-builder-hero-title-input"
+          placeholder="Name your menu..." aria-label="Menu name" value="${escapeHtml(activeMenu.name || '')}">
+      </div>
       <p class="menu-builder-page-subtitle">Pick cocktails for an event and see what you'll need.</p>
     </div>
 
-    <div class="backbar-toolbar menu-builder-toolbar">
-      <div class="search-input-wrapper backbar-search-wrapper">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="search" id="menu-builder-search-input" class="search-input"
-          placeholder="Search cocktails..." aria-label="Search cocktails to add" value="${escapeHtml(builderSearchQuery)}">
-      </div>
-    </div>
-
     <div class="menu-builder-body">
-      <div class="menu-builder-picker-container" id="menu-builder-picker-container">
-        <!-- Dynamically populated recipe picker pills -->
-      </div>
-      <div class="menu-builder-summary">
-        <div class="menu-builder-selected-container" id="menu-builder-selected-container">
-          <!-- Dynamically populated selected-recipe rows -->
+      <div class="menu-builder-picker-column">
+        <div class="backbar-toolbar menu-builder-toolbar">
+          <div class="search-input-wrapper backbar-search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="search" id="menu-builder-search-input" class="search-input"
+              placeholder="Search cocktails..." aria-label="Search cocktails to add" value="${escapeHtml(builderSearchQuery)}">
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm menu-builder-add-ready" data-action="add-all-ready"
+            title="Add every cocktail you can make right now with your bar">Add all ready</button>
+        </div>
+        <div class="menu-builder-picker-container" id="menu-builder-picker-container">
+          <!-- Dynamically populated recipe picker pills -->
         </div>
       </div>
+
+      <aside class="menu-builder-summary" aria-label="Selected cocktails">
+        <div class="menu-builder-summary-card">
+          <div class="menu-builder-summary-header">
+            <h2 class="menu-builder-summary-title">Selected Cocktails</h2>
+            <span class="menu-builder-summary-badge" id="menu-builder-count-badge">${selected.length}</span>
+          </div>
+          <div class="menu-builder-selected-container" id="menu-builder-selected-container">
+            <!-- Dynamically populated selected-recipe rows -->
+          </div>
+        </div>
+      </aside>
     </div>
 
-    <div class="menu-builder-page-footer">
-      <input type="text" id="menu-builder-name-input" class="menu-builder-name-input"
-        placeholder="Menu name..." aria-label="Menu name" value="${escapeHtml(activeMenu.name || '')}">
-      <button type="button" class="btn btn-primary btn-sm" data-action="save-menu">Save</button>
+    <div class="menu-builder-mobile-bar" id="menu-builder-mobile-bar">
+      <span class="menu-builder-mobile-count" id="menu-builder-mobile-count">${selected.length} cocktail${selected.length === 1 ? '' : 's'}</span>
+      <button type="button" class="btn btn-primary btn-sm" data-action="save-menu">Save Menu</button>
     </div>
   `;
 
@@ -354,7 +574,20 @@ function renderEditMode(container) {
     }
     renderMenuBuilderView();
   });
-  container.querySelector('[data-action="save-menu"]')?.addEventListener('click', handleSaveMenu);
+  container.querySelectorAll('[data-action="save-menu"]').forEach(btn => {
+    btn.addEventListener('click', handleSaveMenu);
+  });
+  container.querySelector('[data-action="add-all-ready"]')?.addEventListener('click', addAllReadyDrinks);
+  const nameInput = document.getElementById('menu-builder-name-input');
+  nameInput?.addEventListener('input', (e) => {
+    activeMenu.name = e.target.value;
+  });
+  nameInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveMenu();
+    }
+  });
   document.getElementById('menu-builder-search-input')?.addEventListener('input', (e) => {
     builderSearchQuery = e.target.value.trim();
     renderPicker();
@@ -362,6 +595,31 @@ function renderEditMode(container) {
 
   renderPicker();
   renderSelectedList();
+}
+
+/**
+ * Adds every cocktail the bar can make right now (the same `canMake` the
+ * sidebar's Ready filter uses) to the menu being built. Drinks already picked
+ * stay; nothing is removed, so the host can prune the result afterwards.
+ */
+function addAllReadyDrinks() {
+  const ready = state.recipes.filter(r => getCachedInventoryAnalysis(r).canMake);
+  const fresh = ready.filter(r => !activeMenu.recipeIds.includes(r.id));
+  if (ready.length === 0) {
+    showToast('Nothing is ready to make yet. Add bottles to My Bar first.');
+    return;
+  }
+  activeMenu.recipeIds = [...activeMenu.recipeIds, ...fresh.map(r => r.id)];
+  // Open every category that now holds a pick, so the result is visible
+  // instead of hiding behind collapsed sections.
+  PICKER_CATEGORIES.forEach(cat => {
+    if (getRecipesInCategory(cat.key).some(r => activeMenu.recipeIds.includes(r.id))) expandedCategories.add(cat.key);
+  });
+  renderPicker();
+  renderSelectedList();
+  showToast(fresh.length === 0
+    ? 'All your ready drinks are already on this menu'
+    : `Added ${fresh.length} ready drink${fresh.length === 1 ? '' : 's'}`);
 }
 
 // Recipes not tagged with any picker category fall into "other" so nothing
@@ -527,9 +785,20 @@ function renderSelectedList() {
 
   const selected = getSelectedRecipes();
 
+  const countBadge = document.getElementById('menu-builder-count-badge');
+  const mobileCount = document.getElementById('menu-builder-mobile-count');
+  if (countBadge) countBadge.textContent = selected.length;
+  if (mobileCount) mobileCount.textContent = `${selected.length} cocktail${selected.length === 1 ? '' : 's'}`;
+
   if (selected.length === 0) {
     selectedContainer.innerHTML = /*html*/`
-      <p class="card-content-text menu-builder-empty-hint">Add cocktails from the list to build your menu.</p>
+      <div class="menu-builder-empty-state-card">
+        <svg class="menu-builder-empty-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 22h8m-4-10v10M5 2l7 10 7-10H5z"></path>
+        </svg>
+        <p class="menu-builder-empty-title">No cocktails added yet</p>
+        <p class="menu-builder-empty-hint">Select drinks from the categories on the left or search to add them to this menu.</p>
+      </div>
     `;
     return;
   }
@@ -709,9 +978,15 @@ function handleSaveMenu() {
     return;
   }
   const name = document.getElementById('menu-builder-name-input')?.value || '';
-  const saved = saveMenu({ id: activeMenu.id, name, recipeIds: activeMenu.recipeIds });
+  const previous = activeMenu.id ? getMenus().find(m => m.id === activeMenu.id) : null;
+  const saved = saveMenu({ id: activeMenu.id, name, recipeIds: activeMenu.recipeIds, createdAt: previous?.createdAt, share: previous?.share });
   activeMenu = { id: saved.id, name: saved.name, recipeIds: [...saved.recipeIds] };
   showToast(`Saved "${saved.name}"`);
+  if (saved.share) {
+    // A published menu keeps its link: push the edit so guests see it too.
+    pushMenuContents(saved.share, saved.name, getSelectedRecipes())
+      .catch(err => showToast(`Saved here, but the guest link wasn't updated: ${err.message}`));
+  }
   // There's now something worth summarizing — land on the read-first view
   // instead of leaving the picker open.
   builderView = 'view';

@@ -1,0 +1,374 @@
+/* Guest Menu (Hosting Mode): the phone-first page guests reach from the
+   host's QR code. The base styles are the phone layout; wider screens only
+   add columns and breathing room. */
+.guest-menu-view {
+  max-width: 1120px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1rem calc(3rem + env(safe-area-inset-bottom));
+  min-width: 0;
+  animation: fadeIn 240ms ease;
+}
+
+/* Guests didn't come for the host's app chrome (My Bar, account). */
+.guest-menu-mode .app-header {
+  display: none;
+}
+
+/* ---- Header ------------------------------------------------------------ */
+.guest-menu-header {
+  text-align: center;
+  margin: 0 auto 2rem;
+  max-width: 34rem;
+}
+
+.guest-menu-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.guest-menu-eyebrow::before,
+.guest-menu-eyebrow::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(to var(--fade-dir, right), transparent, var(--color-border-active));
+}
+
+.guest-menu-eyebrow::after {
+  --fade-dir: left;
+}
+
+.guest-menu-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 8vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--color-text-bright);
+  margin: 0 0 0.75rem;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.guest-menu-subtitle {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  margin: 0 0 1.4rem;
+}
+
+.guest-menu-surprise {
+  min-height: 48px;
+  padding: 0 1.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 20px rgba(212, 163, 89, 0.22);
+}
+
+/* ---- Grid -------------------------------------------------------------- */
+.guest-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 620px) {
+  .guest-menu-view {
+    padding-top: 3rem;
+  }
+  .guest-menu-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1000px) {
+  .guest-menu-grid {
+    gap: 1.25rem;
+  }
+}
+
+/* ---- Card -------------------------------------------------------------- */
+.guest-menu-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1.1rem 0.85rem 1.05rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(90% 55% at 50% 22%, rgba(212, 163, 89, 0.10), transparent 70%),
+    var(--color-surface-card);
+  color: var(--color-text);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), transform var(--transition-normal), box-shadow var(--transition-normal);
+  -webkit-tap-highlight-color: transparent;
+  animation: guestCardIn 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+
+@keyframes guestCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (hover: hover) {
+  .guest-menu-card:not(.is-out):hover {
+    border-color: var(--color-border-active);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .guest-menu-card:not(.is-out):hover .guest-menu-card-glass {
+    transform: scale(1.05);
+  }
+}
+
+.guest-menu-card:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.guest-menu-card:not(.is-out):active {
+  transform: scale(0.98);
+}
+
+.guest-menu-card-glass {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 128px;
+  margin-bottom: 0.45rem;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+  transition: transform var(--transition-normal);
+}
+
+@media (min-width: 620px) {
+  .guest-menu-card-glass {
+    height: 156px;
+  }
+}
+
+.guest-menu-card-glass svg {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+}
+
+.guest-menu-card-name {
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text-bright);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.guest-menu-card-meta {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.guest-menu-card-blurb {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  /* Two lines keeps a card short enough that a phone screen shows several
+     drinks at once; the full description is one tap away. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---- Out for now ------------------------------------------------------- */
+.guest-menu-card.is-out {
+  cursor: default;
+  background: var(--color-surface);
+  animation-name: none;
+}
+
+.guest-menu-card.is-out > :not(.guest-menu-card-out) {
+  opacity: 0.4;
+}
+
+.guest-menu-card.is-out .guest-menu-card-glass {
+  filter: grayscale(1) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+}
+
+.guest-menu-card-out {
+  margin-top: 0.45rem;
+  padding: 0.22rem 0.55rem;
+  border: 1px solid rgba(199, 98, 94, 0.5);
+  border-radius: var(--radius-full);
+  background: rgba(199, 98, 94, 0.14);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-crimson);
+}
+
+/* ---- Footer & states --------------------------------------------------- */
+.guest-menu-footer {
+  margin-top: 3rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--color-text-faint);
+}
+
+.guest-menu-message {
+  margin-top: 5rem;
+}
+
+/* The shared recipe card is reused for a guest's drink detail; its back link
+   sits above the card the way the menu builder's does. */
+.shared-recipe-back-link {
+  margin-left: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guest-menu-card {
+    animation: none;
+  }
+  .guest-menu-card,
+  .guest-menu-card-glass {
+    transition: none;
+  }
+}
+
+/* ---- Menu unavailable (branded dead end) ------------------------------- */
+.guest-menu-unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 26rem;
+  margin: 3rem auto 0;
+  text-align: center;
+}
+
+.guest-menu-unavailable-logo {
+  border-radius: 50%;
+  box-shadow: var(--shadow-md);
+}
+
+.guest-menu-unavailable-brand {
+  margin: 0.9rem 0 1.6rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.guest-menu-unavailable-title {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 6vw, 2.1rem);
+  line-height: 1.15;
+  color: var(--color-text-bright);
+}
+
+.guest-menu-unavailable-text {
+  margin: 0 0 2rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.guest-menu-code-form {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-card);
+  text-align: left;
+}
+
+.guest-menu-code-label {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.guest-menu-code-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.guest-menu-code-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--color-text-bright);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+}
+
+.guest-menu-code-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.guest-menu-code-error {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-crimson);
+}
+
+.guest-menu-unavailable-cta {
+  min-height: 44px;
+}
+
+.guest-menu-code-hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+/* Inert until there's something to open. The theme forces .btn-primary to solid
+   gold with !important, so the disabled look has to be forced too. */
+.guest-menu-code-form .btn-primary:disabled {
+  background: rgba(245, 240, 230, 0.06) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-faint) !important;
+  box-shadow: none !important;
+  opacity: 1;
+}

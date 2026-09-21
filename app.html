@@ -26,7 +26,7 @@
   <meta name="theme-color" content="#121110">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/index.css?v=79">
+  <link rel="stylesheet" href="css/index.css?v=88">
   <link rel="stylesheet" href="css/theme-deco.css?v=12">
   <!--
     Import Map: cache-busts the entire internal ES module graph from ONE
@@ -69,18 +69,20 @@
       "/js/modules/glassware.js": "/js/modules/glassware.js?v=2",
       "/js/modules/history.js": "/js/modules/history.js?v=2",
       "/js/modules/parser.js": "/js/modules/parser.js?v=2",
-      "/js/modules/storage.js": "/js/modules/storage.js?v=2",
+      "/js/modules/storage.js": "/js/modules/storage.js?v=3",
       "/js/modules/taxonomy.js": "/js/modules/taxonomy.js?v=3",
       "/js/modules/telemetry.js": "/js/modules/telemetry.js?v=1",
       "/js/modules/view-transition.js": "/js/modules/view-transition.js?v=2",
       "/js/modules/mobile-search-focus.js": "/js/modules/mobile-search-focus.js?v=2",
-      "/js/router.js": "/js/router.js?v=5",
-      "/js/state.js": "/js/state.js?v=5",
+      "/js/router.js": "/js/router.js?v=7",
+      "/js/state.js": "/js/state.js?v=6",
       "/js/views/counter-view.js": "/js/views/counter-view.js?v=16",
-      "/js/views/home-view.js": "/js/views/home-view.js?v=6",
-      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=9",
+      "/js/views/home-view.js": "/js/views/home-view.js?v=7",
+      "/js/views/menu-builder-view.js": "/js/views/menu-builder-view.js?v=13",
       "/js/views/recipe-list-view.js": "/js/views/recipe-list-view.js?v=1",
-      "/js/views/shared-recipe-view.js": "/js/views/shared-recipe-view.js?v=2"
+      "/js/views/shared-recipe-view.js": "/js/views/shared-recipe-view.js?v=4",
+      "/js/views/guest-menu-view.js": "/js/views/guest-menu-view.js?v=7",
+      "/js/modules/menu-publish.js": "/js/modules/menu-publish.js?v=2"
     }
   }
   </script>
@@ -89,16 +91,17 @@
        Versions match the import map above so preloading actually lands on the
        same URL the module graph resolves to, rather than preloading a stale
        unversioned copy nothing ends up using. -->
-  <link rel="modulepreload" href="app.js?v=38">
-  <link rel="modulepreload" href="/js/state.js?v=5">
-  <link rel="modulepreload" href="/js/router.js?v=5">
+  <link rel="modulepreload" href="app.js?v=39">
+  <link rel="modulepreload" href="/js/state.js?v=6">
+  <link rel="modulepreload" href="/js/router.js?v=7">
   <link rel="modulepreload" href="/js/data/seed-recipes.js?v=2">
   <link rel="modulepreload" href="/js/data/featured-cocktails.js?v=1">
   <link rel="modulepreload" href="/js/views/recipe-list-view.js?v=1">
-  <link rel="modulepreload" href="/js/views/home-view.js?v=6">
+  <link rel="modulepreload" href="/js/views/home-view.js?v=7">
   <link rel="modulepreload" href="/js/views/counter-view.js?v=16">
-  <link rel="modulepreload" href="/js/views/menu-builder-view.js?v=1">
-  <link rel="modulepreload" href="/js/views/shared-recipe-view.js?v=2">
+  <link rel="modulepreload" href="/js/views/menu-builder-view.js?v=13">
+  <link rel="modulepreload" href="/js/views/shared-recipe-view.js?v=4">
+  <link rel="modulepreload" href="/js/views/guest-menu-view.js?v=7">
   <link rel="modulepreload" href="/js/components/top-bar.js?v=5">
   <link rel="modulepreload" href="/js/components/backbar-modal.js?v=1">
   <link rel="modulepreload" href="/js/components/hidden-modal.js?v=1">
@@ -107,7 +110,7 @@
   <link rel="modulepreload" href="/js/components/toast.js?v=2">
   <link rel="modulepreload" href="/js/components/auth-modal.js?v=1">
   <link rel="modulepreload" href="/js/modules/auth.js?v=1">
-  <link rel="modulepreload" href="/js/modules/storage.js?v=2">
+  <link rel="modulepreload" href="/js/modules/storage.js?v=3">
   <link rel="modulepreload" href="/js/modules/parser.js?v=2">
   <link rel="modulepreload" href="/js/modules/colors.js?v=1">
   <link rel="modulepreload" href="/js/modules/taxonomy.js?v=3">
@@ -820,6 +823,11 @@
         <div id="shared-recipe-view-container" class="shared-recipe-view" style="display: none;">
           <!-- Rendered dynamically -->
         </div>
+
+        <!-- Published Guest Menu (Hosting Mode) View Container (Hidden initially) -->
+        <div id="guest-menu-view-container" class="guest-menu-view" style="display: none;">
+          <!-- Rendered dynamically -->
+        </div>
       </section>
     </main>
 
@@ -853,12 +861,11 @@
             </svg>
             <input type="search" id="backbar-search-input" class="search-input"
               placeholder="Search bottles or ingredients..." aria-label="Search backbar items">
+            <button id="backbar-search-clear-btn" class="btn btn-ghost search-clear-btn" aria-label="Clear search"><svg class="icon-x" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
           </div>
           <div class="backbar-quick-actions">
             <button id="btn-starter-bar" class="btn btn-secondary btn-sm" title="Add essential bar staples">Starter
               Bar</button>
-            <button id="btn-clear-bar" class="btn btn-ghost btn-sm" title="Clear all inventory bottles">Clear
-              All</button>
           </div>
         </div>
 
@@ -895,7 +902,10 @@
         </div>
 
         <div class="backbar-dialog-footer">
-          <span class="backbar-summary-text" id="backbar-summary-text">0 bottles in your backbar</span>
+          <div class="backbar-footer-left">
+            <span class="backbar-summary-text" id="backbar-summary-text">0 bottles in your backbar</span>
+            <button id="btn-clear-bar" class="btn btn-ghost btn-sm" title="Clear all inventory bottles">Reset Bar</button>
+          </div>
           <button id="btn-done-backbar" class="btn btn-primary btn-sm">Done</button>
         </div>
       </div>
@@ -974,7 +984,7 @@
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
   </div>
 
-  <script type="module" src="app.js?v=38"></script>
+  <script type="module" src="app.js?v=39"></script>
 </body>
 
 </html>

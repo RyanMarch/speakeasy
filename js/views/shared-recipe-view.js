@@ -61,7 +61,20 @@ function renderError(container, message) {
   });
 }
 
-function renderRecipe(container, recipe) {
+/**
+ * Renders one recipe's detail card. Used for shared-link recipes and, with
+ * `options`, for a drink opened from a published guest menu:
+ *   badge   — label above the name (default "Shared Cocktail")
+ *   onBack  — when set, renders a back link above the card that calls it
+ *   backLabel — text for that link
+ *   libraryAction — 'add' (default), 'open' (the visitor already has this
+ *     drink, e.g. a bundled cocktail: offer to open it instead of duplicating
+ *     it), or 'none'
+ *   onOpenInLibrary — handler for the 'open' button
+ */
+export function renderRecipe(container, recipe, options = {}) {
+  const badge = options.badge || 'Shared Cocktail';
+  const libraryAction = options.libraryAction || 'add';
   const specs = Array.isArray(recipe.specs) ? recipe.specs : [];
   const tags = Array.isArray(recipe.tags) ? recipe.tags : [];
 
@@ -80,8 +93,14 @@ function renderRecipe(container, recipe) {
   const flavorRadarSvg = renderFlavorRadarSvg(flavorProfile);
 
   container.innerHTML = /*html*/`
+    ${options.onBack ? /*html*/`
+      <button type="button" class="menu-builder-back-link shared-recipe-back-link" id="btn-shared-recipe-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        ${escapeHtml(options.backLabel || 'Back')}
+      </button>
+    ` : ''}
     <div class="shared-recipe-card">
-      <div class="shared-recipe-badge">Shared Cocktail</div>
+      <div class="shared-recipe-badge">${escapeHtml(badge)}</div>
       <h1 class="shared-recipe-name">${escapeHtml(recipe.name)}</h1>
       <div class="shared-recipe-meta">
         <span>${escapeHtml(recipe.glassware || 'Rocks')}</span>
@@ -191,12 +210,20 @@ function renderRecipe(container, recipe) {
         </div>
       </div>
 
-      <div class="shared-recipe-actions">
-        <button type="button" class="btn btn-primary" id="btn-add-shared-to-library">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          <span>Add to My Library</span>
-        </button>
-      </div>
+      ${libraryAction === 'add' ? /*html*/`
+        <div class="shared-recipe-actions">
+          <button type="button" class="btn btn-primary" id="btn-add-shared-to-library">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Add to My Library</span>
+          </button>
+        </div>
+      ` : libraryAction === 'open' ? /*html*/`
+        <div class="shared-recipe-actions">
+          <button type="button" class="btn btn-secondary" id="btn-open-in-library">
+            <span>Open in Speakeasy</span>
+          </button>
+        </div>
+      ` : ''}
     </div>
   `;
 
@@ -212,6 +239,9 @@ function renderRecipe(container, recipe) {
       glassView.setMode(targetMode);
     });
   });
+
+  document.getElementById('btn-open-in-library')?.addEventListener('click', () => options.onOpenInLibrary?.());
+  document.getElementById('btn-shared-recipe-back')?.addEventListener('click', () => options.onBack?.());
 
   wireCalorieInfoPopover('btn-shared-calorie-info', 'shared-calorie-popover');
 

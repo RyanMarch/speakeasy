@@ -61,6 +61,7 @@ import {
   setHiddenModalCallbacks,
 } from './js/components/hidden-modal.js';
 
+import { parseGuestMenuHash } from './js/views/guest-menu-view.js';
 import {
   setMenuBuilderCallbacks,
   applyMenuBuilderHash,
@@ -106,8 +107,9 @@ function init() {
     }
   }
 
+  const guestMenuRoute = parseGuestMenuHash(urlHash);
   const deepLinkedToShare = urlHash === 'share' || urlHash.startsWith('share/');
-  const deepLinkedToRecipe = !deepLinkedToShare && Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
+  const deepLinkedToRecipe = !deepLinkedToShare && !guestMenuRoute && Boolean(urlHash && state.recipes.some(r => r.id === urlHash));
   const deepLinkedToMenuBuilder = !deepLinkedToShare && (urlHash === 'menus' || urlHash.startsWith('menus/'));
   const deepLinkedToAccount = !deepLinkedToShare && (urlHash === 'account' || urlHash === 'vault');
   const deepLinkedToNew = !deepLinkedToShare && urlHash === 'new';
@@ -118,13 +120,18 @@ function init() {
   }
 
   state.activeRecipeId = initialId;
-  state.viewMode = deepLinkedToShare
+  state.viewMode = guestMenuRoute
+    ? 'guest-menu'
+    : deepLinkedToShare
     ? 'shared-recipe'
     : (deepLinkedToNew || deepLinkedToEdit)
       ? 'edit'
       : (deepLinkedToRecipe
         ? 'counter'
         : (deepLinkedToMenuBuilder ? 'menu-builder' : (deepLinkedToAccount ? 'account' : 'home')));
+  if (guestMenuRoute) {
+    state.pendingGuestMenu = guestMenuRoute;
+  }
   if (deepLinkedToShare) {
     state.pendingShareId = urlHash === 'share' ? null : urlHash.slice('share/'.length);
   }
@@ -436,6 +443,15 @@ function setupGlobalEventListeners() {
         state.viewMode = 'account';
         renderCurrentView();
       }
+      elements.sidebar?.classList.add('mobile-hidden');
+      elements.mainStage?.classList.remove('mobile-hidden');
+      return;
+    }
+    const guestMenuHashRoute = parseGuestMenuHash(rawHash);
+    if (guestMenuHashRoute) {
+      state.pendingGuestMenu = guestMenuHashRoute;
+      state.viewMode = 'guest-menu';
+      renderCurrentView();
       elements.sidebar?.classList.add('mobile-hidden');
       elements.mainStage?.classList.remove('mobile-hidden');
       return;
