@@ -5,7 +5,7 @@
  * Storage and Fetch APIs.
  */
 
-const CACHE_NAME = 'speakeasy-v12';
+const CACHE_NAME = 'speakeasy-v13';
 
 // Core shell files precached at install time, so the app has *something* to serve
 // on a cold offline open even before the fetch handler below has had a chance to
@@ -83,6 +83,7 @@ const PRECACHE_URLS = [
   'js/modules/guest-order.js',
   'js/modules/dietary.js',
   'js/modules/menu-merge.js',
+  'js/modules/recipe-merge.js',
   'js/modules/inventory-merge.js',
   'js/components/diet-notes.js',
   'js/modules/shuffle-schedule.js',

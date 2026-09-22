@@ -66,6 +66,7 @@ import { normalizeUnit } from "./parser.js";
 import { scheduleCloudSync } from "./cloud-sync.js";
 import { sanitizeDietOverrides } from "./dietary.js";
 import { mergeMenuSets } from "./menu-merge.js";
+import { mergeRecipeDeletions } from "./recipe-merge.js";
 import { mergeInventory, recordInventoryChange } from "./inventory-merge.js";
 import { detectDominantSpiritTag } from "./auto-detect.js";
 export { SEED_RECIPES };
@@ -385,6 +386,14 @@ export function saveRecipe(recipe) {
     : [];
   const updatedRecipe = { ...recipe, id, tags };
 
+  // Saving under a previously-deleted id is a deliberate recreate — the
+  // tombstone has done its job and shouldn't keep deleting it on future syncs.
+  const deletedIds = getDeletedRecipeIds();
+  if (deletedIds[id]) {
+    const { [id]: _removed, ...rest } = deletedIds;
+    saveDeletedRecipeIds(rest);
+  }
+
   const existingIndex = recipes.findIndex(r => r.id === id);
   let updatedList;
   if (existingIndex >= 0) {
@@ -398,9 +407,32 @@ export function saveRecipe(recipe) {
   return updatedRecipe;
 }
 
+// Recipes deleted on this device, remembered so a sync doesn't bring them back
+// from another device or the cloud: { [recipeId]: deletedAtMs }. Cleared for a
+// given id once that id is saved (recreated) again. See recipe-merge.js.
+const DELETED_RECIPES_STORAGE_KEY = 'speakeasy_deleted_recipes';
+
+export function getDeletedRecipeIds() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(DELETED_RECIPES_STORAGE_KEY) || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveDeletedRecipeIds(deleted) {
+  try {
+    localStorage.setItem(DELETED_RECIPES_STORAGE_KEY, JSON.stringify(deleted || {}));
+  } catch (err) {
+    console.error('Failed to save deleted recipes to localStorage:', err);
+  }
+}
+
 export function deleteRecipe(id) {
   const recipes = getRecipes();
   const filtered = recipes.filter(r => r.id !== id);
+  saveDeletedRecipeIds({ ...getDeletedRecipeIds(), [id]: Date.now() });
   saveRecipes(filtered);
   return filtered;
 }
@@ -494,6 +526,7 @@ export function buildBackupPayload() {
     lowStock: getLowStockIds(),
     menus: getMenus(),
     deletedMenus: getDeletedMenus(),
+    deletedRecipes: getDeletedRecipeIds(),
     inventoryChanges: getInventoryChanges(),
     customRecipes: getCustomRecipesForBackup(),
   };
@@ -577,11 +610,21 @@ export function importData(jsonString) {
   const hiddenRaw = Array.isArray(parsed.hiddenRecipes) ? parsed.hiddenRecipes : [];
   const settingsRaw = (parsed.settings && typeof parsed.settings === 'object') ? parsed.settings : {};
 
+  // A recipe deleted on this device or another synced one stays deleted:
+  // merge tombstones first, then drop any incoming/local copy they cover
+  // (unless this device has since recreated that id — see recipe-merge.js).
+  const incomingDeletedRecipes = (parsed.deletedRecipes && typeof parsed.deletedRecipes === 'object' && !Array.isArray(parsed.deletedRecipes))
+    ? parsed.deletedRecipes
+    : {};
+  const mergedDeletedRecipes = mergeRecipeDeletions({ deleted: getDeletedRecipeIds() }, { deleted: incomingDeletedRecipes });
+
   const existingRecipes = getRecipes();
   const recipeMap = new Map(existingRecipes.map(r => [r.id, r]));
   validRecipes.forEach(r => recipeMap.set(r.id, r));
+  Object.keys(mergedDeletedRecipes).forEach(id => recipeMap.delete(id));
   const mergedRecipes = Array.from(recipeMap.values());
   saveRecipes(mergedRecipes);
+  saveDeletedRecipeIds(mergedDeletedRecipes);
 
   let inventoryAddedCount = 0;
   if (parsed.version === 2 && Array.isArray(parsed.bars)) {
