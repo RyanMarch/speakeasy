@@ -8,6 +8,7 @@ import { jsonResponse } from './_lib/http.js';
 import { requireSession } from './_lib/auth.js';
 import { mapRecipeRow } from './_lib/recipes.js';
 import { mergeMenuSets } from '../../public/js/modules/menu-merge.js';
+import { mergeRecipeDeletions } from '../../public/js/modules/recipe-merge.js';
 import { mergeInventory } from '../../public/js/modules/inventory-merge.js';
 
 function parseSettings(value) {
@@ -57,6 +58,17 @@ export async function onRequestPost(context) {
   const currentSettings = parseSettings(settingsRow && settingsRow.settings);
   const inventorySync = { ...(currentSettings.inventorySync && typeof currentSettings.inventorySync === 'object' ? currentSettings.inventorySync : {}) };
   let inventorySyncChanged = false;
+
+  // Recipes deleted on some device stay deleted: merge this payload's
+  // tombstones with what's already stored, same tombstone idea as menus'
+  // deletedMenus (see recipe-merge.js for why recipes only merge tombstones,
+  // not full records, since they carry no per-recipe edit timestamp).
+  const hasDeletedRecipes = payload.deletedRecipes && typeof payload.deletedRecipes === 'object' && !Array.isArray(payload.deletedRecipes);
+  const incomingDeletedRecipeIds = hasDeletedRecipes ? new Set(Object.keys(payload.deletedRecipes)) : new Set();
+  const mergedDeletedRecipes = mergeRecipeDeletions(
+    currentSettings.recipeSync,
+    hasDeletedRecipes ? { deleted: payload.deletedRecipes } : {},
+  );
 
   // 2. Upsert bars + their inventories, if provided as a multi-bar payload
   if (Array.isArray(payload.bars) && payload.bars.length > 0) {
@@ -181,10 +193,19 @@ export async function onRequestPost(context) {
     const validRecipes = payload.customRecipes.filter(
       r => r && typeof r === 'object' && typeof r.name === 'string' && r.name.trim().length > 0
     );
-    recipeCount = validRecipes.length;
 
     for (const r of validRecipes) {
       const recipeId = r.id || `custom-${crypto.randomUUID()}`;
+
+      // A tombstoned id stays deleted — UNLESS this device is including it
+      // here without also tombstoning it itself, which means it deliberately
+      // recreated that id (see recipe-merge.js / storage.js saveRecipe()).
+      if (mergedDeletedRecipes[recipeId]) {
+        if (incomingDeletedRecipeIds.has(recipeId)) continue;
+        delete mergedDeletedRecipes[recipeId];
+      }
+      recipeCount++;
+
       const name = r.name.trim();
       const glassware = typeof r.glassware === 'string' ? r.glassware : null;
       const method = typeof r.method === 'string' ? r.method : null;
@@ -245,18 +266,34 @@ export async function onRequestPost(context) {
     }
   }
 
+  // Physically remove any tombstoned recipe still sitting in custom_recipes —
+  // covers a row synced before this delete ever reached the server.
+  const tombstonedRecipeIds = Object.keys(mergedDeletedRecipes);
+  if (tombstonedRecipeIds.length > 0) {
+    const placeholders = tombstonedRecipeIds.map(() => '?').join(',');
+    statements.push(
+      env.speakeasy_db.prepare(
+        `DELETE FROM custom_recipes WHERE user_id = ? AND id IN (${placeholders})`
+      ).bind(userId, ...tombstonedRecipeIds)
+    );
+  }
+
   // 5. Update user's settings JSON column if provided. Saved menus ride along in
   // the same JSON (under `menuSync`), so this needs no schema change: they're
   // merged with what's already stored rather than replaced, so one device can
-  // never wipe the menus another one built.
+  // never wipe the menus another one built. Recipe delete tombstones ride
+  // along the same way, under `recipeSync`.
   const hasSettings = payload.settings && typeof payload.settings === 'object';
   const hasMenus = Array.isArray(payload.menus) || (payload.deletedMenus && typeof payload.deletedMenus === 'object');
-  if (hasSettings || hasMenus || inventorySyncChanged) {
+  const hasRecipeSync = Object.keys(mergedDeletedRecipes).length > 0;
+  if (hasSettings || hasMenus || inventorySyncChanged || hasRecipeSync) {
     const current = currentSettings;
     const next = hasSettings ? { ...payload.settings } : { ...current };
     // Stored bookkeeping is kept even when this client doesn't know about it (older app).
     delete next.menuSync;
     delete next.inventorySync;
+    delete next.recipeSync;
+    if (hasRecipeSync) next.recipeSync = { deleted: mergedDeletedRecipes };
     const merged = mergeMenuSets(
       current.menuSync,
       hasMenus ? { menus: payload.menus, deleted: payload.deletedMenus } : {},
@@ -357,8 +394,6 @@ export async function onRequestGet(context) {
      FROM custom_recipes WHERE user_id = ?`
   ).bind(userId).all();
 
-  const customRecipes = (recipeRows.results || []).map(r => mapRecipeRow(r, { includeIsPublic: true }));
-
   // 4. Query user settings
   const userRow = await env.speakeasy_db.prepare(
     `SELECT settings FROM users WHERE id = ?`
@@ -374,8 +409,16 @@ export async function onRequestGet(context) {
   }
   // Saved menus travel inside the settings JSON; hand them back as their own
   // fields, like the rest of a backup, and keep them out of `settings`.
-  const { menuSync, inventorySync, ...settingsWithoutBookkeeping } = settings && typeof settings === 'object' ? settings : {};
+  const { menuSync, inventorySync, recipeSync, ...settingsWithoutBookkeeping } = settings && typeof settings === 'object' ? settings : {};
   settings = settingsWithoutBookkeeping;
+
+  const deletedRecipes = recipeSync?.deleted && typeof recipeSync.deleted === 'object' ? recipeSync.deleted : {};
+  // Defensive filter in case a tombstoned row is somehow still present
+  // (the normal path is the POST handler's own DELETE, above).
+  const deletedRecipeIds = new Set(Object.keys(deletedRecipes));
+  const customRecipes = (recipeRows.results || [])
+    .filter(r => !deletedRecipeIds.has(r.id))
+    .map(r => mapRecipeRow(r, { includeIsPublic: true }));
 
   // 5. Query active global recipes and globally hidden recipes
   let globalRecipes = [];
@@ -408,6 +451,7 @@ export async function onRequestGet(context) {
       settings,
       menus: Array.isArray(menuSync?.menus) ? menuSync.menus : [],
       deletedMenus: menuSync?.deleted && typeof menuSync.deleted === 'object' ? menuSync.deleted : {},
+      deletedRecipes,
       inventoryChanges: inventorySync && typeof inventorySync === 'object' ? inventorySync : {},
       customRecipes,
       globalRecipes,
