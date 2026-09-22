@@ -100,6 +100,10 @@ console.log('Coupe:', resolveGlassware('Coupe').id);
 console.log('Rocks:', resolveGlassware('Old Fashioned').id);
 console.log('Highball:', resolveGlassware('Collins').id);
 console.log('Martini:', resolveGlassware('Martini').id);
+console.log('Shot:', resolveGlassware('Shot').id);
+assert.equal(resolveGlassware('Shot').id, 'shot');
+assert.equal(resolveGlassware('shot glass').id, 'shot');
+assert.equal(resolveGlassware('Shooter').id, 'shot');
 
 console.log('--- Testing ABV Module ---');
 console.log('Bourbon estimate:', estimateIngredientAbv('Bourbon'), '%');
@@ -1310,11 +1314,18 @@ for (let i = 0; i < canonicalShoppingList.length - 1; i++) {
 // the Starter Bar's 'red_bitter' became 'campari' specifically, so Aperol-specific recipes
 // (Aperol Spritz, Paper Plane) correctly stopped counting as bottle-next off it alone.
 // Increased from 46 to 48 with the addition of 21 seed recipes, where Army & Navy (+Orgeat) and
-// Cherry Picker (+Maraschino Liqueur) added two new 1-bottle unlocks from Starter Bar.)
+// Cherry Picker (+Maraschino Liqueur) added two new 1-bottle unlocks from Starter Bar.
+// Increased from 48 to 49 with Kamikaze (+Vodka).
+// Increased from 49 to 50 with Bloody Maria (+Blanco Tequila).
+// Increased from 50 to 52 with Green Ghost (+Green Chartreuse) and Tailspin (+Green Chartreuse).
+// Increased from 52 to 54 with Gunshop Fizz (+Peychaud's Bitters) and Lemon Drop Shot (+Vodka).
+// Increased from 54 to 59 with Mexican Mule (+Ginger Beer), Star Cocktail (+Apple Brandy), Brave Bull (+Coffee Liqueur), Matador (+Pineapple Juice), and Batanga (+Cola).
+// Increased from 59 to 61 with Lemon Drop (+Vodka) and Vodka Gimlet (+Vodka).
+// Increased from 61 to 66 with John Collins (+Club Soda), Gin Sour (+Egg White), Cuba Libre (+Cola), Horse's Neck (+Ginger Ale), and Derby (+Curaçao).
 const totalStarterUnlocks = canonicalShoppingList.reduce((sum, item) => sum + item.unlockCount, 0);
-console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 48)`);
-if (totalStarterUnlocks !== 48) {
-  throw new Error(`Expected exactly 48 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
+console.log(`Canonical Starter Bar Total Unlocks: ${totalStarterUnlocks} (expected: 66)`);
+if (totalStarterUnlocks !== 66) {
+  throw new Error(`Expected exactly 66 bottle-next unlocks from Starter Bar, got ${totalStarterUnlocks}`);
 }
 
 console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingList[0].name} (+${canonicalShoppingList[0].unlockCount} cocktails)`);

@@ -31,7 +31,7 @@ async function runTests() {
   const { SEED_RECIPES: storageSeeds } = await import('../js/modules/storage.js');
 
   assert(Array.isArray(directSeeds), 'seed-recipes.js exports an array');
-  assert(directSeeds.length === 201, `seed-recipes.js has 201 recipes (found: ${directSeeds.length})`);
+  assert(directSeeds.length === 268, `seed-recipes.js has 268 recipes (found: ${directSeeds.length})`);
   const storageMod = await import('../js/modules/storage.js');
   assert(typeof storageMod.clearUserDataOnSignOut === 'function', 'storage.js exports clearUserDataOnSignOut()');
   assert(typeof storageMod.getHomeCollectionsOrder === 'function', 'storage.js exports getHomeCollectionsOrder()');

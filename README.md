@@ -13,12 +13,12 @@
   <img src="assets/images/speakeasy-cocktail-recipe-library-device-shots.png" alt="Menu builder showing a cocktail lineup with combined glassware and ingredient checklist" width="850">
 </p>
 
-Speakeasy is a cocktail recipe library built to live on your kitchen counter or bar cart. Browse 180+ recipes depicted as real glassware with fluid ingredient layers, track the bottles you actually own, and find out exactly what to pour or what to buy next.
+Speakeasy is a cocktail recipe library built to live on your kitchen counter or bar cart. Browse 260+ recipes depicted as real glassware with fluid ingredient layers, track the bottles you actually own, and find out exactly what to pour or what to buy next.
 
 ## Features
 
 ### See the drink before you pour it
-Every recipe renders inside its own glass — Coupes, Highballs, Rocks glasses, Nick & Noras, and even Tiki Mugs — with ingredients stacked as real fluid layers in proportion to the pour. Hover an ingredient to see its layer light up, or toggle to a blended view for shaken and stirred drinks that come out one uniform color. Garnishes land right where they belong: citrus wheels and twists on the rim, cherries and picks over the edge.
+Every recipe renders inside its own glass (Coupes, Highballs, Rocks glasses, Nick & Noras, Tiki Mugs, and Shot glasses) with ingredients stacked as real fluid layers in proportion to the pour. Hover an ingredient to see its layer light up, or toggle to a blended view for shaken and stirred drinks that come out one uniform color. Garnishes land right where they belong: citrus wheels and twists on the rim, cherries and picks over the edge.
 
 When recipes show how long to shake or stir, you'll see an inline button to immediately start a timer so you always get the perfect dilution. Drinks get their own flavor profile radar charts (sweet/sour/bitter/boozy) and are tagged with everything that makes them tick: bourbon, gin, smoky, tropical, you name it.
 
@@ -27,7 +27,7 @@ When recipes show how long to shake or stir, you'll see an inline button to imme
 </p>
 
 ### Understand your bar ingredients
-Check off the bottles you actually have: spirits, liqueurs, bitters, mixers. Speakeasy instantly shows which of its 180+ recipes you're ready to make. No guesswork, no digging through a recipe box to find out you're missing one ingredient.
+Check off the bottles you actually have: spirits, liqueurs, bitters, mixers. Speakeasy instantly shows which of its 260+ recipes you're ready to make. No guesswork, no digging through a recipe box to find out you're missing one ingredient.
 
 <p align="center">
   <img src="assets/screenshots/backbar-my-bar.png" alt="Personal backbar screen for checking off the bottles you own" width="850">
@@ -86,7 +86,7 @@ Everything works in your browser, and even better when added to your home screen
 
 ## How it's built
 
-Speakeasy is built with plain HTML, modern CSS, and vanilla JavaScript — no frameworks, no build step, no external runtime dependencies. Every glass, every fluid layer, and every garnish is drawn as live vector art rather than a static image, which is what lets it react instantly as you tweak a recipe or swap a bottle.
+Speakeasy is built with plain HTML, modern CSS, and vanilla JavaScript without frameworks, build steps, or external runtime dependencies. Every glass, every fluid layer, and every garnish is drawn as live vector art rather than a static image, which is what lets it react instantly as you tweak a recipe or swap a bottle.
 
 ## Disclaimer
 

@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let filtered = [];
 
         if (currentCategory) {
-            document.title = `${currentCategory} Articles — TripDeck Docs`;
+            document.title = `${currentCategory} Articles - Speakeasy Docs`;
             if (titleEl) titleEl.textContent = `${currentCategory} Articles`;
             if (subtitleEl) subtitleEl.textContent = `All documentation guides in the ${currentCategory} category.`;
             if (badgeEl) {
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             filtered = searchIndexData.filter(item => item.category && item.category.toLowerCase() === currentCategory.toLowerCase());
         } else if (currentFilter === 'recent') {
-            document.title = `Recently Updated — TripDeck Docs`;
+            document.title = `Recently Updated - Speakeasy Docs`;
             if (titleEl) titleEl.textContent = 'Recently Updated';
             if (subtitleEl) subtitleEl.textContent = 'Showing recently updated documentation guides.';
             if (badgeEl) badgeEl.style.display = 'none';
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated))
                 .slice(0, 5);
         } else if (currentQuery) {
-            document.title = `Search results for "${currentQuery}" — TripDeck Docs`;
+            document.title = `Search results for "${currentQuery}" - Speakeasy Docs`;
             if (titleEl) titleEl.textContent = 'Search Results';
             if (subtitleEl) subtitleEl.innerHTML = `Showing articles matching "<strong class="highlight-term">${escapeHtml(currentQuery)}</strong>"`;
             if (badgeEl) badgeEl.style.display = 'none';
@@ -153,13 +153,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (categoryLower.includes(qLower)) {
+                        score += 30;
+                    }
+
+                    const matchingHeadings = (item.headings || []).filter(h => h.toLowerCase().includes(qLower));
+                    if (matchingHeadings.length > 0) {
+                        score += matchingHeadings.length * 15;
+                    }
+
+                    if ((item.excerpt || '').toLowerCase().includes(qLower)) {
                         score += 20;
-                    }
-                    if (item.headings && item.headings.some(h => h.toLowerCase().includes(qLower))) {
-                        score += 10;
-                    }
-                    if (item.excerpt && item.excerpt.toLowerCase().includes(qLower)) {
-                        score += 5;
                     }
                     return { item, score };
                 })
@@ -169,9 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             logDocsSearchTelemetry(currentQuery, filtered.length);
         } else {
-            document.title = `All Guides — TripDeck Docs`;
+            document.title = `All Guides - Speakeasy Docs`;
             if (titleEl) titleEl.textContent = 'All Guides';
-            if (subtitleEl) subtitleEl.textContent = `Browse all documentation guides in the TripDeck help center.`;
+            if (subtitleEl) subtitleEl.textContent = `Browse all documentation guides in the Speakeasy help center.`;
             if (badgeEl) badgeEl.style.display = 'none';
             filtered = searchIndexData;
         }

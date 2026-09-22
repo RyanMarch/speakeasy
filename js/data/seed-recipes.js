@@ -1,5 +1,5 @@
 /**
- * Canonical seed recipes for Speakeasy (182 craft & classic cocktails).
+ * Canonical seed recipes for Speakeasy (268 craft & classic cocktails).
  */
 
 export const SEED_RECIPES = [
@@ -1628,7 +1628,7 @@ export const SEED_RECIPES = [
     source: "Louis Eppinger, Grand Hotel, Yokohama (c. 1890s)",
     sourceUrl: "",
     notes: "",
-    tags: ["aperitivo-amaro", "low-abv", "sherry-forward", "crisp"],
+    tags: ["aperitivo-amaro", "low-abv", "sherry-forward", "crisp", "savory"],
     specs: [
       { amount: 1.5, unit: "oz", name: "Dry Sherry" },
       { amount: 1.5, unit: "oz", name: "Dry Vermouth" },
@@ -1962,7 +1962,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "oz", name: "Club Soda" },
     ],
   },
-  // 1. Monte Cassino
   {
     id: "monte-cassino",
     name: "Monte Cassino",
@@ -1984,7 +1983,6 @@ export const SEED_RECIPES = [
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
     ],
   },
-  // 2. Little Italy
   {
     id: "little-italy",
     name: "Little Italy",
@@ -2005,7 +2003,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Cynar" },
     ],
   },
-  // 3. Greenpoint
   {
     id: "greenpoint",
     name: "Greenpoint",
@@ -2028,7 +2025,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Orange Bitters" },
     ],
   },
-  // 4. Ferrari
   {
     id: "ferrari",
     name: "Ferrari",
@@ -2046,7 +2042,6 @@ export const SEED_RECIPES = [
       { amount: 1.5, unit: "oz", name: "Fernet-Branca" },
     ],
   },
-  // 5. Chet Baker
   {
     id: "chet-baker",
     name: "Chet Baker",
@@ -2066,7 +2061,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Angostura Bitters" },
     ],
   },
-  // 6. Kingston Negroni
   {
     id: "kingston-negroni",
     name: "Kingston Negroni",
@@ -2087,7 +2081,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "oz", name: "Sweet Vermouth" },
     ],
   },
-  // 7. Right Hand
   {
     id: "right-hand",
     name: "Right Hand",
@@ -2109,7 +2102,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Chocolate Bitters" },
     ],
   },
-  // 8. 1794
   {
     id: "1794",
     name: "1794",
@@ -2131,7 +2123,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Chocolate Bitters" },
     ],
   },
-  // 9. Gold Rush
   {
     id: "gold-rush",
     name: "Gold Rush",
@@ -2152,7 +2143,6 @@ export const SEED_RECIPES = [
       { amount: 0.75, unit: "oz", name: "Honey Syrup" },
     ],
   },
-  // 10. Enzoni
   {
     id: "enzoni",
     name: "Enzoni",
@@ -2172,7 +2162,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Simple Syrup" },
     ],
   },
-  // 11. Siesta
   {
     id: "siesta",
     name: "Siesta",
@@ -2195,7 +2184,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Simple Syrup" },
     ],
   },
-  // 12. French Pearl
   {
     id: "french-pearl",
     name: "French Pearl",
@@ -2215,7 +2203,6 @@ export const SEED_RECIPES = [
       { amount: 0.25, unit: "oz", name: "Absinthe" },
     ],
   },
-  // 13. 21st Century
   {
     id: "21st-century",
     name: "21st Century",
@@ -2236,7 +2223,6 @@ export const SEED_RECIPES = [
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
     ],
   },
-  // 14. Old Cuban
   {
     id: "old-cuban",
     name: "Old Cuban",
@@ -2259,7 +2245,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "oz", name: "Sparkling Wine" },
     ],
   },
-  // 15. Gordon's Cup
   {
     id: "gordons-cup",
     name: "Gordon's Cup",
@@ -2279,7 +2264,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Celery Salt & Spices" },
     ],
   },
-  // 16. Tia Mia
   {
     id: "tia-mia",
     name: "Tia Mia",
@@ -2302,7 +2286,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Orgeat" },
     ],
   },
-  // 17. Medicina Latina
   {
     id: "medicina-latina",
     name: "Medicina Latina",
@@ -2325,7 +2308,6 @@ export const SEED_RECIPES = [
       { amount: 0.375, unit: "oz", name: "Honey Syrup" },
     ],
   },
-  // 18. Bitter Giuseppe
   {
     id: "bitter-giuseppe",
     name: "Bitter Giuseppe",
@@ -2345,7 +2327,6 @@ export const SEED_RECIPES = [
       { amount: 6, unit: "dashes", name: "Orange Bitters" },
     ],
   },
-  // 19. Trinidad Especial
   {
     id: "trinidad-especial",
     name: "Trinidad Especial",
@@ -2367,7 +2348,6 @@ export const SEED_RECIPES = [
       { amount: 0.75, unit: "oz", name: "Fresh Lime Juice" },
     ],
   },
-  // 20. Queen's Park Swizzle
   {
     id: "queens-park-swizzle",
     name: "Queen's Park Swizzle",
@@ -2389,7 +2369,6 @@ export const SEED_RECIPES = [
       { amount: 4, unit: "dashes", name: "Angostura Bitters" },
     ],
   },
-  // 21. Tradewinds
   {
     id: "tradewinds",
     name: "Tradewinds",
@@ -2410,7 +2389,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "oz", name: "Fresh Lemon Juice" },
     ],
   },
-  // 22. Missionary's Downfall
   {
     id: "missionarys-downfall",
     name: "Missionary's Downfall",
@@ -2431,7 +2409,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "oz", name: "Pineapple Juice" },
     ],
   },
-  // 23. Scorpion
   {
     id: "scorpion",
     name: "Scorpion",
@@ -2452,7 +2429,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Orgeat" },
     ],
   },
-  // 24. Port Light
   {
     id: "port-light",
     name: "Port Light",
@@ -2473,7 +2449,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Egg White" },
     ],
   },
-  // 25. Ancient Mariner
   {
     id: "ancient-mariner",
     name: "Ancient Mariner",
@@ -2497,7 +2472,6 @@ export const SEED_RECIPES = [
       { amount: 0.25, unit: "oz", name: "Velvet Falernum" },
     ],
   },
-  // 26. Test Pilot
   {
     id: "test-pilot",
     name: "Test Pilot",
@@ -2520,7 +2494,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Angostura Bitters" },
     ],
   },
-  // 27. Cobra's Fang
   {
     id: "cobras-fang",
     name: "Cobra's Fang",
@@ -2544,7 +2517,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Grenadine" },
     ],
   },
-  // 28. Jet Pilot
   {
     id: "jet-pilot",
     name: "Jet Pilot",
@@ -2571,7 +2543,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Angostura Bitters" },
     ],
   },
-  // 29. Halekulani
   {
     id: "halekulani",
     name: "Halekulani",
@@ -2593,7 +2564,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Angostura Bitters" },
     ],
   },
-  // 30. Suffering Bastard
   {
     id: "suffering-bastard",
     name: "Suffering Bastard",
@@ -2614,7 +2584,6 @@ export const SEED_RECIPES = [
       { amount: 4, unit: "oz", name: "Ginger Beer" },
     ],
   },
-  // 31. Castaway
   {
     id: "castaway",
     name: "Castaway",
@@ -2633,7 +2602,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "oz", name: "Pineapple Juice" },
     ],
   },
-  // 32. La Rosita
   {
     id: "la-rosita",
     name: "La Rosita",
@@ -2656,7 +2624,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Angostura Bitters" },
     ],
   },
-  // 33. Mezcalita
   {
     id: "mezcalita",
     name: "Mezcalita",
@@ -2678,7 +2645,6 @@ export const SEED_RECIPES = [
       { amount: 0.25, unit: "oz", name: "Agave Nectar" },
     ],
   },
-  // 34. Bijou
   {
     id: "bijou",
     name: "Bijou",
@@ -2698,7 +2664,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Orange Bitters" },
     ],
   },
-  // 35. Remember the Maine
   {
     id: "remember-the-maine",
     name: "Remember the Maine",
@@ -2720,7 +2685,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Absinthe" },
     ],
   },
-  // 36. Bobby Burns
   {
     id: "bobby-burns",
     name: "Bobby Burns",
@@ -2741,7 +2705,6 @@ export const SEED_RECIPES = [
       { amount: 0.25, unit: "oz", name: "Bénédictine" },
     ],
   },
-  // 37. Old Pal
   {
     id: "old-pal",
     name: "Old Pal",
@@ -2762,7 +2725,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "oz", name: "Campari" },
     ],
   },
-  // 38. Champs-Élysées
   {
     id: "champs-elysees",
     name: "Champs-Élysées",
@@ -2785,7 +2747,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Angostura Bitters" },
     ],
   },
-  // 39. Tipperary
   {
     id: "tipperary",
     name: "Tipperary",
@@ -2805,7 +2766,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Orange Bitters" },
     ],
   },
-  // 40. 20th Century
   {
     id: "20th-century",
     name: "20th Century",
@@ -2825,7 +2785,6 @@ export const SEED_RECIPES = [
       { amount: 0.75, unit: "oz", name: "Fresh Lemon Juice" },
     ],
   },
-  // 41. Alaska
   {
     id: "alaska",
     name: "Alaska",
@@ -2844,7 +2803,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Orange Bitters" },
     ],
   },
-  // 42. New York Sour
   {
     id: "new-york-sour",
     name: "New York Sour",
@@ -2866,7 +2824,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Dry Red Wine" },
     ],
   },
-  // 43. Metropolitan
   {
     id: "metropolitan",
     name: "Metropolitan",
@@ -2889,7 +2846,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Peychaud's Bitters" },
     ],
   },
-  // 44. Palmetto
   {
     id: "palmetto",
     name: "Palmetto",
@@ -2910,7 +2866,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Orange Bitters" },
     ],
   },
-  // 45. Artillery
   {
     id: "artillery",
     name: "Artillery",
@@ -2931,7 +2886,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Absinthe" },
     ],
   },
-  // 46. Gin Fizz
   {
     id: "gin-fizz",
     name: "Gin Fizz",
@@ -2951,7 +2905,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "oz", name: "Club Soda" },
     ],
   },
-  // 47. Southside Fizz
   {
     id: "southside-fizz",
     name: "Southside Fizz",
@@ -2973,7 +2926,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "oz", name: "Club Soda" },
     ],
   },
-  // 48. Dirty Martini
   {
     id: "dirty-martini",
     name: "Dirty Martini",
@@ -2994,7 +2946,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Olive Brine" },
     ],
   },
-  // 49. Gibson
   {
     id: "gibson",
     name: "Gibson",
@@ -3014,7 +2965,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Dry Vermouth" },
     ],
   },
-  // 50. Michelada
   {
     id: "michelada",
     name: "Michelada",
@@ -3034,7 +2984,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Hot Sauce" },
     ],
   },
-  // 51. Green Park
   {
     id: "green-park",
     name: "Green Park",
@@ -3056,7 +3005,6 @@ export const SEED_RECIPES = [
       { amount: 0.75, unit: "oz", name: "Egg White" },
     ],
   },
-  // 52. Dirty Mezcalita
   {
     id: "dirty-mezcalita",
     name: "Dirty Mezcalita",
@@ -3079,7 +3027,6 @@ export const SEED_RECIPES = [
       { amount: 0.25, unit: "oz", name: "Agave Nectar" },
     ],
   },
-  // 53. Chartreuse Swizzle
   {
     id: "chartreuse-swizzle",
     name: "Chartreuse Swizzle",
@@ -3099,7 +3046,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Falernum" },
     ],
   },
-  // 54. Metropole
   {
     id: "metropole",
     name: "Metropole",
@@ -3122,7 +3068,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Angostura Bitters" },
     ],
   },
-  // 55. Apium
   {
     id: "apium",
     name: "Apium",
@@ -3142,7 +3087,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Simple Syrup" },
     ],
   },
-  // 56. Paris Is Burning
   {
     id: "paris-is-burning",
     name: "Paris Is Burning",
@@ -3162,7 +3106,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Suze" },
     ],
   },
-  // 57. Royal Bermuda Yacht Club
   {
     id: "royal-bermuda-yacht-club",
     name: "Royal Bermuda Yacht Club",
@@ -3184,7 +3127,6 @@ export const SEED_RECIPES = [
       { amount: 0.25, unit: "oz", name: "Cointreau" },
     ],
   },
-  // 58. Flannel Shirt
   {
     id: "flannel-shirt",
     name: "Flannel Shirt",
@@ -3207,7 +3149,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Angostura Bitters" },
     ],
   },
-  // 59. Stone Fence
   {
     id: "stone-fence",
     name: "Stone Fence",
@@ -3226,7 +3167,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Angostura Bitters" },
     ],
   },
-  // 60. Brandy Crusta
   {
     id: "brandy-crusta",
     name: "Brandy Crusta",
@@ -3248,7 +3188,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Angostura Bitters" },
     ],
   },
-  // 61. Shoulder Season
   {
     id: "shoulder-season",
     name: "Shoulder Season",
@@ -3271,7 +3210,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Walnut Bitters" },
     ],
   },
-  // 62. Monte Carlo
   {
     id: "monte-carlo",
     name: "Monte Carlo",
@@ -3292,7 +3230,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Angostura Bitters" },
     ],
   },
-  // 63. À La Louisienne
   {
     id: "a-la-louisienne",
     name: "À La Louisienne",
@@ -3315,7 +3252,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "dashes", name: "Peychaud's Bitters" },
     ],
   },
-  // 64. Mexican Firing Squad
   {
     id: "mexican-firing-squad",
     name: "Mexican Firing Squad",
@@ -3335,7 +3271,6 @@ export const SEED_RECIPES = [
       { amount: 4, unit: "dashes", name: "Angostura Bitters" },
     ],
   },
-  // 65. Artichoke Hold
   {
     id: "artichoke-hold",
     name: "Artichoke Hold",
@@ -3356,7 +3291,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Orgeat" },
     ],
   },
-  // 66. Blinker
   {
     id: "blinker",
     name: "Blinker",
@@ -3375,7 +3309,6 @@ export const SEED_RECIPES = [
       { amount: 0.25, unit: "oz", name: "Raspberry Syrup" },
     ],
   },
-  // 67. Brown Derby
   {
     id: "brown-derby",
     name: "Brown Derby",
@@ -3394,7 +3327,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Honey Syrup" },
     ],
   },
-  // 68. Red Hook
   {
     id: "red-hook",
     name: "Red Hook",
@@ -3415,7 +3347,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Maraschino Liqueur" },
     ],
   },
-  // 69. Diamondback
   {
     id: "diamondback",
     name: "Diamondback",
@@ -3434,7 +3365,6 @@ export const SEED_RECIPES = [
       { amount: 0.75, unit: "oz", name: "Yellow Chartreuse" },
     ],
   },
-  // 70. Fancy Free
   {
     id: "fancy-free",
     name: "Fancy Free",
@@ -3456,7 +3386,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Orange Bitters" },
     ],
   },
-  // 71. Brooklyn
   {
     id: "brooklyn",
     name: "Brooklyn",
@@ -3478,7 +3407,6 @@ export const SEED_RECIPES = [
       { amount: 0.25, unit: "oz", name: "Amer Picon" },
     ],
   },
-  // 72. El Presidente
   {
     id: "el-presidente",
     name: "El Presidente",
@@ -3498,7 +3426,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "barspoon", name: "Grenadine" },
     ],
   },
-  // 73. Air Mail
   {
     id: "airmail",
     name: "Air Mail",
@@ -3518,7 +3445,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "oz", name: "Sparkling Wine" },
     ],
   },
-  // 74. Twelve Mile Limit
   {
     id: "twelve-mile-limit",
     name: "Twelve Mile Limit",
@@ -3539,7 +3465,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Grenadine" },
     ],
   },
-  // 75. Jack Rose
   {
     id: "jack-rose",
     name: "Jack Rose",
@@ -3558,7 +3483,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Grenadine" },
     ],
   },
-  // 76. Harvey Wallbanger
   {
     id: "harvey-wallbanger",
     name: "Harvey Wallbanger",
@@ -3579,7 +3503,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Galliano" },
     ],
   },
-  // 77. Hot Toddy
   {
     id: "hot-toddy",
     name: "Hot Toddy",
@@ -3599,7 +3522,6 @@ export const SEED_RECIPES = [
       { amount: 4, unit: "oz", name: "Boiling Water" },
     ],
   },
-  // 78. Gin Rickey
   {
     id: "gin-rickey",
     name: "Gin Rickey",
@@ -3618,7 +3540,6 @@ export const SEED_RECIPES = [
       { amount: 4, unit: "oz", name: "Club Soda" },
     ],
   },
-  // 79. Presbyterian
   {
     id: "presbyterian",
     name: "Presbyterian",
@@ -3637,7 +3558,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "oz", name: "Club Soda" },
     ],
   },
-  // 81. Pegu Club
   {
     id: "pegu-club",
     name: "Pegu Club",
@@ -3658,7 +3578,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Orange Bitters" },
     ],
   },
-  // 82. Army & Navy
   {
     id: "army-navy",
     name: "Army & Navy",
@@ -3678,7 +3597,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Aromatic Bitters" },
     ],
   },
-  // 83. Rosita
   {
     id: "rosita",
     name: "Rosita",
@@ -3701,7 +3619,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Aromatic Bitters" },
     ],
   },
-  // 84. Sea Legs
   {
     id: "sea-legs",
     name: "Sea Legs",
@@ -3722,7 +3639,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Celery Bitters" },
     ],
   },
-  // 85. Overhand Smash
   {
     id: "overhand-smash",
     name: "Overhand Smash",
@@ -3746,7 +3662,6 @@ export const SEED_RECIPES = [
       { amount: 4, unit: "oz", name: "Ginger Beer" },
     ],
   },
-  // 86. Death or Glory
   {
     id: "death-or-glory",
     name: "Death Or Glory",
@@ -3768,7 +3683,6 @@ export const SEED_RECIPES = [
       { amount: 6, unit: "drops", name: "Orange Cream Citrate Bitters" },
     ],
   },
-  // 87. French Blonde
   {
     id: "french-blonde",
     name: "French Blonde",
@@ -3789,7 +3703,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "dashes", name: "Lemon Bitters" },
     ],
   },
-  // 88. Cherry Picker
   {
     id: "cherry-picker",
     name: "Cherry Picker",
@@ -3811,7 +3724,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "dashes", name: "Aromatic Bitters" },
     ],
   },
-  // 89. Storm King
   {
     id: "storm-king",
     name: "Storm King",
@@ -3831,7 +3743,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "dashes", name: "Angostura Bitters" },
     ],
   },
-  // 90. Improved Japanese Cocktail
   {
     id: "improved-japanese",
     name: "Improved Japanese",
@@ -3853,7 +3764,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "dashes", name: "Peychaud's Bitters" },
     ],
   },
-  // 91. King Kong
   {
     id: "king-kong",
     name: "King Kong",
@@ -3873,7 +3783,6 @@ export const SEED_RECIPES = [
       { amount: 3, unit: "dashes", name: "Aromatic Bitters" },
     ],
   },
-  // 92. Intercontinental
   {
     id: "intercontinental",
     name: "Intercontinental",
@@ -3892,7 +3801,6 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Maraschino Liqueur" },
     ],
   },
-  // 93. Apple Blossom
   {
     id: "apple-blossom",
     name: "Apple Blossom",
@@ -3913,7 +3821,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Aromatic Bitters" },
     ],
   },
-  // 94. L'Amour Banane
   {
     id: "lamour-banane",
     name: "L'Amour Banane",
@@ -3934,7 +3841,6 @@ export const SEED_RECIPES = [
       { amount: 0.75, unit: "oz", name: "Lemon Juice" },
     ],
   },
-  // 95. Lady Luck
   {
     id: "lady-luck",
     name: "Lady Luck",
@@ -3955,7 +3861,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Grapefruit Bitters" },
     ],
   },
-  // 96. Perfect Manhattan
   {
     id: "perfect-manhattan",
     name: "Perfect Manhattan",
@@ -3977,7 +3882,6 @@ export const SEED_RECIPES = [
       { amount: 2, unit: "dashes", name: "Aromatic Bitters" },
     ],
   },
-  // 97. Whiskey Lullaby
   {
     id: "whiskey-lullaby",
     name: "Whiskey Lullaby",
@@ -3998,7 +3902,6 @@ export const SEED_RECIPES = [
       { amount: 6, unit: "dashes", name: "Aromatic Bitters" },
     ],
   },
-  // 98. Hot Buttered Rum
   {
     id: "hot-buttered-rum",
     name: "Hot Buttered Rum",
@@ -4022,7 +3925,6 @@ export const SEED_RECIPES = [
       { amount: 6, unit: "oz", name: "Boiling Water" },
     ],
   },
-  // 99. Cabaret
   {
     id: "cabaret",
     name: "Cabaret",
@@ -4043,7 +3945,6 @@ export const SEED_RECIPES = [
       { amount: 1, unit: "dash", name: "Absinthe" },
     ],
   },
-  // 100. Razzle Dazzle
   {
     id: "razzle-dazzle",
     name: "Razzle Dazzle",
@@ -4063,6 +3964,1290 @@ export const SEED_RECIPES = [
       { amount: 0.5, unit: "oz", name: "Simple Syrup" },
       { amount: 2, unit: "dashes", name: "Peychaud's Bitters" },
       { amount: 2, unit: "oz", name: "Sparkling Wine" },
+    ],
+  },
+  {
+    id: "trident",
+    name: "Trident",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Lemon twist",
+    description: "A savory, bittersweet modern classic by Robert Hess that matches the caraway and dill of Scandinavian aquavit with herbal Cynar and bone-dry Manzanilla sherry.",
+    instructions: "1. Combine aquavit, Cynar, dry sherry, and peach bitters in a mixing glass filled with ice.\n2. Stir for 25-30 seconds until well-chilled and integrated.\n3. Strain into a chilled coupe or Nick & Nora glass.\n4. Express lemon peel oils over the surface and garnish.",
+    source: "Robert Hess (2000s)",
+    sourceUrl: "https://kindredcocktails.com/cocktail/trident",
+    notes: "An adventurous equal-parts modern classic showing off the savory dill and caraway notes of aquavit.",
+    tags: ["modern-craft", "spirit-forward", "herbal", "bittersweet", "savory"],
+    specs: [
+      { amount: 1, unit: "oz", name: "Aquavit" },
+      { amount: 1, unit: "oz", name: "Cynar" },
+      { amount: 1, unit: "oz", name: "Dry Sherry" },
+      { amount: 2, unit: "dashes", name: "Peach Bitters" },
+    ],
+  },
+  {
+    id: "vampiro",
+    name: "Vampiro",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wheel",
+    description: "A spicy, savory Mexican highball from San Luis Soyatlán, Jalisco, mixing tequila with citrus, savory tomato, fiery hot sauce, and sparkling grapefruit soda.",
+    instructions: "1. Rim a highball glass with lime and chili-salt or coarse salt, then fill with fresh ice.\n2. Add tequila, tomato juice, orange juice, lime juice, Worcestershire sauce, hot sauce, and a pinch of salt.\n3. Stir gently to integrate.\n4. Top with chilled grapefruit soda and garnish with a lime wheel.",
+    source: "San Luis Soyatlán, Jalisco (IBA Official)",
+    sourceUrl: "https://iba-world.com/vampiro/",
+    notes: "Mexico's beloved savory and spicy tequila highball, often served in street stands in plastic bags with straws.",
+    tags: ["classic", "tequila-forward", "savory", "spicy", "refreshing", "highball"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Blanco Tequila" },
+      { amount: 2, unit: "oz", name: "Tomato Juice" },
+      { amount: 1, unit: "oz", name: "Orange Juice" },
+      { amount: 0.5, unit: "oz", name: "Lime Juice" },
+      { amount: 2, unit: "dashes", name: "Worcestershire Sauce" },
+      { amount: 2, unit: "dashes", name: "Hot Sauce" },
+      { amount: 2, unit: "oz", name: "Grapefruit Soda" },
+    ],
+  },
+  {
+    id: "kamikaze",
+    name: "Kamikaze",
+    glassware: "Shot",
+    method: "Shaken",
+    garnish: "Lime wedge",
+    description: "A crisp 1970s classic and the direct predecessor to the Cosmopolitan, balancing crisp vodka with triple sec and tart fresh lime.",
+    instructions: "1. Combine vodka, triple sec, and fresh lime juice in a cocktail shaker filled with ice.\n2. Shake vigorously for 10-12 seconds until frosty and cold.\n3. Strain into a chilled shot glass (or into a coupe for a full cocktail).\n4. Garnish with a lime wedge.",
+    source: "Classic (1970s)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/1083/kamikaze",
+    notes: "While popular as a party shot, the Kamikaze is fundamentally a vodka daisy / sour. It works equally well served up in a coupe.",
+    tags: ["classic", "vodka-forward", "sour", "party"],
+    specs: [
+      { amount: 1, unit: "oz", name: "Vodka" },
+      { amount: 1, unit: "oz", name: "Triple Sec" },
+      { amount: 1, unit: "oz", name: "Lime Juice" },
+    ],
+  },
+  {
+    id: "b-52",
+    name: "B-52",
+    glassware: "Shot",
+    method: "Built",
+    garnish: "",
+    description: "A famous 1970s layered shooter featuring distinct floating tiers of rich coffee liqueur, velvety Irish cream, and sweet orange cognac liqueur.",
+    instructions: "1. Pour coffee liqueur directly into the bottom of a shot glass.\n2. Invert a bar spoon with the tip touching the inside glass wall just above the coffee layer.\n3. Slowly pour Irish cream over the back of the spoon to create a clean middle layer.\n4. Repeat the float with Grand Marnier on top.\n5. Serve immediately.",
+    source: "Peter Fich, Banff Springs Hotel (1977)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/150/b-52",
+    notes: "Named after the B-52 Stratofortress bomber. Relying on liquid density, the drink must be poured gently over the back of a spoon.",
+    tags: ["classic", "coffee", "creamy", "party"],
+    specs: [
+      { amount: 0.66, unit: "oz", name: "Coffee Liqueur" },
+      { amount: 0.66, unit: "oz", name: "Irish Cream" },
+      { amount: 0.66, unit: "oz", name: "Grand Marnier" },
+    ],
+  },
+  {
+    id: "dublin-drop",
+    name: "Dublin Drop",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "",
+    description: "A famous drop-shot boilermaker traditionally known as the Irish Car Bomb or Irish Slammer, pairing Irish whiskey and Irish cream dropped into a half pint of dry Irish stout.",
+    instructions: "1. Fill a highball or pint glass with half a pint (6 oz) of chilled dry Irish stout.\n2. In a separate shot glass, combine equal parts Irish whiskey and Baileys Irish cream.\n3. Drop the shot glass directly into the stout.\n4. Drink immediately in continuous sips before the cream curdles.",
+    source: "Charles Oat, Norwich CT (1979)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/2422/dublin-drop",
+    notes: "Traditionally known as the Irish Car Bomb, modern bartenders widely prefer Dublin Drop or Irish Slammer to avoid referencing the Troubles in Northern Ireland.",
+    tags: ["modern-craft", "whiskey-forward", "creamy", "party"],
+    specs: [
+      { amount: 0.75, unit: "oz", name: "Irish Whiskey" },
+      { amount: 0.75, unit: "oz", name: "Irish Cream" },
+      { amount: 6, unit: "oz", name: "Stout" },
+    ],
+  },
+  {
+    id: "pickleback",
+    name: "Pickleback",
+    glassware: "Shot",
+    method: "Built",
+    garnish: "Pickle spear",
+    description: "A Brooklyn dive-bar phenomenon pairing a sharp pour of Irish whiskey with an immediate chaser of salty, tangy dill pickle brine.",
+    instructions: "1. Pour Irish whiskey into a shot glass.\n2. Pour chilled dill pickle brine into a second shot glass.\n3. Shoot the whiskey first, then immediately chase it with the pickle brine.",
+    source: "Reggie O'Hare, Bushwick Country Club (2006)",
+    sourceUrl: "https://punchdrink.com/articles/the-improbable-history-of-the-pickleback/",
+    notes: "Created at the Bushwick Country Club in Brooklyn. The briny acidity and dill immediately neutralize the alcohol burn of the whiskey.",
+    tags: ["modern-craft", "whiskey-forward", "savory", "party"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Irish Whiskey" },
+      { amount: 1.5, unit: "oz", name: "Pickle Brine" },
+    ],
+  },
+  {
+    id: "bloody-maria",
+    name: "Bloody Maria",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Celery stalk & lime wheel",
+    description: "The earthy agave riff on the Bloody Mary, substituting crisp tequila for vodka to pair vegetal pepper notes with seasoned tomato, citrus, and hot sauce.",
+    instructions: "1. Roll (pour back and forth between two shaker tins with ice) tequila, tomato juice, lime juice, lemon juice, Worcestershire sauce, hot sauce, and celery salt.\n2. Strain into a tall highball glass filled with ice.\n3. Garnish with a leafy celery stalk and a lime wheel.",
+    source: "Classic Riff",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/267/bloody-maria",
+    notes: "Tequila riff on the Bloody Mary. The peppery, vegetal character of 100% agave tequila stands up boldly to tomato and spice.",
+    riffOfId: "bloody-mary",
+    riffOfName: "Bloody Mary",
+    tags: ["classic", "tequila-forward", "savory", "brunch", "highball", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Blanco Tequila" },
+      { amount: 4, unit: "oz", name: "Tomato Juice" },
+      { amount: 0.5, unit: "oz", name: "Lime Juice" },
+      { amount: 2, unit: "dashes", name: "Worcestershire Sauce" },
+      { amount: 2, unit: "drops", name: "Hot Sauce" },
+      { amount: 1, unit: "dash", name: "Celery Salt" },
+    ],
+  },
+  {
+    id: "chrysanthemum",
+    name: "Chrysanthemum",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Orange twist",
+    description: "An elegant, low-proof Parisian classic built on dry vermouth, sweetened by herbal Bénédictine and perfumed with a whisper of absinthe.",
+    instructions: "1. Combine dry vermouth, Bénédictine, and absinthe in a mixing glass filled with ice.\n2. Stir thoroughly for 25-30 seconds until cold and diluted.\n3. Strain into a chilled coupe glass.\n4. Express orange peel oils over the surface and garnish.",
+    source: "Hugo Ensslin, Recipes for Mixed Drinks (1916)",
+    sourceUrl: "https://punchdrink.com/recipes/chrysanthemum/",
+    notes: "Popularized by Harry Craddock in the 1930 Savoy Cocktail Book. The dry vermouth acts as the primary base rather than a supporting modifier.",
+    tags: ["classic", "spirit-forward", "low-abv", "herbal"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Dry Vermouth" },
+      { amount: 1, unit: "oz", name: "Bénédictine" },
+      { amount: 3, unit: "dashes", name: "Absinthe" },
+    ],
+  },
+  {
+    id: "death-in-the-afternoon",
+    name: "Death in the Afternoon",
+    glassware: "Flute",
+    method: "Built",
+    garnish: "None",
+    description: "Ernest Hemingway's legendary two-ingredient creation pouring potent anise-forward absinthe topped with crisp sparkling wine until milky and opalescent.",
+    instructions: "1. Pour absinthe into a chilled champagne flute or coupe.\n2. Slowly top with iced brut sparkling wine or Champagne until it reaches an opalescent milky louche.\n3. Serve immediately.",
+    source: "Ernest Hemingway (1935)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/609/death-in-the-afternoon",
+    notes: "Hemingway instructed in 'So Red the Nose': 'Pour one jigger absinthe into a Champagne glass. Add iced Champagne until it attains the proper opalescent milkiness. Drink three to five of these slowly.'",
+    tags: ["classic", "sparkling", "potent", "party"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Absinthe" },
+      { amount: 4.5, unit: "oz", name: "Sparkling Wine" },
+    ],
+  },
+  {
+    id: "green-ghost",
+    name: "Green Ghost",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lime twist",
+    description: "A striking 1930s classic pairing London dry gin with the punchy, high-proof herbal intensity of Green Chartreuse, brightened by fresh lime juice.",
+    instructions: "1. Combine gin, Green Chartreuse, and lime juice in a cocktail shaker filled with ice.\n2. Shake vigorously for 10-15 seconds until cold.\n3. Fine strain into a chilled coupe.\n4. Garnish with a lime twist.",
+    source: "Savoy Cocktail Book (1930)",
+    sourceUrl: "https://punchdrink.com/recipes/green-ghost/",
+    notes: "Attributed to J.B. Hurrell. Often compared to The Last Word, but omitting maraschino liqueur to let the Chartreuse botanicals shine unobstructed.",
+    tags: ["classic", "gin-forward", "sour", "herbal"],
+    specs: [
+      { amount: 2, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.5, unit: "oz", name: "Green Chartreuse" },
+      { amount: 0.5, unit: "oz", name: "Lime Juice" },
+    ],
+  },
+  {
+    id: "norwegian-wood",
+    name: "Norwegian Wood",
+    glassware: "Rocks",
+    method: "Stirred",
+    garnish: "Lemon twist",
+    description: "A modern craft masterpiece from PDT in NYC, marrying the caraway and dill spice of aquavit with crisp apple brandy and herbal Yellow Chartreuse.",
+    instructions: "1. Combine aquavit, apple brandy, sweet vermouth, Yellow Chartreuse, and bitters in a mixing glass filled with ice.\n2. Stir for 25-30 seconds until well-chilled.\n3. Strain into a rocks glass over a large ice cube.\n4. Express lemon peel oils over the drink and drop into the glass.",
+    source: "Jim Meehan, PDT New York (2007)",
+    sourceUrl: "https://punchdrink.com/recipes/norwegian-wood/",
+    notes: "Created by Jim Meehan at PDT. The botanical spice of Scandinavian aquavit cuts through the richness of apple brandy and vermouth.",
+    tags: ["modern-craft", "spirit-forward", "herbal"],
+    specs: [
+      { amount: 1, unit: "oz", name: "Aquavit" },
+      { amount: 1, unit: "oz", name: "Apple Brandy" },
+      { amount: 1, unit: "oz", name: "Sweet Vermouth" },
+      { amount: 0.25, unit: "oz", name: "Yellow Chartreuse" },
+      { amount: 1, unit: "dash", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "tailspin",
+    name: "Tailspin",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Lemon twist & cocktail cherry",
+    description: "Robert Hess's nuanced twist on the classic Bijou, swirling gin, sweet vermouth, and Green Chartreuse with an added dash of Campari for bitter depth.",
+    instructions: "1. Combine gin, sweet vermouth, Green Chartreuse, and Campari in a mixing glass with ice.\n2. Stir thoroughly for 25-30 seconds until well-chilled.\n3. Strain into a chilled coupe.\n4. Express a lemon twist over the glass and garnish with a cocktail cherry.",
+    source: "Robert Hess (c. 2000s)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/2665/tailspin",
+    notes: "A riff on the 1890s Bijou cocktail. A single dash of Campari introduces just enough citrus-gentian bitterness to balance Green Chartreuse's intense sweetness.",
+    riffOfId: "bijou",
+    riffOfName: "Bijou",
+    tags: ["modern-craft", "gin-forward", "spirit-forward", "bittersweet", "herbal", "riff"],
+    specs: [
+      { amount: 1, unit: "oz", name: "London Dry Gin" },
+      { amount: 1, unit: "oz", name: "Sweet Vermouth" },
+      { amount: 1, unit: "oz", name: "Green Chartreuse" },
+      { amount: 1, unit: "dash", name: "Campari" },
+    ],
+  },
+  {
+    id: "widows-kiss",
+    name: "Widow's Kiss",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Cocktail cherry",
+    description: "A decadent 19th-century jewel built on rich apple brandy, sweetened and perfumed with herbal Yellow Chartreuse and Bénédictine.",
+    instructions: "1. Combine apple brandy, Yellow Chartreuse, Bénédictine, and Angostura bitters in a mixing glass with ice.\n2. Stir well for 25-30 seconds until thoroughly chilled.\n3. Strain into a chilled coupe.\n4. Drop a cocktail cherry into the bottom of the glass.",
+    source: "George J. Kappeler, Modern American Drinks (1895)",
+    sourceUrl: "https://punchdrink.com/recipes/widows-kiss/",
+    notes: "Created at the Holland House in New York. One of the few classic drinks where two potent French herbal liqueurs form the majority modifier base.",
+    tags: ["classic", "spirit-forward", "herbal"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Apple Brandy" },
+      { amount: 0.75, unit: "oz", name: "Yellow Chartreuse" },
+      { amount: 0.75, unit: "oz", name: "Bénédictine" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "final-ward",
+    name: "Final Ward",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lemon wheel",
+    description: "Phil Ward's celebrated modern craft riff on The Last Word, swapping gin and lime for spicy rye whiskey and tart lemon juice.",
+    instructions: "1. Add rye whiskey, Green Chartreuse, maraschino liqueur, and lemon juice to a cocktail shaker with ice.\n2. Shake vigorously for 10-15 seconds until well-chilled.\n3. Fine strain into a chilled coupe.\n4. Garnish with a lemon wheel.",
+    source: "Phil Ward, Death & Co (2007)",
+    sourceUrl: "https://punchdrink.com/recipes/final-ward/",
+    notes: "A whiskey riff on The Last Word. The peppery bite of rye marries seamlessly with tart lemon and alpine herbs.",
+    riffOfId: "the-last-word",
+    riffOfName: "The Last Word",
+    tags: ["modern-craft", "whiskey-forward", "sour", "herbal", "riff"],
+    specs: [
+      { amount: 0.75, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.75, unit: "oz", name: "Green Chartreuse" },
+      { amount: 0.75, unit: "oz", name: "Maraschino Liqueur" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+    ],
+  },
+  {
+    id: "cynar-julep",
+    name: "Cynar Julep",
+    glassware: "Julep Cup",
+    method: "Built",
+    garnish: "Mint bouquet & grapefruit peel",
+    description: "An earthy, bittersweet Italian-American riff on the classic Mint Julep, blending bittersweet Cynar with bourbon, cooling fresh mint, and citrus.",
+    instructions: "1. Gently muddle mint leaves with simple syrup and grapefruit juice in a julep cup.\n2. Add Cynar and bourbon, then fill the cup halfway with crushed ice.\n3. Swizzle or stir until frost forms on the outside of the cup.\n4. Pack with additional crushed ice to create a mounded cone.\n5. Garnish lavishly with a fresh mint bouquet and a grapefruit peel.",
+    source: "Modern Craft Classic",
+    sourceUrl: "https://punchdrink.com/recipes/cynar-julep/",
+    notes: "Riff on the classic Mint Julep. Artichoke-infused Cynar brings vegetal earthiness that balances bourbon sweetness and crisp mint.",
+    riffOfId: "mint-julep",
+    riffOfName: "Mint Julep",
+    tags: ["modern-craft", "bittersweet", "refreshing", "summer", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Cynar" },
+      { amount: 0.5, unit: "oz", name: "Bourbon" },
+      { amount: 0.5, unit: "oz", name: "Grapefruit Juice" },
+      { amount: 0.5, unit: "oz", name: "Simple Syrup" },
+      { amount: 8, unit: "leaves", name: "Fresh Mint" },
+    ],
+  },
+  {
+    id: "gunshop-fizz",
+    name: "Gunshop Fizz",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Cucumber slice & orange twist",
+    description: "A legendary San Francisco modern craft highball that turns cocktail proportions upside down by pouring two full ounces of aromatic Peychaud's bitters.",
+    instructions: "1. Combine Peychaud's bitters, lemon juice, and simple syrup in a highball glass.\n2. Add ice and top with chilled club soda.\n3. Gently stir with a barspoon to incorporate.\n4. Garnish with a cucumber slice and an orange twist.",
+    source: "Kirk Estopinal & Maks Pazuniak, Cure New Orleans (2009)",
+    sourceUrl: "https://punchdrink.com/recipes/gunshop-fizz/",
+    notes: "Pioneered the modern movement of using aromatic bitters as a cocktail's primary base spirit. Crisp, effervescent, and vibrant ruby red.",
+    tags: ["modern-craft", "highball", "low-abv", "refreshing"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Peychaud's Bitters" },
+      { amount: 1, unit: "oz", name: "Lemon Juice" },
+      { amount: 1, unit: "oz", name: "Simple Syrup" },
+      { amount: 3, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  {
+    id: "lemon-drop-shot",
+    name: "Lemon Drop Shot",
+    glassware: "Shot",
+    method: "Shaken",
+    garnish: "Sugared lemon wedge",
+    description: "The quintessential sweet-and-sour party shooter shaking crisp vodka, triple sec, and lemon juice, chased with a bite of a sugar-coated lemon wedge.",
+    instructions: "1. Combine vodka, triple sec, lemon juice, and simple syrup in a cocktail shaker with ice.\n2. Shake vigorously until icy cold.\n3. Strain into a shot glass.\n4. Coat a lemon wedge in granulated sugar on the rim or side, shoot the drink, and bite the wedge.",
+    source: "Norman Jay Hobday, Henry Africa's San Francisco (1970s)",
+    sourceUrl: "https://www.liquor.com/recipes/lemon-drop-shot/",
+    notes: "Shooter version of the classic 1970s fern bar cocktail. Balancing real fresh lemon juice against orange liqueur and sugar gives it crisp acidity.",
+    tags: ["classic", "vodka-forward", "sour", "party"],
+    specs: [
+      { amount: 1, unit: "oz", name: "Vodka" },
+      { amount: 0.5, unit: "oz", name: "Triple Sec" },
+      { amount: 0.5, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.25, unit: "oz", name: "Simple Syrup" },
+    ],
+  },
+  {
+    id: "mind-eraser",
+    name: "Mind Eraser",
+    glassware: "Rocks",
+    method: "Built",
+    garnish: "None",
+    description: "A fast-drinking layered 1980s party classic combining vodka and rich coffee liqueur topped with bubbling club soda, taken through a straw in one pull.",
+    instructions: "1. Fill a rocks glass with crushed or cracked ice.\n2. Pour coffee liqueur into the base of the glass.\n3. Gently float vodka over the back of a barspoon.\n4. Top carefully with club soda to keep the distinct dark and clear layers.\n5. Serve immediately with a drinking straw.",
+    source: "Classic (1980s)",
+    sourceUrl: "https://www.liquor.com/recipes/mind-eraser/",
+    notes: "A carbonated sibling to the Black Russian designed to be consumed rapidly through a straw from bottom to top.",
+    tags: ["classic", "coffee", "party"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 1.5, unit: "oz", name: "Coffee Liqueur" },
+      { amount: 1.5, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  {
+    id: "red-snapper",
+    name: "Red Snapper",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Celery stalk & lemon wedge",
+    description: "The classic gin-based progenitor of the Bloody Mary, featuring piney London dry gin cut through seasoned tomato juice, lemon, and savory spices.",
+    instructions: "1. Roll (pour back and forth between two shaker tins filled with ice) gin, tomato juice, lemon juice, Worcestershire sauce, hot sauce, and celery salt.\n2. Strain into a tall highball glass over fresh ice.\n3. Garnish with a leafy celery stalk and a lemon wedge.",
+    source: "King Cole Bar, St. Regis Hotel NYC (1930s)",
+    sourceUrl: "https://www.liquor.com/recipes/red-snapper/",
+    notes: "Created at the King Cole Bar in the St. Regis Hotel. The dry juniper botanicals of gin slice through thick tomato juice with more lift than neutral vodka.",
+    riffOfId: "bloody-mary",
+    riffOfName: "Bloody Mary",
+    tags: ["classic", "gin-forward", "savory", "brunch", "highball", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "London Dry Gin" },
+      { amount: 4, unit: "oz", name: "Tomato Juice" },
+      { amount: 0.5, unit: "oz", name: "Lemon Juice" },
+      { amount: 2, unit: "dashes", name: "Worcestershire Sauce" },
+      { amount: 2, unit: "drops", name: "Hot Sauce" },
+      { amount: 1, unit: "dash", name: "Celery Salt" },
+    ],
+  },
+  {
+    id: "french-martini",
+    name: "French Martini",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Fresh raspberry",
+    description: "A 1980s New York cocktail renaissance creation pairing crisp vodka with rich black raspberry liqueur and fresh pineapple juice, shaken hard until a creamy, velvety foam crowns the surface.",
+    instructions: "1. Add vodka, black raspberry liqueur, and pineapple juice to a cocktail shaker filled with ice.\n2. Shake vigorously for 15 seconds to aerate the pineapple juice and create a dense, silky foam.\n3. Fine strain into a chilled coupe or martini glass.\n4. Garnish with a fresh raspberry.",
+    source: "Keith McNally, Balthazar / Pravda NYC (1980s)",
+    sourceUrl: "https://punchdrink.com/recipes/french-martini/",
+    notes: "Named a martini purely for the glass style popular in the 1980s and '90s. Shaking pineapple juice hard creates natural microfoam without requiring egg white.",
+    tags: ["modern-craft", "vodka-forward", "fruity"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 0.5, unit: "oz", name: "Black Raspberry Liqueur" },
+      { amount: 1.5, unit: "oz", name: "Pineapple Juice" },
+    ],
+  },
+  {
+    id: "sea-breeze",
+    name: "Sea Breeze",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wheel",
+    description: "The quintessential 1970s highball balancing clean vodka with tart cranberry juice and bitter-bright fresh grapefruit juice over plenty of ice.",
+    instructions: "1. Fill a highball glass with fresh ice cubes.\n2. Add vodka, cranberry juice, and grapefruit juice.\n3. Stir gently with a barspoon to combine.\n4. Garnish with a lime wheel on the rim.",
+    source: "Classic (1970s)",
+    sourceUrl: "https://www.liquor.com/recipes/sea-breeze/",
+    notes: "Originally born in the 1920s as a gin and grenadine cooler, the modern Ocean Spray-popularized version established the standard vodka-cranberry-grapefruit template.",
+    tags: ["classic", "vodka-forward", "refreshing", "summer", "highball"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 3, unit: "oz", name: "Cranberry Juice" },
+      { amount: 1.5, unit: "oz", name: "Grapefruit Juice" },
+    ],
+  },
+  {
+    id: "greyhound",
+    name: "Greyhound",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Grapefruit wedge",
+    description: "A refreshingly crisp, minimalist cooler pairing clean vodka with tart, bittersweet grapefruit juice over ice.",
+    instructions: "1. Fill a rocks or highball glass with ice.\n2. Pour vodka and grapefruit juice into the glass.\n3. Stir briefly to chill and integrate.\n4. Garnish with a grapefruit wedge.",
+    source: "Savoy Cocktail Book (1930)",
+    sourceUrl: "https://www.liquor.com/recipes/greyhound/",
+    notes: "Originally made with gin in the 1930s, the post-WWII vodka version became a nationwide sensation across Greyhound bus terminal restaurants.",
+    tags: ["classic", "vodka-forward", "refreshing", "highball"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 4, unit: "oz", name: "Grapefruit Juice" },
+    ],
+  },
+  {
+    id: "salty-dog",
+    name: "Salty Dog",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Salt rim & grapefruit slice",
+    description: "The salted cousin of the Greyhound, where a coarse salt rim cuts the puckering bitterness of grapefruit juice and enhances the clean spirit.",
+    instructions: "1. Rim a highball or rocks glass with coarse salt.\n2. Fill the glass with fresh ice.\n3. Add vodka and fresh grapefruit juice.\n4. Stir gently to incorporate.\n5. Garnish with a grapefruit slice.",
+    source: "George Jessel (1950s)",
+    sourceUrl: "https://www.liquor.com/recipes/salty-dog/",
+    notes: "The salt rim is the defining touch: salt chemically suppresses bitterness on the palate while amplifying grapefruit's bright citrus sweetness.",
+    riffOfId: "greyhound",
+    riffOfName: "Greyhound",
+    tags: ["classic", "vodka-forward", "refreshing", "highball", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 4, unit: "oz", name: "Grapefruit Juice" },
+    ],
+  },
+  {
+    id: "godmother",
+    name: "Godmother",
+    glassware: "Rocks",
+    method: "Built",
+    garnish: "None",
+    description: "The sleek, silky counterpart to the Godfather, blending clean vodka with rich Italian amaretto over a large ice cube for a decadent, nutty sipper.",
+    instructions: "1. Fill a rocks glass with ice.\n2. Pour vodka and amaretto into the glass.\n3. Stir gently for 15-20 seconds to chill and dilute.\n4. Serve neat or on the rocks.",
+    source: "Classic (1970s)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/880/godmother",
+    notes: "Where scotch brings smoke and peat to the Godfather, vodka lets the sweet, fragrant almond and apricot stone aromatics of amaretto take center stage.",
+    riffOfId: "godfather",
+    riffOfName: "Godfather",
+    tags: ["classic", "vodka-forward", "sweet", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 0.75, unit: "oz", name: "Amaretto" },
+    ],
+  },
+  {
+    id: "bay-breeze",
+    name: "Bay Breeze",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wheel",
+    description: "A tropical vacation-leaning highball balancing crisp vodka with tart cranberry juice and sweet, luscious pineapple juice.",
+    instructions: "1. Fill a tall highball glass with ice.\n2. Pour vodka, cranberry juice, and pineapple juice into the glass.\n3. Stir gently to integrate.\n4. Garnish with a lime wheel on the rim.",
+    source: "Classic (1980s)",
+    sourceUrl: "https://www.liquor.com/recipes/bay-breeze/",
+    notes: "Also known as the Hawaiian Sea Breeze, substituting pineapple juice for grapefruit juice creates a sweeter, rounder tropical flavor profile.",
+    riffOfId: "sea-breeze",
+    riffOfName: "Sea Breeze",
+    tags: ["classic", "vodka-forward", "fruity", "summer", "highball", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 3, unit: "oz", name: "Cranberry Juice" },
+      { amount: 1.5, unit: "oz", name: "Pineapple Juice" },
+    ],
+  },
+  {
+    id: "morning-glory-fizz",
+    name: "Morning Glory Fizz",
+    glassware: "Highball",
+    method: "Shaken",
+    garnish: "Lemon peel",
+    description: "An iconic 19th-century morning reviver combining blended scotch with lemon, lime, a dash of absinthe, and egg white, shaken frothy and topped with sparkling soda.",
+    instructions: "1. Combine scotch, lemon juice, lime juice, simple syrup, absinthe, and egg white in a shaker without ice.\n2. Dry shake vigorously for 15 seconds to whip the egg white.\n3. Add ice and shake hard until thoroughly chilled.\n4. Strain into a tall highball glass without ice.\n5. Top slowly with chilled club soda to push up a towering, velvety foam collar.",
+    source: "Harry Johnson, Bartenders' Manual (1882)",
+    sourceUrl: "https://punchdrink.com/recipes/morning-glory-fizz/",
+    notes: "Harry Johnson recommended this as an eye-opener: 'A morning glory fizz will give a man good appetite and quiet his nerves.'",
+    tags: ["classic", "scotch-forward", "sour", "silky", "highball"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blended Scotch Whisky" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.25, unit: "oz", name: "Lime Juice" },
+      { amount: 0.75, unit: "oz", name: "Simple Syrup" },
+      { amount: 2, unit: "dashes", name: "Absinthe" },
+      { amount: 1, unit: "large", name: "Egg White" },
+      { amount: 2, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  {
+    id: "mamie-taylor",
+    name: "Mamie Taylor",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wedge",
+    description: "A turn-of-the-century predecessor to the Moscow Mule that pairs blended scotch whisky with fresh lime juice and crisp, bubbly ginger ale.",
+    instructions: "1. Fill a tall highball glass with ice cubes.\n2. Add blended scotch and fresh lime juice.\n3. Top with chilled ginger ale and stir gently.\n4. Garnish with a lime wedge.",
+    source: "Old Waldorf-Astoria Bar Book (c. 1899)",
+    sourceUrl: "https://punchdrink.com/recipes/mamie-taylor/",
+    notes: "Named after Broadway singer Mayme Taylor in 1899. The combination of peaty or malty scotch with spicy ginger and lime swept through American bars decades before the Mule.",
+    tags: ["classic", "scotch-forward", "refreshing", "highball"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blended Scotch Whisky" },
+      { amount: 0.75, unit: "oz", name: "Lime Juice" },
+      { amount: 4, unit: "oz", name: "Ginger Ale" },
+    ],
+  },
+  {
+    id: "camerons-kick",
+    name: "Cameron's Kick",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lemon peel",
+    description: "An ingenious cross-border whiskey sour shaking smoky blended scotch with smooth Irish whiskey, bright lemon juice, and nutty almond orgeat.",
+    instructions: "1. Combine blended scotch, Irish whiskey, lemon juice, and orgeat in a cocktail shaker with ice.\n2. Shake vigorously for 10-15 seconds until chilled.\n3. Strain into a chilled coupe.\n4. Express a lemon peel over the glass and discard.",
+    source: "Harry MacElhone, ABC of Mixing Cocktails (1922)",
+    sourceUrl: "https://punchdrink.com/recipes/camerons-kick/",
+    notes: "A rare cocktail that successfully balances Irish whiskey and scotch. The rich, silky texture of orgeat softens the peat smoke and grain bite.",
+    tags: ["classic", "scotch-forward", "sour", "nutty"],
+    specs: [
+      { amount: 1, unit: "oz", name: "Blended Scotch Whisky" },
+      { amount: 1, unit: "oz", name: "Irish Whiskey" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.5, unit: "oz", name: "Orgeat" },
+    ],
+  },
+  {
+    id: "affinity",
+    name: "Affinity",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Lemon twist & brandied cherry",
+    description: "The Scotch Whisky equivalent of the 'Perfect' Manhattan, pairing blended scotch with equal parts sweet and dry vermouth, accented by aromatic and orange bitters.",
+    instructions: "1. Combine blended scotch, sweet vermouth, dry vermouth, and bitters in a mixing glass with ice.\n2. Stir for 25-30 seconds until well-chilled and integrated.\n3. Strain into a chilled coupe.\n4. Express lemon peel oils over the drink and garnish with a cherry.",
+    source: "Classic (1907)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/29/affinity",
+    notes: "Created at the Manhattan Club or Hoffman House in New York. The combination of dry and sweet vermouth softens the malt notes of scotch without muting them.",
+    tags: ["classic", "scotch-forward", "spirit-forward", "bittersweet"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Blended Scotch Whisky" },
+      { amount: 0.75, unit: "oz", name: "Sweet Vermouth" },
+      { amount: 0.75, unit: "oz", name: "Dry Vermouth" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+      { amount: 1, unit: "dash", name: "Orange Bitters" },
+    ],
+  },
+  {
+    id: "artists-special",
+    name: "Artist's Special",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lemon twist",
+    description: "A 1920s Parisian jazz-age classic blending blended scotch with nutty dry sherry, tart lemon juice, and fruity pomegranate grenadine.",
+    instructions: "1. Combine blended scotch, dry sherry, lemon juice, and grenadine in a cocktail shaker filled with ice.\n2. Shake hard for 10-15 seconds until well-chilled.\n3. Fine strain into a chilled coupe.\n4. Express lemon peel oils over the drink and drop the twist into the glass.",
+    source: "Harry MacElhone, Harry's New York Bar, Paris (c. 1920s)",
+    sourceUrl: "https://punchdrink.com/recipes/artists-special/",
+    notes: "Popularized by Harry MacElhone and featured in the Savoy Cocktail Book. Dry sherry softens the scotch while pomegranate grenadine provides rich color and tart sweetness.",
+    tags: ["classic", "scotch-forward", "sour", "fruity"],
+    specs: [
+      { amount: 1, unit: "oz", name: "Blended Scotch Whisky" },
+      { amount: 1, unit: "oz", name: "Dry Sherry" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.5, unit: "oz", name: "Grenadine" },
+    ],
+  },
+  {
+    id: "chancellor",
+    name: "Chancellor",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Orange twist",
+    description: "A rich, sophisticated variation on the Rob Roy, marrying blended scotch with ruby port wine and dry vermouth for deep vinous warmth.",
+    instructions: "1. Add blended scotch, port, dry vermouth, and Angostura bitters to a mixing glass filled with ice.\n2. Stir thoroughly for 25-30 seconds until cold and diluted.\n3. Strain into a chilled coupe.\n4. Express an orange twist over the surface and drop it into the glass.",
+    source: "Savoy Cocktail Book (1930)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/423/chancellor",
+    notes: "Port wine provides rich berry sweetness and tannic backbone that marries harmoniously with smoky scotch whisky.",
+    riffOfId: "rob-roy",
+    riffOfName: "Rob Roy",
+    tags: ["classic", "scotch-forward", "spirit-forward", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blended Scotch Whisky" },
+      { amount: 1, unit: "oz", name: "Port" },
+      { amount: 0.5, unit: "oz", name: "Dry Vermouth" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "corpse-reviver-no-1",
+    name: "Corpse Reviver No. 1",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Orange twist",
+    description: "The older, vinous progenitor to the famous No. 2, stirring rich cognac, crisp apple brandy, and sweet vermouth into an elegant, comforting digestif.",
+    instructions: "1. Combine cognac, apple brandy, and sweet vermouth in a mixing glass with ice.\n2. Stir for 25-30 seconds until well-chilled.\n3. Strain into a chilled coupe glass.\n4. Garnish with an expressed orange twist.",
+    source: "Harry Craddock, Savoy Cocktail Book (1930)",
+    sourceUrl: "https://punchdrink.com/recipes/corpse-reviver-no-1/",
+    notes: "Harry Craddock wrote: 'To be taken before 11 a.m., or whenever steam and energy are needed.' An autumnal, apple-rich cousin to the Metropolitan.",
+    tags: ["classic", "cognac-forward", "spirit-forward"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Cognac" },
+      { amount: 0.75, unit: "oz", name: "Apple Brandy" },
+      { amount: 0.75, unit: "oz", name: "Sweet Vermouth" },
+    ],
+  },
+  {
+    id: "east-india-cocktail",
+    name: "East India Cocktail",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Cocktail cherry",
+    description: "A lavish 19th-century brandy classic blending rich cognac with orange curaçao, pineapple juice, and a delicate touch of maraschino liqueur.",
+    instructions: "1. Combine cognac, orange curaçao, pineapple juice, maraschino liqueur, and Angostura bitters in a mixing glass with ice.\n2. Stir well for 25-30 seconds until icy cold.\n3. Strain into a chilled coupe.\n4. Drop a brandied cocktail cherry into the glass.",
+    source: "Harry Johnson, New and Improved Bartender's Manual (1882)",
+    sourceUrl: "https://punchdrink.com/recipes/east-india-cocktail/",
+    notes: "Created during the height of the British colonial era. The combination of pineapple, maraschino, and rich grape brandy gives it tropical depth without being overly sweet.",
+    tags: ["classic", "cognac-forward", "spirit-forward", "fruity"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Cognac" },
+      { amount: 0.75, unit: "oz", name: "Orange Curaçao" },
+      { amount: 0.75, unit: "oz", name: "Pineapple Juice" },
+      { amount: 1, unit: "barspoon", name: "Maraschino Liqueur" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "porto-flip",
+    name: "Porto Flip",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Freshly grated nutmeg",
+    description: "The definitive Victorian tavern flip combining rich cognac and ruby port with a whole egg, shaken vigorously into a decadent, custard-smooth dessert cocktail.",
+    instructions: "1. Combine cognac, ruby port, simple syrup, and the whole egg in a cocktail shaker.\n2. Dry shake vigorously without ice for 15 seconds to emulsify the egg.\n3. Add ice cubes and shake hard for another 15 seconds until frosty and rich.\n4. Strain into a chilled coupe or sour glass.\n5. Dust generously with freshly grated nutmeg.",
+    source: "Jerry Thomas, How to Mix Drinks (1862)",
+    sourceUrl: "https://www.liquor.com/recipes/porto-flip/",
+    notes: "A classic flip that dates back to the mid-19th century. Using a whole egg yields a luxurious, velvety body reminiscent of melted spiced ice cream.",
+    tags: ["classic", "cognac-forward", "dessert", "silky", "comforting"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Cognac" },
+      { amount: 1.5, unit: "oz", name: "Port" },
+      { amount: 0.25, unit: "oz", name: "Simple Syrup" },
+      { amount: 1, unit: "whole", name: "Whole Egg" },
+    ],
+  },
+  {
+    id: "harvard",
+    name: "Harvard",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Orange twist",
+    description: "An Ivy League classic from the 1890s Manhattan cocktail tradition, swapping whiskey for rich cognac, stirred with sweet vermouth and topped with a splash of effervescent club soda.",
+    instructions: "1. Combine cognac, sweet vermouth, and Angostura bitters in a mixing glass with ice.\n2. Stir for 25-30 seconds until well-chilled.\n3. Strain into a chilled coupe.\n4. Top with a splash of chilled club soda and express orange peel oils over the surface.",
+    source: "George J. Kappeler, Modern American Drinks (1895)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/948/harvard",
+    notes: "Created to honor Harvard University. The splash of club soda lightens the rich, vinous profile of the sweet vermouth and cognac.",
+    tags: ["classic", "cognac-forward", "spirit-forward"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Cognac" },
+      { amount: 1, unit: "oz", name: "Sweet Vermouth" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+      { amount: 1, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  {
+    id: "brandy-daisy",
+    name: "Brandy Daisy",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lemon wheel & mint sprig",
+    description: "A vibrant Victorian sour pairing rich French cognac with tart lemon juice, herbal Yellow Chartreuse, and a lively spritz of club soda.",
+    instructions: "1. Add cognac, Yellow Chartreuse, lemon juice, and simple syrup to a cocktail shaker with ice.\n2. Shake vigorously for 10-15 seconds until well-chilled.\n3. Strain into a chilled coupe or goblet over crushed ice.\n4. Top with chilled club soda and garnish with a lemon wheel and mint sprig.",
+    source: "Jerry Thomas (1876)",
+    sourceUrl: "https://punchdrink.com/recipes/brandy-daisy/",
+    notes: "Part of the foundational Daisy family that eventually gave birth to the Sidecar and Margarita. Yellow Chartreuse supplies herbal honeyed sweetness.",
+    tags: ["classic", "cognac-forward", "sour", "refreshing"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Cognac" },
+      { amount: 0.5, unit: "oz", name: "Yellow Chartreuse" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.5, unit: "oz", name: "Simple Syrup" },
+      { amount: 1, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  {
+    id: "star-cocktail",
+    name: "Star Cocktail",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Lemon twist",
+    description: "A turn-of-the-century Manhattan variation swapping whiskey for crisp apple brandy, stirred with sweet vermouth and aromatic bitters.",
+    instructions: "1. Combine apple brandy, sweet vermouth, and Angostura bitters in a mixing glass with ice.\n2. Stir for 25-30 seconds until well-chilled.\n3. Strain into a chilled coupe.\n4. Express lemon peel oils over the surface and drop the twist into the glass.",
+    source: "George J. Kappeler, Modern American Drinks (1895)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/1865/star-cocktail",
+    notes: "Created in New York in the 1890s. The crisp orchard fruit character of apple brandy pairs naturally with the rich botanicals and vanilla notes of sweet vermouth.",
+    riffOfId: "manhattan",
+    riffOfName: "Manhattan",
+    tags: ["classic", "spirit-forward", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Apple Brandy" },
+      { amount: 1.5, unit: "oz", name: "Sweet Vermouth" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "batanga",
+    name: "Batanga",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Salt rim & lime wedge",
+    description: "Don Javier Delgado Corona's legendary Mexican tavern staple combining 100% agave tequila, fresh lime juice, and Mexican cola in a salt-rimmed glass, stirred with a wooden-handled knife.",
+    instructions: "1. Rim a tall highball glass with coarse salt.\n2. Fill the glass with ice cubes.\n3. Add blanco tequila and fresh lime juice.\n4. Top with chilled cola.\n5. Stir thoroughly with a knife and garnish with a lime wedge.",
+    source: "Don Javier Delgado Corona, La Capilla Bar, Tequila, Mexico (1961)",
+    sourceUrl: "https://punchdrink.com/recipes/batanga/",
+    notes: "Created at the legendary La Capilla bar in Tequila, Mexico. The knife used to chop limes and herbs is famously used to stir the drink, lending subtle seasoning to the cola.",
+    tags: ["classic", "tequila-forward", "refreshing", "highball"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blanco Tequila" },
+      { amount: 0.5, unit: "oz", name: "Lime Juice" },
+      { amount: 4, unit: "oz", name: "Cola" },
+    ],
+  },
+  {
+    id: "cantarito",
+    name: "Cantarito",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Salt rim & grapefruit wedge",
+    description: "The beloved Jalisco street-stand cooler combining blanco tequila with a trio of fresh citrus juices, topped with fizzy grapefruit soda in a salt-rimmed clay jar or tall glass.",
+    instructions: "1. Rim a highball glass or clay cantarito cup with coarse salt.\n2. Fill the glass with ice cubes.\n3. Add blanco tequila, fresh grapefruit juice, orange juice, and lime juice.\n4. Top with grapefruit soda and stir gently to combine.\n5. Garnish with a fresh grapefruit wedge.",
+    source: "Jalisco Traditional (Mexico)",
+    sourceUrl: "https://www.liquor.com/recipes/cantarito/",
+    notes: "A close relative of the Paloma that incorporates fresh orange juice alongside grapefruit and lime, resulting in a rounder, more complex citrus profile.",
+    riffOfId: "paloma",
+    riffOfName: "Paloma",
+    tags: ["classic", "tequila-forward", "refreshing", "summer", "highball", "riff"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Blanco Tequila" },
+      { amount: 1, unit: "oz", name: "Grapefruit Juice" },
+      { amount: 1, unit: "oz", name: "Orange Juice" },
+      { amount: 0.5, unit: "oz", name: "Lime Juice" },
+      { amount: 2, unit: "oz", name: "Grapefruit Soda" },
+    ],
+  },
+  {
+    id: "tequila-sunrise",
+    name: "Tequila Sunrise",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Orange wheel & cocktail cherry",
+    description: "The vibrant 1970s rock 'n' roll staple layering blanco tequila and orange juice with a slow sink of rich grenadine to create a stunning sunset gradient.",
+    instructions: "1. Fill a tall highball glass with ice.\n2. Add blanco tequila and fresh orange juice.\n3. Stir gently to integrate.\n4. Slowly pour grenadine down the inside edge of the glass so it sinks to the bottom.\n5. Garnish with an orange wheel and a cocktail cherry on a skewer without stirring.",
+    source: "Bobby Lozoff & Billy Rice, Trident Restaurant, Sausalito (1970s)",
+    sourceUrl: "https://www.liquor.com/recipes/tequila-sunrise/",
+    notes: "Popularized during The Rolling Stones' 1972 American tour. The dense pomegranate grenadine settles naturally to create the vivid sunrise gradient.",
+    tags: ["classic", "tequila-forward", "fruity", "party", "highball"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blanco Tequila" },
+      { amount: 4, unit: "oz", name: "Orange Juice" },
+      { amount: 0.5, unit: "oz", name: "Grenadine" },
+    ],
+  },
+  {
+    id: "matador",
+    name: "Matador",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lime wheel",
+    description: "A breezy mid-century Mexican classic shaking crisp blanco tequila with sweet pineapple juice and tart fresh lime juice.",
+    instructions: "1. Combine blanco tequila, pineapple juice, and lime juice in a cocktail shaker filled with ice.\n2. Shake hard for 10-15 seconds until cold and foamy.\n3. Strain into a chilled coupe glass.\n4. Garnish with a lime wheel.",
+    source: "Classic (1950s)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/1269/matador",
+    notes: "Born in the 1950s alongside the explosion of tequila exports. The natural sweetness and froth of pineapple juice balances the peppery vegetal bite of agave.",
+    tags: ["classic", "tequila-forward", "fruity", "sour"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Blanco Tequila" },
+      { amount: 2.5, unit: "oz", name: "Pineapple Juice" },
+      { amount: 0.5, unit: "oz", name: "Lime Juice" },
+    ],
+  },
+  {
+    id: "picador",
+    name: "Picador",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lime wheel",
+    description: "The historical 1937 London predecessor to the modern Margarita, shaking blanco tequila with orange triple sec and tart lime juice in crisp harmony.",
+    instructions: "1. Combine tequila, triple sec, and fresh lime juice in a cocktail shaker filled with ice.\n2. Shake vigorously for 10-15 seconds until frosty.\n3. Fine strain into a chilled coupe.\n4. Garnish with a lime wheel.",
+    source: "Café Royal Cocktail Book (London, 1937)",
+    sourceUrl: "https://punchdrink.com/recipes/picador/",
+    notes: "Appearing in print 16 years before the first published recipe for a Margarita, the Picador carries the identical spirit, orange liqueur, and lime proportions.",
+    tags: ["classic", "tequila-forward", "sour"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blanco Tequila" },
+      { amount: 1, unit: "oz", name: "Triple Sec" },
+      { amount: 0.5, unit: "oz", name: "Lime Juice" },
+    ],
+  },
+  {
+    id: "mexican-mule",
+    name: "Mexican Mule",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wheel & mint sprig",
+    description: "The agave-fueled riff on the Moscow Mule (also known as El Burro), matching peppery blanco tequila with fresh lime juice and spicy ginger beer.",
+    instructions: "1. Fill a highball glass or copper mug with ice.\n2. Add blanco tequila and fresh lime juice.\n3. Top with spicy chilled ginger beer.\n4. Stir gently to integrate.\n5. Garnish with a lime wheel and a fresh sprig of mint.",
+    source: "Modern Craft Riff",
+    sourceUrl: "https://www.liquor.com/recipes/mexican-mule/",
+    notes: "Tequila riff on the Moscow Mule. The earthy, vegetal notes of blue agave pair exceptionally well with fiery ginger root.",
+    riffOfId: "moscow-mule",
+    riffOfName: "Moscow Mule",
+    tags: ["modern-craft", "tequila-forward", "refreshing", "highball", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blanco Tequila" },
+      { amount: 0.75, unit: "oz", name: "Lime Juice" },
+      { amount: 4, unit: "oz", name: "Ginger Beer" },
+    ],
+  },
+  {
+    id: "brave-bull",
+    name: "Brave Bull",
+    glassware: "Rocks",
+    method: "Built",
+    garnish: "Lemon twist",
+    description: "A dark, potent two-ingredient Mexican cousin to the Black Russian, pairing robust 100% agave tequila with rich, sweet coffee liqueur over ice.",
+    instructions: "1. Fill an old fashioned or rocks glass with ice.\n2. Add blanco tequila and coffee liqueur.\n3. Stir gently for 20 seconds until well-chilled.\n4. Express a lemon twist over the surface and drop it into the glass.",
+    source: "Classic (1960s)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/299/brave-bull",
+    notes: "Tequila riff on the Black Russian. The roasted agave vegetal tones bring an earthy complexity that cuts through the syrupy sweetness of dark coffee liqueur.",
+    riffOfId: "black-russian",
+    riffOfName: "Black Russian",
+    tags: ["classic", "tequila-forward", "coffee", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Blanco Tequila" },
+      { amount: 1, unit: "oz", name: "Coffee Liqueur" },
+    ],
+  },
+  {
+    id: "vodka-martini",
+    name: "Vodka Martini",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Lemon twist or green olive",
+    description: "The pristine mid-century iteration of the Martini, matching crisp vodka with dry vermouth and a dash of orange bitters for a clean, silky aperitif.",
+    instructions: "1. Combine vodka, dry vermouth, and orange bitters in a mixing glass filled with ice.\n2. Stir thoroughly for 25-30 seconds until ice cold and properly diluted.\n3. Strain into a chilled coupe or martini glass.\n4. Express lemon peel oils over the drink and drop the twist in, or garnish with an olive.",
+    source: "David Embury, The Fine Art of Mixing Drinks (1948)",
+    sourceUrl: "https://www.liquor.com/recipes/vodka-martini/",
+    notes: "Historically called the Kangaroo cocktail in mid-century manuals before gaining worldwide fame in spy fiction and cocktail lounges. Stirring ensures a crystal-clear, velvety texture.",
+    riffOfId: "dry-martini",
+    riffOfName: "Dry Martini",
+    tags: ["classic", "vodka-forward", "spirit-forward", "riff"],
+    specs: [
+      { amount: 2.5, unit: "oz", name: "Vodka" },
+      { amount: 0.5, unit: "oz", name: "Dry Vermouth" },
+      { amount: 1, unit: "dash", name: "Orange Bitters" },
+    ],
+  },
+  {
+    id: "lemon-drop",
+    name: "Lemon Drop",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Sugar rim & lemon wheel",
+    description: "San Francisco's iconic 1970s fern bar cocktail, shaking crisp vodka with orange triple sec, fresh lemon juice, and simple syrup in a sugar-rimmed coupe.",
+    instructions: "1. Rim half of a chilled coupe glass with a lemon wedge and dip into superfine sugar.\n2. Add vodka, triple sec, lemon juice, and simple syrup to a shaker filled with ice.\n3. Shake hard for 10-15 seconds until frosty and cold.\n4. Fine strain into the prepared coupe.\n5. Float a thin lemon wheel on the surface.",
+    source: "Norman Jay Hobday, Henry Africa's San Francisco (1970s)",
+    sourceUrl: "https://punchdrink.com/recipes/lemon-drop/",
+    notes: "Created at Henry Africa's, widely recognized as the country's first 'fern bar.' The sugared rim provides an initial sweet crunch that balances the sharp lemon acidity.",
+    tags: ["classic", "vodka-forward", "sour", "party"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Vodka" },
+      { amount: 0.5, unit: "oz", name: "Triple Sec" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.5, unit: "oz", name: "Simple Syrup" },
+    ],
+  },
+  {
+    id: "vodka-gimlet",
+    name: "Vodka Gimlet",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lime wheel",
+    description: "The sleek modern variation on the classic Gimlet, substituting neutral vodka to allow the bright, tart punch of fresh lime juice and sweetness to shine.",
+    instructions: "1. Add vodka, fresh lime juice, and simple syrup to a cocktail shaker filled with ice.\n2. Shake hard for 10-15 seconds until thoroughly chilled.\n3. Fine strain into a chilled coupe.\n4. Garnish with a fresh lime wheel.",
+    source: "Classic Riff (1950s)",
+    sourceUrl: "https://www.liquor.com/recipes/vodka-gimlet/",
+    notes: "Vodka riff on the Gimlet. Without the heavy juniper botanical profile of gin, the balance between fresh citrus and syrup takes center stage.",
+    riffOfId: "gimlet",
+    riffOfName: "Gimlet",
+    tags: ["classic", "vodka-forward", "sour", "refreshing", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Vodka" },
+      { amount: 0.75, unit: "oz", name: "Lime Juice" },
+      { amount: 0.75, unit: "oz", name: "Simple Syrup" },
+    ],
+  },
+  {
+    id: "vodka-collins",
+    name: "Vodka Collins",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lemon wheel & cocktail cherry",
+    description: "A light, sparkling mid-century cooler shaking vodka with fresh lemon juice and simple syrup, topped with effervescent club soda in a tall glass.",
+    instructions: "1. Add vodka, lemon juice, and simple syrup to a cocktail shaker with ice.\n2. Shake briefly for 5-10 seconds to chill.\n3. Strain into a tall highball or collins glass filled with fresh ice cubes.\n4. Top with chilled club soda and stir gently.\n5. Garnish with a lemon wheel and a cocktail cherry.",
+    source: "Classic Riff (1950s)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/2065/vodka-collins",
+    notes: "Vodka riff on the Tom Collins. A remarkably crisp, low-fuss thirst quencher that gained massive popularity during the mid-century vodka boom.",
+    riffOfId: "tom-collins",
+    riffOfName: "Tom Collins",
+    tags: ["classic", "vodka-forward", "sour", "refreshing", "summer", "highball", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Vodka" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.75, unit: "oz", name: "Simple Syrup" },
+      { amount: 3, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  {
+    id: "screwdriver",
+    name: "Screwdriver",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Orange slice",
+    description: "An American mid-century staple pairing clean vodka with freshly squeezed orange juice over plenty of ice in an effortless two-ingredient cooler.",
+    instructions: "1. Fill a highball or rocks glass with ice.\n2. Pour vodka over the ice.\n3. Top with chilled orange juice.\n4. Stir gently with a barspoon to combine.\n5. Garnish with a fresh orange slice.",
+    source: "American Oil Workers, Persian Gulf / Time Magazine (1949)",
+    sourceUrl: "https://punchdrink.com/recipes/screwdriver/",
+    notes: "Legend holds American petroleum engineers in the Persian Gulf secretly spiked canned orange juice with vodka, stirring the drink with their screwdrivers.",
+    tags: ["classic", "vodka-forward", "fruity", "brunch", "highball"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Vodka" },
+      { amount: 4, unit: "oz", name: "Orange Juice" },
+    ],
+  },
+  {
+    id: "cape-codder",
+    name: "Cape Codder",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wedge",
+    description: "The foundational vodka and cranberry highball named for Massachusetts' cranberry country, brightened with a fresh squeeze of lime.",
+    instructions: "1. Fill a highball glass with fresh ice cubes.\n2. Add vodka and fresh lime juice.\n3. Top with chilled cranberry juice.\n4. Stir gently to combine.\n5. Garnish with a lime wedge on the rim.",
+    source: "Ocean Spray (1945)",
+    sourceUrl: "https://www.liquor.com/recipes/cape-codder/",
+    notes: "Created by the Ocean Spray cranberry growers' cooperative to market cranberry juice into nightlife culture. It serves as the parent to the Sea Breeze and Cosmopolitan.",
+    tags: ["classic", "vodka-forward", "refreshing", "highball"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Vodka" },
+      { amount: 4, unit: "oz", name: "Cranberry Juice" },
+      { amount: 0.25, unit: "oz", name: "Lime Juice" },
+    ],
+  },
+  {
+    id: "madras",
+    name: "Madras",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wheel",
+    description: "A bright, vibrant 1980s beach-bar favorite that pairs clean vodka with tart cranberry juice and sweet orange juice over ice.",
+    instructions: "1. Fill a tall highball glass with ice.\n2. Pour in vodka and cranberry juice.\n3. Top with fresh orange juice.\n4. Stir gently to integrate.\n5. Garnish with a lime wheel.",
+    source: "Classic (1980s)",
+    sourceUrl: "https://www.liquor.com/recipes/madras/",
+    notes: "Named after the colorful lightweight Madras cotton plaid fabric popular in 1980s resort fashion, reflecting the cocktail's bright red and orange hue.",
+    tags: ["classic", "vodka-forward", "fruity", "summer", "highball"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 3, unit: "oz", name: "Cranberry Juice" },
+      { amount: 1.5, unit: "oz", name: "Orange Juice" },
+    ],
+  },
+  {
+    id: "woo-woo",
+    name: "Woo Woo",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wedge",
+    description: "A spirited 1980s disco-era party cocktail matching vodka with sweet peach schnapps and tart cranberry juice over cracked ice.",
+    instructions: "1. Fill a highball glass with ice.\n2. Add vodka and peach schnapps.\n3. Top with tart cranberry juice.\n4. Stir gently to incorporate.\n5. Garnish with a lime wedge.",
+    source: "First Edition Bar, Bayside Queens NYC (c. 1980s)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/2091/woo-woo",
+    notes: "A defining icon of the 1980s schnapps boom, originally served whenever the bartender cheered 'woo woo' after Mets or Yankees home runs.",
+    tags: ["classic", "vodka-forward", "fruity", "party", "highball"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Vodka" },
+      { amount: 0.75, unit: "oz", name: "Peach Schnapps" },
+      { amount: 3.5, unit: "oz", name: "Cranberry Juice" },
+    ],
+  },
+  {
+    id: "gypsy-queen",
+    name: "Gypsy Queen",
+    glassware: "Coupe",
+    method: "Stirred",
+    garnish: "Lemon twist",
+    description: "A sophisticated pre-war classic from Manhattan's Russian Tea Room, stirring smooth vodka with rich herbal Bénédictine and aromatic bitters.",
+    instructions: "1. Combine vodka, Bénédictine, and Angostura bitters in a mixing glass filled with ice.\n2. Stir thoroughly for 25-30 seconds until cold and diluted.\n3. Strain into a chilled coupe.\n4. Express lemon peel oils over the drink and drop the twist into the glass.",
+    source: "Russian Tea Room, New York (c. 1938)",
+    sourceUrl: "https://punchdrink.com/recipes/gypsy-queen/",
+    notes: "One of the earliest recorded craft cocktails using vodka in America, recorded in the 1938 Russian Tea Room cookbook. Bénédictine lends rich honeyed alpine botanicals.",
+    tags: ["classic", "vodka-forward", "spirit-forward", "herbal"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Vodka" },
+      { amount: 0.75, unit: "oz", name: "Bénédictine" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "vodka-sour",
+    name: "Vodka Sour",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Angostura bitters drops & lemon wheel",
+    description: "A velvety, elegant classic sour blending clean vodka with freshly squeezed lemon juice, simple syrup, and egg white, shaken into a thick creamy froth.",
+    instructions: "1. Combine vodka, lemon juice, simple syrup, and egg white in a cocktail shaker.\n2. Dry shake vigorously without ice for 15 seconds to whip the egg white into foam.\n3. Add ice cubes and shake hard for another 10-15 seconds until frosty cold.\n4. Double strain into a chilled coupe glass.\n5. Dot the foam with a few drops of Angostura bitters and garnish with a lemon wheel.",
+    source: "Classic",
+    sourceUrl: "https://www.liquor.com/recipes/vodka-sour/",
+    notes: "Because vodka is neutral, the texture of the whipped egg white and the crisp acidity of fresh lemon take center stage.",
+    riffOfId: "whiskey-sour",
+    riffOfName: "Whiskey Sour",
+    tags: ["classic", "vodka-forward", "sour", "silky", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Vodka" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.75, unit: "oz", name: "Simple Syrup" },
+      { amount: 1, unit: "large", name: "Egg White" },
+      { amount: 2, unit: "drops", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "long-island-iced-tea",
+    name: "Long Island Iced Tea",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lemon wheel",
+    description: "The notoriously potent highball that deceptively tastes like sweet iced tea by shaking five clear spirits with lemon and topping with a splash of cola.",
+    instructions: "1. Add vodka, gin, light rum, tequila, triple sec, lemon juice, and simple syrup to a cocktail shaker with ice.\n2. Shake briefly for 5-10 seconds to chill and combine.\n3. Strain into a tall highball glass filled with fresh ice.\n4. Top with a splash of chilled cola for color.\n5. Garnish with a lemon wheel.",
+    source: "Robert 'Rosebud' Butt, Oak Beach Inn, Long Island (1972)",
+    sourceUrl: "https://www.liquor.com/recipes/long-island-iced-tea/",
+    notes: "Created at the Oak Beach Inn on Long Island during a cocktail competition. Despite having zero tea, the combination of citrus, sweet modifiers, and cola creates the familiar iced tea look and taste.",
+    tags: ["classic", "potent", "party", "highball"],
+    specs: [
+      { amount: 0.5, unit: "oz", name: "Vodka" },
+      { amount: 0.5, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.5, unit: "oz", name: "Light Rum" },
+      { amount: 0.5, unit: "oz", name: "Blanco Tequila" },
+      { amount: 0.5, unit: "oz", name: "Triple Sec" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.5, unit: "oz", name: "Simple Syrup" },
+      { amount: 1, unit: "oz", name: "Cola" },
+    ],
+  },
+  {
+    id: "cuba-libre",
+    name: "Cuba Libre",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lime wedge",
+    description: "The historic Havana highball elevated beyond a simple rum and cola by muddling fresh lime directly into the glass with light rum, ice, and bubbly cola.",
+    instructions: "1. Squeeze fresh lime juice into a highball glass and drop in the spent lime wedge.\n2. Fill the glass with fresh ice cubes.\n3. Add light rum and top with chilled cola.\n4. Stir gently with a barspoon to combine.",
+    source: "Havana, Cuba (c. 1900)",
+    sourceUrl: "https://punchdrink.com/recipes/cuba-libre/",
+    notes: "Born in Havana around the Spanish-American War celebrating a free Cuba ('¡Cuba Libre!'). The inclusion of tart fresh lime oils and juice cuts right through the sweet caramel notes of cola.",
+    tags: ["classic", "rum-forward", "refreshing", "highball"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Light Rum" },
+      { amount: 0.5, unit: "oz", name: "Lime Juice" },
+      { amount: 4, unit: "oz", name: "Cola" },
+    ],
+  },
+  {
+    id: "mimosa",
+    name: "Mimosa",
+    glassware: "Flute",
+    method: "Built",
+    garnish: "Orange twist",
+    description: "The undisputed queen of brunch cocktails, marrying crisp sparkling wine with freshly squeezed orange juice in bubbly, golden harmony.",
+    instructions: "1. Pour chilled fresh orange juice into a champagne flute.\n2. Gently top with chilled sparkling wine or Champagne to maintain carbonation.\n3. Stir once with a barspoon if needed.\n4. Garnish with an orange peel twist.",
+    source: "Frank Meier, Ritz Hotel Paris (1925)",
+    sourceUrl: "https://www.liquor.com/recipes/mimosa/",
+    notes: "Created by head bartender Frank Meier at the Ritz Hotel in Paris, named after the bright yellow Australian mimosa flower.",
+    tags: ["classic", "sparkling", "brunch", "fruity", "low-abv"],
+    specs: [
+      { amount: 2.5, unit: "oz", name: "Orange Juice" },
+      { amount: 2.5, unit: "oz", name: "Sparkling Wine" },
+    ],
+  },
+  {
+    id: "champagne-cocktail",
+    name: "Champagne Cocktail",
+    glassware: "Flute",
+    method: "Built",
+    garnish: "Lemon twist",
+    description: "A sparkling Victorian classic where aromatic bitters and rich cognac elevate brut champagne into a dancing pillar of aromatic bubbles.",
+    instructions: "1. Add simple syrup, cognac, and Angostura bitters to the base of a chilled champagne flute.\n2. Slowly top with cold brut sparkling wine or Champagne.\n3. Express lemon peel oils over the glass and garnish.",
+    source: "Jerry Thomas, How to Mix Drinks (1862)",
+    sourceUrl: "https://punchdrink.com/recipes/champagne-cocktail/",
+    notes: "Historically prepared by saturating a sugar cube in aromatic bitters at the bottom of the glass, creating a continuous fountain of bubbles that releases herbal aromatics as you drink.",
+    tags: ["classic", "sparkling", "spirit-forward", "party"],
+    specs: [
+      { amount: 4, unit: "oz", name: "Sparkling Wine" },
+      { amount: 0.5, unit: "oz", name: "Cognac" },
+      { amount: 0.25, unit: "oz", name: "Simple Syrup" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "kir-royale",
+    name: "Kir Royale",
+    glassware: "Flute",
+    method: "Built",
+    garnish: "Blackberry or raspberry",
+    description: "A festive French bistro classic dressing dry sparkling wine with a ruby measure of sweet blackcurrant Crème de Cassis.",
+    instructions: "1. Pour crème de cassis into the bottom of a chilled champagne flute.\n2. Gently top with cold dry sparkling wine or Champagne.\n3. Garnish with a fresh raspberry or blackberry.",
+    source: "Burgundy, France",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/1109/kir-royale",
+    notes: "The royal variation of the Kir aperitif, swapping still Aligoté white wine for Champagne. The effervescence lifts the jammy, rich blackcurrant berry notes.",
+    tags: ["classic", "sparkling", "fruity", "low-abv"],
+    specs: [
+      { amount: 0.5, unit: "oz", name: "Crème de Cassis" },
+      { amount: 4.5, unit: "oz", name: "Sparkling Wine" },
+    ],
+  },
+  {
+    id: "kir",
+    name: "Kir",
+    glassware: "Wine Glass",
+    method: "Built",
+    garnish: "None",
+    description: "The traditional Burgundian café aperitif combining crisp dry white wine with a measure of sweet, dark Crème de Cassis.",
+    instructions: "1. Add crème de cassis to a chilled white wine glass.\n2. Top with cold dry white wine.\n3. Stir gently to integrate into a luminous ruby-red aperitif.",
+    source: "Félix Kir, Mayor of Dijon (1940s)",
+    sourceUrl: "https://www.liquor.com/recipes/kir/",
+    notes: "Popularized by Canon Félix Kir, hero of the French Resistance and Mayor of Dijon, who served this mixture of local cassis and tart Bourgogne Aligoté white wine to visiting delegations.",
+    tags: ["classic", "wine-forward", "fruity", "low-abv"],
+    specs: [
+      { amount: 0.5, unit: "oz", name: "Crème de Cassis" },
+      { amount: 4, unit: "oz", name: "Dry White Wine" },
+    ],
+  },
+  {
+    id: "black-velvet",
+    name: "Black Velvet",
+    glassware: "Flute",
+    method: "Built",
+    garnish: "None",
+    description: "A regal 1861 London institution pouring equal parts roasted, creamy dry Irish stout and crisp, effervescent sparkling wine.",
+    instructions: "1. Fill a champagne flute or glass halfway with chilled dry stout.\n2. Slowly pour cold sparkling wine or Champagne over the back of a spoon to float over the dark stout, or gently stir together.",
+    source: "Brooks's Club, London (1861)",
+    sourceUrl: "https://punchdrink.com/recipes/black-velvet/",
+    notes: "Created at London's Brooks's Club following the death of Queen Victoria's husband, Prince Albert, symbolizing the black velvet armbands worn by mourners.",
+    tags: ["classic", "sparkling", "party"],
+    specs: [
+      { amount: 3, unit: "oz", name: "Stout" },
+      { amount: 3, unit: "oz", name: "Sparkling Wine" },
+    ],
+  },
+  {
+    id: "amaretto-sour",
+    name: "Amaretto Sour",
+    glassware: "Rocks",
+    method: "Shaken",
+    garnish: "Lemon wheel & brandied cherry",
+    description: "Jeffrey Morgenthaler's benchmark craft cocktail recipe, bolstering sweet Italian amaretto with cask-strength bourbon, fresh lemon, and silky egg white.",
+    instructions: "1. Combine amaretto, bourbon, lemon juice, simple syrup, and egg white in a shaker.\n2. Dry shake without ice for 15 seconds to whip the egg white.\n3. Add ice cubes and shake hard for another 15 seconds until frosty and cold.\n4. Strain over fresh ice in a rocks glass.\n5. Garnish with a lemon wheel and a brandied cherry.",
+    source: "Jeffrey Morgenthaler, Clyde Common, Portland (2012)",
+    sourceUrl: "https://jeffreymorgenthaler.com/i-make-the-best-amaretto-sour-in-the-world/",
+    notes: "Morgenthaler rescued this drink from 1980s neon-sour-mix mediocrity by pairing amaretto with high-proof bourbon and real egg white, creating a balanced modern classic.",
+    tags: ["modern-craft", "sour", "silky", "nutty"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Amaretto" },
+      { amount: 0.75, unit: "oz", name: "Bourbon" },
+      { amount: 1, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.25, unit: "oz", name: "Simple Syrup" },
+      { amount: 0.5, unit: "large", name: "Egg White" },
+    ],
+  },
+  {
+    id: "john-collins",
+    name: "John Collins",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Lemon wheel & cocktail cherry",
+    description: "The American whiskey sister of the Tom Collins, shaking bourbon with fresh lemon and sugar before topping with bubbling club soda.",
+    instructions: "1. Combine bourbon, lemon juice, and simple syrup in a cocktail shaker with ice.\n2. Shake briefly for 5-10 seconds to chill.\n3. Strain into a tall highball glass filled with ice.\n4. Top with chilled club soda and stir gently.\n5. Garnish with a lemon wheel and a cocktail cherry.",
+    source: "Jerry Thomas, How to Mix Drinks (1876)",
+    sourceUrl: "https://www.liquor.com/recipes/john-collins/",
+    notes: "Named after the headwaiter at Limmer's Hotel in London. While the Tom Collins settled on Old Tom gin, the John Collins became the standard name for the whiskey version.",
+    riffOfId: "tom-collins",
+    riffOfName: "Tom Collins",
+    tags: ["classic", "whiskey-forward", "sour", "refreshing", "highball", "riff"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Bourbon" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.75, unit: "oz", name: "Simple Syrup" },
+      { amount: 3, unit: "oz", name: "Club Soda" },
+    ],
+  },
+  {
+    id: "ward-eight",
+    name: "Ward Eight",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Cocktail cherry",
+    description: "Boston's historic 1898 celebration sour shaking spicy rye whiskey with tart lemon juice, fresh orange juice, and rich pomegranate grenadine.",
+    instructions: "1. Combine rye whiskey, lemon juice, orange juice, and grenadine in a shaker filled with ice.\n2. Shake vigorously for 10-15 seconds until thoroughly chilled.\n3. Fine strain into a chilled coupe glass.\n4. Garnish with a cocktail cherry.",
+    source: "Locke-Ober Cafe, Boston (1898)",
+    sourceUrl: "https://punchdrink.com/recipes/ward-eight/",
+    notes: "Created at Boston's Locke-Ober restaurant to celebrate the political election of Martin M. Lomasney to the Massachusetts General Court representing Ward 8.",
+    tags: ["classic", "whiskey-forward", "sour", "fruity"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Rye Whiskey" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.75, unit: "oz", name: "Orange Juice" },
+      { amount: 0.25, unit: "oz", name: "Grenadine" },
+    ],
+  },
+  {
+    id: "horses-neck",
+    name: "Horse's Neck",
+    glassware: "Highball",
+    method: "Built",
+    garnish: "Long continuous spiral lemon peel",
+    description: "A dashing 19th-century American highball pairing bourbon and ginger ale with aromatic bitters, framed by a continuous dramatic lemon peel spiral.",
+    instructions: "1. Cut a long, unbroken spiral peel from an entire lemon and drape it inside a tall highball glass, curling around the inside rim and base.\n2. Fill the glass with ice cubes to hold the peel in place.\n3. Add bourbon and bitters, then top with ginger ale.\n4. Stir gently to integrate.",
+    source: "Classic American Highball (c. 1890s)",
+    sourceUrl: "https://www.liquor.com/recipes/horses-neck/",
+    notes: "Originally a non-alcoholic drink of ginger ale and lemon peel, adding a jigger of bourbon became known as a 'Horse's Neck with a Kick' before becoming the standard version.",
+    tags: ["classic", "whiskey-forward", "refreshing", "highball"],
+    specs: [
+      { amount: 2, unit: "oz", name: "Bourbon" },
+      { amount: 4, unit: "oz", name: "Ginger Ale" },
+      { amount: 2, unit: "dashes", name: "Angostura Bitters" },
+    ],
+  },
+  {
+    id: "gin-sour",
+    name: "Gin Sour",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Lemon wheel & cocktail cherry",
+    description: "The foundational botanical sour balancing crisp London dry gin with freshly squeezed lemon juice, simple syrup, and a velvety head of whipped egg white.",
+    instructions: "1. Combine gin, lemon juice, simple syrup, and egg white in a cocktail shaker.\n2. Dry shake without ice for 15 seconds to whip the egg white.\n3. Add ice cubes and shake hard for another 10-15 seconds until icy cold.\n4. Fine strain into a chilled coupe.\n5. Garnish with a lemon wheel and a cherry.",
+    source: "Jerry Thomas, How to Mix Drinks (1862)",
+    sourceUrl: "https://www.diffordsguide.com/cocktails/recipe/851/gin-sour",
+    notes: "One of the cornerstones of cocktail taxonomy alongside the Whiskey Sour. The juniper botanicals cut through rich egg white foam with botanical brilliance.",
+    tags: ["classic", "gin-forward", "sour", "silky"],
+    specs: [
+      { amount: 2, unit: "oz", name: "London Dry Gin" },
+      { amount: 0.75, unit: "oz", name: "Lemon Juice" },
+      { amount: 0.75, unit: "oz", name: "Simple Syrup" },
+      { amount: 1, unit: "large", name: "Egg White" },
+    ],
+  },
+  {
+    id: "derby",
+    name: "Derby",
+    glassware: "Coupe",
+    method: "Shaken",
+    garnish: "Mint leaf & lime wheel",
+    description: "A bright, citrusy mid-century classic pairing rich Kentucky bourbon with sweet vermouth, orange curaçao, and tart lime juice.",
+    instructions: "1. Combine bourbon, sweet vermouth, orange curaçao, and fresh lime juice in a cocktail shaker filled with ice.\n2. Shake vigorously for 10-15 seconds until well-chilled.\n3. Fine strain into a chilled coupe glass.\n4. Garnish with a fresh mint leaf and a lime wheel.",
+    source: "Trader Vic's Bartender's Guide (1947)",
+    sourceUrl: "https://punchdrink.com/recipes/derby/",
+    notes: "Recorded by Victor Bergeron in 1947. Unlike the mint julep, this Kentucky Derby namesake uses lime juice and curaçao to introduce bright tropical citrus to sweet bourbon.",
+    tags: ["classic", "whiskey-forward", "sour"],
+    specs: [
+      { amount: 1.5, unit: "oz", name: "Bourbon" },
+      { amount: 0.5, unit: "oz", name: "Sweet Vermouth" },
+      { amount: 0.5, unit: "oz", name: "Orange Curaçao" },
+      { amount: 0.75, unit: "oz", name: "Lime Juice" },
     ],
   },
 ];

@@ -56,9 +56,9 @@ const drink = (names, extra = {}) => ({ id: 'x', name: 'X', specs: names.map(nam
 // The bundled library: known counts, so a regex change can't silently drop a drink.
 {
   const count = (level, key) => SEED_RECIPES.filter(r => dietFor(r)[level].includes(key)).length;
-  assert.equal(count('contains', 'egg'), 6);
-  assert.equal(count('contains', 'dairy'), 5);
-  assert.equal(count('contains', 'nuts'), 17);
+  assert.equal(count('contains', 'egg'), 11);
+  assert.equal(count('contains', 'dairy'), 7);
+  assert.equal(count('contains', 'nuts'), 20);
   assert.equal(count('contains', 'honey'), 12);
   assert.equal(count('may', 'nuts'), 9);
   const ramos = SEED_RECIPES.find(r => r.name === 'Ramos Gin Fizz');

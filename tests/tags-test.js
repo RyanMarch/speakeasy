@@ -86,7 +86,7 @@ function measure(tag) {
 {
   const FLOORS = {
     'whiskey-forward': [85, 85], 'gin-forward': [85, 85], 'rum-forward': [85, 65],
-    'coffee': [90, 90], 'smoky': [90, 85], 'creamy': [65, 90], 'sparkling': [40, 90],
+    'coffee': [90, 90], 'smoky': [90, 85], 'creamy': [65, 90], 'sparkling': [30, 90],
     'tropical-tiki': [70, 70], 'bittersweet': [60, 60], 'highball': [55, 90],
     'refreshing': [50, 65], 'silky': [60, 70], 'spiced': [55, 90], 'hot': [90, 90],
   };

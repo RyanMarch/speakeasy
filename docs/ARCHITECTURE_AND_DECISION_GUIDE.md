@@ -54,12 +54,15 @@ speakeasy/
 │   ├── state.js               # Shared application state, DOM cache, inventory cache
 │   ├── router.js              # Application routing and View Transitions API coordinator
 │   ├── data/
-│   │   ├── seed-recipes.js    # 181 canonical seed recipes
+│   │   ├── seed-recipes.js    # 268 canonical seed recipes
 │   │   └── featured-cocktails.js # Curated featured drinks for landing page showcase
 │   ├── views/
 │   │   ├── home-view.js       # Home view shelves, carousels, pin-a-tag bar
 │   │   ├── counter-view.js    # Single recipe view, glassware sync, radar, servings, riffs, sharing
 │   │   ├── menu-builder-view.js# Saved event menus, recipe picker, bar/fridge/pantry checklist
+│   │   ├── guest-menu-view.js # Guest menu view, picture cards, quiz, surprise me, ordering
+│   │   ├── guest-recipe-view.js# Standalone guest drink detail view
+│   │   ├── surprise-overlay.js# Animated cocktail shuffle reel overlay
 │   │   ├── recipe-list-view.js# Sidebar list, search, sort select, pack pills, tag autocomplete
 │   │   └── shared-recipe-view.js # Snapshot view for shared cocktail links
 │   ├── components/
@@ -71,6 +74,7 @@ speakeasy/
 │   │   ├── print-window.js    # Print preview and format helper for menus and recipe sheets
 │   │   ├── hidden-modal.js    # Hidden cocktails management modal
 │   │   ├── timer-modal.js     # Floating counter timer toast, 3-phase countdown, haptic alerts
+│   │   ├── diet-notes.js      # Dietary flags, allergen avoidance, and egg-free swap UI
 │   │   └── toast.js           # Toast notifications and HTML escaping utility
 │   └── modules/
 │       ├── auth.js            # Passwordless OTP authentication and session management
@@ -86,7 +90,14 @@ speakeasy/
 │       ├── garnishes.js       # Garnish parser and vector garnish SVG renderer
 │       ├── colors.js          # Color calculation, hex blending, and volume normalization
 │       ├── balance.js         # Flavor balance radar calculation, SVG renderer, palate distance similarity
-│       └── abv.js             # Proof heuristics, method-based dilution (stir/shake/build/blend)
+│       ├── abv.js             # Proof heuristics, method-based dilution (stir/shake/build/blend)
+│       ├── menu-publish.js    # Guest menu publishing, tokenized cloud sync, QR generation
+│       ├── menu-sections.js   # Dynamic base spirit grouping for guest menus
+│       ├── quiz.js            # Interactive "Find my drink" recommendation engine
+│       ├── moods.js           # Mood categorization and summary for guest menus
+│       ├── guest-search.js    # Client-side guest menu search and filtering
+│       ├── guest-saved.js     # Guest favorites persistence
+│       └── guest-order.js     # Guest order card generation
 ├── functions/
 │   └── api/                   # Cloudflare Pages Functions (Serverless Backend)
 │       ├── admin/             # Endpoints for admin session, analytics aggregation, recipes, and visibility
@@ -137,13 +148,13 @@ speakeasy/
 - **Ranked Shopping List**: Analyzes missing ingredients across the entire recipe collection or starter set, ranking purchases by the net number of newly unlockable drinks (`getRankedShoppingList`).
 
 ### 3.2 Recipe Storage, Seeding & Full Persistence Schema (`storage.js`)
-- **Canonical Seeds**: 181 pre-loaded classic and modern craft cocktail recipes located in `js/data/seed-recipes.js`.
+- **Canonical Seeds**: 268 pre-loaded classic and modern craft cocktail recipes located in `js/data/seed-recipes.js`.
 - **Data Model**:
   ```javascript
   {
     id: "boulevardier",
     name: "Boulevardier",
-    glassware: "Rocks",           // Coupe, Rocks, Highball, Nick & Nora, Martini, etc.
+    glassware: "Rocks",           // Coupe, Rocks, Highball, Nick & Nora, Martini, Shot, etc.
     method: "Stirred",            // Stirred, Shaken, Built, Blended
     garnish: "Orange twist",      // Parsed into vector garnish
     specs: [                      // Array of parsed components
@@ -198,13 +209,14 @@ speakeasy/
 - **3-Phase Countdown**: Progresses through `ready`, `counting`, and `done` with an SVG circular progress ring.
 - **Haptic Alerts**: Triggers subtle native vibration pulses (`navigator.vibrate`) upon countdown completion with zero jarring audio.
 
-### 3.6 Menu Builder & Event Planning Subsystem (`menu-builder-view.js`)
-- **Purpose**: Enables assembling focused cocktail menus for dinner parties, private events, or seasonal rotations.
-- **Aggregated Requirements**:
-  - Tally of glassware quantities needed across the chosen drink lineup.
-  - Consolidated ingredient shopping checklist grouped by kitchen/bar storage zone: **Bar** (bottles/spirits), **Fridge** (refrigerated syrups, fortified wines, fresh juices), and **Pantry** (shelf-stable mixers and bitters).
+### 3.6 Menu Builder & Guest Hosting Subsystem (`menu-builder-view.js`, `guest-menu-view.js`, `menu-publish.js`)
+- **Event Menus**: Compose curated drink lineups checked against backbar inventory, with glassware tallies and consolidated shopping checklists.
+- **Guest Menu Publishing**: Generates shareable, zero-auth guest menu links and full-screen QR codes backed by Cloudflare D1 snapshots.
+- **Guest Experience**: Responsive picture cards with glass illustrations, spirit sectioning (`menu-sections.js`), whole-word ingredient and mood search (`guest-search.js`), and interactive "Find my drink" recommendation quiz (`quiz.js`).
+- **Dietary & Allergen Filtering**: Automatic allergen flagging for egg, dairy, tree nuts, and honey with customizable host overrides and vegan cocktail foamer substitutions (`diet-notes.js`).
+- **Live Host Controls**: Mark drinks as out-of-stock or star featured picks in real time without exposing backbar internals.
 - **Stock Filtering**: Filters items into "All Required" versus "Need to Buy" by cross-referencing active backbar inventory.
-- **Routing Integration**: Deep-linked through `#menus` for the saved list and `#menus/<id>` for specific menus.
+- **Routing Integration**: Deep-linked through `#menus` for the saved list, `#menus/<id>` for specific menus, and `#guest-menu/<id>` for guest access.
 
 ### 3.7 Glassware & Fluid Dynamics (`glassware.js`, `glass-view.js`, `colors.js`)
 - **Proportional Stacking**: Calculates each ingredient's volume percentage and stacks proportional SVG color layers inside the container's clip path.

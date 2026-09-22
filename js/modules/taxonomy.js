@@ -2553,6 +2553,17 @@ export const TAXONOMY = {
     defaultAbv: 38,
     aliases: ['cherry bitters'],
   },
+  peach_bitters: {
+    id: 'peach_bitters',
+    name: 'Peach Bitters',
+    family: 'bitters',
+    parent: 'bitters',
+    color: '#e58852',
+    light: '#f5aa7c',
+    dark: '#b85822',
+    defaultAbv: 35,
+    aliases: ['peach bitters', 'fee brothers peach', 'fee brothers peach bitters'],
+  },
   saline_solution: {
     id: 'saline_solution',
     name: 'Saline Solution',

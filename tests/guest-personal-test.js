@@ -77,6 +77,7 @@ console.log('--- Testing the guest Saved list and order card ---');
   assert.equal(glassLabel('Nick & Nora'), 'Nick & Nora glass');
   assert.equal(glassLabel('Mug'), 'Mug', 'A mug is already a vessel');
   assert.equal(glassLabel('Tiki Mug'), 'Tiki Mug');
+  assert.equal(glassLabel('Shot'), 'Shot glass');
   assert.equal(glassLabel('Rocks glass'), 'Rocks glass', 'Never doubled up');
   assert.equal(glassLabel(''), '');
   assert.equal(glassLabel(undefined), '');
