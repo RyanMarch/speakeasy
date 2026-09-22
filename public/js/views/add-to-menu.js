@@ -5,6 +5,10 @@
  * None (or not signed in, since menus belong to an account): the action isn't
  * offered at all, see canAddToMenu().
  *
+ * An Always Ready menu (see modules/ready-menu.js) never appears as a target:
+ * its list is computed from the bar, not picked by hand, and an addition here
+ * would just be overwritten by the next recompute.
+ *
  * A menu with a live guest link is republished, so guests see the new drink.
  */
 
@@ -19,9 +23,14 @@ import { closeDialog, enhanceDialog } from '../components/dialog-motion.js';
 // Same cap the server enforces (functions/api/menus/_lib.js).
 const MAX_MENU_DRINKS = 100;
 
-/** Whether "Add to Menu" should be offered: signed in, with at least one menu. */
+/** Saved menus a drink can actually be added to by hand — excludes Always Ready menus. */
+function getManualMenus() {
+  return getMenus().filter(menu => menu.dynamic !== 'ready');
+}
+
+/** Whether "Add to Menu" should be offered: signed in, with at least one (non-automatic) menu. */
 export function canAddToMenu() {
-  return isAuthenticated() && getMenus().length > 0;
+  return isAuthenticated() && getManualMenus().length > 0;
 }
 
 /**
@@ -31,7 +40,8 @@ export function canAddToMenu() {
  */
 export async function addRecipeToMenu(recipe, menuId) {
   const menu = getMenus().find(m => m.id === menuId);
-  if (!menu) return { status: 'missing' };
+  // An Always Ready menu's list isn't picked by hand — see the module note above.
+  if (!menu || menu.dynamic === 'ready') return { status: 'missing' };
   if (menu.recipeIds.includes(recipe.id)) return { status: 'exists' };
   if (menu.recipeIds.length >= MAX_MENU_DRINKS) return { status: 'full' };
 
@@ -70,7 +80,7 @@ async function addAndReport(recipe, menu) {
  * The action itself. `returnFocusTo` is where focus goes back to after the chooser.
  */
 export function startAddToMenu(recipe, { returnFocusTo } = {}) {
-  const menus = getMenus();
+  const menus = getManualMenus();
   if (menus.length === 0) return;
   if (menus.length === 1) {
     addAndReport(recipe, menus[0]);

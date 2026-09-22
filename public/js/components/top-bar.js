@@ -62,8 +62,9 @@ import { openCalculatorModal } from './calculator-modal.js';
 import { openHiddenModal, closeHiddenModal } from './hidden-modal.js';
 import { closeBackbarModal } from './backbar-modal.js';
 import { closeAuthModal } from './auth-modal.js';
-import { pushMenuContents } from '../modules/menu-publish.js';
+import { pushMenuContents, unpublishMenu } from '../modules/menu-publish.js';
 import { applyBarDiet } from '../modules/dietary.js';
+import { deleteReadyMenusForBar, findReadyMenuForBar } from '../modules/ready-menu.js';
 import { showToast, showLevelUpCelebration, escapeHtml, wirePopoverTriggerPositioning } from './toast.js';
 
 export const MIXOLOGIST_RANKS = [
@@ -1281,7 +1282,16 @@ export function setupTopBarEventListeners() {
 
     if (deleteBtn && !deleteBtn.disabled) {
       const bar = getBars().find(b => b.id === barId);
-      if (!confirm(`Delete "${bar?.name || 'this bar'}"? Its ingredient inventory will be lost. Recipes and drink history are unaffected.`)) return;
+      const readyMenu = findReadyMenuForBar(barId);
+      const warning = readyMenu
+        ? ` Its Always Ready menu ("${readyMenu.name}") will be deleted too${readyMenu.share ? ', and its guest link will stop working.' : '.'}`
+        : '';
+      if (!confirm(`Delete "${bar?.name || 'this bar'}"? Its ingredient inventory will be lost. Recipes and drink history are unaffected.${warning}`)) return;
+      // A Ready menu with no bar behind it isn't meaningful — remove it (and its
+      // guest link, if it had one) along with the bar.
+      deleteReadyMenusForBar(barId).forEach(menu => {
+        if (menu.share) unpublishMenu(menu.share).catch(() => { });
+      });
       const newActiveId = deleteBar(barId);
       if (newActiveId) {
         switchActiveBar(newActiveId);

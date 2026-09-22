@@ -5,10 +5,13 @@
  */
 
 import { state, elements, HOME_DEFAULT_COLLECTIONS, getCachedInventoryAnalysis } from '../state.js';
-import { getMenus, saveMenu, deleteMenu, setMenuShare } from '../modules/storage.js';
+import { getMenus, saveMenu, deleteMenu, setMenuShare, getBars, getActiveBarId } from '../modules/storage.js';
 import {
   publishMenu, pushMenuContents, pushMenuAvailability, pushMenuFeatured, unpublishMenu, guestMenuUrl, qrImageUrl,
 } from '../modules/menu-publish.js';
+import {
+  isReadyMenu, findReadyMenuForBar, createReadyMenu, refreshReadyMenu, computeReadyRecipeIds,
+} from '../modules/ready-menu.js';
 import { REFRIGERATED_INGREDIENT_IDS } from '../modules/taxonomy.js';
 import { renderShoppingCard, wireShoppingCardEvents } from '../components/backbar-modal.js';
 import { escapeHtml, showToast, CLOSE_ICON_SVG } from '../components/toast.js';
@@ -161,7 +164,7 @@ export function applyMenuBuilderHash(menuId) {
   if (menuId) {
     const menu = getMenus().find(m => m.id === menuId);
     if (menu) {
-      activeMenu = { id: menu.id, name: menu.name, recipeIds: [...menu.recipeIds] };
+      setActiveMenuFromRecord(menu);
       builderView = 'view';
     } else {
       builderView = 'list';
@@ -170,6 +173,23 @@ export function applyMenuBuilderHash(menuId) {
     builderView = 'list';
   }
   renderMenuBuilderView();
+}
+
+/**
+ * Puts a saved menu record into `activeMenu`. An Always Ready menu is brought
+ * up to date first (see ready-menu.js) — opening it is exactly the moment
+ * drift (a recipe added elsewhere, a sync from another device) most needs to
+ * be caught — and carries its `dynamic`/`readyBarId` markers along so the rest
+ * of this view knows to treat it differently.
+ */
+function setActiveMenuFromRecord(menu) {
+  const resolved = isReadyMenu(menu) ? refreshReadyMenu(menu) : menu;
+  activeMenu = {
+    id: resolved.id,
+    name: resolved.name,
+    recipeIds: [...resolved.recipeIds],
+    ...(isReadyMenu(resolved) ? { dynamic: resolved.dynamic, readyBarId: resolved.readyBarId } : {}),
+  };
 }
 
 function startNewMenu() {
@@ -185,7 +205,7 @@ function startNewMenu() {
 function loadMenu(id) {
   const menu = getMenus().find(m => m.id === id);
   if (!menu) return;
-  activeMenu = { id: menu.id, name: menu.name, recipeIds: [...menu.recipeIds] };
+  setActiveMenuFromRecord(menu);
   // Loading a saved menu is a "what do I need for this party" moment, not an
   // invitation to keep adding drinks — land on the read-first summary.
   builderView = 'view';
@@ -193,7 +213,31 @@ function loadMenu(id) {
   renderMenuBuilderView();
 }
 
+/**
+ * "+ Always Ready Menu": opens the current bar's Always Ready menu if it has
+ * one already, otherwise creates it (with whatever's ready this instant) and
+ * opens that. One per bar — see findReadyMenuForBar.
+ */
+function startOrOpenReadyMenu() {
+  const barId = getActiveBarId();
+  const bars = getBars();
+  const barName = bars.find(b => b.id === barId)?.name;
+  const existing = findReadyMenuForBar(barId);
+  if (existing) {
+    loadMenu(existing.id);
+    showToast(`Opened your Always Ready menu${barName ? ` for ${barName}` : ''}`);
+    return;
+  }
+  const menu = createReadyMenu(barId, barName, bars.length);
+  loadMenu(menu.id);
+  showToast(menu.recipeIds.length > 0
+    ? `Always Ready menu created — ${menu.recipeIds.length} drink${menu.recipeIds.length === 1 ? '' : 's'} ready now`
+    : 'Always Ready menu created. It’ll fill in as you stock the bar.');
+}
+
 function beginEditingActiveMenu() {
+  // A picker has nothing to do on a menu whose list is computed automatically.
+  if (activeMenu.dynamic === 'ready') return;
   builderSearchQuery = '';
   // Opening the picker on a menu that already has picks is exactly when a
   // wall of 182 pills is most disorienting — open only the categories that
@@ -205,6 +249,41 @@ function beginEditingActiveMenu() {
   );
   builderView = 'edit';
   renderMenuBuilderView();
+}
+
+/**
+ * An Always Ready menu has no picker to hold a name field, so renaming is a
+ * plain prompt — the same weight of interaction as the delete confirmation
+ * right next to it.
+ */
+function renameActiveMenu() {
+  const next = prompt('Rename this menu', activeMenu.name);
+  if (next === null) return;
+  const trimmed = next.trim();
+  if (!trimmed || trimmed === activeMenu.name) return;
+  const menu = getMenus().find(m => m.id === activeMenu.id);
+  if (!menu) return;
+  const saved = saveMenu({ ...menu, name: trimmed });
+  activeMenu = { ...activeMenu, name: saved.name };
+  renderMenuBuilderView();
+  showToast(`Renamed to "${saved.name}"`);
+  // Nothing ready right now to publish a name for — the next auto-update
+  // (once something is ready again) carries the new name along with it.
+  if (saved.share && getPublishRecipes().length > 0) {
+    pushMenuContents(saved.share, saved.name, getPublishRecipes()).catch(err => {
+      if (err.status === 404) forgetDeadGuestLink();
+      else showToast(`Renamed here, but the guest link wasn't updated: ${err.message}`);
+    });
+  }
+}
+
+/** "42 ready now" for an Always Ready menu, "N cocktails" for a normal one. */
+function readyMenuSubLabel(menu) {
+  if (!isReadyMenu(menu)) {
+    return `${menu.recipeIds.length} cocktail${menu.recipeIds.length === 1 ? '' : 's'}`;
+  }
+  const count = computeReadyRecipeIds(menu.readyBarId).length;
+  return `${count} ready now`;
 }
 
 /**
@@ -221,8 +300,10 @@ function renderListView(container) {
   ` : /*html*/menus.map(menu => `
     <div class="menu-builder-list-row" data-menu-id="${escapeHtml(menu.id)}">
       <div class="menu-builder-list-meta">
-        <span class="menu-builder-list-name">${escapeHtml(menu.name)}</span>
-        <span class="menu-builder-list-sub">${menu.recipeIds.length} cocktail${menu.recipeIds.length === 1 ? '' : 's'}</span>
+        <span class="menu-builder-list-name">
+          ${escapeHtml(menu.name)}${isReadyMenu(menu) ? ' <span class="menu-builder-ready-badge" title="This menu\u2019s drink list updates itself as the bar changes">Live</span>' : ''}
+        </span>
+        <span class="menu-builder-list-sub">${readyMenuSubLabel(menu)}</span>
       </div>
       <div class="menu-builder-list-actions">
         <button type="button" class="btn btn-secondary btn-sm btn-load-menu" data-menu-id="${escapeHtml(menu.id)}">Load</button>
@@ -245,11 +326,14 @@ function renderListView(container) {
 
     <div class="menu-builder-page-actions">
       <button type="button" class="btn btn-primary btn-sm" data-action="new-menu">+ New Menu</button>
+      <button type="button" class="btn btn-secondary btn-sm" data-action="new-ready-menu"
+        title="A menu that always shows every drink you can currently make — no picking, no upkeep.">+ Always Ready Menu</button>
     </div>
   `;
 
   container.querySelector('[data-action="go-home"]')?.addEventListener('click', () => _goHomeFn?.());
   container.querySelector('[data-action="new-menu"]')?.addEventListener('click', startNewMenu);
+  container.querySelector('[data-action="new-ready-menu"]')?.addEventListener('click', startOrOpenReadyMenu);
 
   container.querySelectorAll('.btn-load-menu').forEach(btn => {
     btn.addEventListener('click', () => loadMenu(btn.getAttribute('data-menu-id')));
@@ -277,6 +361,9 @@ function renderListView(container) {
 function renderViewMode(container) {
   const selected = getSelectedRecipes();
   const share = getActiveShare();
+  const ready = activeMenu.dynamic === 'ready';
+  const bars = ready ? getBars() : [];
+  const trackedBarName = ready ? (bars.find(b => b.id === activeMenu.readyBarId)?.name || 'a bar') : '';
 
   container.innerHTML = /*html*/`
     <div class="menu-builder-page-header">
@@ -284,12 +371,20 @@ function renderViewMode(container) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
         Menus
       </button>
-      <h1 class="menu-builder-page-title">${escapeHtml(activeMenu.name)}</h1>
-      <p class="menu-builder-page-subtitle">${selected.length} cocktail${selected.length === 1 ? '' : 's'}</p>
+      <h1 class="menu-builder-page-title">
+        ${escapeHtml(activeMenu.name)}${ready ? ' <span class="menu-builder-ready-badge" title="This menu\u2019s drink list updates itself as the bar changes">Live</span>' : ''}
+      </h1>
+      <p class="menu-builder-page-subtitle">
+        ${ready
+      ? `${selected.length} ready right now${bars.length > 1 ? ` · tracking ${escapeHtml(trackedBarName)}` : ''}`
+      : `${selected.length} cocktail${selected.length === 1 ? '' : 's'}`}
+      </p>
     </div>
 
     <div class="menu-builder-view-actions">
-      <button type="button" class="btn btn-secondary btn-sm" data-action="edit-cocktails">Edit Cocktails</button>
+      ${ready
+      ? '<button type="button" class="btn btn-secondary btn-sm" data-action="rename-menu">Rename</button>'
+      : '<button type="button" class="btn btn-secondary btn-sm" data-action="edit-cocktails">Edit Cocktails</button>'}
       <button type="button" class="btn btn-secondary btn-sm" data-action="print-menu">Print Guest Menu</button>
       <button type="button" class="btn btn-ghost btn-sm" data-action="delete-menu">Delete Menu</button>
     </div>
@@ -298,6 +393,9 @@ function renderViewMode(container) {
 
     <div class="menu-builder-section">
       <div class="menu-builder-section-heading">Cocktails</div>
+      ${ready && selected.length === 0 ? /*html*/`
+        <p class="card-content-text menu-builder-ready-empty">Nothing’s ready to pour right now. As you stock ${escapeHtml(trackedBarName)}, this menu fills in on its own.</p>
+      ` : /*html*/`
       <div class="menu-builder-cocktail-list">
         ${selected.map(r => `
           <div class="menu-builder-cocktail-item${share && share.outIds.includes(r.id) ? ' is-out' : ''}">
@@ -326,6 +424,7 @@ function renderViewMode(container) {
           </div>
         `).join('')}
       </div>
+      `}
     </div>
 
     <div class="menu-builder-section" id="menu-builder-glassware-container"></div>
@@ -338,7 +437,12 @@ function renderViewMode(container) {
     renderMenuBuilderView();
   });
   container.querySelector('[data-action="edit-cocktails"]')?.addEventListener('click', beginEditingActiveMenu);
+  container.querySelector('[data-action="rename-menu"]')?.addEventListener('click', renameActiveMenu);
   container.querySelector('[data-action="print-menu"]')?.addEventListener('click', () => {
+    if (selected.length === 0) {
+      showToast('Nothing’s ready to print right now');
+      return;
+    }
     // Measured against the actual print CSS: ~12 cocktails is what reliably
     // fits one page at this icon/text size before the two-column layout
     // spills onto a second page. Only worth flagging past 10, so a menu
@@ -493,6 +597,10 @@ async function openQrFullscreen(url, menuName, code) {
 }
 
 async function handlePublishMenu() {
+  if (activeMenu.dynamic === 'ready' && getPublishRecipes().length === 0) {
+    showToast('Nothing’s ready to make right now, so there’s nothing to share yet. Try again once a drink is ready.');
+    return;
+  }
   const btn = document.querySelector('[data-action="publish-menu"]');
   if (btn) {
     btn.disabled = true;
@@ -998,8 +1106,15 @@ function renderPrintMenuHtml(menuName, selectedRecipes) {
   `;
 }
 
+/**
+ * The drinks the current view is showing. For an Always Ready menu this is
+ * computed fresh every call — what's ready this instant, which can
+ * momentarily be empty — never the last-published snapshot on `activeMenu`,
+ * which only ever holds the last *non-empty* one (see ready-menu.js).
+ */
 function getSelectedRecipes() {
-  return activeMenu.recipeIds
+  const ids = activeMenu.dynamic === 'ready' ? computeReadyRecipeIds(activeMenu.readyBarId) : activeMenu.recipeIds;
+  return ids
     .map(id => state.recipes.find(r => r.id === id))
     .filter(Boolean);
 }
