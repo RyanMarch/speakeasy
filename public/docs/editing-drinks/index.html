@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="../../assets/icon-192.png?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="../../manifest.webmanifest?v=2">
+    <meta name="apple-mobile-web-app-title" content="Speakeasy" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="google" content="notranslate">
+    <script src="../docs-theme-loader.js"></script>
+
+    <!-- Preconnect Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Josefin+Sans:ital,wght@0,300..700;1,300..700&family=Jost:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+        rel="stylesheet">
+
+    <title>Creating &amp; Editing Drinks — Speakeasy Docs</title>
+    <meta name="description"
+        content="Learn how to tweak classic cocktail specs, create original house recipes, manage custom tags, and craft riff variations.">
+    <meta name="category" content="Guides">
+    <meta name="doc-id" content="editing-drinks">
+    <link rel="canonical" href="https://speakeasy.ryanmarch.me/docs/editing-drinks/">
+
+
+
+
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Creating &amp; Editing Drinks — Speakeasy Docs">
+    <meta property="og:description" content="Learn how to tweak classic cocktail specs, create original house recipes, manage custom tags, and craft riff variations.">
+    <meta property="og:url" content="https://speakeasy.ryanmarch.me/docs/editing-drinks/">
+    <meta property="og:image" content="https://speakeasy.ryanmarch.me/assets/og-home.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Docs Style Sheet -->
+    <link rel="stylesheet" href="../style.css">
+    <script src="../docs-components.js" type="module"></script>
+</head>
+
+<body class="user-docs-page">
+    <div class="app-container">
+        <!-- Mobile Navigation Overlay -->
+        <div id="mobile-overlay" class="mobile-overlay"></div>
+
+        <main class="page-container-sidebar user-docs">
+            <!-- Sidebar Navigation -->
+            <docs-sidebar></docs-sidebar>
+
+            <!-- Right-side Content & Header Wrapper -->
+            <div class="page-content-wrapper">
+                <docs-header></docs-header>
+
+                <!-- Content Area -->
+                <docs-anchor-helper>
+                    <section class="page-content" aria-label="Editing and Creating Cocktails Content">
+
+                        <!-- Overview -->
+                        <article id="overview" class="doc-section">
+                            <h1>Creating &amp; Editing Drinks</h1>
+                            <p class="lead">
+                                Tailor any classic recipe to match your personal taste or invent brand new signature
+                                drinks for your home bar menu.
+                            </p>
+                            <p>
+                                Cocktails are meant to be customized. If you prefer your Negroni with a touch more gin,
+                                want to swap bourbon for mezcal in an Old Fashioned, or need to catalog an original
+                                concoction, Speakeasy gives you the freedom to build and refine.
+                            </p>
+                        </article>
+
+                        <!-- Table of Contents -->
+                        <docs-table-of-contents></docs-table-of-contents>
+
+                        <hr class="section-divider">
+
+                        <!-- Crafting a New Drink from Scratch -->
+                        <article id="crafting-a-new-drink" class="doc-section">
+                            <h2>Crafting a New Drink from Scratch</h2>
+                            <p>
+                                To enter an original creation into your library:
+                            </p>
+                            <ol>
+                                <li>Tap <strong>New Drink</strong> in the top application header.</li>
+                                <li>Give your creation a memorable name, select the primary spirit, and assign the
+                                    appropriate glassware (Coupe, Rocks Glass, Collins, Nick &amp; Nora, Champagne Flute, Mug, Tiki Mug, or Shot Glass).</li>
+                                <li>Add each ingredient line. You can type in fractions or decimals, such as
+                                    <code>1 1/2 oz London Dry Gin</code> or <code>3/4 oz Fresh Lemon Juice</code>.
+                                </li>
+                                <li>Set the <strong>Servings</strong> field if authoring a batch punch or pitcher spec
+                                    (defaults to 1 serving). Speakeasy automatically calculates single-serving pours and
+                                    scales calories and ABV accordingly.</li>
+                                <li>Write step-by-step method instructions. If you include timing steps like <em>Shake
+                                        vigorously for 12 seconds</em>, Speakeasy automatically turns them into
+                                    interactive timers.</li>
+                                <li>Tap <strong>Save Drink</strong> to instantly integrate your new cocktail into your
+                                    library search and backbar matching.</li>
+                            </ol>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/new-drink-form.avif">
+                                    <img src="/assets/screenshots/new-drink-form.png"
+                                        alt="New Cocktail form with ingredients, method, and a live glass preview"
+                                        loading="lazy">
+                                </picture>
+                                <figcaption>The recipe editor, with the live glass preview updating as you type.
+                                </figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Quick Paste Ingredients -->
+                        <article id="quick-paste" class="doc-section">
+                            <h2>Importing Ingredients with Quick Paste</h2>
+                            <p>
+                                Instead of typing ingredients row by row, use the <strong>Quick Paste
+                                    Ingredients</strong> field to paste entire ingredient lists directly from notes,
+                                recipe books, or websites:
+                            </p>
+                            <ol>
+                                <li>Open the recipe editor by selecting <strong>New Drink</strong> or <strong>Edit
+                                        Recipe</strong>.</li>
+                                <li>Paste raw ingredient text into the <strong>Quick Paste Ingredients</strong> box,
+                                    with one ingredient per line (such as <code>1 1/2 oz Bourbon</code> or
+                                    <code>3/4 oz Sweet Vermouth</code>).
+                                </li>
+                                <li>Select <strong>Apply Pasted Specs</strong> to populate the recipe rows.</li>
+                                <li>Add the preparation instructions and garnish information below.</li>
+                                <li>Save your changes to add your drink into your library.</li>
+                            </ol>
+                            <p>
+                                The parser automatically handles unicode fractions (&frac12;, &frac14;,
+                                &frac34;), decimal quantities, and common bar units including ounces, milliliters,
+                                dashes, drops, and barspoons. It also detects base spirits, suggests appropriate
+                                glassware and preparation methods, and matching flavor tags.
+                            </p>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/quick-paste-ingredients.avif">
+                                    <img src="/assets/screenshots/quick-paste-ingredients.png"
+                                        alt="Quick Paste Ingredients box with a pasted ingredient list" loading="lazy">
+                                </picture>
+                                <figcaption>Paste a full ingredient list and let Speakeasy parse each line.</figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Riffing on Existing Cocktails -->
+                        <article id="riffing-on-existing-cocktails" class="doc-section">
+                            <h2>Riffing on Existing Cocktails</h2>
+                            <p>
+                                Modifying a standard recipe creates a personal custom riff without destroying the
+                                original classic reference:
+                            </p>
+                            <ol>
+                                <li>Open any cocktail in the Counter View.</li>
+                                <li>Select the <strong>Edit Recipe</strong> button in the recipe action bar.</li>
+                                <li>Modify the ingredient amounts, swap spirits, or update the garnish recommendations.
+                                </li>
+                                <li>Save your changes. Speakeasy marks your drink as a custom riff and badges it so you
+                                    can always distinguish your house twists.</li>
+                            </ol>
+                            <p>
+                                If you ever want to revert back, you can restore original specs at any time directly
+                                from the drink options menu.
+                            </p>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/edit-recipe-form.avif">
+                                    <img src="/assets/screenshots/edit-recipe-form.png"
+                                        alt="Edit Recipe form pre-filled with an existing cocktail's specs"
+                                        loading="lazy">
+                                </picture>
+                                <figcaption>Editing an existing recipe reuses the same form, pre-filled with its specs.
+                                </figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Tagging and Organization -->
+                        <article id="tagging-and-organization" class="doc-section">
+                            <h2>Tagging &amp; Collections</h2>
+                            <p>
+                                Custom tags help you categorize drinks to suit how you entertain:
+                            </p>
+                            <ul>
+                                <li><strong>Flavor Profile Tags:</strong> Tag recipes with descriptors like
+                                    <em>Smoky</em>, <em>Refreshing</em>, <em>Bittersweet</em>, or <em>Herbaceous</em>.
+                                </li>
+                                <li><strong>Event Tags:</strong> Label cocktails with occasions like <em>Summer
+                                        Patio</em>, <em>Dinner Party</em>, or <em>Holiday Special</em>.</li>
+                                <li><strong>Pin to Home:</strong> Any tag you assign can be pinned as a dedicated
+                                    collection rail on your Home screen via Vault Settings.</li>
+                            </ul>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/recipe-tags-bar.avif">
+                                    <img src="/assets/screenshots/recipe-tags-bar.png"
+                                        alt="Editable tag chips on a cocktail recipe" loading="lazy">
+                                </picture>
+                                <figcaption>Tags are editable right from the recipe: add or remove them inline.
+                                </figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Sharing Your Creations -->
+                        <article id="sharing-your-creations" class="doc-section">
+                            <h2>Sharing Your Recipes</h2>
+                            <p>
+                                Want to share a drink spec with friends or guests?
+                            </p>
+                            <ul>
+                                <li>Open the cocktail in the Counter View and tap <strong>Share Link</strong>.</li>
+                                <li>Speakeasy generates a clean, public link showcasing your cocktail with interactive
+                                    glassware simulations and precise specs.</li>
+                                <li>Recipients can view the recipe in their web browser or import it directly into their
+                                    own Speakeasy library.</li>
+                            </ul>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/recipe-actions-menu.avif">
+                                    <img src="/assets/screenshots/recipe-actions-menu.png"
+                                        alt="Recipe actions menu with I Made This, Edit Recipe, Delete Recipe, and Share"
+                                        loading="lazy">
+                                </picture>
+                                <figcaption>The recipe actions menu, opened from the Counter View.</figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- See Also -->
+                        <article id="see-also" class="doc-section">
+                            <h2>See Also</h2>
+                            <ul>
+                                <li><a href="../getting-started/">Getting Started</a></li>
+                                <li><a href="../backbar-and-inventory/">Managing Your Backbar &amp; Shopping
+                                        List:</a> Stock your bar so Speakeasy can tell you what your new recipe is
+                                    missing.</li>
+                                <li><a href="../menu-builder/">Menu Builder &amp; Event Menus:</a> Feature your
+                                    custom riffs and originals on an event menu.</li>
+                            </ul>
+                        </article>
+
+                    </section>
+                </docs-anchor-helper>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <docs-footer></docs-footer>
+
+        <!-- Lightbox Modal -->
+        <div id="lightbox-modal" class="lightbox-modal" aria-hidden="true" role="dialog" aria-label="Image Viewer">
+            <button class="lightbox-close" aria-label="Close image viewer">&times;</button>
+            <img class="lightbox-content" id="lightbox-img" alt="">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+    </div>
+</body>
+
+</html>

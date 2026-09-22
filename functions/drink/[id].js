@@ -10,7 +10,7 @@
  * image. This route looks the id up directly in the same seed data the
  * client ships, and redirects a real visitor straight into /app#:id.
  */
-import { SEED_RECIPES } from '../../js/data/seed-recipes.js';
+import { SEED_RECIPES } from '../../public/js/data/seed-recipes.js';
 import { renderShell, htmlResponse } from '../_lib/og-shell.js';
 
 export async function onRequestGet(context) {

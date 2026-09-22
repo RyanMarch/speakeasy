@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildShuffleSchedule, timeToLanding, captionForFrame, SHUFFLE_CAPTIONS } from '../js/modules/shuffle-schedule.js';
+import { buildShuffleSchedule, timeToLanding, captionForFrame, SHUFFLE_CAPTIONS } from '../public/js/modules/shuffle-schedule.js';
 
 console.log('--- Testing the "Surprise me" shuffle schedule ---');
 

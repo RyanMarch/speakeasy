@@ -8,9 +8,9 @@ class MockLocalStorage {
 }
 Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(), configurable: true, writable: true });
 
-const { saveMenu, getMenus } = await import('../js/modules/storage.js');
-const { state } = await import('../js/state.js');
-const { canAddToMenu, addRecipeToMenu } = await import('../js/views/add-to-menu.js');
+const { saveMenu, getMenus } = await import('../public/js/modules/storage.js');
+const { state } = await import('../public/js/state.js');
+const { canAddToMenu, addRecipeToMenu } = await import('../public/js/views/add-to-menu.js');
 
 console.log('--- Testing Add to Menu ---');
 

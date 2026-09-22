@@ -4,7 +4,7 @@ import { onRequestPost as onRequestPostVerifyOtp } from '../functions/api/auth/v
 import { onRequestGet as onRequestGetMe, onRequestPatch as onRequestPatchMe } from '../functions/api/auth/me.js';
 import { onRequestPost as onRequestPostLogout } from '../functions/api/auth/logout.js';
 import { onRequestPost as onRequestPostDeleteAccount } from '../functions/api/auth/delete-account.js';
-import * as authClient from '../js/modules/auth.js';
+import * as authClient from '../public/js/modules/auth.js';
 import { MockD1PreparedStatementBase, createMockD1 } from './test-helpers.js';
 
 console.log('--- Testing /functions/api/auth/* and js/modules/auth.js ---');

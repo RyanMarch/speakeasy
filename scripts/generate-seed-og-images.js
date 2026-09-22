@@ -19,8 +19,8 @@
  *   wrangler d1 execute speakeasy-db --remote --file=migrations/seed-data/seed_drink_images.sql
  */
 import sharp from 'sharp';
-import { SEED_RECIPES } from '../js/data/seed-recipes.js';
-import { renderGlassSvg } from '../js/modules/glass-view.js';
+import { SEED_RECIPES } from '../public/js/data/seed-recipes.js';
+import { renderGlassSvg } from '../public/js/modules/glass-view.js';
 
 const CARD_WIDTH = 1200;
 const CARD_HEIGHT = 630;

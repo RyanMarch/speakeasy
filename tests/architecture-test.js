@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '..');
+const rootDir = path.resolve(__dirname, '..', 'public');
 
 let totalTests = 0;
 let passedTests = 0;
@@ -27,12 +27,12 @@ function assert(condition, message) {
 
 async function runTests() {
   console.log('\n--- 1. Testing Data & Seed Recipes ---');
-  const { SEED_RECIPES: directSeeds } = await import('../js/data/seed-recipes.js');
-  const { SEED_RECIPES: storageSeeds } = await import('../js/modules/storage.js');
+  const { SEED_RECIPES: directSeeds } = await import('../public/js/data/seed-recipes.js');
+  const { SEED_RECIPES: storageSeeds } = await import('../public/js/modules/storage.js');
 
   assert(Array.isArray(directSeeds), 'seed-recipes.js exports an array');
-  assert(directSeeds.length === 201, `seed-recipes.js has 201 recipes (found: ${directSeeds.length})`);
-  const storageMod = await import('../js/modules/storage.js');
+  assert(directSeeds.length === 268, `seed-recipes.js has 268 recipes (found: ${directSeeds.length})`);
+  const storageMod = await import('../public/js/modules/storage.js');
   assert(typeof storageMod.clearUserDataOnSignOut === 'function', 'storage.js exports clearUserDataOnSignOut()');
   assert(typeof storageMod.getHomeCollectionsOrder === 'function', 'storage.js exports getHomeCollectionsOrder()');
   assert(typeof storageMod.saveHomeCollectionsOrder === 'function', 'storage.js exports saveHomeCollectionsOrder()');
@@ -55,7 +55,7 @@ async function runTests() {
   assert(validSpecsCount === directSeeds.length, `All ${directSeeds.length} recipes have non-empty specs arrays`);
 
   console.log('\n--- 2. Testing Module Exports & Contracts ---');
-  const stateMod = await import('../js/state.js');
+  const stateMod = await import('../public/js/state.js');
   assert(typeof stateMod.state === 'object', 'js/state.js exports state object');
   assert(typeof stateMod.elements === 'object', 'js/state.js exports elements object');
   assert(typeof stateMod.getCachedInventoryAnalysis === 'function', 'js/state.js exports getCachedInventoryAnalysis()');
@@ -63,20 +63,20 @@ async function runTests() {
   assert(Array.isArray(stateMod.BACKBAR_CATEGORIES), 'js/state.js exports BACKBAR_CATEGORIES array');
   assert(Array.isArray(stateMod.HOME_DEFAULT_COLLECTIONS), 'js/state.js exports HOME_DEFAULT_COLLECTIONS array');
 
-  const routerMod = await import('../js/router.js');
+  const routerMod = await import('../public/js/router.js');
   assert(typeof routerMod.selectRecipe === 'function', 'js/router.js exports selectRecipe()');
   assert(typeof routerMod.renderCurrentView === 'function', 'js/router.js exports renderCurrentView()');
   assert(typeof routerMod.goHome === 'function', 'js/router.js exports goHome()');
   assert(typeof routerMod.showDrinksListMobile === 'function', 'js/router.js exports showDrinksListMobile()');
 
-  const homeViewMod = await import('../js/views/home-view.js');
+  const homeViewMod = await import('../public/js/views/home-view.js');
   assert(typeof homeViewMod.renderHomeView === 'function', 'home-view.js exports renderHomeView()');
   assert(typeof homeViewMod.renderHomeShelf === 'function', 'home-view.js exports renderHomeShelf()');
   assert(typeof homeViewMod.renderHomeCard === 'function', 'home-view.js exports renderHomeCard()');
   assert(typeof homeViewMod.formatRelativeTime === 'function', 'home-view.js exports formatRelativeTime()');
   assert(typeof homeViewMod.setHomeViewCallbacks === 'function', 'home-view.js exports setHomeViewCallbacks()');
 
-  const counterViewMod = await import('../js/views/counter-view.js');
+  const counterViewMod = await import('../public/js/views/counter-view.js');
   assert(typeof counterViewMod.renderCounterView === 'function', 'counter-view.js exports renderCounterView()');
   assert(typeof counterViewMod.duplicateRecipe === 'function', 'counter-view.js exports duplicateRecipe()');
   assert(typeof counterViewMod.toggleHideRecipe === 'function', 'counter-view.js exports toggleHideRecipe()');
@@ -85,14 +85,14 @@ async function runTests() {
   assert(typeof counterViewMod.requestWakeLock === 'function', 'counter-view.js exports requestWakeLock()');
   assert(typeof counterViewMod.releaseWakeLock === 'function', 'counter-view.js exports releaseWakeLock()');
 
-  const recipeListViewMod = await import('../js/views/recipe-list-view.js');
+  const recipeListViewMod = await import('../public/js/views/recipe-list-view.js');
   assert(typeof recipeListViewMod.renderRecipeList === 'function', 'recipe-list-view.js exports renderRecipeList()');
   assert(typeof recipeListViewMod.updateCustomFilterVisibility === 'function', 'recipe-list-view.js exports updateCustomFilterVisibility()');
   assert(typeof recipeListViewMod.filterByTag === 'function', 'recipe-list-view.js exports filterByTag()');
   assert(typeof recipeListViewMod.setupTagAutocomplete === 'function', 'recipe-list-view.js exports setupTagAutocomplete()');
   assert(typeof recipeListViewMod.setRecipeListCallbacks === 'function', 'recipe-list-view.js exports setRecipeListCallbacks()');
 
-  const topBarMod = await import('../js/components/top-bar.js');
+  const topBarMod = await import('../public/js/components/top-bar.js');
   assert(typeof topBarMod.setupTopBarEventListeners === 'function', 'top-bar.js exports setupTopBarEventListeners()');
   assert(typeof topBarMod.updateMyBarBadge === 'function', 'top-bar.js exports updateMyBarBadge()');
   assert(typeof topBarMod.updateVaultStats === 'function', 'top-bar.js exports updateVaultStats()');
@@ -102,62 +102,62 @@ async function runTests() {
   assert(typeof topBarMod.setLibrarySort === 'function', 'top-bar.js exports setLibrarySort()');
   assert(typeof topBarMod.setTopBarCallbacks === 'function', 'top-bar.js exports setTopBarCallbacks()');
 
-  const backbarModalMod = await import('../js/components/backbar-modal.js');
+  const backbarModalMod = await import('../public/js/components/backbar-modal.js');
   assert(typeof backbarModalMod.setupBackbarEventListeners === 'function', 'backbar-modal.js exports setupBackbarEventListeners()');
   assert(typeof backbarModalMod.openBackbarModal === 'function', 'backbar-modal.js exports openBackbarModal()');
   assert(typeof backbarModalMod.closeBackbarModal === 'function', 'backbar-modal.js exports closeBackbarModal()');
   assert(typeof backbarModalMod.toggleInventoryBottle === 'function', 'backbar-modal.js exports toggleInventoryBottle()');
   assert(typeof backbarModalMod.renderBackbarModalContent === 'function', 'backbar-modal.js exports renderBackbarModalContent()');
 
-  const hiddenModalMod = await import('../js/components/hidden-modal.js');
+  const hiddenModalMod = await import('../public/js/components/hidden-modal.js');
   assert(typeof hiddenModalMod.setupHiddenModalEventListeners === 'function', 'hidden-modal.js exports setupHiddenModalEventListeners()');
   assert(typeof hiddenModalMod.openHiddenModal === 'function', 'hidden-modal.js exports openHiddenModal()');
   assert(typeof hiddenModalMod.closeHiddenModal === 'function', 'hidden-modal.js exports closeHiddenModal()');
   assert(typeof hiddenModalMod.renderHiddenRecipesModal === 'function', 'hidden-modal.js exports renderHiddenRecipesModal()');
 
-  const editorModalMod = await import('../js/components/editor-modal.js');
+  const editorModalMod = await import('../public/js/components/editor-modal.js');
   assert(typeof editorModalMod.openEditor === 'function', 'editor-modal.js exports openEditor()');
   assert(typeof editorModalMod.cancelEditor === 'function', 'editor-modal.js exports cancelEditor()');
   assert(typeof editorModalMod.renderEditorSpecRows === 'function', 'editor-modal.js exports renderEditorSpecRows()');
   assert(typeof editorModalMod.renderEditorTagChips === 'function', 'editor-modal.js exports renderEditorTagChips()');
   assert(typeof editorModalMod.setupEditorEvents === 'function', 'editor-modal.js exports setupEditorEvents()');
 
-  const toastMod = await import('../js/components/toast.js');
+  const toastMod = await import('../public/js/components/toast.js');
   assert(typeof toastMod.showToast === 'function', 'toast.js exports showToast()');
   assert(typeof toastMod.escapeHtml === 'function', 'toast.js exports escapeHtml()');
 
-  const timerModalMod = await import('../js/components/timer-modal.js');
+  const timerModalMod = await import('../public/js/components/timer-modal.js');
   assert(typeof timerModalMod.openTimerModal === 'function', 'timer-modal.js exports openTimerModal()');
   assert(typeof timerModalMod.closeTimerModal === 'function', 'timer-modal.js exports closeTimerModal()');
   assert(typeof timerModalMod.setupTimerModalEventListeners === 'function', 'timer-modal.js exports setupTimerModalEventListeners()');
 
-  const parserMod = await import('../js/modules/parser.js');
+  const parserMod = await import('../public/js/modules/parser.js');
   assert(typeof parserMod.detectTimers === 'function', 'parser.js exports detectTimers()');
   assert(typeof parserMod.renderInstructionTimers === 'function', 'parser.js exports renderInstructionTimers()');
 
-  const balanceMod = await import('../js/modules/balance.js');
+  const balanceMod = await import('../public/js/modules/balance.js');
   assert(typeof balanceMod.calculatePalateSimilarity === 'function', 'balance.js exports calculatePalateSimilarity()');
 
-  const taxonomyMod = await import('../js/modules/taxonomy.js');
+  const taxonomyMod = await import('../public/js/modules/taxonomy.js');
   assert(typeof taxonomyMod.getRankedShoppingList === 'function', 'taxonomy.js exports getRankedShoppingList()');
 
   assert(typeof counterViewMod.getEnhancedSimilarCocktails === 'function', 'counter-view.js exports getEnhancedSimilarCocktails()');
   assert(typeof counterViewMod.formatPalateMatchLabel === 'function', 'counter-view.js exports formatPalateMatchLabel()');
   assert(typeof backbarModalMod.renderShoppingListContent === 'function', 'backbar-modal.js exports renderShoppingListContent()');
 
-  const historyMod = await import('../js/modules/history.js');
+  const historyMod = await import('../public/js/modules/history.js');
   assert(typeof historyMod.logDrinkMade === 'function', 'history.js exports logDrinkMade()');
   assert(typeof historyMod.getDrinkHistory === 'function', 'history.js exports getDrinkHistory()');
   assert(typeof historyMod.syncLocalHistoryToCloud === 'function', 'history.js exports syncLocalHistoryToCloud()');
 
   assert(typeof topBarMod.updateAuthIndicator === 'function', 'top-bar.js exports updateAuthIndicator()');
 
-  const authModalMod = await import('../js/components/auth-modal.js');
+  const authModalMod = await import('../public/js/components/auth-modal.js');
   assert(typeof authModalMod.setupAuthModalEventListeners === 'function', 'auth-modal.js exports setupAuthModalEventListeners()');
   assert(typeof authModalMod.openAuthModal === 'function', 'auth-modal.js exports openAuthModal()');
   assert(typeof authModalMod.closeAuthModal === 'function', 'auth-modal.js exports closeAuthModal()');
 
-  const appMod = await import('../app.js');
+  const appMod = await import('../public/app.js');
   assert(typeof appMod === 'object', 'app.js imports and evaluates successfully');
 
   console.log('\n--- 3. Testing HTML Preload & Asset Consistency ---');
@@ -239,7 +239,7 @@ async function runTests() {
   assert(typeof res3 === 'object' && res3.canMake !== undefined, 'getCachedInventoryAnalysis re-evaluates after cache invalidation');
 
   console.log('\n--- 6. Testing Custom Pack Filter Visibility & Filter Logic ---');
-  const authMod = await import('../js/modules/auth.js');
+  const authMod = await import('../public/js/modules/auth.js');
   const mockButton = { style: { display: 'none' } };
   stateMod.elements.packPillCustom = mockButton;
 

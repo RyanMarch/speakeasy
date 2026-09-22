@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { SEED_RECIPES } from '../js/data/seed-recipes.js';
-import { buildTraits, buildQuizQuestions, rankForQuiz, strengthBand, QUIZ_RESULT_COUNT } from '../js/modules/quiz.js';
+import { SEED_RECIPES } from '../public/js/data/seed-recipes.js';
+import { buildTraits, buildQuizQuestions, rankForQuiz, strengthBand, QUIZ_RESULT_COUNT } from '../public/js/modules/quiz.js';
 
 console.log('--- Testing the "Find my drink" quiz ---');
 

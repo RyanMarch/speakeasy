@@ -1,0 +1,118 @@
+[
+  {
+    "id": "getting-started",
+    "title": "Getting Started with Speakeasy",
+    "path": "getting-started/",
+    "category": "Basics",
+    "headings": [
+      "Overview",
+      "Navigating Your Library",
+      "Stocking Your Personal Backbar",
+      "Mixing Drinks at the Counter",
+      "Next Steps"
+    ],
+    "excerpt": "Discover how to explore cocktails, stock your home backbar, and mix drinks with live guidance.",
+    "lastUpdated": "2026-09-22"
+  },
+  {
+    "id": "backbar-and-inventory",
+    "title": "Managing Your Backbar & Shopping List",
+    "path": "backbar-and-inventory/",
+    "category": "Basics",
+    "headings": [
+      "Overview",
+      "Opening the Backbar Modal",
+      "Filtering Ready-to-Pour Drinks",
+      "Smart Shopping List",
+      "See Also"
+    ],
+    "excerpt": "Discover how to track bottles, find instant ready-to-pour recipes, and use the smart shopping list to unlock more drinks.",
+    "lastUpdated": "2026-09-22"
+  },
+  {
+    "id": "signing-in",
+    "title": "Signing In & Cloud Sync",
+    "path": "signing-in/",
+    "category": "Basics",
+    "headings": [
+      "Overview",
+      "Passwordless Email Sign-In",
+      "Guest Account Migration",
+      "Cloud Sync Status & Multi-Device Access",
+      "Signing Out & Account Control",
+      "See Also"
+    ],
+    "excerpt": "Learn how passwordless email sign-in works, how to sync inventory and drinks, and how guest data transfers seamlessly.",
+    "lastUpdated": "2026-09-22"
+  },
+  {
+    "id": "editing-drinks",
+    "title": "Creating & Editing Drinks",
+    "path": "editing-drinks/",
+    "category": "Guides",
+    "headings": [
+      "Overview",
+      "Crafting a New Drink from Scratch",
+      "Importing Ingredients with Quick Paste",
+      "Riffing on Existing Cocktails",
+      "Tagging & Collections",
+      "Sharing Your Recipes",
+      "See Also"
+    ],
+    "excerpt": "Learn how to tweak classic cocktail specs, create original house recipes, manage custom tags, and craft riff variations.",
+    "lastUpdated": "2026-09-22"
+  },
+  {
+    "id": "hosting-with-guests",
+    "title": "Hosting with Guests",
+    "path": "hosting-with-guests/",
+    "category": "Guides",
+    "headings": [
+      "Overview",
+      "Sharing a Menu",
+      "What Guests See",
+      "A drink’s page",
+      "Running the Party",
+      "What’s Shared and What Isn’t",
+      "See Also"
+    ],
+    "excerpt": "Share a menu with guests by link or QR code: they browse, search, take a quiz, and show you what they'd like, all from their own phones.",
+    "lastUpdated": "2026-09-22"
+  },
+  {
+    "id": "menu-builder",
+    "title": "Menu Builder & Event Menus",
+    "path": "menu-builder/",
+    "category": "Guides",
+    "headings": [
+      "Overview",
+      "Creating an Event Menu",
+      "Selecting Cocktails",
+      "Glassware and Ingredients",
+      "Printing Menus",
+      "How to Print",
+      "Design and Formatting",
+      "Page Capacity and Print Settings",
+      "See Also"
+    ],
+    "excerpt": "Compose cocktail menus for home parties, tastings, and dinner gatherings, checked against what's in your bar.",
+    "lastUpdated": "2026-09-22"
+  },
+  {
+    "id": "settings",
+    "title": "Vault & Bar Settings",
+    "path": "settings/",
+    "category": "Guides",
+    "headings": [
+      "Overview",
+      "Accessing Settings",
+      "Mixing Preferences",
+      "Managing Multiple Bars",
+      "Data Portability & Backups",
+      "Pinned Home Collections",
+      "See Also"
+    ],
+    "excerpt": "Configure measurement units, active bar locations, glass render modes, screen wake-lock, and offline JSON backups.",
+    "lastUpdated": "2026-09-22"
+  }
+]

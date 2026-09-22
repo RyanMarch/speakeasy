@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="../../assets/icon-192.png?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="../../manifest.webmanifest?v=2">
+    <meta name="apple-mobile-web-app-title" content="Speakeasy" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="google" content="notranslate">
+    <script src="../docs-theme-loader.js"></script>
+
+    <!-- Preconnect Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Josefin+Sans:ital,wght@0,300..700;1,300..700&family=Jost:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+        rel="stylesheet">
+
+    <title>Getting Started with Speakeasy — Speakeasy Docs</title>
+    <meta name="description"
+        content="Discover how to explore cocktails, stock your home backbar, and mix drinks with live guidance.">
+    <meta name="category" content="Basics">
+    <meta name="doc-id" content="getting-started">
+    <link rel="canonical" href="https://speakeasy.ryanmarch.me/docs/getting-started/">
+
+
+
+
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Getting Started with Speakeasy — Speakeasy Docs">
+    <meta property="og:description" content="Discover how to explore cocktails, stock your home backbar, and mix drinks with live guidance.">
+    <meta property="og:url" content="https://speakeasy.ryanmarch.me/docs/getting-started/">
+    <meta property="og:image" content="https://speakeasy.ryanmarch.me/assets/og-home.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Docs Style Sheet -->
+    <link rel="stylesheet" href="../style.css">
+    <script src="../docs-components.js" type="module"></script>
+</head>
+
+<body class="user-docs-page">
+    <div class="app-container">
+        <!-- Mobile Navigation Overlay -->
+        <div id="mobile-overlay" class="mobile-overlay"></div>
+
+        <main class="page-container-sidebar user-docs">
+            <!-- Sidebar Navigation -->
+            <docs-sidebar></docs-sidebar>
+
+            <!-- Right-side Content & Header Wrapper -->
+            <div class="page-content-wrapper">
+                <docs-header></docs-header>
+
+                <!-- Content Area -->
+                <docs-anchor-helper>
+                    <section class="page-content" aria-label="Getting Started Content">
+
+                        <!-- Overview -->
+                        <article id="overview" class="doc-section">
+                            <h1>Getting Started with Speakeasy</h1>
+                            <p class="lead">
+                                Speakeasy puts a curated cocktail library, bottle inventory tracker, and counter-side
+                                mixing assistant directly at your fingertips.
+                            </p>
+                            <p>
+                                Whether you want to browse timeless classics, find out what you can shake up tonight
+                                with the bottles on your shelf, or build personalized event menus, this walkthrough
+                                highlights how each tool connects together.
+                            </p>
+                        </article>
+
+                        <!-- Table of Contents -->
+                        <docs-table-of-contents></docs-table-of-contents>
+
+                        <hr class="section-divider">
+
+                        <!-- Navigating Your Library -->
+                        <article id="navigating-your-library" class="doc-section">
+                            <h2>Navigating Your Library</h2>
+                            <p>
+                                When you launch Speakeasy, the home showcase highlights drink collections, recently
+                                viewed, and your pinned tags.
+                            </p>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/app-home-screen.avif">
+                                    <img src="/assets/screenshots/app-home-screen.png" alt="Speakeasy home screen"
+                                        loading="lazy">
+                                </picture>
+                                <figcaption>Speakeasy home screen displaying cocktail collections.</figcaption>
+                            </figure>
+                            <p>
+                                The left sidebar gives you instant access to your entire catalog:
+                            </p>
+                            <ul>
+                                <li><strong>Search Bar:</strong> Type spirit names like rye or mezcal, flavor profiles,
+                                    or specific drink titles to filter recipes in real time.</li>
+                                <li><strong>Filter &amp; Sort:</strong> The button beside the search box lets you sort recipes (Curated, Ready to Pour, Simple, A-Z) and hide drinks containing egg, dairy, tree nuts, or honey. Each recipe also lists what it contains just under its ingredients.</li>
+                                <li><strong>Collection Filters:</strong> Filter the list by distinct drink families such
+                                    as: Classic, Craft, Tiki, Prohibition, Aperitivo, and Nightcaps.</li>
+                                <li><strong>Drink Cards:</strong> Each card displays the cocktail name, ingredients,
+                                    and the glassware used for the drink.</li>
+                            </ul>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif"
+                                        srcset="/assets/screenshots/search-closeup-pineapple.avif">
+                                    <img src="/assets/screenshots/search-closeup-pineapple.png"
+                                        alt="Speakeasy cocktail list" loading="lazy">
+                                </picture>
+                                <figcaption>Using the search to find specific ingredients in Speakeasy.</figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Stocking Your Personal Backbar -->
+                        <article id="stocking-your-personal-backbar" class="doc-section">
+                            <h2>Stocking Your Personal Backbar</h2>
+                            <p>
+                                The built-in inventory manager lets Speakeasy tell you exactly which drinks you can
+                                prepare right now without leaving your kitchen:
+                            </p>
+                            <ol>
+                                <li>Select <strong>My Bar</strong> in the top header.</li>
+                                <li>Browse by category tabs like Spirits, Vermouth &amp; Wines, Liqueurs, Bitters,
+                                    Syrups, and Produce.</li>
+                                <li>Search by popular brands and alternate spellings to find exactly what you're looking
+                                    for.</li>
+                                <li>Tap any bottle or ingredient to mark it as in stock. You can also tap
+                                    <strong>Starter
+                                        Bar</strong> to check off essential staples with a single click.
+                                </li>
+                                <li>Flip to the <strong>Shopping List</strong> tab anytime to see which single bottle
+                                    unlocks the greatest number of new cocktails.</li>
+                            </ol>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/add-bar-ingredients.avif">
+                                    <img src="/assets/screenshots/add-bar-ingredients.png"
+                                        alt="Add ingredients to My Bar" loading="lazy">
+                                </picture>
+                                <figcaption>Choosing ingredients to add to bar collection.</figcaption>
+                            </figure>
+                            <p>
+                                Once your bottles are added, toggle the <strong>Ready</strong> switch at the bottom of
+                                the sidebar. Speakeasy immediately filters the catalog to show only drinks you can pour
+                                today.
+                            </p>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Mixing Drinks at the Counter -->
+                        <article id="mixing-drinks-at-the-counter" class="doc-section">
+                            <h2>Mixing Drinks at the Counter</h2>
+                            <p>
+                                Selecting any recipe opens the Counter View, built specifically for hands-on bartending:
+                            </p>
+                            <ul>
+                                <li><strong>Dynamic Glassware Graphic:</strong> View a glassware visualization of the
+                                    ingredients in the drink.</li>
+                                <li><strong>Interactive Step Timers:</strong> Timers embedded directly in preparation
+                                    steps launch a countdown overlay to help when shaking or stirring.</li>
+                                <li><strong>Pour Logging:</strong> Tap <em>Log Drink Made</em> when you finish a pour to
+                                    record it in your personal drink journal.</li>
+                                <li><strong>Palate Matching:</strong> View a map of prominent flavors in the drink and
+                                    see its balance.</li>
+                                <li><strong>See Options:</strong> Scroll down to discover similar drinks that share
+                                    flavor profiles.</li>
+                            </ul>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif"
+                                        srcset="/assets/screenshots/cocktail-recipe-manhattan.avif">
+                                    <img src="/assets/screenshots/cocktail-recipe-manhattan.png"
+                                        alt="Manhattan cocktail recipe" loading="lazy">
+                                </picture>
+                                <figcaption>The cocktail recipe counter view</figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Next Steps -->
+                        <article id="next-steps" class="doc-section">
+                            <h2>Next Steps</h2>
+                            <p>
+                                Ready to make the app your own? Continue reading our companion guides:
+                            </p>
+                            <ul>
+                                <li><a href="../signing-in/">Signing In &amp; Cloud Sync:</a> Keep your bar profiles
+                                    safe across all your phones, tablets, and laptops.</li>
+                                <li><a href="../backbar-and-inventory/">Managing Your Backbar &amp; Shopping
+                                        List:</a> Track what's on your shelves and see what to buy next.</li>
+                                <li><a href="../editing-drinks/">Creating &amp; Editing Drinks:</a> Adjust
+                                    ingredient measurements or record your signature house creations.</li>
+                                <li><a href="../menu-builder/">Menu Builder &amp; Event Menus:</a> Compose a focused
+                                    cocktail menu for your next gathering, share it with guests, or <a href="../menu-builder/#printing-menus">print physical menus</a>.</li>
+                                <li><a href="../hosting-with-guests/">Hosting with Guests:</a> Share a live menu by link
+                                    or QR code so guests can browse, search, and order from their own phones.</li>
+                                <li><a href="../settings/">Vault &amp; Bar Settings:</a> Customize fluid ounces versus
+                                    milliliters, manage multiple bar setups, and export backups.</li>
+                            </ul>
+                        </article>
+
+                    </section>
+                </docs-anchor-helper>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <docs-footer></docs-footer>
+
+        <!-- Lightbox Modal -->
+        <div id="lightbox-modal" class="lightbox-modal" aria-hidden="true" role="dialog" aria-label="Image Viewer">
+            <button class="lightbox-close" aria-label="Close image viewer">&times;</button>
+            <img class="lightbox-content" id="lightbox-img" alt="">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+    </div>
+</body>
+
+</html>

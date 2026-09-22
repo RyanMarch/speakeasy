@@ -60,7 +60,7 @@ globalThis.localStorage = new Proxy(mockStorage, {
 
 console.log('--- Testing Storage Migration & Consolidation ---');
 
-const storageMod = await import('../js/modules/storage.js');
+const storageMod = await import('../public/js/modules/storage.js');
 
 // 1. Test settings migration from individual keys to speakeasy_settings with boolean coercion
 {

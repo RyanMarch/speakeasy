@@ -8,9 +8,9 @@ class MockLocalStorage {
 }
 Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(), configurable: true, writable: true });
 
-const { getSaved, toggleSaved, pruneSaved } = await import('../js/modules/guest-saved.js');
-const { getGuestName, setGuestName, buildOrderMessage, MAX_NAME_LENGTH } = await import('../js/modules/guest-order.js');
-const { glassLabel } = await import('../js/modules/glassware.js');
+const { getSaved, toggleSaved, pruneSaved } = await import('../public/js/modules/guest-saved.js');
+const { getGuestName, setGuestName, buildOrderMessage, MAX_NAME_LENGTH } = await import('../public/js/modules/guest-order.js');
+const { glassLabel } = await import('../public/js/modules/glassware.js');
 
 console.log('--- Testing the guest Saved list and order card ---');
 
@@ -77,6 +77,7 @@ console.log('--- Testing the guest Saved list and order card ---');
   assert.equal(glassLabel('Nick & Nora'), 'Nick & Nora glass');
   assert.equal(glassLabel('Mug'), 'Mug', 'A mug is already a vessel');
   assert.equal(glassLabel('Tiki Mug'), 'Tiki Mug');
+  assert.equal(glassLabel('Shot'), 'Shot glass');
   assert.equal(glassLabel('Rocks glass'), 'Rocks glass', 'Never doubled up');
   assert.equal(glassLabel(''), '');
   assert.equal(glassLabel(undefined), '');
@@ -84,7 +85,7 @@ console.log('--- Testing the guest Saved list and order card ---');
 }
 
 {
-  const { randomNamePlaceholder } = await import('../js/modules/guest-order.js');
+  const { randomNamePlaceholder } = await import('../public/js/modules/guest-order.js');
   assert.match(randomNamePlaceholder(), /^e\.g\. \S/);
   assert.notEqual(randomNamePlaceholder(() => 0), randomNamePlaceholder(() => 0.99), 'Different rolls give different examples');
   assert.ok(randomNamePlaceholder(() => 0.9999999).length > 5, 'The top of the range is still a valid pick');

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico?v=2">
+    <link rel="icon" type="image/png" sizes="192x192" href="../../assets/icon-192.png?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../assets/apple-touch-icon.png?v=2">
+    <link rel="manifest" href="../../manifest.webmanifest?v=2">
+    <meta name="apple-mobile-web-app-title" content="Speakeasy" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="google" content="notranslate">
+    <script src="../docs-theme-loader.js"></script>
+
+    <!-- Preconnect Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=Josefin+Sans:ital,wght@0,300..700;1,300..700&family=Jost:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+        rel="stylesheet">
+
+    <title>Vault &amp; Bar Settings — Speakeasy Docs</title>
+    <meta name="description"
+        content="Configure measurement units, active bar locations, glass render modes, screen wake-lock, and offline JSON backups.">
+    <meta name="category" content="Guides">
+    <meta name="doc-id" content="settings">
+    <link rel="canonical" href="https://speakeasy.ryanmarch.me/docs/settings/">
+
+
+
+
+
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Vault &amp; Bar Settings — Speakeasy Docs">
+    <meta property="og:description" content="Configure measurement units, active bar locations, glass render modes, screen wake-lock, and offline JSON backups.">
+    <meta property="og:url" content="https://speakeasy.ryanmarch.me/docs/settings/">
+    <meta property="og:image" content="https://speakeasy.ryanmarch.me/assets/og-home.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Docs Style Sheet -->
+    <link rel="stylesheet" href="../style.css">
+    <script src="../docs-components.js" type="module"></script>
+</head>
+
+<body class="user-docs-page">
+    <div class="app-container">
+        <!-- Mobile Navigation Overlay -->
+        <div id="mobile-overlay" class="mobile-overlay"></div>
+
+        <main class="page-container-sidebar user-docs">
+            <!-- Sidebar Navigation -->
+            <docs-sidebar></docs-sidebar>
+
+            <!-- Right-side Content & Header Wrapper -->
+            <div class="page-content-wrapper">
+                <docs-header></docs-header>
+
+                <!-- Content Area -->
+                <docs-anchor-helper>
+                    <section class="page-content" aria-label="Vault and Bar Settings Content">
+
+                        <!-- Overview -->
+                        <article id="overview" class="doc-section">
+                            <h1>Vault &amp; Bar Settings</h1>
+                            <p class="lead">
+                                Fine-tune your mixing preferences, switch between distinct bar locations, and safeguard
+                                your recipes with portable backups.
+                            </p>
+                            <p>
+                                The Vault Settings screen houses everything you need to adapt Speakeasy to your personal
+                                cocktail workflow, from metric units to keep-awake counter screen modes.
+                            </p>
+                        </article>
+
+                        <!-- Table of Contents -->
+                        <docs-table-of-contents></docs-table-of-contents>
+
+                        <hr class="section-divider">
+
+                        <!-- Accessing Vault Settings -->
+                        <article id="accessing-vault-settings" class="doc-section">
+                            <h2>Accessing Settings</h2>
+                            <p>
+                                You can open the Settings view anytime:
+                            </p>
+                            <ul>
+                                <li>Tap your <strong>Profile Pill</strong> in the top header (or the <em>Sign In</em>
+                                    icon when in guest mode).</li>
+                                <li>Or navigate directly from the app drawer or footer links by selecting <strong>Vault
+                                        Settings</strong>.</li>
+                            </ul>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/vault-settings-overview.avif">
+                                    <img src="/assets/screenshots/vault-settings-overview.png"
+                                        alt="Vault Settings profile and active bar selection" loading="lazy">
+                                </picture>
+                                <figcaption>Profile &amp; Cloud Sync and Active Bar Selection at the top of Vault
+                                    Settings.</figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Mixing Preferences -->
+                        <article id="mixing-preferences" class="doc-section">
+                            <h2>Mixing Preferences</h2>
+                            <p>
+                                Tailor how cocktail recipes and glassware graphics render on your screen:
+                            </p>
+                            <ul>
+                                <li><strong>Measurement Units:</strong> Toggle between fluid ounces (oz) and metric
+                                    milliliters (ml). All recipe specs recalculate cleanly with standard bar
+                                    measurements.</li>
+                                <li><strong>Fluid Appearance:</strong> Choose between layered fluid rendering showing
+                                    distinct component colors or a blended glass mode simulating final stirred and
+                                    shaken drinks.</li>
+                                <li><strong>Screen Wake-Lock:</strong> Keep your phone or tablet display awake on the
+                                    kitchen counter while your hands are busy shaking, stirring, or straining drinks.
+                                </li>
+                                <li><strong>More Fun:</strong> Enable animated glassware, ambient effervescence, and smoke
+                                    effects (turned on by default; toggle off to make glassware visuals static).
+                                </li>
+                                <li><strong>Egg Drinks Use Foamer:</strong> Turn this on if you make egg-white drinks
+                                    with cocktail foamer. Those drinks then show as made with foamer, not as containing
+                                    egg, in your library and on your guest menus (and stay visible to guests avoiding
+                                    egg). Speakeasy suggests it when your bar has foamer and no egg.</li>
+                            </ul>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif"
+                                        srcset="/assets/screenshots/vault-mixing-preferences.avif">
+                                    <img src="/assets/screenshots/vault-mixing-preferences.png"
+                                        alt="Bar Mixing Preferences with units, fluid appearance, and wake-lock toggles"
+                                        loading="lazy">
+                                </picture>
+                                <figcaption>Bar Mixing Preferences: units, fluid appearance, screen wake-lock, and animations.
+                                </figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Multiple Bar Locations -->
+                        <article id="multiple-bar-locations" class="doc-section">
+                            <h2>Managing Multiple Bars</h2>
+                            <p>
+                                If you keep different bottles at different places, Speakeasy lets you maintain separate
+                                inventories under one profile:
+                            </p>
+                            <ol>
+                                <li>In the <strong>Active Bar Selection</strong> section, review your existing profiles
+                                    (such as <em>Main Bar</em> or <em>Kitchen Cart</em>).</li>
+                                <li>Select <strong>Add Bar</strong> to create a new location, like <em>Summer Cabin</em>
+                                    or <em>Office Bar</em>.</li>
+                                <li>Switch between profiles with a single tap. Each bar maintains its own independent
+                                    bottle checklist and ready-to-make drink tallies.</li>
+                            </ol>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Data Portability and Backups -->
+                        <article id="data-portability-and-backups" class="doc-section">
+                            <h2>Data Portability &amp; Backups</h2>
+                            <p>
+                                Your cocktail library always belongs to you:
+                            </p>
+                            <ul>
+                                <li><strong>Export Full Backup (JSON):</strong> Download a single structured file
+                                    containing all your custom drinks, backbar inventory, drink history logs, and saved
+                                    event menus.</li>
+                                <li><strong>Import Backup File:</strong> Restore your complete setup onto a fresh device
+                                    or transfer your collection without needing cloud servers.</li>
+                                <li><strong>Export Reminder:</strong> Speakeasy keeps track of the last time you
+                                    downloaded a backup so you never lose track of your records.</li>
+                            </ul>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif" srcset="/assets/screenshots/vault-data-portability.avif">
+                                    <img src="/assets/screenshots/vault-data-portability.png"
+                                        alt="Data Management and Backups export and import buttons" loading="lazy">
+                                </picture>
+                                <figcaption>Export a full JSON backup or import one to restore your setup.</figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- Pinned Home Collections -->
+                        <article id="pinned-home-collections" class="doc-section">
+                            <h2>Pinned Home Collections</h2>
+                            <p>
+                                Curate the top rows of your Home screen showcase:
+                            </p>
+                            <ul>
+                                <li>Add or reorder custom tags like <em>Favorite</em>, <em>Summer</em>, or <em>Tiki
+                                        Night</em> in the Pinned Collections list.</li>
+                                <li>Each pinned tag displays as a dedicated horizontal carousel on the main home screen
+                                    for quick inspiration.</li>
+                            </ul>
+                            <figure class="doc-screenshot-figure">
+                                <picture>
+                                    <source type="image/avif"
+                                        srcset="/assets/screenshots/vault-pinned-collections.avif">
+                                    <img src="/assets/screenshots/vault-pinned-collections.png"
+                                        alt="Pinned Home Collections list with a Tropical Tiki tag pinned"
+                                        loading="lazy">
+                                </picture>
+                                <figcaption>A pinned tag shows up as a dedicated row on the Home screen.</figcaption>
+                            </figure>
+                        </article>
+
+                        <hr class="section-divider">
+
+                        <!-- See Also -->
+                        <article id="see-also" class="doc-section">
+                            <h2>See Also</h2>
+                            <ul>
+                                <li><a href="../getting-started/">Getting Started</a></li>
+                                <li><a href="../signing-in/">Signing In &amp; Cloud Sync:</a> Keep your bar profiles
+                                    safe across all your phones, tablets, and laptops.</li>
+                                <li><a href="../backbar-and-inventory/">Managing Your Backbar &amp; Shopping
+                                        List:</a> Stock the bar you just set up as active.</li>
+                            </ul>
+                        </article>
+
+                    </section>
+                </docs-anchor-helper>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <docs-footer></docs-footer>
+
+        <!-- Lightbox Modal -->
+        <div id="lightbox-modal" class="lightbox-modal" aria-hidden="true" role="dialog" aria-label="Image Viewer">
+            <button class="lightbox-close" aria-label="Close image viewer">&times;</button>
+            <img class="lightbox-content" id="lightbox-img" alt="">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+    </div>
+</body>
+
+</html>

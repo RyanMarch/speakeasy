@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { onRequestGet as getDrinkPage } from '../functions/drink/[id].js';
 import { onRequestGet as getDrinkOgImage } from '../functions/drink/[id]/og.png.js';
-import { SEED_RECIPES } from '../js/data/seed-recipes.js';
+import { SEED_RECIPES } from '../public/js/data/seed-recipes.js';
 
 console.log('--- Testing /drink/:id and /drink/:id/og.png Endpoints ---');
 

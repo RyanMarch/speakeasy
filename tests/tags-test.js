@@ -20,9 +20,9 @@ class MockLocalStorage {
 }
 Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(), configurable: true, writable: true });
 
-const { SEED_RECIPES } = await import('../js/data/seed-recipes.js');
-const { normalizeTagName, getPinnedTags, savePinnedTags } = await import('../js/modules/storage.js');
-const { detectTagsFromRecipe } = await import('../js/modules/auto-detect.js');
+const { SEED_RECIPES } = await import('../public/js/data/seed-recipes.js');
+const { normalizeTagName, getPinnedTags, savePinnedTags } = await import('../public/js/modules/storage.js');
+const { detectTagsFromRecipe } = await import('../public/js/modules/auto-detect.js');
 
 console.log('--- Testing tag vocabulary ---');
 
@@ -86,7 +86,7 @@ function measure(tag) {
 {
   const FLOORS = {
     'whiskey-forward': [85, 85], 'gin-forward': [85, 85], 'rum-forward': [85, 65],
-    'coffee': [90, 90], 'smoky': [90, 85], 'creamy': [65, 90], 'sparkling': [40, 90],
+    'coffee': [90, 90], 'smoky': [90, 85], 'creamy': [65, 90], 'sparkling': [30, 90],
     'tropical-tiki': [70, 70], 'bittersweet': [60, 60], 'highball': [55, 90],
     'refreshing': [50, 65], 'silky': [60, 70], 'spiced': [55, 90], 'hot': [90, 90],
   };

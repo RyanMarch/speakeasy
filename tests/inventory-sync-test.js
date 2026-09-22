@@ -8,8 +8,8 @@ class MockLocalStorage {
 }
 Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(), configurable: true, writable: true });
 
-const { mergeInventory, recordInventoryChange } = await import('../js/modules/inventory-merge.js');
-const storage = await import('../js/modules/storage.js');
+const { mergeInventory, recordInventoryChange } = await import('../public/js/modules/inventory-merge.js');
+const storage = await import('../public/js/modules/storage.js');
 const { onRequestPost, onRequestGet } = await import('../functions/api/sync.js');
 
 console.log('--- Testing bar-inventory sync ---');
