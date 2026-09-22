@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon-round.png" width="120" alt="Speakeasy logo">
+  <img src="public/assets/icon-round.png" width="120" alt="Speakeasy logo">
 </p>
 
 <h1 align="center">Speakeasy</h1>
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/images/speakeasy-cocktail-recipe-library-device-shots.png" alt="Menu builder showing a cocktail lineup with combined glassware and ingredient checklist" width="850">
+  <img src="public/assets/images/speakeasy-cocktail-recipe-library-device-shots.png" alt="Menu builder showing a cocktail lineup with combined glassware and ingredient checklist" width="850">
 </p>
 
 Speakeasy is a cocktail recipe library built to live on your kitchen counter or bar cart. Browse 260+ recipes depicted as real glassware with fluid ingredient layers, track the bottles you actually own, and find out exactly what to pour or what to buy next.
@@ -23,21 +23,21 @@ Every recipe renders inside its own glass (Coupes, Highballs, Rocks glasses, Nic
 When recipes show how long to shake or stir, you'll see an inline button to immediately start a timer so you always get the perfect dilution. Drinks get their own flavor profile radar charts (sweet/sour/bitter/boozy) and are tagged with everything that makes them tick: bourbon, gin, smoky, tropical, you name it.
 
 <p align="center">
-  <img src="assets/screenshots/cocktail-recipe-manhattan.png" alt="Manhattan recipe page with glass visualization, ingredients, method, and a flavor radar chart" width="850">
+  <img src="public/assets/screenshots/cocktail-recipe-manhattan.png" alt="Manhattan recipe page with glass visualization, ingredients, method, and a flavor radar chart" width="850">
 </p>
 
 ### Understand your bar ingredients
 Check off the bottles you actually have: spirits, liqueurs, bitters, mixers. Speakeasy instantly shows which of its 260+ recipes you're ready to make. No guesswork, no digging through a recipe box to find out you're missing one ingredient.
 
 <p align="center">
-  <img src="assets/screenshots/backbar-my-bar.png" alt="Personal backbar screen for checking off the bottles you own" width="850">
+  <img src="public/assets/screenshots/backbar-my-bar.png" alt="Personal backbar screen for checking off the bottles you own" width="850">
 </p>
 
 ### Find out what to buy next
 Speakeasy quietly does the math on your shelf and surfaces the next bottles to expand your home bar by showing which cocktails each bottle unlocks. It's the best way to grow your home bar with intention.
 
 <p align="center">
-  <img src="assets/screenshots/backbar-shopping-list.png" alt="Shopping list showing how many cocktails each new bottle would unlock" width="850">
+  <img src="public/assets/screenshots/backbar-shopping-list.png" alt="Shopping list showing how many cocktails each new bottle would unlock" width="850">
 </p>
 
 ### Riff, substitute, and explore
@@ -47,14 +47,14 @@ Out of Campari? Get a real substitution that keeps the drink balanced instead of
 Find a recipe on a blog, in a book, or scrawled on a napkin and paste the ingredient list in. Speakeasy parses amounts, fractions, and units automatically, then guesses the glass, method, and garnish for you.
 
 <p align="center">
-  <img src="assets/screenshots/quick-paste-ingredients.png" alt="Quick Paste box turning a pasted ingredient list into a parsed recipe" width="600">
+  <img src="public/assets/screenshots/quick-paste-ingredients.png" alt="Quick Paste box turning a pasted ingredient list into a parsed recipe" width="600">
 </p>
 
 ### Plan the whole night's menu
 Building a menu for a party? Pick a handful of cocktails and Speakeasy tallies every bottle and every glass you'll need across the whole lineup, sorted into what's already on your shelf and what you still need to grab.
 
 <p align="center">
-  <img src="assets/screenshots/menu-builder-detail.png" alt="Menu builder showing a cocktail lineup with combined glassware and ingredient checklist" width="850">
+  <img src="public/assets/screenshots/menu-builder-detail.png" alt="Menu builder showing a cocktail lineup with combined glassware and ingredient checklist" width="850">
 </p>
 
 ### Host your party without handing over your phone
@@ -64,7 +64,7 @@ Turn any saved menu into a guest link or QR code. Guests browse picture cards on
 Everything works in your browser, and even better when added to your home screen. Sign in to sync your bar and custom recipes across every device, keep separate setups for a home bar and an office bar, log the drinks you've made, and share a link to any creation you're proud of. Back up your whole library anytime with one export.
 
 <p align="center">
-  <img src="assets/screenshots/app-home-screen.png" alt="Speakeasy home screen, showing a browsable library of classic and modern cocktails" width="850">
+  <img src="public/assets/screenshots/app-home-screen.png" alt="Speakeasy home screen, showing a browsable library of classic and modern cocktails" width="850">
 </p>
 
 ### The little things
