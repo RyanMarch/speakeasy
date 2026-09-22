@@ -394,6 +394,50 @@ export const GLASS_TYPES = {
     stemD: 'M 120 244 L 120 282',
     baseD: 'M 108 288 C 115 285, 125 285, 132 288 L 133 291 C 125 293, 115 293, 107 291 Z',
   },
+
+  shot: {
+    id: 'shot',
+    name: 'Shot Glass',
+    aliases: ['shot', 'shot glass', 'shooter'],
+    canvasBottom: 254,
+    fluidBounds: {
+      bottomY: 206,
+      topY: 116,
+      height: 90,
+      leftX: 80,
+      rightX: 160,
+      width: 80,
+    },
+    fluidClipD: `
+      M 78 116
+      C 96 120, 144 120, 162 116
+      L 156 206
+      C 142 210, 98 210, 84 206
+      Z
+    `,
+    glassOutlineD: `
+      M 74 110
+      L 80 238
+      C 82 242, 90 244, 100 244
+      L 140 244
+      C 150 244, 158 242, 160 238
+      L 166 110
+    `,
+    glassRimD: 'M 74 110 C 94 115, 146 115, 166 110',
+    rim: { leftX: 74, rightX: 166, y: 110 },
+    rimSag: 3.5,
+    stemD: null,
+    baseD: `
+      M 84 206
+      C 98 210, 142 210, 156 206
+      L 158 238
+      C 157 242, 148 244, 138 244
+      L 102 244
+      C 92 244, 83 242, 82 238
+      Z
+    `,
+    sheenD: 'M 80 120 L 85 202',
+  },
 };
 
 export function resolveGlassware(glasswareString = '') {

@@ -50,6 +50,7 @@ const GLASSWARE_PATTERNS = [
   [/wine glass/i, 'Wine'],
   [/tiki mug/i, 'Tiki Mug'],
   [/\b(?:mug|hot toddy(?: glass)?|irish coffee(?: glass)?)\b/i, 'Mug'],
+  [/\b(?:shot(?: glass)?|shooter)\b/i, 'Shot'],
 ];
 
 /**
@@ -167,7 +168,7 @@ function detectIngredientPresenceTags(specs) {
     for (const [family, tag] of FAMILY_PRESENCE_TAGS) {
       if (item.family === family) found.add(tag);
     }
-    if (item.family === 'dairy') found.add('creamy');
+    if (item.family === 'dairy' || item.family === 'cream_liqueur') found.add('creamy');
   }
   return Array.from(found);
 }

@@ -12,7 +12,7 @@
       "Next Steps"
     ],
     "excerpt": "Discover how to explore cocktails, stock your home backbar, and mix drinks with live guidance.",
-    "lastUpdated": "2026-09-21"
+    "lastUpdated": "2026-09-22"
   },
   {
     "id": "backbar-and-inventory",
@@ -27,7 +27,7 @@
       "See Also"
     ],
     "excerpt": "Discover how to track bottles, find instant ready-to-pour recipes, and use the smart shopping list to unlock more drinks.",
-    "lastUpdated": "2026-09-21"
+    "lastUpdated": "2026-09-22"
   },
   {
     "id": "signing-in",
@@ -43,7 +43,7 @@
       "See Also"
     ],
     "excerpt": "Learn how passwordless email sign-in works, how to sync inventory and drinks, and how guest data transfers seamlessly.",
-    "lastUpdated": "2026-09-21"
+    "lastUpdated": "2026-09-22"
   },
   {
     "id": "editing-drinks",
@@ -60,7 +60,7 @@
       "See Also"
     ],
     "excerpt": "Learn how to tweak classic cocktail specs, create original house recipes, manage custom tags, and craft riff variations.",
-    "lastUpdated": "2026-09-21"
+    "lastUpdated": "2026-09-22"
   },
   {
     "id": "hosting-with-guests",
@@ -77,7 +77,7 @@
       "See Also"
     ],
     "excerpt": "Share a menu with guests by link or QR code: they browse, search, take a quiz, and show you what they'd like, all from their own phones.",
-    "lastUpdated": "2026-09-21"
+    "lastUpdated": "2026-09-22"
   },
   {
     "id": "menu-builder",
@@ -96,7 +96,7 @@
       "See Also"
     ],
     "excerpt": "Compose cocktail menus for home parties, tastings, and dinner gatherings, checked against what's in your bar.",
-    "lastUpdated": "2026-09-21"
+    "lastUpdated": "2026-09-22"
   },
   {
     "id": "settings",
@@ -113,6 +113,6 @@
       "See Also"
     ],
     "excerpt": "Configure measurement units, active bar locations, glass render modes, screen wake-lock, and offline JSON backups.",
-    "lastUpdated": "2026-09-21"
+    "lastUpdated": "2026-09-22"
   }
 ]
