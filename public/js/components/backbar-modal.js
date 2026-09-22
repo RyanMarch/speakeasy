@@ -27,6 +27,7 @@ import {
 } from '../modules/taxonomy.js';
 
 import { escapeHtml, showToast, setupDialogLightDismiss } from './toast.js';
+import { refreshReadyMenusForBar } from '../modules/ready-menu.js';
 
 let _updateMyBarBadgeFn = null;
 let _renderRecipeListFn = null;
@@ -115,6 +116,9 @@ export function closeBackbarModal() {
 function persistInventoryAndRefresh() {
   saveInventory(Array.from(state.inventory));
   invalidateInventoryCache();
+  // Brings this bar's Always Ready menu (if it has one) in line with the new
+  // inventory, and pushes the update to its guest link if it's live.
+  refreshReadyMenusForBar();
   if (_updateMyBarBadgeFn) _updateMyBarBadgeFn();
   if (_renderRecipeListFn) _renderRecipeListFn();
   if (state.viewMode === 'counter' && _renderCounterViewFn) {

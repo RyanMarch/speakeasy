@@ -1752,6 +1752,13 @@ export function saveMenu(menu) {
     // When it was last saved: how another device decides which copy is newer.
     updatedAt: Date.now(),
   };
+  // An "Always Ready" menu (see modules/ready-menu.js): its drink list is
+  // computed from a bar's inventory, not picked by hand. `readyBarId` is
+  // permanent — it's never moved by switching bars or adding more of them.
+  if (menu.dynamic === 'ready' && typeof menu.readyBarId === 'string' && menu.readyBarId) {
+    updatedMenu.dynamic = 'ready';
+    updatedMenu.readyBarId = menu.readyBarId;
+  }
   // Guest-link credentials for a published menu (see menu-publish.js).
   // Optional: most menus are never published.
   if (menu.share && typeof menu.share.id === 'string' && typeof menu.share.token === 'string') {

@@ -39,6 +39,12 @@ export function normalizeMenu(raw) {
     createdAt: num(raw.createdAt),
     updatedAt: num(raw.updatedAt),
   };
+  // An "Always Ready" menu (see modules/ready-menu.js): pinned to one bar, whose
+  // id is shared across devices the same way any other bar id is.
+  if (raw.dynamic === 'ready' && typeof raw.readyBarId === 'string' && raw.readyBarId.trim()) {
+    menu.dynamic = 'ready';
+    menu.readyBarId = raw.readyBarId.trim().slice(0, MAX_TEXT);
+  }
   const share = raw.share;
   if (share && typeof share.id === 'string' && typeof share.token === 'string') {
     const dietOverrides = sanitizeDietOverrides(share.dietOverrides);
