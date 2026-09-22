@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 1. Safe configuration lookup from your /docs/ directory
-const configPath = path.join(__dirname, '../docs/docs-config.json');
+const configPath = path.join(__dirname, '../public/docs/docs-config.json');
 if (!fs.existsSync(configPath)) {
     console.error('Error: docs-config.json not found in /docs/. Run this after creating your config.');
     process.exit(1);
@@ -33,7 +33,7 @@ const placeholders = {
 };
 
 const TEMPLATE_DIR = path.join(__dirname, 'templates');
-const TARGET_DIR = path.join(__dirname, '../docs');
+const TARGET_DIR = path.join(__dirname, '../public/docs');
 
 function buildTemplate(fileName) {
     const srcPath = path.join(TEMPLATE_DIR, fileName);

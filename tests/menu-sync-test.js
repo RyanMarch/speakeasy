@@ -8,8 +8,8 @@ class MockLocalStorage {
 }
 Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(), configurable: true, writable: true });
 
-const { mergeMenuSets, normalizeMenu, menuStamp } = await import('../js/modules/menu-merge.js');
-const { saveMenu, getMenus, deleteMenu, getDeletedMenus, buildBackupPayload, importData } = await import('../js/modules/storage.js');
+const { mergeMenuSets, normalizeMenu, menuStamp } = await import('../public/js/modules/menu-merge.js');
+const { saveMenu, getMenus, deleteMenu, getDeletedMenus, buildBackupPayload, importData } = await import('../public/js/modules/storage.js');
 const { onRequestPost, onRequestGet } = await import('../functions/api/sync.js');
 
 console.log('--- Testing saved-menu sync ---');
@@ -79,7 +79,7 @@ const ids = (set) => set.menus.map(m => m.id);
   const names = getMenus().map(m => m.name).sort();
   assert.deepEqual(names, ['Built on the laptop', 'Local only'], 'The laptop menu arrives; the one deleted there is removed');
   assert.ok(getMenus().some(m => m.id === local.id));
-  const { getFoamerPreference } = await import('../js/modules/storage.js');
+  const { getFoamerPreference } = await import('../public/js/modules/storage.js');
   assert.equal(getFoamerPreference(), true, 'The foamer setting arrives too');
   console.log('PASS: pulling brings new menus and deletions across without losing local ones');
 }

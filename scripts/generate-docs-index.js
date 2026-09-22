@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DOCS_DIR = path.join(__dirname, '../docs');
+const DOCS_DIR = path.join(__dirname, '../public/docs');
 const OUTPUT_FILE = path.join(DOCS_DIR, 'search-index.json');
 
 // Load config to dynamically strip project name suffixes

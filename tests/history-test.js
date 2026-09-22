@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { onRequestPost as onRequestPostLog } from '../functions/api/history/log.js';
 import { onRequestGet as onRequestGetList } from '../functions/api/history/list.js';
 import { onRequestPost as onRequestPostUpdate } from '../functions/api/history/update.js';
-import * as historyClient from '../js/modules/history.js';
+import * as historyClient from '../public/js/modules/history.js';
 import { MockD1PreparedStatementBase, createMockD1 } from './test-helpers.js';
 
 console.log('--- Testing /functions/api/history/* and js/modules/history.js ---');

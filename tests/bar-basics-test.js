@@ -6,10 +6,10 @@
  * ingredient rows actually resolve to entries (so the "How to make" link shows).
  */
 
-import { BAR_BASICS, BAR_BASICS_GROUPS, getBarBasic, pickUnit } from '../js/data/bar-basics.js';
-import { formatAmount, formatYield, scaledBrixInputs, BATCH_SCALES } from '../js/modules/bar-basics-format.js';
-import { TAXONOMY, getIngredientMetadata } from '../js/modules/taxonomy.js';
-import { SEED_RECIPES } from '../js/data/seed-recipes.js';
+import { BAR_BASICS, BAR_BASICS_GROUPS, getBarBasic, pickUnit } from '../public/js/data/bar-basics.js';
+import { formatAmount, formatYield, scaledBrixInputs, BATCH_SCALES } from '../public/js/modules/bar-basics-format.js';
+import { TAXONOMY, getIngredientMetadata } from '../public/js/modules/taxonomy.js';
+import { SEED_RECIPES } from '../public/js/data/seed-recipes.js';
 
 let failed = false;
 function assert(condition, message) {

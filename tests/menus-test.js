@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { onRequestPost } from '../functions/api/menus/index.js';
 import { onRequestGet, onRequestPut, onRequestDelete } from '../functions/api/menus/[id].js';
 import { onRequestGet as onRequestGetMenuPage } from '../functions/menu/[id].js';
-import { parseMenuCode, rememberGuestMenu, recallGuestMenu, forgetGuestMenu } from '../js/modules/menu-publish.js';
+import { parseMenuCode, rememberGuestMenu, recallGuestMenu, forgetGuestMenu } from '../public/js/modules/menu-publish.js';
 
 class MockLocalStorage {
   constructor() { this.store = new Map(); }
@@ -273,7 +273,7 @@ let token;
 
 // Test 11: a menu's saved share keeps both its Out list and its picks
 {
-  const { saveMenu, getMenus, setMenuShare } = await import('../js/modules/storage.js');
+  const { saveMenu, getMenus, setMenuShare } = await import('../public/js/modules/storage.js');
   const saved = saveMenu({ name: 'Party', recipeIds: ['a', 'b', 'c'], share: { id: 'AAAAAAAAAA', token: 'tok', outIds: ['a'], featuredIds: ['b', 'c'] } });
   assert.deepEqual(getMenus().find(m => m.id === saved.id).share, { id: 'AAAAAAAAAA', token: 'tok', outIds: ['a'], featuredIds: ['b', 'c'] });
   setMenuShare(saved.id, { id: 'AAAAAAAAAA', token: 'tok', outIds: [], featuredIds: ['c'] });

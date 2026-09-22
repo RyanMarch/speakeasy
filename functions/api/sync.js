@@ -7,8 +7,8 @@
 import { jsonResponse } from './_lib/http.js';
 import { requireSession } from './_lib/auth.js';
 import { mapRecipeRow } from './_lib/recipes.js';
-import { mergeMenuSets } from '../../js/modules/menu-merge.js';
-import { mergeInventory } from '../../js/modules/inventory-merge.js';
+import { mergeMenuSets } from '../../public/js/modules/menu-merge.js';
+import { mergeInventory } from '../../public/js/modules/inventory-merge.js';
 
 function parseSettings(value) {
   if (!value) return {};

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { SEED_RECIPES } from '../js/data/seed-recipes.js';
-import { buildSearchIndex, searchRecipes, MIN_QUERY_LENGTH } from '../js/modules/guest-search.js';
-import { findIngredient } from '../js/modules/taxonomy.js';
+import { SEED_RECIPES } from '../public/js/data/seed-recipes.js';
+import { buildSearchIndex, searchRecipes, MIN_QUERY_LENGTH } from '../public/js/modules/guest-search.js';
+import { findIngredient } from '../public/js/modules/taxonomy.js';
 
 console.log('--- Testing guest search over the bundled library ---');
 

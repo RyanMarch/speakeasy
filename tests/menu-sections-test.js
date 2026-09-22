@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { SEED_RECIPES } from '../js/data/seed-recipes.js';
-import { groupBySpirit, sectionKeyFor, shouldUseSections, MIN_DRINKS_FOR_SECTIONS, OTHER_SECTION } from '../js/modules/menu-sections.js';
+import { SEED_RECIPES } from '../public/js/data/seed-recipes.js';
+import { groupBySpirit, sectionKeyFor, shouldUseSections, MIN_DRINKS_FOR_SECTIONS, OTHER_SECTION } from '../public/js/modules/menu-sections.js';
 
 console.log('--- Testing menu sections ---');
 

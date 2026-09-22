@@ -30,9 +30,9 @@ class MockLocalStorage {
 const mockStorage = new MockLocalStorage();
 globalThis.localStorage = mockStorage;
 
-const storageMod = await import('../js/modules/storage.js');
+const storageMod = await import('../public/js/modules/storage.js');
 const { getSortPreference, saveSortPreference } = storageMod;
-const { calculateCocktailAbv, calculateCocktailCalories } = await import('../js/modules/abv.js');
+const { calculateCocktailAbv, calculateCocktailCalories } = await import('../public/js/modules/abv.js');
 
 test('Sort preference persistence and validation', () => {
   mockStorage.clear();
