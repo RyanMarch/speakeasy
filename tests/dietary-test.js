@@ -11,10 +11,10 @@ Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(
 const {
   detectDiet, dietFor, hasEggSwap, usesFoamer, applyBarDiet, flagsOnMenu, clashesWith, needsEggSwap, orderedAs,
   loadAvoid, saveAvoid, LIBRARY_AVOID_KEY, sanitizeDietOverride, sanitizeDietOverrides,
-} = await import('../js/modules/dietary.js');
-const { SEED_RECIPES } = await import('../js/data/seed-recipes.js');
-const { getIngredientSubstitutes } = await import('../js/modules/taxonomy.js');
-const { dietNotesHtml } = await import('../js/components/diet-notes.js');
+} = await import('../public/js/modules/dietary.js');
+const { SEED_RECIPES } = await import('../public/js/data/seed-recipes.js');
+const { getIngredientSubstitutes } = await import('../public/js/modules/taxonomy.js');
+const { dietNotesHtml } = await import('../public/js/components/diet-notes.js');
 const { sanitizeMenuRecipes, sanitizeDiet } = await import('../functions/api/menus/_lib.js');
 
 console.log('--- Testing dietary flags ---');
@@ -190,7 +190,7 @@ const drink = (names, extra = {}) => ({ id: 'x', name: 'X', specs: names.map(nam
 }
 
 {
-  const { getFoamerPreference, saveFoamerPreference } = await import('../js/modules/storage.js');
+  const { getFoamerPreference, saveFoamerPreference } = await import('../public/js/modules/storage.js');
   assert.equal(getFoamerPreference(), false, 'Off until the bartender turns it on');
   assert.equal(saveFoamerPreference(true), true);
   assert.equal(getFoamerPreference(), true);

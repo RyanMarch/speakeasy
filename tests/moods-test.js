@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { SEED_RECIPES } from '../js/data/seed-recipes.js';
-import { MOODS, getRecipeMoods, summarizeMoods } from '../js/modules/moods.js';
+import { SEED_RECIPES } from '../public/js/data/seed-recipes.js';
+import { MOODS, getRecipeMoods, summarizeMoods } from '../public/js/modules/moods.js';
 
 console.log('--- Testing mood coverage over the bundled library ---');
 

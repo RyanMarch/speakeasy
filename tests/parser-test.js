@@ -1,8 +1,8 @@
-import { parseIngredientLine, parseSpecsBlock, extractGarnishLine, formatFraction, parseMethodContent, convertUnitAmount, formatIngredientName } from '../js/modules/parser.js';
+import { parseIngredientLine, parseSpecsBlock, extractGarnishLine, formatFraction, parseMethodContent, convertUnitAmount, formatIngredientName } from '../public/js/modules/parser.js';
 import assert from 'node:assert/strict';
-import { calculateFluidLayers, normalizeVolumeToOz } from '../js/modules/colors.js';
-import { resolveGlassware } from '../js/modules/glassware.js';
-import { calculateCocktailAbv, estimateIngredientAbv, calculateCocktailCalories } from '../js/modules/abv.js';
+import { calculateFluidLayers, normalizeVolumeToOz } from '../public/js/modules/colors.js';
+import { resolveGlassware } from '../public/js/modules/glassware.js';
+import { calculateCocktailAbv, estimateIngredientAbv, calculateCocktailCalories } from '../public/js/modules/abv.js';
 
 console.log('--- Testing Parser ---');
 const testCases = [
@@ -154,8 +154,8 @@ console.log('Fluid layers count:', seaLegsLayers.length);
 const seaLegsAbv = calculateCocktailAbv(seaLegsSpecs, 'Shaken');
 console.log('Sea Legs ABV (Shaken):', seaLegsAbv.estimatedAbv, '% (Rounded:', Math.round(seaLegsAbv.estimatedAbv), '%)');
 
-import { findIngredient, getIngredientMetadata, ingredientMatchesQuery, recipeMatchesQuery, calculateRecipeSearchScore } from '../js/modules/taxonomy.js';
-import { getIngredientColor } from '../js/modules/colors.js';
+import { findIngredient, getIngredientMetadata, ingredientMatchesQuery, recipeMatchesQuery, calculateRecipeSearchScore } from '../public/js/modules/taxonomy.js';
+import { getIngredientColor } from '../public/js/modules/colors.js';
 
 console.log('--- Testing Taxonomy & Alias Resolution ---');
 const orgeatMatch = findIngredient('Almond Orgeat Syrup');
@@ -216,7 +216,7 @@ const bourbonAbv = estimateIngredientAbv('High-Rye Bourbon');
 console.log('High-Rye Bourbon ABV:', bourbonAbv);
 if (bourbonAbv !== 45) throw new Error('Expected 45% ABV for Bourbon');
 
-import { getIngredientSubstitutes } from '../js/modules/taxonomy.js';
+import { getIngredientSubstitutes } from '../public/js/modules/taxonomy.js';
 
 console.log('--- Testing Smart Ingredient Swapper (Riff Substitutes) ---');
 const bourbonSubs = getIngredientSubstitutes('Bourbon');
@@ -413,8 +413,8 @@ const whiteWineFridgeMatch = ingredientMatchesQuery('Sauvignon Blanc', 'fridge')
 if (!whiteWineFridgeMatch) throw new Error('Sauvignon Blanc should match "fridge" search');
 
 console.log('--- Testing Bidirectional Cocktail Riffs & Similar Cocktails ---');
-import { findSimilarCocktails } from '../js/modules/taxonomy.js';
-import { SEED_RECIPES } from '../js/modules/storage.js';
+import { findSimilarCocktails } from '../public/js/modules/taxonomy.js';
+import { SEED_RECIPES } from '../public/js/modules/storage.js';
 
 const negroni = SEED_RECIPES.find(r => r.id === 'negroni');
 const boulevardier = SEED_RECIPES.find(r => r.id === 'boulevardier');
@@ -458,7 +458,7 @@ if (!parentMatch || parentMatch.relation !== 'Original') throw new Error('White 
 if (!siblingMatch || siblingMatch.relation !== 'Riff') throw new Error('White Negroni should have Boulevardier as Riff');
 
 // Test Lineage Detection on Named Riffs without explicit riffOfId (e.g. user screenshot)
-import { getRecipeRiffLineage } from '../js/modules/taxonomy.js';
+import { getRecipeRiffLineage } from '../public/js/modules/taxonomy.js';
 const userRiff = {
   id: 'rec_user_saved',
   name: 'Old Fashioned (Scotch Whisky / Maple Syrup Riff)',
@@ -483,8 +483,8 @@ if (!userRiffMatch) throw new Error('User riff should appear in Old Fashioned si
 if (userRiffMatch.relation !== 'Riff') throw new Error(`User riff should have relation 'Riff', got ${userRiffMatch.relation}`);
 if (userRiffMatch.badgeClass !== 'badge-riff') throw new Error(`User riff should have badgeClass 'badge-riff', got ${userRiffMatch.badgeClass}`);
 
-import { checkIngredientStock, analyzeRecipeInventory } from '../js/modules/taxonomy.js';
-import { DEFAULT_STARTER_BAR } from '../js/modules/storage.js';
+import { checkIngredientStock, analyzeRecipeInventory } from '../public/js/modules/taxonomy.js';
+import { DEFAULT_STARTER_BAR } from '../public/js/modules/storage.js';
 
 console.log('--- Testing Backbar Inventory & Bottle Next Engine ---');
 
@@ -589,7 +589,7 @@ if (ofSubAnalysis.bestSubstitute?.id !== 'maple_syrup') {
 console.log('In-Stock Substitute Recommendation verified:', ofSubAnalysis.bestSubstitute.name, 'for', ofSubAnalysis.missingWithSub.name);
 
 console.log('--- Testing Arbitrary Tags & Lists Engine ---');
-import { getAllUniqueTags, saveRecipe as testSaveRecipe } from '../js/modules/storage.js';
+import { getAllUniqueTags, saveRecipe as testSaveRecipe } from '../public/js/modules/storage.js';
 
 // 1. getAllUniqueTags extraction, normalization and sorting
 const mockRecipesWithTags = [
@@ -714,7 +714,7 @@ console.log('Search relevance scoring and ranking verified.');
 
 
 console.log('--- Testing URL-Safe Slug Generation ---');
-import { slugifyRecipeName } from '../js/modules/storage.js';
+import { slugifyRecipeName } from '../public/js/modules/storage.js';
 
 const slug1 = slugifyRecipeName('Scotch Old Fashioned');
 if (slug1 !== 'scotch-old-fashioned') {
@@ -789,8 +789,8 @@ if (parsedProse.type !== 'prose' || parsedProse.items.length !== 1 || parsedPros
 console.log('Method list detection tests passed.');
 
 console.log('--- Testing Garnish Resolution & Vector Rendering ---');
-const { resolveGarnishTypes, renderGarnishesSvg } = await import('../js/modules/garnishes.js');
-const { GLASS_TYPES } = await import('../js/modules/glassware.js');
+const { resolveGarnishTypes, renderGarnishesSvg } = await import('../public/js/modules/garnishes.js');
+const { GLASS_TYPES } = await import('../public/js/modules/glassware.js');
 
 const garnishCases = [
   { input: 'Lime wheel', expected: ['limeWheel'] },
@@ -931,8 +931,8 @@ if (!blueCuracaoMeta || blueCuracaoMeta.id !== 'blue_curacao' || blueCuracaoMeta
 }
 console.log('Blue Curaçao taxonomy resolution verified:', blueCuracaoMeta.id, blueCuracaoMeta.color);
 
-const { calculateBlendedColor } = await import('../js/modules/colors.js');
-const { renderGlassSvg } = await import('../js/modules/glass-view.js');
+const { calculateBlendedColor } = await import('../public/js/modules/colors.js');
+const { renderGlassSvg } = await import('../public/js/modules/glass-view.js');
 
 const blueHawaiiSpecs = [
   { amount: 1, unit: 'oz', name: 'Light Rum' },
@@ -967,7 +967,7 @@ if (blendedAperol.color !== '#f4621b') {
   throw new Error(`Expected Aperol Spritz mixed color to be #f4621b, got ${blendedAperol.color}`);
 }
 
-const { FEATURED_COCKTAILS } = await import('../js/data/featured-cocktails.js');
+const { FEATURED_COCKTAILS } = await import('../public/js/data/featured-cocktails.js');
 const aperolFeatured = FEATURED_COCKTAILS.find(c => c.id === 'aperol-spritz');
 if (!aperolFeatured || !aperolFeatured.svg.includes('fluid-effervescence')) {
   throw new Error('Expected Aperol Spritz featured cocktail SVG to include fluid-effervescence bubbles');
@@ -986,7 +986,7 @@ const {
   hideRecipe,
   unhideRecipe,
   unhideAllRecipes,
-} = await import('../js/modules/storage.js');
+} = await import('../public/js/modules/storage.js');
 
 // Mock localStorage if in node environment
 if (typeof globalThis.localStorage === 'undefined') {
@@ -1016,7 +1016,7 @@ if (getHiddenRecipeIds().length !== 1) throw new Error('Expected 1 hidden recipe
 unhideAllRecipes();
 if (getHiddenRecipeIds().length !== 0) throw new Error('Expected 0 hidden recipes after unhideAll');
 
-const { getRecipes } = await import('../js/modules/storage.js');
+const { getRecipes } = await import('../public/js/modules/storage.js');
 const baseRecipesCount = getRecipes().length;
 hideRecipe('negroni');
 const recipesAfterHide = getRecipes();
@@ -1033,7 +1033,7 @@ if (getRecipes().length !== baseRecipesCount) {
 console.log('Hidden recipe storage and toggle tests passed.');
 
 console.log('--- Testing Flavor Balance Engine ---');
-const { calculateBalanceProfile, getDominantAxes, FLAVOR_AXES } = await import('../js/modules/balance.js');
+const { calculateBalanceProfile, getDominantAxes, FLAVOR_AXES } = await import('../public/js/modules/balance.js');
 
 // Every axis should always be a 0-100 integer, for any recipe's specs.
 const negroniSeed = SEED_RECIPES.find(r => r.id === 'negroni');
@@ -1097,7 +1097,7 @@ for (const axis of FLAVOR_AXES) {
 console.log('Flavor balance engine tests passed.');
 
 console.log('--- Testing Smart Counter Timer Instruction Parser ---');
-const { detectTimers, renderInstructionTimers } = await import('../js/modules/parser.js');
+const { detectTimers, renderInstructionTimers } = await import('../public/js/modules/parser.js');
 
 // Test single durations
 const timer30 = detectTimers('Stir thoroughly for 30 seconds until well-chilled.');
@@ -1154,7 +1154,7 @@ if (!renderedTokenHtml.includes('<button type="button" class="timer-token" data-
 console.log('Smart Counter Timer instruction parser tests passed.');
 
 console.log('--- Testing Palate Distance & Similarity Calculation ---');
-const { calculatePalateSimilarity } = await import('../js/modules/balance.js');
+const { calculatePalateSimilarity } = await import('../public/js/modules/balance.js');
 
 // 1. Identical recipes must yield 100% similarity
 const negroniPalateMatchSelf = calculatePalateSimilarity(negroniSeed, negroniSeed);
@@ -1199,7 +1199,7 @@ if (calculatePalateSimilarity(null, negroniSeed) !== 0 || calculatePalateSimilar
 }
 
 // 5. Plain English palate match descriptor tests
-const { formatPalateMatchLabel } = await import('../js/views/counter-view.js');
+const { formatPalateMatchLabel } = await import('../public/js/views/counter-view.js');
 const highTier = formatPalateMatchLabel(97);
 if (!highTier || highTier.label !== 'Close Match' || highTier.tierClass !== 'match-high') {
   throw new Error(`Expected Close Match / match-high for 97%, got ${JSON.stringify(highTier)}`);
@@ -1228,7 +1228,7 @@ if (!boundary80 || boundary80.label !== 'Similar Vibe') {
 console.log('Palate distance and similarity tests passed.');
 
 console.log('--- Testing Ranked Bar Unlock Shopping List Engine ---');
-const { getRankedShoppingList } = await import('../js/modules/taxonomy.js');
+const { getRankedShoppingList } = await import('../public/js/modules/taxonomy.js');
 
 // 1. Controlled mock catalog test
 const mockRecipes = [
@@ -1332,7 +1332,7 @@ console.log(`Top recommended bottle to buy for Starter Bar: ${canonicalShoppingL
 console.log('Ranked Bar Unlock Shopping List tests passed.');
 
 console.log('--- Testing Backup Export/Import (v2 Schema, v1 back-compat) ---');
-const { buildBackupPayload, importData, saveRecipes, saveInventory, getInventory, getUnitPreference, getActiveBarId, getBars, saveBars, sanitizeImportedRecipes } = await import('../js/modules/storage.js');
+const { buildBackupPayload, importData, saveRecipes, saveInventory, getInventory, getUnitPreference, getActiveBarId, getBars, saveBars, sanitizeImportedRecipes } = await import('../public/js/modules/storage.js');
 
 const customRiff = {
   id: 'test-custom-riff',

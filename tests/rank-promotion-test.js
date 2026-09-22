@@ -56,8 +56,8 @@ globalThis.document = {
 
 console.log('--- Testing Mixologist Rank-Up Banner Coalescing ---');
 
-const stateMod = await import('../js/state.js');
-const topBarMod = await import('../js/components/top-bar.js');
+const stateMod = await import('../public/js/state.js');
+const topBarMod = await import('../public/js/components/top-bar.js');
 
 const HISTORY_STORAGE_KEY = 'speakeasy_drink_history';
 

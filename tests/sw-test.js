@@ -10,7 +10,7 @@ import path from 'path';
 import vm from 'vm';
 import { fileURLToPath } from 'url';
 
-const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 let failed = false;
 
 function assert(condition, message) {

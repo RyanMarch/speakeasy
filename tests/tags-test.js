@@ -20,9 +20,9 @@ class MockLocalStorage {
 }
 Object.defineProperty(globalThis, 'localStorage', { value: new MockLocalStorage(), configurable: true, writable: true });
 
-const { SEED_RECIPES } = await import('../js/data/seed-recipes.js');
-const { normalizeTagName, getPinnedTags, savePinnedTags } = await import('../js/modules/storage.js');
-const { detectTagsFromRecipe } = await import('../js/modules/auto-detect.js');
+const { SEED_RECIPES } = await import('../public/js/data/seed-recipes.js');
+const { normalizeTagName, getPinnedTags, savePinnedTags } = await import('../public/js/modules/storage.js');
+const { detectTagsFromRecipe } = await import('../public/js/modules/auto-detect.js');
 
 console.log('--- Testing tag vocabulary ---');
 

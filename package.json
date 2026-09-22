@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx wrangler pages dev . --d1=speakeasy_db=speakeasy-db --port 8789",
-    "lint:syntax": "node --check app.js sw.js js/*.js js/**/*.js functions/api/*.js functions/api/**/*.js functions/share/*.js functions/share/**/*.js functions/drink/*.js functions/drink/**/*.js 2>/dev/null || true",
+    "dev": "npx wrangler pages dev public --d1=speakeasy_db=speakeasy-db --port 8789",
+    "lint:syntax": "node --check public/app.js public/sw.js public/js/*.js public/js/**/*.js functions/api/*.js functions/api/**/*.js functions/share/*.js functions/share/**/*.js functions/drink/*.js functions/drink/**/*.js 2>/dev/null || true",
     "d1:migrate:local": "wrangler d1 execute speakeasy-db --local --file=./migrations/schema.sql",
     "d1:migrate:apply:local": "wrangler d1 migrations apply speakeasy-db --local",
     "d1:migrate:apply:remote": "wrangler d1 migrations apply speakeasy-db --remote",

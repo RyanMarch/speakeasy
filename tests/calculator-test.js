@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { calculateBatch, calculateAcidAdjustment, calculateBrix, getMethodDilutionRate } from '../js/modules/calculators.js';
+import { calculateBatch, calculateAcidAdjustment, calculateBrix, getMethodDilutionRate } from '../public/js/modules/calculators.js';
 
 console.log('--- Testing js/modules/calculators.js ---');
 

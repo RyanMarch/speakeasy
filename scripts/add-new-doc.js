@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load configurations dynamically from docs-config.json
-const configPath = path.join(__dirname, '../docs/docs-config.json');
+const configPath = path.join(__dirname, '../public/docs/docs-config.json');
 const config = fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf-8')) : {};
 const projectName = config.projectName || 'Speakeasy';
 const baseUrl = (config.baseUrl || 'https://speakeasy.ryanmarch.me').replace(/\/$/, '');
@@ -29,7 +29,7 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-const DOCS_DIR = path.join(__dirname, '../docs');
+const DOCS_DIR = path.join(__dirname, '../public/docs');
 
 function askQuestion(query) {
     return new Promise(resolve => rl.question(query, resolve));
