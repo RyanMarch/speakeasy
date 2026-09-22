@@ -55,6 +55,7 @@ import { getBarBasic } from '../data/bar-basics.js';
 import { dietNotesHtml } from '../components/diet-notes.js';
 import { applyBarDiet } from '../modules/dietary.js';
 import { canAddToMenu, startAddToMenu } from './add-to-menu.js';
+import { refreshReadyMenusForBar } from '../modules/ready-menu.js';
 import { openPrintWindow, renderBrandRow, renderCardFooterHtml } from '../components/print-window.js';
 
 let _selectRecipeFn = null;
@@ -1389,6 +1390,7 @@ export function renderCounterView() {
         state.inventory.add(bottleId);
         saveInventory(Array.from(state.inventory));
         invalidateInventoryCache();
+        refreshReadyMenusForBar();
         if (_updateMyBarBadgeFn) _updateMyBarBadgeFn();
         if (_renderRecipeListFn) _renderRecipeListFn();
         renderCounterView();

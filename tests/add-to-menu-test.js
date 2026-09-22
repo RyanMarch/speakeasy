@@ -30,7 +30,14 @@ const drink = (id, name = id) => ({ id, name, glassware: 'Coupe', method: 'Shake
   assert.equal(canAddToMenu(), true, 'Signed in with a menu');
   clearMenus();
   assert.equal(canAddToMenu(), false, 'Signed in but no menus: nothing to add to');
-  console.log('PASS: Add to Menu is offered only when signed in and there is a menu');
+
+  // An Always Ready menu's list is computed automatically — never a target.
+  saveMenu({ id: 'menu-ready-test', name: 'Always Ready', recipeIds: ['a'], dynamic: 'ready', readyBarId: 'bar-1' });
+  assert.equal(canAddToMenu(), false, 'A Ready menu alone offers nothing to add to by hand');
+  saveMenu({ id: 'menu-manual-test', name: 'Party', recipeIds: ['a'] });
+  assert.equal(canAddToMenu(), true, 'A manual menu alongside it is offered');
+  assert.equal((await addRecipeToMenu(drink('z'), 'menu-ready-test')).status, 'missing', 'Directly targeting a Ready menu is refused, same as one that does not exist');
+  console.log('PASS: Add to Menu is offered only when signed in and there is a menu, and skips Always Ready menus');
 }
 
 // Adding to a plain (never published) menu.

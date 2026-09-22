@@ -46,6 +46,14 @@ const ids = (set) => set.menus.map(m => m.id);
   assert.deepEqual(ids(cleaned), ['ok']);
   const withShare = normalizeMenu(menu('s', { share: { id: 'velvet-smoky-nightcap', token: 't', outIds: ['a'], featuredIds: [], dietOverrides: { a: { nuts: 'none', x: 1 } } } }));
   assert.deepEqual(withShare.share.dietOverrides, { a: { nuts: 'none' } }, 'Guest-link credentials travel with the menu, cleaned');
+
+  // An Always Ready menu's bar pointer travels the same way, and only for a real one.
+  const readyMenu = normalizeMenu(menu('r', { dynamic: 'ready', readyBarId: 'bar-1' }));
+  assert.deepEqual({ dynamic: readyMenu.dynamic, readyBarId: readyMenu.readyBarId }, { dynamic: 'ready', readyBarId: 'bar-1' });
+  assert.equal('dynamic' in normalizeMenu(menu('r2', { dynamic: 'ready' })), false, 'dynamic with no bar id is dropped');
+  assert.equal('dynamic' in normalizeMenu(menu('r3', { dynamic: 'whatever', readyBarId: 'bar-1' })), false, 'Only "ready" is a recognized kind');
+  const readyMerge = mergeMenuSets({ menus: [menu('r', { dynamic: 'ready', readyBarId: 'bar-1', updatedAt: 5 })] }, { menus: [menu('r', { updatedAt: 1 })] });
+  assert.equal(readyMerge.menus[0].dynamic, 'ready', 'The winning (newer) copy keeps its own dynamic marker');
   console.log('PASS: menu copies merge by id, newest wins, and deletions stick until saved again');
 }
 
