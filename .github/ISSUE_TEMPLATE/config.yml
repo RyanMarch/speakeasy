@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Launch Speakeasy
+    url: https://speakeasy.ryanmarch.me
+    about: Open the live web app on your phone, tablet, or desktop
+  - name: GitHub Discussions
+    url: https://github.com/RyanMarch/speakeasy/discussions
+    about: Share custom cocktail recipes, bar cart setups, or ask general questions
