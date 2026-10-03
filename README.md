@@ -37,7 +37,7 @@ When recipes show how long to shake or stir, you'll see an inline button to imme
 </p>
 
 ### Understand your bar ingredients
-Check off the bottles you actually have: spirits, liqueurs, bitters, mixers. Speakeasy instantly shows which of its 280+ recipes you're ready to make. No guesswork, no digging through a recipe box to find out you're missing one ingredient.
+Check off the bottles you actually have: spirits, liqueurs, bitters, mixers. Speakeasy instantly shows which of its 300+ recipes you're ready to make.
 
 <p align="center">
   <a href="https://speakeasy.ryanmarch.me/">
